@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Upload Soal | KlinikFisikapku</title>
+<style>
+  :root{
+    --ungu-tua:#3d1a63;
+    --ungu:#7b2ff7;
+    --pink:#f857a6;
+    --pink-muda:#ffd9ec;
+    --bg:#fdf9ff;
+    --abu:#6b6478;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background:var(--bg);
+    color:#2b1a3d;
+    padding:40px 16px;
+  }
+  .wrap{ max-width:520px; margin:0 auto; }
+
+  h1{ color:var(--ungu-tua); font-size:24px; margin-bottom:6px; }
+  .sub{ color:var(--abu); font-size:14px; margin-bottom:28px; }
+
+  .card{
+    background:#fff;
+    border:1px solid #f0e2fa;
+    border-radius:18px;
+    padding:26px;
+    margin-bottom:20px;
+    box-shadow:0 6px 16px rgba(123,47,247,0.06);
+  }
+  .card h2{
+    font-size:15px;
+    color:var(--ungu-tua);
+    margin-bottom:14px;
+  }
+
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ungu-tua);
+    margin-bottom:6px;
+    margin-top:14px;
+  }
+  label:first-of-type{ margin-top:0; }
+
+  input[type=text], input[type=password], input[type=date], input[type=file], select{
+    width:100%;
+    padding:11px 14px;
+    border:1px solid #ecdcf7;
+    border-radius:10px;
+    font-size:14px;
+    font-family:inherit;
+    background:#fdfaff;
+  }
+  select{ appearance:auto; cursor:pointer; }
+  input:focus, select:focus{ outline:2px solid var(--pink); border-color:var(--pink); }
+
+  .jenjang-row{
+    display:flex;
+    gap:8px;
+    margin-top:6px;
+  }
+  .jenjang-row label.pill{
+    flex:1;
+    margin:0;
+    text-align:center;
+    font-weight:700;
+    font-size:13px;
+    color:var(--ungu-tua);
+    background:#fdfaff;
+    border:1px solid #ecdcf7;
+    border-radius:999px;
+    padding:10px 8px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .jenjang-row input[type=radio]{
+    display:none;
+  }
+  .jenjang-row input[type=radio]:checked + label.pill{
+    background:linear-gradient(90deg, var(--pink), var(--ungu));
+    color:#fff;
+    border-color:transparent;
+  }
+
+  .checkbox-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:14px;
+    font-size:13px;
+    color:var(--abu);
+  }
+  .checkbox-row input{ width:auto; }
+
+  button{
+    width:100%;
+    margin-top:22px;
+    background:var(--pink);
+    color:#fff;
+    font-weight:700;
+    font-size:14px;
+    padding:13px;
+    border:none;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  button:hover{ background:var(--ungu); }
+  button:disabled{ background:#d9c8e8; cursor:not-allowed; }
+
+  button.secondary{
+    background:#fff;
+    color:var(--ungu-tua);
+    border:1.5px solid var(--ungu);
+    margin-top:12px;
+  }
+  button.secondary:hover{ background:var(--pink-muda); }
+
+  .status{
+    margin-top:16px;
+    font-size:13px;
+    padding:12px 14px;
+    border-radius:10px;
+    display:none;
+    white-space:pre-line;
+  }
+  .status.ok{ background:#eafaf0; color:#1a7a44; display:block; }
+  .status.err{ background:#fdeaea; color:#b02a2a; display:block; }
+  .status.loading{ background:var(--pink-muda); color:var(--ungu-tua); display:block; }
+
+  .note{
+    font-size:12px;
+    color:var(--abu);
+    line-height:1.6;
+  }
+  a{ color:var(--pink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Upload Soal &amp; Pembahasan</h1>
+  <div class="sub">Halaman ini khusus untuk Sir Ady — jangan dibagikan link-nya ke orang lain.</div>
+
+  <div class="card">
+    <h2>1. Koneksi ke GitHub (isi sekali saja)</h2>
+    <label>Username GitHub</label>
+    <input type="text" id="ghUser" placeholder="contoh: adykristo">
+
+    <label>Nama Repository</label>
+    <input type="text" id="ghRepo" placeholder="contoh: klinikfisikapku-site">
+
+    <label>Branch</label>
+    <input type="text" id="ghBranch" value="main">
+
+    <label>Personal Access Token</label>
+    <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="rememberMe" checked>
+      <label style="margin:0; font-weight:400;">Ingat data ini di browser ini</label>
+    </div>
+
+    <button type="button" id="testBtn" class="secondary">Test Koneksi ke GitHub</button>
+    <div id="statusTest" class="status"></div>
+
+    <p class="note" style="margin-top:12px;">
+      Token dibuat di GitHub: Settings → Developer settings → Fine-grained tokens →
+      pilih repo ini → beri akses <strong>Contents: Read and write</strong>.
+      Token hanya tersimpan di browser Sir Ady, tidak ikut ter-upload ke repo.
+      <br><br>
+      <strong>Tips:</strong> selalu klik "Test Koneksi" dulu sebelum upload soal.
+      Kalau test-nya gagal dengan pesan "Gagal terhubung", coba matikan
+      sementara ad-blocker/VPN di browser, atau coba di jaringan lain.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>2. Soal &amp; Pembahasan (2 gambar)</h2>
+
+    <label>Jenjang</label>
+    <div class="jenjang-row">
+      <input type="radio" name="jenjangS" id="jenjangSD" value="sd" checked>
+      <label class="pill" for="jenjangSD">SD</label>
+
+      <input type="radio" name="jenjangS" id="jenjangSMP" value="smp">
+      <label class="pill" for="jenjangSMP">SMP</label>
+
+      <input type="radio" name="jenjangS" id="jenjangSMA" value="sma">
+      <label class="pill" for="jenjangSMA">SMA</label>
+    </div>
+
+    <label>Judul Soal</label>
+    <input type="text" id="titleS" placeholder="contoh: Soal No 1 - Dinamika Bola">
+
+    <label>Topik</label>
+    <input type="text" id="topikS" placeholder="contoh: Dinamika Partikel">
+
+    <label>Tanggal</label>
+    <input type="date" id="tanggalS">
+
+    <label>File Gambar Soal</label>
+    <input type="file" id="fileSoal" accept="image/*">
+
+    <label>File Gambar Pembahasan</label>
+    <input type="file" id="fileSolusi" accept="image/*">
+
+    <button id="submitBtnS">Upload &amp; Tampilkan di Web</button>
+    <div id="statusS" class="status"></div>
+  </div>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+$('tanggalS').valueAsDate = new Date();
+
+['ghUser','ghRepo','ghBranch','ghToken'].forEach(id => {
+  const saved = localStorage.getItem('kf_' + id);
+  if (saved) $(id).value = saved;
+});
+
+function saveIfRemember() {
+  if (!$('rememberMe').checked) return;
+  ['ghUser','ghRepo','ghBranch','ghToken'].forEach(id => {
+    localStorage.setItem('kf_' + id, $(id).value);
+  });
+}
+
+function getCfg() {
+  return {
+    user: $('ghUser').value.trim(),
+    repo: $('ghRepo').value.trim(),
+    branch: $('ghBranch').value.trim() || 'main',
+    token: $('ghToken').value.trim()
+  };
+}
+
+function getJenjang() {
+  const checked = document.querySelector('input[name="jenjangS"]:checked');
+  return checked ? checked.value : 'sd';
+}
+
+function toBase64Unicode(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function fromBase64Unicode(str) {
+  return decodeURIComponent(escape(atob(str)));
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/*
+  ghRequest sekarang membungkus fetch() dengan try-catch supaya kalau
+  koneksinya gagal total (bukan salah token/repo, tapi memang tidak
+  nyampe ke server GitHub sama sekali — biasanya karena internet
+  putus, ad-blocker, atau VPN yang aneh), pesan errornya jelas dan
+  beda dari error "token salah" / "repo tidak ditemukan".
+*/
+async function ghRequest(path, options, cfg) {
+  const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${path}`;
+  let res;
+  try {
+    res = await fetch(url, {
+      ...options,
+      cache: 'no-store',
+      headers: {
+        'Authorization': `Bearer ${cfg.token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      }
+    });
+  } catch (networkErr) {
+    throw new Error(
+      'Gagal terhubung ke GitHub (bukan masalah token/repo, tapi koneksi).\n' +
+      'Coba: (1) cek internet masih nyala, (2) matikan sementara ad-blocker/VPN di browser, ' +
+      '(3) coba refresh halaman lalu ulangi.'
+    );
+  }
+  return res;
+}
+
+// Ambil manifest terbaru langsung dari GitHub (tanpa cache) dan kembalikan { list, sha }
+async function fetchManifest(cfg) {
+  const manifestRes = await ghRequest(`data/manifest-soal.json?ref=${cfg.branch}&_=${Date.now()}`, { method: 'GET' }, cfg);
+  if (!manifestRes.ok) {
+    if (manifestRes.status === 404) {
+      throw new Error('File data/manifest-soal.json tidak ditemukan di repo. Pastikan sudah diupload ke folder "data/" dengan isi awal: []');
+    }
+    if (manifestRes.status === 401) {
+      throw new Error('Token ditolak (401). Token salah, sudah expired, atau tidak punya akses "Contents: Read and write" ke repo ini.');
+    }
+    if (manifestRes.status === 404 || manifestRes.status === 403) {
+      throw new Error('Akses ditolak. Cek lagi Username/Nama Repo, dan pastikan token sudah diberi izin ke repo ini.');
+    }
+    throw new Error('Gagal membaca manifest-soal.json (status ' + manifestRes.status + ').');
+  }
+
+  const manifestData = await manifestRes.json();
+  let list = [];
+  try {
+    list = JSON.parse(fromBase64Unicode(manifestData.content.replace(/\n/g, '')));
+  } catch (e) {
+    list = [];
+  }
+  return { list, sha: manifestData.sha };
+}
+
+// Update manifest ke GitHub, kalau SHA bentrok (409/422) otomatis ambil ulang versi
+// terbaru dan coba sekali lagi supaya data yang baru diupload tidak hilang.
+async function updateManifestWithRetry(newEntry, cfg, attempt = 1) {
+  const { list, sha } = await fetchManifest(cfg);
+  list.push(newEntry);
+
+  const updateRes = await ghRequest('data/manifest-soal.json', {
+    method: 'PUT',
+    body: JSON.stringify({
+      message: `Tambah soal (${newEntry.jenjang.toUpperCase()}): ${newEntry.title}`,
+      content: toBase64Unicode(JSON.stringify(list, null, 2)),
+      sha: sha,
+      branch: cfg.branch
+    })
+  }, cfg);
+
+  if (!updateRes.ok) {
+    const errData = await updateRes.json().catch(() => ({}));
+    const isShaConflict = updateRes.status === 409 || updateRes.status === 422;
+    if (isShaConflict && attempt < 3) {
+      await new Promise(r => setTimeout(r, 500));
+      return updateManifestWithRetry(newEntry, cfg, attempt + 1);
+    }
+    throw new Error(errData.message || 'Gagal memperbarui manifest-soal.json.');
+  }
+}
+
+function setStatusS(type, msg) {
+  const el = $('statusS');
+  el.className = 'status ' + type;
+  el.textContent = msg;
+}
+
+function setStatusTest(type, msg) {
+  const el = $('statusTest');
+  el.className = 'status ' + type;
+  el.textContent = msg;
+}
+
+/* ---- Tombol Test Koneksi ---- */
+$('testBtn').addEventListener('click', async () => {
+  const cfg = getCfg();
+
+  if (!cfg.user || !cfg.repo || !cfg.token) {
+    setStatusTest('err', 'Isi dulu Username, Nama Repository, dan Token di atas.');
+    return;
+  }
+
+  saveIfRemember();
+  $('testBtn').disabled = true;
+  setStatusTest('loading', 'Mengecek koneksi ke GitHub…');
+
+  try {
+    // GET ke root folder repo — request paling ringan untuk cek username/repo/token/branch valid
+    const res = await ghRequest(`?ref=${cfg.branch}`, { method: 'GET' }, cfg);
+
+    if (res.ok) {
+      setStatusTest('ok', 'Berhasil! Username, Nama Repo, Branch, dan Token semuanya valid dan terhubung.');
+    } else if (res.status === 401) {
+      setStatusTest('err', 'Token ditolak (401). Kemungkinan token salah, sudah expired, atau salah copy-paste.');
+    } else if (res.status === 404) {
+      setStatusTest('err', 'Repo tidak ditemukan (404). Cek lagi ejaan Username & Nama Repository, atau nama Branch-nya.');
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      setStatusTest('err', 'Gagal (status ' + res.status + '): ' + (errData.message || 'Cek kembali data koneksi.'));
+    }
+  } catch (e) {
+    setStatusTest('err', e.message);
+  } finally {
+    $('testBtn').disabled = false;
+  }
+});
+
+/* ---- Tombol Upload Soal ---- */
+$('submitBtnS').addEventListener('click', async () => {
+  const cfg = getCfg();
+  const jenjang = getJenjang();
+  const title = $('titleS').value.trim();
+  const topik = $('topikS').value.trim();
+  const tanggal = $('tanggalS').value;
+  const fileSoal = $('fileSoal').files[0];
+  const fileSolusi = $('fileSolusi').files[0];
+
+  if (!cfg.user || !cfg.repo || !cfg.token) {
+    setStatusS('err', 'Isi dulu Username, Repo, dan Token GitHub-nya di bagian atas, lalu klik "Test Koneksi" dulu.');
+    return;
+  }
+  if (!title || !topik || !tanggal || !fileSoal || !fileSolusi) {
+    setStatusS('err', 'Lengkapi jenjang, judul, topik, tanggal, gambar soal, dan gambar pembahasan.');
+    return;
+  }
+
+  saveIfRemember();
+  $('submitBtnS').disabled = true;
+
+  try {
+    setStatusS('loading', 'Mengupload gambar soal…');
+
+    const safeName = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g,'');
+    const stamp = Date.now();
+    const extSoal = fileSoal.name.split('.').pop();
+    const extSolusi = fileSolusi.name.split('.').pop();
+    const soalPath = `soal-osn/${jenjang}/${stamp}_${safeName}-soal.${extSoal}`;
+    const solusiPath = `soal-osn/${jenjang}/${stamp}_${safeName}-solusi.${extSolusi}`;
+
+    const soalBase64 = await fileToBase64(fileSoal);
+    const uploadSoalRes = await ghRequest(soalPath, {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: `Upload soal: ${title}`,
+        content: soalBase64,
+        branch: cfg.branch
+      })
+    }, cfg);
+    if (!uploadSoalRes.ok) {
+      const errData = await uploadSoalRes.json().catch(() => ({}));
+      throw new Error(errData.message || 'Gagal upload gambar soal.');
+    }
+
+    setStatusS('loading', 'Mengupload gambar pembahasan…');
+
+    const solusiBase64 = await fileToBase64(fileSolusi);
+    const uploadSolusiRes = await ghRequest(solusiPath, {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: `Upload pembahasan: ${title}`,
+        content: solusiBase64,
+        branch: cfg.branch
+      })
+    }, cfg);
+    if (!uploadSolusiRes.ok) {
+      const errData = await uploadSolusiRes.json().catch(() => ({}));
+      throw new Error(errData.message || 'Gagal upload gambar pembahasan.');
+    }
+
+    setStatusS('loading', 'Memperbarui daftar soal…');
+
+    await updateManifestWithRetry(
+      { title, topik, tanggal, jenjang, soalImage: soalPath, solusiImage: solusiPath },
+      cfg
+    );
+
+    setStatusS('ok', `Berhasil! Soal (${jenjang.toUpperCase()}) & pembahasan akan muncul di web dalam ± 30–60 detik.`);
+    $('titleS').value = '';
+    $('topikS').value = '';
+    $('fileSoal').value = '';
+    $('fileSolusi').value = '';
+
+  } catch (e) {
+    setStatusS('err', e.message || 'Terjadi kesalahan.');
+  } finally {
+    $('submitBtnS').disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>
