@@ -6,5 +6,13 @@
     "jenjang": "sd",
     "soalImage": "soal-osn/sd/1784911889039_latihan-1-soal.png",
     "solusiImage": "soal-osn/sd/1784911889039_latihan-1-solusi.png"
+  },
+  {
+    "title": "123",
+    "topik": "smp",
+    "tanggal": "2026-07-24",
+    "jenjang": "smp",
+    "soalImage": "soal-osn/smp/1784911928121_123-soal.png",
+    "solusiImage": "soal-osn/smp/1784911928121_123-solusi.png"
   }
 ]
