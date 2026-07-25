@@ -208,6 +208,29 @@
     border-radius:16px;
   }
 
+  .file-list{ display:grid; gap:22px; }
+  .file-item{
+    background:#fff;
+    border:1px solid #f0e2fa;
+    border-radius:14px;
+    padding:16px 20px;
+    box-shadow:0 6px 16px rgba(123,47,247,0.06);
+  }
+  .file-item h4{
+    color:#2b1a3d;
+    font-size:15px;
+    font-weight:800;
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  .file-item .dl-line{ font-size:14px; }
+  .file-item .dl-line a{
+    color:var(--ungu);
+    font-weight:700;
+    text-decoration:underline;
+  }
+  .file-item .dl-line a:hover{ color:var(--pink); }
+
   .kontak-wrap{
     text-align:center;
     padding:10px 10px 10px;
@@ -268,6 +291,7 @@
   <button data-page="sd">Soal Latihan Tingkat SD</button>
   <button data-page="smp">Soal Latihan Tingkat SMP</button>
   <button data-page="sma">Soal Latihan Tingkat SMA</button>
+  <button data-page="download">Kumpulan Soal OSN</button>
   <button data-page="kontak">Kontak</button>
 </nav>
 
@@ -322,6 +346,21 @@
       <span>Persiapan OSN Fisika</span>
     </div>
     <div id="listSMA" class="soal-list"><div class="empty">Memuat soal…</div></div>
+  </section>
+
+  <section id="page-download" class="page">
+    <div class="page-title">
+      <h2>Soal OSN</h2>
+    </div>
+
+    <h3 style="color:var(--ungu-tua); font-size:17px; margin:26px 0 12px;">Soal OSN IPA SD</h3>
+    <div id="listDownloadSD" class="file-list"><div class="empty">Memuat daftar file…</div></div>
+
+    <h3 style="color:var(--ungu-tua); font-size:17px; margin:34px 0 12px;">Soal OSN IPA SMP</h3>
+    <div id="listDownloadSMP" class="file-list"><div class="empty">Memuat daftar file…</div></div>
+
+    <h3 style="color:var(--ungu-tua); font-size:17px; margin:34px 0 12px;">Soal OSN FISIKA SMA</h3>
+    <div id="listDownloadSMA" class="file-list"><div class="empty">Memuat daftar file…</div></div>
   </section>
 
   <section id="page-kontak" class="page">
@@ -425,6 +464,53 @@ function formatTanggal(iso) {
   return d.getDate() + ' ' + bulan[d.getMonth()];
 }
 
+// ==== GANTI SESUAI REPO GITHUB TEMPAT FILE OSN DISIMPAN ====
+const GITHUB_USER = "adykristo";     // username GitHub kamu
+const GITHUB_REPO  = "test";          // nama repo tempat file OSN disimpan
+const GITHUB_BASE_PATH = "soal-osn";  // folder utama di dalam repo
+// folder per jenjang di dalam folder utama di atas:
+const GITHUB_PATHS = {
+  sd:  `${GITHUB_BASE_PATH}/sd`,
+  smp: `${GITHUB_BASE_PATH}/smp`,
+  sma: `${GITHUB_BASE_PATH}/sma`
+};
+// ==============================================================
+
+function titleFromFilename(name) {
+  const noExt = name.replace(/\.[^/.]+$/, '');
+  return noExt.replace(/[_-]+/g, ' ').trim();
+}
+
+async function loadDownloadJenjang(jenjang) {
+  const listEl = document.getElementById('listDownload' + jenjang.toUpperCase());
+  const path = GITHUB_PATHS[jenjang];
+  const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`;
+  try {
+    const res = await fetch(apiUrl);
+    if (!res.ok) throw new Error('Gagal fetch GitHub API');
+    const data = await res.json();
+    const files = data.filter(item => item.type === 'file');
+
+    if (!files.length) {
+      listEl.innerHTML = '<div class="empty">Belum ada file di folder ini. Cek lagi nanti ya!</div>';
+      return;
+    }
+
+    listEl.innerHTML = files.map(file => `
+      <div class="file-item">
+        <h4>${titleFromFilename(file.name)}</h4>
+        <div class="dl-line">----&gt; <a href="${file.download_url}" target="_blank" rel="noopener" download>DOWNLOAD</a></div>
+      </div>
+    `).join('');
+  } catch (e) {
+    listEl.innerHTML = '<div class="empty">Gagal memuat daftar file. Coba refresh halaman.</div>';
+  }
+}
+
+function loadDownloadFiles() {
+  ['sd', 'smp', 'sma'].forEach(loadDownloadJenjang);
+}
+
 function gotoPage(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
@@ -443,9 +529,10 @@ document.querySelectorAll('.jenjang-card').forEach(card => {
 });
 
 const startPage = (location.hash || '#home').replace('#', '');
-if (['home','sd','smp','sma','kontak'].includes(startPage)) gotoPage(startPage);
+if (['home','sd','smp','sma','download','kontak'].includes(startPage)) gotoPage(startPage);
 
 loadSoal();
+loadDownloadFiles();
 </script>
 
 </body>
