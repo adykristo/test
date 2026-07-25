@@ -54,5 +54,13 @@
     "jenjang": "sma",
     "soalImage": "soal-osn/sma/1784969690988_we-soal.svg",
     "solusiImage": "soal-osn/sma/1784969690988_we-solusi.svg"
+  },
+  {
+    "title": "dad",
+    "topik": "advad",
+    "tanggal": "2026-07-27",
+    "jenjang": "sma",
+    "soalImage": "soal-osn/sma/1784969711680_dad-soal.svg",
+    "solusiImage": "soal-osn/sma/1784969711680_dad-solusi.svg"
   }
 ]
