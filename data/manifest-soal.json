@@ -6,5 +6,13 @@
     "jenjang": "sd",
     "soalImage": "soal-osn/sd/1784945229921_gaya-soal.png",
     "solusiImage": "soal-osn/sd/1784945229921_gaya-solusi.png"
+  },
+  {
+    "title": "vvda",
+    "topik": "dvad",
+    "tanggal": "2026-07-25",
+    "jenjang": "smp",
+    "soalImage": "soal-osn/smp/1784945249102_vvda-soal.png",
+    "solusiImage": "soal-osn/smp/1784945249102_vvda-solusi.png"
   }
 ]
