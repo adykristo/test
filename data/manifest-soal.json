@@ -118,5 +118,13 @@
     "jenjang": "sma",
     "soalImage": "soal-osn/sma/1784969867471_dnn-soal.svg",
     "solusiImage": "soal-osn/sma/1784969867471_dnn-solusi.svg"
+  },
+  {
+    "title": "ndn",
+    "topik": "dndn",
+    "tanggal": "2026-07-27",
+    "jenjang": "sma",
+    "soalImage": "soal-osn/sma/1784969899107_ndn-soal.jpeg",
+    "solusiImage": "soal-osn/sma/1784969899107_ndn-solusi.jpeg"
   }
 ]
