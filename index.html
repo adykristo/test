@@ -208,28 +208,60 @@
     border-radius:16px;
   }
 
-  .file-list{ display:grid; gap:22px; }
-  .file-item{
+  .browser-box{
     background:#fff;
-    border:1px solid #f0e2fa;
+    border:1px solid #e8e0f0;
     border-radius:14px;
-    padding:16px 20px;
+    overflow:hidden;
     box-shadow:0 6px 16px rgba(123,47,247,0.06);
   }
-  .file-item h4{
-    color:#2b1a3d;
-    font-size:15px;
-    font-weight:800;
-    text-transform:uppercase;
-    margin-bottom:8px;
+  .browser-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:14px 20px;
+    border-bottom:1px solid #f0e2fa;
+    cursor:pointer;
+    transition:background .12s ease;
   }
-  .file-item .dl-line{ font-size:14px; }
-  .file-item .dl-line a{
+  .browser-row:last-child{ border-bottom:none; }
+  .browser-row:hover{ background:#fdf5ff; }
+  .browser-row .row-icon{ font-size:20px; flex-shrink:0; }
+  .browser-row .row-name{
+    flex:1;
+    font-size:14px;
+    font-weight:600;
+    color:#2b1a3d;
+  }
+  .browser-row .row-action{
+    font-size:12px;
+    font-weight:700;
+    color:var(--ungu);
+    text-decoration:underline;
+    white-space:nowrap;
+  }
+  .browser-row .row-action:hover{ color:var(--pink); }
+  .browser-row.folder-row .row-name{ font-weight:700; color:var(--ungu-tua); }
+  .browser-row .row-chevron{ color:var(--abu); font-size:14px; }
+
+  .breadcrumb{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:14px;
+    font-size:13px;
+    color:var(--abu);
+  }
+  .breadcrumb button{
+    border:none;
+    background:none;
     color:var(--ungu);
     font-weight:700;
-    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    padding:0;
   }
-  .file-item .dl-line a:hover{ color:var(--pink); }
+  .breadcrumb button:hover{ color:var(--pink); }
 
   .kontak-wrap{
     text-align:center;
@@ -353,14 +385,10 @@
       <h2>Soal OSN</h2>
     </div>
 
-    <h3 style="color:var(--ungu-tua); font-size:17px; margin:26px 0 12px;">Soal OSN IPA SD</h3>
-    <div id="listDownloadSD" class="file-list"><div class="empty">Memuat daftar file…</div></div>
-
-    <h3 style="color:var(--ungu-tua); font-size:17px; margin:34px 0 12px;">Soal OSN IPA SMP</h3>
-    <div id="listDownloadSMP" class="file-list"><div class="empty">Memuat daftar file…</div></div>
-
-    <h3 style="color:var(--ungu-tua); font-size:17px; margin:34px 0 12px;">Soal OSN FISIKA SMA</h3>
-    <div id="listDownloadSMA" class="file-list"><div class="empty">Memuat daftar file…</div></div>
+    <div id="downloadBreadcrumb" class="breadcrumb" style="display:none;"></div>
+    <div id="downloadBrowser" class="browser-box">
+      <div class="empty">Memuat…</div>
+    </div>
   </section>
 
   <section id="page-kontak" class="page">
@@ -467,13 +495,13 @@ function formatTanggal(iso) {
 // ==== GANTI SESUAI REPO GITHUB TEMPAT FILE OSN DISIMPAN ====
 const GITHUB_USER = "adykristo";     // username GitHub kamu
 const GITHUB_REPO  = "test";          // nama repo tempat file OSN disimpan
-const GITHUB_BASE_PATH = "soal-osn";  // folder utama di dalam repo
-// folder per jenjang di dalam folder utama di atas:
-const GITHUB_PATHS = {
-  sd:  `${GITHUB_BASE_PATH}/sd`,
-  smp: `${GITHUB_BASE_PATH}/smp`,
-  sma: `${GITHUB_BASE_PATH}/sma`
-};
+const GITHUB_BASE_PATH = "unduhan-osn";  // folder utama di dalam repo (terpisah dari folder admin/soal latihan)
+// folder + label tampilan untuk tiap jenjang:
+const JENJANG_FOLDERS = [
+  { key: 'sd',  label: 'Soal OSN IPA SD',    path: `${GITHUB_BASE_PATH}/sd`  },
+  { key: 'smp', label: 'Soal OSN IPA SMP',   path: `${GITHUB_BASE_PATH}/smp` },
+  { key: 'sma', label: 'Soal OSN FISIKA SMA',path: `${GITHUB_BASE_PATH}/sma` }
+];
 // ==============================================================
 
 function titleFromFilename(name) {
@@ -481,34 +509,52 @@ function titleFromFilename(name) {
   return noExt.replace(/[_-]+/g, ' ').trim();
 }
 
-async function loadDownloadJenjang(jenjang) {
-  const listEl = document.getElementById('listDownload' + jenjang.toUpperCase());
-  const path = GITHUB_PATHS[jenjang];
-  const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`;
+function renderBrowserRoot() {
+  document.getElementById('downloadBreadcrumb').style.display = 'none';
+  const box = document.getElementById('downloadBrowser');
+  box.innerHTML = JENJANG_FOLDERS.map(f => `
+    <div class="browser-row folder-row" onclick="openJenjangFolder('${f.key}')">
+      <span class="row-icon">📁</span>
+      <span class="row-name">${f.label}</span>
+      <span class="row-chevron">›</span>
+    </div>
+  `).join('');
+}
+
+async function openJenjangFolder(key) {
+  const folder = JENJANG_FOLDERS.find(f => f.key === key);
+  const box = document.getElementById('downloadBrowser');
+  const crumb = document.getElementById('downloadBreadcrumb');
+  crumb.style.display = 'flex';
+  crumb.innerHTML = `<button onclick="renderBrowserRoot()">Soal OSN</button><span>/</span><span>${folder.label}</span>`;
+  box.innerHTML = '<div class="empty">Memuat daftar file…</div>';
+
+  const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder.path}`;
   try {
     const res = await fetch(apiUrl);
     if (!res.ok) throw new Error('Gagal fetch GitHub API');
     const data = await res.json();
-    const files = data.filter(item => item.type === 'file');
+    const files = data.filter(item => item.type === 'file' && !item.name.startsWith('.'));
 
     if (!files.length) {
-      listEl.innerHTML = '<div class="empty">Belum ada file di folder ini. Cek lagi nanti ya!</div>';
+      box.innerHTML = '<div class="empty">Belum ada file di folder ini. Cek lagi nanti ya!</div>';
       return;
     }
 
-    listEl.innerHTML = files.map(file => `
-      <div class="file-item">
-        <h4>${titleFromFilename(file.name)}</h4>
-        <div class="dl-line">----&gt; <a href="${file.download_url}" target="_blank" rel="noopener" download>DOWNLOAD</a></div>
+    box.innerHTML = files.map(file => `
+      <div class="browser-row">
+        <span class="row-icon">📄</span>
+        <span class="row-name">${titleFromFilename(file.name)}</span>
+        <a class="row-action" href="${file.download_url}" target="_blank" rel="noopener" download onclick="event.stopPropagation()">Download</a>
       </div>
     `).join('');
   } catch (e) {
-    listEl.innerHTML = '<div class="empty">Gagal memuat daftar file. Coba refresh halaman.</div>';
+    box.innerHTML = '<div class="empty">Gagal memuat daftar file. Coba refresh halaman.</div>';
   }
 }
 
 function loadDownloadFiles() {
-  ['sd', 'smp', 'sma'].forEach(loadDownloadJenjang);
+  renderBrowserRoot();
 }
 
 function gotoPage(page) {
