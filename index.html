@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -210,39 +211,58 @@
 
   .browser-box{
     background:#fff;
-    border:1px solid #e8e0f0;
-    border-radius:14px;
+    border:1px solid #e0e0e0;
+    border-radius:8px;
     overflow:hidden;
-    box-shadow:0 6px 16px rgba(123,47,247,0.06);
+    box-shadow:0 1px 3px rgba(0,0,0,0.06);
   }
+  .browser-header{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:10px 20px;
+    border-bottom:1px solid #e0e0e0;
+    background:#fafafa;
+    font-size:12px;
+    font-weight:700;
+    color:#5f6368;
+    text-transform:uppercase;
+    letter-spacing:.4px;
+  }
+  .browser-header .row-icon{ width:20px; flex-shrink:0; visibility:hidden; }
+  .browser-header .row-name{ flex:1; }
   .browser-row{
     display:flex;
     align-items:center;
     gap:14px;
-    padding:14px 20px;
-    border-bottom:1px solid #f0e2fa;
+    padding:10px 20px;
+    border-bottom:1px solid #eee;
     cursor:pointer;
-    transition:background .12s ease;
+    transition:background .1s ease;
   }
   .browser-row:last-child{ border-bottom:none; }
-  .browser-row:hover{ background:#fdf5ff; }
-  .browser-row .row-icon{ font-size:20px; flex-shrink:0; }
+  .browser-row:hover{ background:#f8f9fa; }
+  .browser-row .row-icon{ font-size:18px; flex-shrink:0; width:20px; text-align:center; }
   .browser-row .row-name{
     flex:1;
-    font-size:14px;
-    font-weight:600;
-    color:#2b1a3d;
+    font-size:13.5px;
+    font-weight:400;
+    color:#3c4043;
   }
   .browser-row .row-action{
-    font-size:12px;
-    font-weight:700;
-    color:var(--ungu);
-    text-decoration:underline;
+    font-size:12.5px;
+    font-weight:600;
+    color:#1a73e8;
+    text-decoration:none;
     white-space:nowrap;
+    padding:5px 12px;
+    border-radius:6px;
+    transition:background .1s ease;
   }
-  .browser-row .row-action:hover{ color:var(--pink); }
-  .browser-row.folder-row .row-name{ font-weight:700; color:var(--ungu-tua); }
-  .browser-row .row-chevron{ color:var(--abu); font-size:14px; }
+  .browser-row .row-action:hover{ background:#e8f0fe; }
+  .browser-row.folder-row .row-icon{ color:#5f9df7; }
+  .browser-row.folder-row .row-name{ font-weight:500; color:#202124; }
+  .browser-row .row-chevron{ color:#9aa0a6; font-size:14px; }
 
   .breadcrumb{
     display:flex;
@@ -386,8 +406,12 @@
     </div>
 
     <div id="downloadBreadcrumb" class="breadcrumb" style="display:none;"></div>
-    <div id="downloadBrowser" class="browser-box">
-      <div class="empty">Memuat…</div>
+    <div class="browser-box">
+      <div class="browser-header">
+        <span class="row-icon">📁</span>
+        <span class="row-name">Nama</span>
+      </div>
+      <div id="downloadBrowser"><div class="empty">Memuat…</div></div>
     </div>
   </section>
 
@@ -495,6 +519,7 @@ function formatTanggal(iso) {
 // ==== GANTI SESUAI REPO GITHUB TEMPAT FILE OSN DISIMPAN ====
 const GITHUB_USER = "adykristo";     // username GitHub kamu
 const GITHUB_REPO  = "test";          // nama repo tempat file OSN disimpan
+const GITHUB_BRANCH = "main";         // nama branch utama, biasanya "main" (cek di repo kalau beda)
 const GITHUB_BASE_PATH = "unduhan-osn";  // folder utama di dalam repo (terpisah dari folder admin/soal latihan)
 // folder + label tampilan untuk tiap jenjang:
 const JENJANG_FOLDERS = [
@@ -504,13 +529,44 @@ const JENJANG_FOLDERS = [
 ];
 // ==============================================================
 
+// pathStack: daftar {label, path} dari root sampai posisi sekarang
+let pathStack = [];
+
 function titleFromFilename(name) {
   const noExt = name.replace(/\.[^/.]+$/, '');
   return noExt.replace(/[_-]+/g, ' ').trim();
 }
 
+function zipDownloadUrl(path) {
+  const repoUrl = `https://github.com/${GITHUB_USER}/${GITHUB_REPO}/tree/${GITHUB_BRANCH}/${path}`;
+  return `https://download-directory.github.io/?url=${encodeURIComponent(repoUrl)}`;
+}
+
+function renderBreadcrumb() {
+  const crumb = document.getElementById('downloadBreadcrumb');
+  if (!pathStack.length) {
+    crumb.style.display = 'none';
+    crumb.innerHTML = '';
+    return;
+  }
+  crumb.style.display = 'flex';
+  crumb.innerHTML = '<button onclick="renderBrowserRoot()">Soal OSN</button>' +
+    pathStack.map((p, i) =>
+      i === pathStack.length - 1
+        ? `<span>/</span><span>${p.label}</span>`
+        : `<span>/</span><button onclick="goToStackLevel(${i})">${p.label}</button>`
+    ).join('');
+}
+
+function goToStackLevel(i) {
+  const target = pathStack[i];
+  pathStack = pathStack.slice(0, i + 1);
+  loadFolderContents(target.path);
+}
+
 function renderBrowserRoot() {
-  document.getElementById('downloadBreadcrumb').style.display = 'none';
+  pathStack = [];
+  renderBreadcrumb();
   const box = document.getElementById('downloadBrowser');
   box.innerHTML = JENJANG_FOLDERS.map(f => `
     <div class="browser-row folder-row" onclick="openJenjangFolder('${f.key}')">
@@ -521,36 +577,58 @@ function renderBrowserRoot() {
   `).join('');
 }
 
-async function openJenjangFolder(key) {
+function openJenjangFolder(key) {
   const folder = JENJANG_FOLDERS.find(f => f.key === key);
+  pathStack = [{ label: folder.label, path: folder.path }];
+  renderBreadcrumb();
+  loadFolderContents(folder.path);
+}
+
+async function loadFolderContents(path) {
   const box = document.getElementById('downloadBrowser');
-  const crumb = document.getElementById('downloadBreadcrumb');
-  crumb.style.display = 'flex';
-  crumb.innerHTML = `<button onclick="renderBrowserRoot()">Soal OSN</button><span>/</span><span>${folder.label}</span>`;
   box.innerHTML = '<div class="empty">Memuat daftar file…</div>';
 
-  const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder.path}`;
+  const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`;
   try {
     const res = await fetch(apiUrl);
     if (!res.ok) throw new Error('Gagal fetch GitHub API');
-    const data = await res.json();
-    const files = data.filter(item => item.type === 'file' && !item.name.startsWith('.'));
+    const items = (await res.json()).filter(item => !item.name.startsWith('.'));
 
-    if (!files.length) {
+    if (!items.length) {
       box.innerHTML = '<div class="empty">Belum ada file di folder ini. Cek lagi nanti ya!</div>';
       return;
     }
 
-    box.innerHTML = files.map(file => `
+    // folder ditampilkan lebih dulu, baru file
+    const dirs = items.filter(i => i.type === 'dir');
+    const files = items.filter(i => i.type === 'file');
+
+    const dirRows = dirs.map(dir => `
+      <div class="browser-row folder-row">
+        <span class="row-icon" onclick="enterSubfolder('${dir.name.replace(/'/g, "\\'")}', '${dir.path.replace(/'/g, "\\'")}')" style="flex:0;">📁</span>
+        <span class="row-name" onclick="enterSubfolder('${dir.name.replace(/'/g, "\\'")}', '${dir.path.replace(/'/g, "\\'")}')">${dir.name}</span>
+        <a class="row-action" href="${zipDownloadUrl(dir.path)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Download (ZIP)</a>
+      </div>
+    `).join('');
+
+    const fileRows = files.map(file => `
       <div class="browser-row">
         <span class="row-icon">📄</span>
         <span class="row-name">${titleFromFilename(file.name)}</span>
         <a class="row-action" href="${file.download_url}" target="_blank" rel="noopener" download onclick="event.stopPropagation()">Download</a>
       </div>
     `).join('');
+
+    box.innerHTML = dirRows + fileRows;
   } catch (e) {
     box.innerHTML = '<div class="empty">Gagal memuat daftar file. Coba refresh halaman.</div>';
   }
+}
+
+function enterSubfolder(name, path) {
+  pathStack.push({ label: name, path });
+  renderBreadcrumb();
+  loadFolderContents(path);
 }
 
 function loadDownloadFiles() {
