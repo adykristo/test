@@ -386,6 +386,42 @@
     </p>
   </div>
 
+  <div class="card">
+    <h2>4. Kumpulan Soal OSN (Upload &amp; Hapus File)</h2>
+
+    <label>Jenjang</label>
+    <div class="jenjang-row">
+      <input type="radio" name="jenjangOsn" id="jenjangOsnSD" value="sd" checked>
+      <label class="pill" for="jenjangOsnSD">SD</label>
+
+      <input type="radio" name="jenjangOsn" id="jenjangOsnSMP" value="smp">
+      <label class="pill" for="jenjangOsnSMP">SMP</label>
+
+      <input type="radio" name="jenjangOsn" id="jenjangOsnSMA" value="sma">
+      <label class="pill" for="jenjangOsnSMA">SMA</label>
+    </div>
+
+    <label>Pilih File (PDF / gambar / dokumen)</label>
+    <input type="file" id="fileOsn">
+
+    <button type="button" id="uploadOsnBtn">Upload File</button>
+    <div id="statusOsn" class="status"></div>
+
+    <p class="note" style="margin-top:10px;">
+      File yang diupload di sini otomatis muncul di halaman
+      <strong>"Kumpulan Soal OSN"</strong> pada web utama, sesuai jenjang yang dipilih.
+      Kalau nama file sama persis dengan file yang sudah ada, isinya akan ditimpa (update),
+      bukan jadi duplikat.
+    </p>
+
+    <div style="margin-top:20px; border-top:1px solid #f0e2fa; padding-top:16px;">
+      <label style="margin-top:0;">Lihat / Hapus File yang Sudah Ada</label>
+      <button type="button" id="loadOsnListBtn" class="secondary">Muat Daftar File (sesuai Jenjang di atas)</button>
+      <div id="statusOsnList" class="status"></div>
+      <div id="daftarFileOsn" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
 </div>
 </div>
 
@@ -917,6 +953,192 @@ $('loadListBtn').addEventListener('click', async () => {
     $('loadListBtn').disabled = false;
   }
 });
+
+/* ================== KUMPULAN SOAL OSN (upload & hapus file) ================== */
+
+function getJenjangOsn() {
+  const checked = document.querySelector('input[name="jenjangOsn"]:checked');
+  return checked ? checked.value : 'sd';
+}
+
+function setStatusOsn(type, msg) {
+  const el = $('statusOsn');
+  el.className = 'status ' + type;
+  el.textContent = msg;
+}
+
+function setStatusOsnList(type, msg) {
+  const el = $('statusOsnList');
+  el.className = 'status ' + type;
+  el.textContent = msg;
+}
+
+function osnFolderPath(jenjang) {
+  return `unduhan-osn/${jenjang}`;
+}
+
+/* ---- Upload file OSN ---- */
+$('uploadOsnBtn').addEventListener('click', async () => {
+  const cfg = getCfg();
+  const jenjang = getJenjangOsn();
+  const file = $('fileOsn').files[0];
+
+  if (!cfg.user || !cfg.repo || !cfg.token) {
+    setStatusOsn('err', 'Isi dulu Username, Repo, dan Token GitHub-nya di bagian atas, lalu klik "Test Koneksi" dulu.');
+    return;
+  }
+  if (!file) {
+    setStatusOsn('err', 'Pilih dulu file yang mau diupload.');
+    return;
+  }
+
+  saveIfRemember();
+  $('uploadOsnBtn').disabled = true;
+
+  try {
+    setStatusOsn('loading', 'Mengupload file…');
+
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_ ]/g, '_');
+    const path = `${osnFolderPath(jenjang)}/${safeName}`;
+
+    // cek apakah file dengan nama sama sudah ada (supaya update, bukan gagal karena tanpa sha)
+    let sha = null;
+    const existingRes = await ghRequest(`${path}?ref=${cfg.branch}&_=${Date.now()}`, { method: 'GET' }, cfg);
+    if (existingRes.ok) {
+      const existingData = await existingRes.json();
+      sha = existingData.sha || null;
+    }
+
+    const base64 = await fileToBase64(file);
+    const body = {
+      message: sha ? `Update file OSN: ${safeName}` : `Upload file OSN: ${safeName}`,
+      content: base64,
+      branch: cfg.branch
+    };
+    if (sha) body.sha = sha;
+
+    const uploadRes = await ghRequest(path, { method: 'PUT', body: JSON.stringify(body) }, cfg);
+    if (!uploadRes.ok) {
+      const errData = await uploadRes.json().catch(() => ({}));
+      throw new Error(errData.message || 'Gagal upload file.');
+    }
+
+    setStatusOsn('ok', `Berhasil! File "${safeName}" (${jenjang.toUpperCase()}) akan muncul di halaman "Kumpulan Soal OSN" dalam ± 30–60 detik.`);
+    $('fileOsn').value = '';
+
+    // refresh daftar file kalau sedang ditampilkan untuk jenjang yang sama
+    if ($('daftarFileOsn').dataset.jenjang === jenjang) {
+      loadDaftarFileOsn();
+    }
+  } catch (e) {
+    setStatusOsn('err', e.message || 'Terjadi kesalahan.');
+  } finally {
+    $('uploadOsnBtn').disabled = false;
+  }
+});
+
+/* ---- Muat & hapus daftar file OSN ---- */
+function formatUkuranFile(bytes) {
+  if (!bytes && bytes !== 0) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function renderDaftarFileOsn(files, jenjang) {
+  const box = $('daftarFileOsn');
+  box.dataset.jenjang = jenjang;
+  if (!files.length) {
+    box.innerHTML = '<p class="note">Belum ada file untuk jenjang ini.</p>';
+    return;
+  }
+  box.innerHTML = files.map(f => `
+    <div class="soal-item" data-path="${f.path.replace(/"/g, '&quot;')}" data-sha="${f.sha}">
+      <div class="info">
+        <b>${f.name}</b>
+        <span>${formatUkuranFile(f.size)}</span>
+      </div>
+      <button type="button" class="btn-hapus-osn">Hapus</button>
+    </div>
+  `).join('');
+
+  box.querySelectorAll('.btn-hapus-osn').forEach(btn => {
+    btn.addEventListener('click', () => hapusFileOsn(btn));
+  });
+}
+
+async function loadDaftarFileOsn() {
+  const cfg = getCfg();
+  if (!cfg.user || !cfg.repo || !cfg.token) {
+    setStatusOsnList('err', 'Isi dulu Username, Repo, dan Token GitHub-nya di bagian atas.');
+    return;
+  }
+  saveIfRemember();
+  const jenjang = getJenjangOsn();
+  $('loadOsnListBtn').disabled = true;
+  setStatusOsnList('loading', 'Memuat daftar file…');
+  try {
+    const path = osnFolderPath(jenjang);
+    const res = await ghRequest(`${path}?ref=${cfg.branch}&_=${Date.now()}`, { method: 'GET' }, cfg);
+    if (res.status === 404) {
+      renderDaftarFileOsn([], jenjang);
+      $('statusOsnList').className = 'status';
+      $('statusOsnList').textContent = '';
+      return;
+    }
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || ('Gagal memuat daftar file (status ' + res.status + ').'));
+    }
+    const items = await res.json();
+    const files = (Array.isArray(items) ? items : [items]).filter(i => i.type === 'file' && !i.name.startsWith('.'));
+    renderDaftarFileOsn(files, jenjang);
+    $('statusOsnList').className = 'status';
+    $('statusOsnList').textContent = '';
+  } catch (e) {
+    setStatusOsnList('err', e.message || 'Gagal memuat daftar file.');
+  } finally {
+    $('loadOsnListBtn').disabled = false;
+  }
+}
+$('loadOsnListBtn').addEventListener('click', loadDaftarFileOsn);
+
+async function hapusFileOsn(btn) {
+  const cfg = getCfg();
+  if (!cfg.user || !cfg.repo || !cfg.token) {
+    setStatusOsnList('err', 'Isi dulu Username, Repo, dan Token GitHub-nya di bagian atas.');
+    return;
+  }
+  const wrapper = btn.closest('.soal-item');
+  const path = wrapper.dataset.path;
+  const sha = wrapper.dataset.sha;
+  const nama = wrapper.querySelector('.info b').textContent;
+
+  if (!confirm(`Yakin hapus file "${nama}"? File ini akan hilang dari GitHub dan dari halaman "Kumpulan Soal OSN". Tindakan ini tidak bisa dibatalkan.`)) {
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Menghapus…';
+  setStatusOsnList('loading', `Menghapus "${nama}"…`);
+
+  try {
+    const res = await ghRequest(path, {
+      method: 'DELETE',
+      body: JSON.stringify({ message: `Hapus file OSN: ${nama}`, sha, branch: cfg.branch })
+    }, cfg);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || 'Gagal menghapus file.');
+    }
+    wrapper.remove();
+    setStatusOsnList('ok', `✓ File "${nama}" berhasil dihapus.`);
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Hapus';
+    setStatusOsnList('err', e.message || 'Gagal menghapus file.');
+  }
+}
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
