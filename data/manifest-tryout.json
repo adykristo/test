@@ -6,7 +6,8 @@
     "topik": "Kinematika",
     "durasi_menit": 15,
     "jumlah_soal": 4,
-    "file": "data/tryout/vektor-msijcnbn.json"
+    "file": "data/tryout/vektor-msijcnbn.json",
+    "aktif": false
   },
   {
     "id": "try-out-1-fisika-msijfzbr",
