@@ -1799,124 +1799,161 @@ async function downloadPaketPDF(id) {
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const marginX = 36;
+    const marginX = 40;
     const contentW = pageW - marginX * 2;
-    let y = 80;
+    let y = 78;
 
     function butuhHalamanBaru(tinggiTambahan) {
-      if (y + tinggiTambahan > pageH - 46) {
+      if (y + tinggiTambahan > pageH - 50) {
         doc.addPage();
-        y = 70;
+        y = 68;
       }
     }
 
-    // ---- Sampul ringkas ----
+    // ---- Judul paket ----
     doc.setTextColor(...PDF_WARNA.unguTua);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(17);
-    const judulLines = doc.splitTextToSize(paket.title, contentW);
+    doc.setFontSize(18);
+    const judulLines = doc.splitTextToSize(String(paket.title || ''), contentW);
     doc.text(judulLines, marginX, y);
-    y += judulLines.length * 20 + 4;
+    y += judulLines.length * 22 + 6;
 
+    // meta info
+    doc.setFillColor(250, 246, 255);
+    doc.setDrawColor(...PDF_WARNA.pinkMuda);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(marginX, y - 4, contentW, 36, 6, 6, 'FD');
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setTextColor(...PDF_WARNA.abu);
-    doc.text(`Jenjang: ${String(paket.jenjang).toUpperCase()}   ·   Topik: ${paket.topik || '-'}   ·   Durasi: ${paket.durasi_menit} menit   ·   Jumlah Soal: ${paket.soal.length}`, marginX, y);
-    y += 16;
-    doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, marginX, y);
-    y += 26;
-    doc.setDrawColor(...PDF_WARNA.pink);
-    doc.setLineWidth(1.4);
-    doc.line(marginX, y, pageW - marginX, y);
-    y += 26;
+    const meta1 = 'Jenjang: ' + String(paket.jenjang || '-').toUpperCase()
+      + '   |   Topik: ' + (paket.topik || '-')
+      + '   |   Durasi: ' + (paket.durasi_menit || '-') + ' menit'
+      + '   |   Jumlah Soal: ' + (paket.soal || []).length;
+    doc.text(meta1, marginX + 12, y + 12);
+    doc.text('Dicetak: ' + new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }), marginX + 12, y + 26);
+    y += 52;
 
     const huruf = ['A', 'B', 'C', 'D', 'E'];
 
     for (let i = 0; i < paket.soal.length; i++) {
       const s = paket.soal[i];
-      butuhHalamanBaru(60);
+      butuhHalamanBaru(80);
 
-      // badge nomor soal
-      doc.setFillColor(...PDF_WARNA.pinkMuda);
-      doc.roundedRect(marginX, y, 70, 20, 10, 10, 'F');
-      doc.setTextColor(...PDF_WARNA.ungu);
+      // Header soal
+      const badgeW = 62;
+      doc.setFillColor(...PDF_WARNA.unguTua);
+      doc.roundedRect(marginX, y, badgeW, 18, 4, 4, 'F');
+      doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10.5);
-      doc.text(`SOAL ${i + 1}`, marginX + 35, y + 14, { align: 'center' });
-      y += 30;
+      doc.setFontSize(10);
+      doc.text('SOAL ' + (i + 1), marginX + badgeW / 2, y + 12.5, { align: 'center' });
+
+      if (s.jawaban_benar) {
+        doc.setFillColor(232, 248, 237);
+        doc.setDrawColor(46, 160, 90);
+        doc.setLineWidth(0.6);
+        const labelBenar = 'Kunci: ' + s.jawaban_benar;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9.5);
+        const labelW = doc.getTextWidth(labelBenar) + 16;
+        doc.roundedRect(marginX + badgeW + 10, y, labelW, 18, 4, 4, 'FD');
+        doc.setTextColor(22, 120, 60);
+        doc.text(labelBenar, marginX + badgeW + 10 + labelW / 2, y + 12.5, { align: 'center' });
+      }
+      y += 28;
 
       // pertanyaan
       const pertanyaan = pdfBersihkanLatex(s.pertanyaan);
       if (pertanyaan) {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(11);
-        doc.setTextColor(30, 20, 45);
+        doc.setTextColor(28, 22, 40);
         const lines = doc.splitTextToSize(pertanyaan, contentW);
-        butuhHalamanBaru(lines.length * 14 + 10);
+        butuhHalamanBaru(lines.length * 15 + 8);
         doc.text(lines, marginX, y);
-        y += lines.length * 14 + 8;
+        y += lines.length * 15 + 10;
       }
 
-      // gambar soal (kalau ada)
+      // gambar
       if (s.gambar) {
         try {
           const img = await pdfLoadImageDataURL(s.gambar);
-          const maxW = contentW * 0.75;
-          const scale = Math.min(maxW / img.w, 1);
+          const maxW = contentW * 0.7;
+          const scale = Math.min(maxW / img.w, 180 / img.h, 1);
           const drawW = img.w * scale;
           const drawH = img.h * scale;
-          butuhHalamanBaru(drawH + 14);
+          butuhHalamanBaru(drawH + 12);
           doc.addImage(img.dataUrl, 'JPEG', marginX, y, drawW, drawH);
-          y += drawH + 14;
+          y += drawH + 12;
         } catch (e) {
-          doc.setFontSize(9.5);
+          doc.setFontSize(9);
           doc.setTextColor(...PDF_WARNA.abu);
-          doc.text('[Gambar tidak bisa dimuat otomatis — lihat: ' + s.gambar + ']', marginX, y);
+          doc.text('[Gambar tidak dapat dimuat]', marginX, y);
           y += 14;
         }
       }
 
-      // pilihan jawaban
-      doc.setFontSize(10.5);
-      huruf.forEach(h => {
-        if (!s.pilihan || !s.pilihan[h]) return;
+      // pilihan — tanpa unicode (cegah huruf berjarak)
+      for (const h of huruf) {
+        if (!s.pilihan || s.pilihan[h] === undefined || s.pilihan[h] === '') continue;
         const isBenar = s.jawaban_benar === h;
-        const teksPilihan = `${h}. ${pdfBersihkanLatex(s.pilihan[h])}${isBenar ? '   ✓ (Jawaban Benar)' : ''}`;
-        const lines = doc.splitTextToSize(teksPilihan, contentW - 14);
-        butuhHalamanBaru(lines.length * 13 + 4);
-        doc.setFont('helvetica', isBenar ? 'bold' : 'normal');
-        doc.setTextColor(isBenar ? 31 : 60, isBenar ? 122 : 60, isBenar ? 65 : 70);
-        doc.text(lines, marginX + 14, y);
-        y += lines.length * 13 + 4;
-      });
-      y += 4;
+        const isi = pdfBersihkanLatex(s.pilihan[h]);
+        const teksOpsi = h + '.  ' + isi;
+        const opsiLines = doc.splitTextToSize(teksOpsi, contentW - 28);
+        const boxH = Math.max(18, opsiLines.length * 13 + 8);
+        butuhHalamanBaru(boxH + 4);
+
+        if (isBenar) {
+          doc.setFillColor(236, 250, 240);
+          doc.setDrawColor(46, 160, 90);
+          doc.setLineWidth(0.9);
+          doc.roundedRect(marginX, y - 2, contentW, boxH, 4, 4, 'FD');
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(22, 110, 55);
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(55, 50, 65);
+        }
+        doc.setFontSize(10.5);
+        doc.text(opsiLines, marginX + 12, y + 11);
+        y += boxH + 3;
+      }
+      y += 6;
 
       // pembahasan
       const pembahasan = pdfBersihkanLatex(s.pembahasan);
       if (pembahasan) {
-        butuhHalamanBaru(20);
+        const pLines = doc.splitTextToSize(pembahasan, contentW - 20);
+        const pH = 18 + pLines.length * 13 + 10;
+        butuhHalamanBaru(pH);
+        doc.setFillColor(252, 248, 255);
         doc.setDrawColor(...PDF_WARNA.pinkMuda);
         doc.setLineWidth(0.7);
-        doc.line(marginX, y, pageW - marginX, y);
-        y += 14;
+        doc.roundedRect(marginX, y, contentW, pH, 5, 5, 'FD');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(...PDF_WARNA.unguTua);
-        doc.text('Pembahasan:', marginX, y);
-        y += 13;
+        doc.text('Pembahasan', marginX + 10, y + 14);
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(61, 42, 82);
-        const lines = doc.splitTextToSize(pembahasan, contentW);
-        butuhHalamanBaru(lines.length * 13);
-        doc.text(lines, marginX, y);
-        y += lines.length * 13;
+        doc.setFontSize(10);
+        doc.setTextColor(55, 40, 75);
+        doc.text(pLines, marginX + 10, y + 28);
+        y += pH + 8;
       }
 
-      y += 22;
+      if (i < paket.soal.length - 1) {
+        y += 6;
+        butuhHalamanBaru(16);
+        doc.setDrawColor(230, 220, 240);
+        doc.setLineWidth(0.6);
+        doc.line(marginX, y, pageW - marginX, y);
+        y += 18;
+      }
     }
 
     pdfHeaderFooter(doc, paket.title);
-    doc.save(`Soal-${slugify(paket.title)}-KlinikFisikapku.pdf`);
+    doc.save('Soal-' + slugify(paket.title) + '-KlinikFisikapku.pdf');
   } catch (e) {
     alert('Gagal membuat PDF: ' + e.message);
   } finally {
