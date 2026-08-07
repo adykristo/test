@@ -18,6 +18,19 @@
       },
       "jawaban_benar": "A",
       "pembahasan": ""
+    },
+    {
+      "id": "q1786076444055-2",
+      "pertanyaan": "FDF",
+      "gambar": "",
+      "pilihan": {
+        "A": "D",
+        "C": "DG",
+        "D": "GD",
+        "E": "GD"
+      },
+      "jawaban_benar": "A",
+      "pembahasan": "DG"
     }
   ]
 }
