@@ -1,0 +1,58 @@
+{
+  "id": "paket-1-msjdu5cx",
+  "title": "Paket 1",
+  "jenjang": "sma",
+  "topik": "Kinematika",
+  "durasi_menit": 61,
+  "kode_akses": "",
+  "soal": [
+    {
+      "id": "q1786133385828-1",
+      "tipe": "isian",
+      "pertanyaan": "sebutkan satuan besaran pokok massa?",
+      "gambar": "",
+      "pembahasan": "",
+      "kunci_isian": "kg",
+      "jawaban_benar": "kg",
+      "pilihan": {}
+    },
+    {
+      "id": "q1786133502540-2",
+      "tipe": "esai",
+      "pertanyaan": "sebutkan apa saja sumber energi terbarukan?",
+      "gambar": "",
+      "pembahasan": "angin, matahari, air, panas bumi",
+      "pilihan": {},
+      "jawaban_benar": ""
+    },
+    {
+      "id": "q1786133562155-3",
+      "tipe": "pg4",
+      "pertanyaan": "1+3 =?",
+      "gambar": "",
+      "pembahasan": "",
+      "pilihan": {
+        "A": "4",
+        "B": "3",
+        "C": "2",
+        "D": "1"
+      },
+      "jawaban_benar": "A"
+    },
+    {
+      "id": "q1786133589575-4",
+      "tipe": "pg5",
+      "pertanyaan": "1+5+=?",
+      "gambar": "",
+      "pembahasan": "",
+      "pilihan": {
+        "A": "6",
+        "B": "5",
+        "C": "4",
+        "D": "3",
+        "E": "2"
+      },
+      "jawaban_benar": "A"
+    }
+  ]
+}
