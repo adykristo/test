@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — KlinikFisikapku</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root{
     --ungu-tua:#3d1a63;
@@ -536,6 +538,30 @@
     <p class="help">Satu baris = satu peserta, format: <code>NomorUjian, Nama Lengkap</code>. Semua yang ditambah lewat cara ini otomatis berlaku untuk <b>semua paket tryout</b> — kalau perlu dibatasi ke paket tertentu, edit satu-satu setelah ditambah.</p>
     <textarea id="pBulkText" placeholder="SD001, Ahmad Fauzan&#10;SD002, Siti Aminah"></textarea>
     <button class="btn btn-outline" style="margin-top:10px;" onclick="simpanBulkPeserta()">+ Tambah dari Daftar di Atas</button>
+  </div>
+
+  <div class="box">
+    <h2>5. Unduh Hasil Tryout Peserta (PDF)</h2>
+    <p class="help">
+      Fitur ini mengambil data hasil tryout peserta yang tersimpan di Google Sheet, lewat Apps Script
+      yang sama dipakai website utama untuk mengirim hasil peserta. Isi URL Apps Script &amp; Kode Rahasia
+      Admin sekali saja (harus sama persis dengan <code>ADMIN_KEY</code> di Apps Script). Lihat berkas
+      <code>apps-script-klinikfisikapku.gs</code> untuk kode backend-nya.
+    </p>
+    <label>URL Google Apps Script (Web App)</label>
+    <input type="text" id="hasilScriptUrl" placeholder="https://script.google.com/macros/s/xxxxxxxx/exec">
+    <label>Kode Rahasia Admin</label>
+    <input type="password" id="hasilAdminKey" placeholder="Samakan dengan ADMIN_KEY di Apps Script">
+    <button class="btn btn-outline" style="margin-top:14px;" onclick="simpanKonfigHasil()">Simpan Konfigurasi</button>
+    <p class="token-saved" id="hasilKonfigSavedMsg">✓ Konfigurasi tersimpan di browser ini.</p>
+
+    <label style="margin-top:20px;">Pilih Paket Tryout</label>
+    <select id="hasilPaketSelect"><option value="">Memuat daftar paket…</option></select>
+
+    <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="unduhHasilPesertaPDF()">📥 Ambil &amp; Unduh Hasil (PDF)</button>
+    </div>
+    <div id="statusHasilPeserta" class="status-bar"></div>
   </div>
 
 </main>
@@ -1328,10 +1354,12 @@ function renderPaketAdminList() {
       <div class="aksi">
         <button class="btn btn-outline" onclick="toggleAktifPaket('${p.id}')">${aktif ? 'Sembunyikan' : 'Tampilkan'}</button>
         <button class="btn btn-outline" onclick="editPaket('${p.id}')">Edit</button>
+        <button class="btn btn-outline" id="btnPdf-${p.id}" onclick="downloadPaketPDF('${p.id}')">📄 Unduh PDF Soal</button>
         <button class="btn btn-outline" style="color:#c0392b;" onclick="hapusPaket('${p.id}')">Hapus</button>
       </div>
     </div>`;
   }).join('');
+  populateHasilPaketSelect();
 }
 
 async function toggleAktifPaket(id) {
@@ -1421,6 +1449,206 @@ async function hapusPaket(id) {
     document.getElementById('statusManifest').classList.remove('show');
   } catch (e) {
     setStatus('statusManifest', 'Gagal menghapus: ' + e.message, 'err');
+  }
+}
+
+// ---------- Unduh Soal Lengkap sebagai PDF (tampilan bermerek KlinikFisikapku) ----------
+const PDF_WARNA = { unguTua: [61, 26, 99], ungu: [123, 47, 247], pink: [248, 87, 166], pinkMuda: [255, 217, 236], abu: [107, 100, 120] };
+
+function pdfBersihkanLatex(teks) {
+  // jsPDF tidak bisa render KaTeX/LaTeX — buang tanda $ / $$ / \( \) supaya teks tetap terbaca,
+  // walau rumus akan tampil sebagai kode mentah (mis. \frac{1}{2}) di PDF.
+  return String(teks || '')
+    .replace(/\$\$/g, '')
+    .replace(/\$/g, '')
+    .replace(/\\\(|\\\)|\\\[|\\\]/g, '')
+    .trim();
+}
+
+function pdfLoadImageDataURL(url) {
+  return new Promise((resolve, reject) => {
+    fetch(url).then(res => {
+      if (!res.ok) throw new Error('gagal fetch gambar');
+      return res.blob();
+    }).then(blob => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => resolve({ dataUrl: reader.result, w: img.naturalWidth, h: img.naturalHeight });
+        img.onerror = () => reject(new Error('gagal decode gambar'));
+        img.src = reader.result;
+      };
+      reader.onerror = () => reject(new Error('gagal baca gambar'));
+      reader.readAsDataURL(blob);
+    }).catch(reject);
+  });
+}
+
+function pdfHeaderFooter(doc, judulPaket) {
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    // header bar
+    doc.setFillColor(...PDF_WARNA.unguTua);
+    doc.rect(0, 0, pageW, 46, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text('KlinikFisikapku', 36, 29);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(255, 217, 236);
+    doc.text(judulPaket, pageW - 36, 29, { align: 'right' });
+    // footer
+    doc.setDrawColor(...PDF_WARNA.pinkMuda);
+    doc.line(36, pageH - 34, pageW - 36, pageH - 34);
+    doc.setFontSize(8.5);
+    doc.setTextColor(...PDF_WARNA.abu);
+    doc.text('KlinikFisikapku — Soal & Pembahasan OSN Fisika', 36, pageH - 20);
+    doc.text(`Halaman ${i} dari ${totalPages}`, pageW - 36, pageH - 20, { align: 'right' });
+  }
+}
+
+async function downloadPaketPDF(id) {
+  const meta = manifestCache.content.find(p => p.id === id);
+  if (!meta) return;
+  const btn = document.getElementById('btnPdf-' + id);
+  const teksAsli = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Menyiapkan PDF…'; }
+
+  try {
+    const result = await ghGetFile(meta.file);
+    if (!result) throw new Error('File paket tidak ditemukan di GitHub.');
+    const paket = result.content;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const marginX = 36;
+    const contentW = pageW - marginX * 2;
+    let y = 80;
+
+    function butuhHalamanBaru(tinggiTambahan) {
+      if (y + tinggiTambahan > pageH - 46) {
+        doc.addPage();
+        y = 70;
+      }
+    }
+
+    // ---- Sampul ringkas ----
+    doc.setTextColor(...PDF_WARNA.unguTua);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(17);
+    const judulLines = doc.splitTextToSize(paket.title, contentW);
+    doc.text(judulLines, marginX, y);
+    y += judulLines.length * 20 + 4;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(...PDF_WARNA.abu);
+    doc.text(`Jenjang: ${String(paket.jenjang).toUpperCase()}   ·   Topik: ${paket.topik || '-'}   ·   Durasi: ${paket.durasi_menit} menit   ·   Jumlah Soal: ${paket.soal.length}`, marginX, y);
+    y += 16;
+    doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, marginX, y);
+    y += 26;
+    doc.setDrawColor(...PDF_WARNA.pink);
+    doc.setLineWidth(1.4);
+    doc.line(marginX, y, pageW - marginX, y);
+    y += 26;
+
+    const huruf = ['A', 'B', 'C', 'D', 'E'];
+
+    for (let i = 0; i < paket.soal.length; i++) {
+      const s = paket.soal[i];
+      butuhHalamanBaru(60);
+
+      // badge nomor soal
+      doc.setFillColor(...PDF_WARNA.pinkMuda);
+      doc.roundedRect(marginX, y, 70, 20, 10, 10, 'F');
+      doc.setTextColor(...PDF_WARNA.ungu);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10.5);
+      doc.text(`SOAL ${i + 1}`, marginX + 35, y + 14, { align: 'center' });
+      y += 30;
+
+      // pertanyaan
+      const pertanyaan = pdfBersihkanLatex(s.pertanyaan);
+      if (pertanyaan) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.setTextColor(30, 20, 45);
+        const lines = doc.splitTextToSize(pertanyaan, contentW);
+        butuhHalamanBaru(lines.length * 14 + 10);
+        doc.text(lines, marginX, y);
+        y += lines.length * 14 + 8;
+      }
+
+      // gambar soal (kalau ada)
+      if (s.gambar) {
+        try {
+          const img = await pdfLoadImageDataURL(s.gambar);
+          const maxW = contentW * 0.75;
+          const scale = Math.min(maxW / img.w, 1);
+          const drawW = img.w * scale;
+          const drawH = img.h * scale;
+          butuhHalamanBaru(drawH + 14);
+          doc.addImage(img.dataUrl, 'JPEG', marginX, y, drawW, drawH);
+          y += drawH + 14;
+        } catch (e) {
+          doc.setFontSize(9.5);
+          doc.setTextColor(...PDF_WARNA.abu);
+          doc.text('[Gambar tidak bisa dimuat otomatis — lihat: ' + s.gambar + ']', marginX, y);
+          y += 14;
+        }
+      }
+
+      // pilihan jawaban
+      doc.setFontSize(10.5);
+      huruf.forEach(h => {
+        if (!s.pilihan || !s.pilihan[h]) return;
+        const isBenar = s.jawaban_benar === h;
+        const teksPilihan = `${h}. ${pdfBersihkanLatex(s.pilihan[h])}${isBenar ? '   ✓ (Jawaban Benar)' : ''}`;
+        const lines = doc.splitTextToSize(teksPilihan, contentW - 14);
+        butuhHalamanBaru(lines.length * 13 + 4);
+        doc.setFont('helvetica', isBenar ? 'bold' : 'normal');
+        doc.setTextColor(isBenar ? 31 : 60, isBenar ? 122 : 60, isBenar ? 65 : 70);
+        doc.text(lines, marginX + 14, y);
+        y += lines.length * 13 + 4;
+      });
+      y += 4;
+
+      // pembahasan
+      const pembahasan = pdfBersihkanLatex(s.pembahasan);
+      if (pembahasan) {
+        butuhHalamanBaru(20);
+        doc.setDrawColor(...PDF_WARNA.pinkMuda);
+        doc.setLineWidth(0.7);
+        doc.line(marginX, y, pageW - marginX, y);
+        y += 14;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...PDF_WARNA.unguTua);
+        doc.text('Pembahasan:', marginX, y);
+        y += 13;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(61, 42, 82);
+        const lines = doc.splitTextToSize(pembahasan, contentW);
+        butuhHalamanBaru(lines.length * 13);
+        doc.text(lines, marginX, y);
+        y += lines.length * 13;
+      }
+
+      y += 22;
+    }
+
+    pdfHeaderFooter(doc, paket.title);
+    doc.save(`Soal-${slugify(paket.title)}-KlinikFisikapku.pdf`);
+  } catch (e) {
+    alert('Gagal membuat PDF: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = teksAsli; }
   }
 }
 
@@ -1790,6 +2018,129 @@ async function simpanBulkPeserta() {
   } catch (e) {
     setStatus('statusPeserta', 'Gagal menyimpan: ' + e.message, 'err');
   }
+}
+
+// ================== UNDUH HASIL TRYOUT PESERTA (PDF) ==================
+let hasilScriptUrl = localStorage.getItem('kf_hasil_script_url') || '';
+let hasilAdminKey = localStorage.getItem('kf_hasil_admin_key') || '';
+document.getElementById('hasilScriptUrl').value = hasilScriptUrl;
+document.getElementById('hasilAdminKey').value = hasilAdminKey;
+if (hasilScriptUrl && hasilAdminKey) document.getElementById('hasilKonfigSavedMsg').classList.add('show');
+
+function simpanKonfigHasil() {
+  hasilScriptUrl = document.getElementById('hasilScriptUrl').value.trim();
+  hasilAdminKey = document.getElementById('hasilAdminKey').value.trim();
+  localStorage.setItem('kf_hasil_script_url', hasilScriptUrl);
+  localStorage.setItem('kf_hasil_admin_key', hasilAdminKey);
+  document.getElementById('hasilKonfigSavedMsg').classList.add('show');
+  alert('Konfigurasi tersimpan di browser ini.');
+}
+
+function populateHasilPaketSelect() {
+  const sel = document.getElementById('hasilPaketSelect');
+  if (!sel) return;
+  if (!manifestCache.content.length) {
+    sel.innerHTML = '<option value="">Belum ada paket tryout</option>';
+    return;
+  }
+  const dipilihSebelumnya = sel.value;
+  sel.innerHTML = manifestCache.content.map(p => `<option value="${p.id}">${p.title} (${p.jenjang.toUpperCase()})</option>`).join('');
+  if (dipilihSebelumnya && manifestCache.content.some(p => p.id === dipilihSebelumnya)) {
+    sel.value = dipilihSebelumnya;
+  }
+}
+
+async function unduhHasilPesertaPDF() {
+  if (!hasilScriptUrl || !hasilAdminKey) {
+    setStatus('statusHasilPeserta', 'Isi & simpan dulu URL Apps Script dan Kode Rahasia Admin di atas.', 'err');
+    return;
+  }
+  const paketId = document.getElementById('hasilPaketSelect').value;
+  const meta = manifestCache.content.find(p => p.id === paketId);
+  if (!meta) { setStatus('statusHasilPeserta', 'Pilih paket tryout dulu.', 'err'); return; }
+
+  setStatus('statusHasilPeserta', 'Mengambil data hasil dari Google Sheet…', 'loading');
+  try {
+    const url = `${hasilScriptUrl}?action=hasil&paket=${encodeURIComponent(paketId)}&key=${encodeURIComponent(hasilAdminKey)}&_=${Date.now()}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Gagal mengambil data (status ' + res.status + ').');
+    const data = await res.json();
+    if (data && data.error) {
+      throw new Error(data.error === 'unauthorized' ? 'Kode Rahasia Admin salah / ditolak Apps Script.' : data.error);
+    }
+    if (!Array.isArray(data) || !data.length) {
+      setStatus('statusHasilPeserta', 'Belum ada peserta yang mengumpulkan hasil untuk paket ini.', 'err');
+      return;
+    }
+    buatPdfHasilPeserta(meta, data);
+    setStatus('statusHasilPeserta', `✓ PDF berhasil dibuat untuk ${data.length} peserta.`, 'ok');
+  } catch (e) {
+    setStatus('statusHasilPeserta', 'Gagal: ' + e.message, 'err');
+  }
+}
+
+function buatPdfHasilPeserta(meta, data) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  let y = 80;
+
+  doc.setTextColor(...PDF_WARNA.unguTua);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('Hasil Tryout Peserta', 36, y);
+  y += 20;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(...PDF_WARNA.abu);
+  doc.text(`${meta.title}  ·  ${String(meta.jenjang).toUpperCase()}  ·  ${data.length} peserta`, 36, y);
+  y += 18;
+
+  const nilaiArr = data.map(d => Number(d.nilai) || 0);
+  const rata = (nilaiArr.reduce((a, b) => a + b, 0) / nilaiArr.length).toFixed(1);
+  const tertinggi = Math.max(...nilaiArr);
+  const terendah = Math.min(...nilaiArr);
+
+  doc.setFontSize(10);
+  doc.setTextColor(60, 60, 70);
+  doc.text(`Rata-rata: ${rata}   ·   Nilai Tertinggi: ${tertinggi}   ·   Nilai Terendah: ${terendah}`, 36, y);
+
+  const rows = data
+    .slice()
+    .sort((a, b) => (Number(b.nilai) || 0) - (Number(a.nilai) || 0))
+    .map((d, i) => [
+      i + 1, d.nama || '-', d.noUjian || '-', d.nilai, d.benar, d.salah, d.kosong,
+      d.waktu ? new Date(d.waktu).toLocaleString('id-ID') : '-'
+    ]);
+
+  doc.autoTable({
+    startY: y + 16,
+    head: [['No', 'Nama', 'No. Ujian', 'Nilai', 'Benar', 'Salah', 'Kosong', 'Waktu Submit']],
+    body: rows,
+    styles: { fontSize: 8.5, cellPadding: 5 },
+    headStyles: { fillColor: PDF_WARNA.unguTua, textColor: 255 },
+    alternateRowStyles: { fillColor: [253, 249, 255] },
+    margin: { left: 36, right: 36, top: 60 },
+    didDrawPage: (dataArg) => {
+      const pw = doc.internal.pageSize.getWidth();
+      const ph = doc.internal.pageSize.getHeight();
+      doc.setFillColor(...PDF_WARNA.unguTua);
+      doc.rect(0, 0, pw, 46, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.text('KlinikFisikapku', 36, 29);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(255, 217, 236);
+      doc.text('Hasil Tryout', pw - 36, 29, { align: 'right' });
+      doc.setFontSize(8.5);
+      doc.setTextColor(...PDF_WARNA.abu);
+      doc.text(`Halaman ${dataArg.pageNumber}`, pw - 36, ph - 20, { align: 'right' });
+    }
+  });
+
+  doc.save(`Hasil-${slugify(meta.title)}-KlinikFisikapku.pdf`);
 }
 
 loadManifest();

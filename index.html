@@ -684,6 +684,7 @@
       <h3>Verifikasi Data Peserta</h3>
       <div class="sub" id="pesertaSubJudul">-</div>
       <div class="info-paket">Nama peserta terdaftar oleh admin. Masukkan Nomor Ujian yang sudah diberikan admin kamu.</div>
+      <div class="info-paket" style="background:#fde3e3; color:#c0392b;">⚠️ Satu Nomor Ujian hanya bisa dipakai <b>satu kali</b> untuk setiap paket tryout. Setelah mengumpulkan jawaban, nomor ujian ini tidak bisa dipakai lagi untuk paket yang sama.</div>
       <label>Nomor Ujian</label>
       <input type="text" id="inputNoUjian" placeholder="Tulis nomor ujian yang diberikan admin" oninput="cekNomorUjian()">
       <div class="err-msg" id="pesertaErr"></div>
@@ -729,8 +730,7 @@
       </div>
     </div>
     <div id="hasilReview"></div>
-    <div class="tryout-footer-nav">
-      <button class="btn-secondary" onclick="downloadHasilCadangan()">⬇ Download Hasil (cadangan)</button>
+    <div class="tryout-footer-nav" style="justify-content:center;">
       <button class="btn-primary" onclick="gotoPage('tryout')">Kembali ke Daftar Tryout</button>
     </div>
   </section>
@@ -1147,9 +1147,10 @@ function cekNomorUjian() {
   btnMulai.disabled = false;
 }
 
-function mulaiUjianSetelahData() {
+async function mulaiUjianSetelahData() {
   const noUjian = document.getElementById('inputNoUjian').value.trim();
   const errEl = document.getElementById('pesertaErr');
+  const btnMulai = document.getElementById('btnMulaiUjian');
   const { paket, meta } = pendingTryout;
   const data = cariPesertaTerdaftar(noUjian, meta.id);
 
@@ -1161,6 +1162,26 @@ function mulaiUjianSetelahData() {
     return;
   }
   errEl.classList.remove('show');
+
+  // ==== cek ke server (Google Sheet) apakah nomor ujian ini SUDAH PERNAH mengumpulkan
+  // jawaban untuk paket tryout ini. Kalau sudah, tidak boleh mengulang. ====
+  btnMulai.disabled = true;
+  const teksAsliBtn = btnMulai.textContent;
+  btnMulai.textContent = 'Memeriksa status…';
+  try {
+    const sudahDipakai = await cekNomorUjianSudahDipakai(noUjian, meta.id);
+    if (sudahDipakai) {
+      errEl.textContent = 'Nomor Ujian ini SUDAH PERNAH digunakan untuk mengumpulkan tryout ini dan tidak bisa dipakai lagi. Kalau merasa ini keliru, hubungi admin.';
+      errEl.classList.add('show');
+      btnMulai.disabled = false;
+      btnMulai.textContent = teksAsliBtn;
+      return;
+    }
+  } catch (e) {
+    // Kalau pengecekan gagal (mis. koneksi), tetap lanjutkan — pengecekan akhir tetap
+    // dilakukan lagi saat jawaban dikumpulkan (submit), jadi tidak bisa dipakai dobel.
+  }
+  btnMulai.textContent = teksAsliBtn;
 
   tryoutState = {
     paket,
@@ -1348,42 +1369,46 @@ let lastHasil = null;
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYnIAUlMxIOJDa7y_sJqWzXfB_6AsFZyhB1RLUnIoxqsPewch5GiooYK3xCZJORLWw/exec";
 // ===========================================================================
 
+// Cek ke Apps Script apakah noUjian+paketId ini sudah pernah mengumpulkan hasil.
+// Butuh doGet(action=cek) di Apps Script — lihat berkas apps-script-klinikfisikapku.gs.
+async function cekNomorUjianSudahDipakai(noUjian, paketId) {
+  if (!GOOGLE_SCRIPT_URL) return false;
+  const url = `${GOOGLE_SCRIPT_URL}?action=cek&noUjian=${encodeURIComponent(noUjian)}&paket=${encodeURIComponent(paketId)}&_=${Date.now()}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Gagal memeriksa status nomor ujian.');
+  const data = await res.json();
+  return !!data.sudahDipakai;
+}
+
 function kirimHasilKeSheet(hasil) {
   const statusEl = document.getElementById('kirimStatus');
   if (!GOOGLE_SCRIPT_URL) {
-    statusEl.textContent = 'Pengiriman otomatis belum diaktifkan admin. Gunakan tombol "Download Hasil" di bawah sebagai cadangan.';
+    statusEl.textContent = 'Pengiriman otomatis belum diaktifkan admin. Hubungi guru untuk verifikasi hasil kamu secara manual.';
     statusEl.className = 'kirim-status failed';
     return;
   }
   statusEl.textContent = 'Mengirim hasil ke guru…';
   statusEl.className = 'kirim-status sending';
 
+  // Catatan: TIDAK memakai mode:'no-cors' lagi supaya respons JSON dari Apps Script
+  // (termasuk status "sudah_pernah" kalau ada percobaan submit dobel) bisa dibaca.
+  // Content-Type tetap text/plain supaya browser tidak mengirim CORS preflight.
   fetch(GOOGLE_SCRIPT_URL, {
     method: 'POST',
-    mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(hasil)
-  }).then(() => {
-    // mode no-cors: kita tidak bisa baca respons, jadi anggap terkirim
-    statusEl.textContent = '✓ Hasil berhasil dikirim ke guru.';
-    statusEl.className = 'kirim-status sent';
+  }).then(res => res.json()).then(resData => {
+    if (resData && resData.status === 'sudah_pernah') {
+      statusEl.textContent = 'Nomor ujian ini sudah pernah mengumpulkan tryout ini sebelumnya, jadi hasil kali ini TIDAK disimpan ganda. Hubungi guru kalau ini keliru.';
+      statusEl.className = 'kirim-status failed';
+    } else {
+      statusEl.textContent = '✓ Hasil berhasil dikirim ke guru.';
+      statusEl.className = 'kirim-status sent';
+    }
   }).catch(() => {
-    statusEl.textContent = 'Gagal mengirim otomatis. Silakan klik "Download Hasil" di bawah lalu kirim manual ke guru.';
+    statusEl.textContent = 'Gagal mengirim otomatis (masalah koneksi). Screenshot layar ini dan hubungi guru untuk verifikasi manual.';
     statusEl.className = 'kirim-status failed';
   });
-}
-
-function downloadHasilCadangan() {
-  if (!lastHasil) return;
-  const blob = new Blob([JSON.stringify(lastHasil, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `hasil-tryout-${lastHasil.noUjian || 'peserta'}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 }
 
 loadTryoutManifest();
