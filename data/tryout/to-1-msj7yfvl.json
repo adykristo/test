@@ -1,0 +1,23 @@
+{
+  "id": "to-1-msj7yfvl",
+  "title": "TO 1",
+  "jenjang": "sd",
+  "topik": "GAYA",
+  "durasi_menit": 2,
+  "soal": [
+    {
+      "id": "q1786123694459-1",
+      "pertanyaan": "1+1 = ?",
+      "gambar": "",
+      "pilihan": {
+        "A": "2",
+        "B": "4",
+        "C": "6",
+        "D": "8",
+        "E": "9"
+      },
+      "jawaban_benar": "A",
+      "pembahasan": ""
+    }
+  ]
+}
