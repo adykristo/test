@@ -28,5 +28,16 @@
     "jumlah_soal": 1,
     "file": "data/tryout/to-1-msj7yfvl.json",
     "aktif": true
+  },
+  {
+    "id": "paket-1-msjdu5cx",
+    "title": "Paket 1",
+    "jenjang": "sma",
+    "topik": "Kinematika",
+    "durasi_menit": 61,
+    "jumlah_soal": 4,
+    "file": "data/tryout/paket-1-msjdu5cx.json",
+    "aktif": true,
+    "kode_akses": ""
   }
 ]
