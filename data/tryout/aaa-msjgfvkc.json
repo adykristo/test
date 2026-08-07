@@ -1,0 +1,19 @@
+{
+  "id": "aaa-msjgfvkc",
+  "title": "aaa",
+  "jenjang": "sma",
+  "topik": "aaa",
+  "durasi_menit": 60,
+  "kode_akses": "",
+  "soal": [
+    {
+      "id": "q1786137974851-2",
+      "tipe": "esai",
+      "pertanyaan": "apa itu fisika?",
+      "gambar": "",
+      "pembahasan": "",
+      "pilihan": {},
+      "jawaban_benar": ""
+    }
+  ]
+}
