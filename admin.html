@@ -340,12 +340,12 @@ window.MathJax = {
   .soal-item button:disabled{ background:#eee; color:#999; border-color:#ddd; }
 
   /* ===== PANEL TRYOUT ===== */
-  #panelTryout main{
+  #panelTryout main, #panelEsai main{
     max-width:880px;
     margin:0 auto;
     padding:28px 16px 60px;
   }
-  #panelTryout .box{
+  #panelTryout .box, #panelEsai .box{
     background:var(--card);
     border:1px solid var(--border);
     border-radius:16px;
@@ -353,19 +353,19 @@ window.MathJax = {
     margin-bottom:16px;
     box-shadow:var(--shadow);
   }
-  #panelTryout .box h2{
+  #panelTryout .box h2, #panelEsai .box h2{
     font-size:14px;
     font-weight:700;
     color:var(--ungu-tua);
     margin-bottom:14px;
   }
-  #panelTryout .box h3{
+  #panelTryout .box h3, #panelEsai .box h3{
     font-size:13.5px;
     font-weight:700;
     color:var(--ungu-tua);
     margin:16px 0 10px;
   }
-  #panelTryout label{
+  #panelTryout label, #panelEsai label{
     display:block;
     font-size:12.5px;
     font-weight:700;
@@ -373,12 +373,12 @@ window.MathJax = {
     margin-bottom:5px;
     margin-top:12px;
   }
-  #panelTryout label:first-child{ margin-top:0; }
-  #panelTryout input[type=text],
-  #panelTryout input[type=number],
-  #panelTryout input[type=password],
-  #panelTryout select,
-  #panelTryout textarea{
+  #panelTryout label:first-child, #panelEsai label:first-child{ margin-top:0; }
+  #panelTryout input[type=text], #panelEsai input[type=text],
+  #panelTryout input[type=number], #panelEsai input[type=number],
+  #panelTryout input[type=password], #panelEsai input[type=password],
+  #panelTryout select, #panelEsai select,
+  #panelTryout textarea, #panelEsai textarea{
     width:100%;
     border:1.5px solid #e8daf5;
     border-radius:10px;
@@ -388,18 +388,18 @@ window.MathJax = {
     color:#2b1a3d;
     background:#fdfbff;
   }
-  #panelTryout input:focus,
-  #panelTryout select:focus,
-  #panelTryout textarea:focus{
+  #panelTryout input:focus, #panelEsai input:focus,
+  #panelTryout select:focus, #panelEsai select:focus,
+  #panelTryout textarea:focus, #panelEsai textarea:focus{
     outline:none;
     border-color:var(--ungu);
   }
-  #panelTryout .row{
+  #panelTryout .row, #panelEsai .row{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:14px;
   }
-  #panelTryout .row3{
+  #panelTryout .row3, #panelEsai .row3{
     display:grid;
     grid-template-columns:1fr 1fr 1fr;
     gap:14px;
@@ -499,15 +499,15 @@ window.MathJax = {
   }
   #panelTryout .paket-item .aksi button:hover{ background:var(--pink-muda); }
 
-  #panelTryout .token-saved{
+  #panelTryout .token-saved, #panelEsai .token-saved{
     font-size:12px;
     color:var(--hijau);
     margin-top:6px;
     display:none;
   }
-  #panelTryout .token-saved.show{ display:block; }
+  #panelTryout .token-saved.show, #panelEsai .token-saved.show{ display:block; }
 
-  #panelTryout button.btn{
+  #panelTryout button.btn, #panelEsai button.btn{
     border:none;
     border-radius:999px;
     font-size:13.5px;
@@ -515,22 +515,99 @@ window.MathJax = {
     padding:11px 20px;
     cursor:pointer;
   }
-  #panelTryout .btn-outline{
+  #panelTryout .btn-outline, #panelEsai .btn-outline{
     background:#fff;
     color:var(--ungu-tua);
     border:1.5px solid #dcccf0;
   }
-  #panelTryout .btn-primary{
+  #panelTryout .btn-primary, #panelEsai .btn-primary{
     background:linear-gradient(90deg, var(--pink), var(--ungu));
     color:#fff;
   }
-  #panelTryout .btn-hijau{
+  #panelTryout .btn-hijau, #panelEsai .btn-hijau{
     background:var(--hijau);
     color:#fff;
   }
 
   /* Hide old panelTryout header (we use shared header) */
   #panelTryout > header{ display:none; }
+
+  /* ===== PANEL JAWABAN ESAI (folder koreksi) ===== */
+  #panelEsai .btn-sm{
+    padding:7px 14px;
+    font-size:12.5px;
+  }
+  #panelEsai .esai-folder{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    margin-bottom:12px;
+    overflow:hidden;
+  }
+  #panelEsai .esai-folder summary{
+    list-style:none;
+    cursor:pointer;
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-weight:700;
+    color:var(--ungu-tua);
+    font-size:13.5px;
+    background:#faf7ff;
+  }
+  #panelEsai .esai-folder summary::-webkit-details-marker{ display:none; }
+  #panelEsai .esai-folder summary .muted{ font-weight:400; color:var(--abu); }
+  #panelEsai .esai-folder-body{
+    padding:6px 16px 16px;
+  }
+  #panelEsai .esai-item{
+    border-top:1px dashed var(--border);
+    padding:14px 0;
+  }
+  #panelEsai .esai-item:first-child{ border-top:none; }
+  #panelEsai .esai-nomor{
+    display:inline-block;
+    font-size:11.5px;
+    font-weight:800;
+    color:#fff;
+    background:linear-gradient(90deg, var(--pink), var(--ungu));
+    padding:3px 10px;
+    border-radius:999px;
+    margin-bottom:8px;
+  }
+  #panelEsai .esai-jawaban-teks{
+    background:#fdfbff;
+    border:1.5px solid #e8daf5;
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:13px;
+    white-space:pre-wrap;
+    margin-bottom:10px;
+  }
+  #panelEsai .esai-jawaban-teks.muted{ color:var(--abu-muda); font-style:italic; }
+  #panelEsai .esai-file-row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  #panelEsai .esai-gh-link{
+    font-size:12px;
+    color:var(--hijau);
+    margin-bottom:8px;
+    word-break:break-all;
+  }
+  #panelEsai .esai-koreksi-row{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    align-items:flex-start;
+    margin-bottom:10px;
+  }
+  #panelEsai .esai-koreksi-row > div:first-child{ width:110px; }
+  #panelEsai .esai-nilai{ width:100%; }
 </style>
 </head>
 <body>
@@ -544,6 +621,7 @@ window.MathJax = {
 <div class="admin-tabs">
   <button type="button" class="tab-btn active" id="tabBtnSoal" onclick="switchAdminTab('panelSoal')">📤 Upload Soal</button>
   <button type="button" class="tab-btn" id="tabBtnTryout" onclick="switchAdminTab('panelTryout')">⚙️ Admin Tryout</button>
+  <button type="button" class="tab-btn" id="tabBtnEsai" onclick="switchAdminTab('panelEsai')">📝 Jawaban Esai</button>
 </div>
 
 <div id="panelSoal" class="tab-panel active">
@@ -828,12 +906,74 @@ window.MathJax = {
 </main>
 </div>
 
+<div id="panelEsai" class="tab-panel">
+<header>
+  <h1>📝 Jawaban Esai — Koreksi Manual</h1>
+  <p>Semua jawaban esai peserta dikumpulkan per paket, dikelompokkan per peserta seperti folder, supaya mudah dibuka &amp; dikoreksi satu per satu.</p>
+</header>
+<main>
+
+  <div class="box">
+    <h2>1. Buka Folder Jawaban Esai</h2>
+    <p class="help">
+      Menggunakan konfigurasi Apps Script &amp; Kode Rahasia Admin yang sama dengan tab
+      <strong>"⚙️ Admin Tryout" → bagian 5 (Unduh Hasil Tryout)</strong>. Kalau belum diisi,
+      isi dulu di sana lalu kembali ke sini.
+    </p>
+    <label>Pilih Paket Tryout</label>
+    <select id="esaiPaketSelect"><option value="">Memuat daftar paket…</option></select>
+
+    <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="ambilJawabanEsai()">📂 Buka Folder Jawaban Esai</button>
+      <button class="btn btn-hijau" id="btnUnduhRekapEsai" style="display:none;" onclick="unduhRekapKoreksiEsai()">📥 Unduh Rekap Koreksi (PDF)</button>
+    </div>
+    <div id="statusEsai" class="status-bar"></div>
+  </div>
+
+  <div class="box" id="esaiFolderBox">
+    <h2>2. Folder Peserta</h2>
+    <p class="help">
+      Klik nama peserta untuk membuka/menutup jawabannya. Nilai &amp; catatan otomatis
+      tersimpan di browser ini setiap kali kamu klik "Simpan Koreksi", dan juga akan
+      dicoba dikirim ke Apps Script (kalau endpoint <code>simpanKoreksiEsai</code> sudah
+      kamu tambahkan di script-mu).
+    </p>
+    <div id="esaiFolderList"><p class="help">Belum ada folder dibuka. Pilih paket lalu klik "Buka Folder Jawaban Esai" di atas.</p></div>
+  </div>
+
+  <div class="box">
+    <h2>3. Penyimpanan File Jawaban Esai di GitHub</h2>
+    <p class="help">
+      Tombol <strong>"⬆️ Upload ke GitHub"</strong> pada tiap jawaban esai (yang ada file PDF-nya)
+      akan menyalin file itu ke repository GitHub kamu, sebagai arsip cadangan di luar Google Drive/Sheet.
+      Fitur ini pakai <strong>koneksi GitHub yang sama</strong> dengan tab "⚙️ Admin Tryout" → bagian 1
+      — pastikan sudah diisi &amp; disimpan di sana dulu.
+    </p>
+    <p class="help">
+      File akan tersimpan di folder repo:
+      <code id="esaiFolderPathInfo">data/jawaban-esai/&lt;id-paket&gt;/&lt;no-ujian&gt;_soal&lt;nomor&gt;.pdf</code>.
+      Kalau file dengan nama sama diupload ulang, file lama akan otomatis diperbarui (bukan duplikat).
+    </p>
+    <p class="note" style="margin-top:4px;">
+      <strong>Catatan:</strong> fitur ini hanya membaca kolom jawaban esai dari data yang
+      dikembalikan Apps Script-mu. Kalau folder di atas kosong padahal peserta sudah mengumpulkan
+      esai, kemungkinan Apps Script belum menyimpan teks/file esai ke kolom Sheet — tambahkan kolom
+      seperti <code>Esai 1 Teks</code>, <code>Esai 1 File</code>, <code>Esai 1 Link</code> (atau kirim
+      seluruh array <code>jawabanEsai</code> sebagai satu kolom JSON) di Apps Script kamu.
+    </p>
+  </div>
+
+</main>
+</div>
+
 <script>
+const ADMIN_TAB_BTN = { panelSoal: 'tabBtnSoal', panelTryout: 'tabBtnTryout', panelEsai: 'tabBtnEsai' };
 function switchAdminTab(id) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.admin-tabs .tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  (id === 'panelSoal' ? document.getElementById('tabBtnSoal') : document.getElementById('tabBtnTryout')).classList.add('active');
+  document.getElementById(ADMIN_TAB_BTN[id] || 'tabBtnSoal').classList.add('active');
+  if (id === 'panelEsai') populateEsaiPaketSelect();
 }
 </script>
 
@@ -1638,6 +1778,7 @@ function renderPaketAdminList() {
     </div>`;
   }).join('');
   populateHasilPaketSelect();
+  if (typeof populateEsaiPaketSelect === 'function') populateEsaiPaketSelect();
 }
 
 async function toggleAktifPaket(id) {
@@ -2707,6 +2848,375 @@ function buatPdfHasilPeserta(meta, data) {
   });
 
   doc.save(`Hasil-${slugify(meta.title)}-KlinikFisikapku.pdf`);
+}
+
+/* ================== PANEL 3: FOLDER JAWABAN ESAI (KOREKSI) ================== */
+
+const ESAI_GITHUB_FOLDER = "data/jawaban-esai";
+
+function populateEsaiPaketSelect() {
+  const sel = document.getElementById('esaiPaketSelect');
+  if (!sel) return;
+  if (!manifestCache.content.length) {
+    sel.innerHTML = '<option value="">Belum ada paket tryout</option>';
+    return;
+  }
+  const dipilihSebelumnya = sel.value;
+  sel.innerHTML = manifestCache.content.map(p => `<option value="${p.id}">${p.title} (${p.jenjang.toUpperCase()})</option>`).join('');
+  if (dipilihSebelumnya && manifestCache.content.some(p => p.id === dipilihSebelumnya)) {
+    sel.value = dipilihSebelumnya;
+  }
+}
+
+// Membaca jawaban esai dari satu baris hasil (format kolom di Sheet bisa berbeda-beda
+// tergantung Apps Script masing-masing, jadi dicoba beberapa kemungkinan sekaligus).
+function parseJawabanEsaiDariBaris(row) {
+  // 1) Field sudah berupa array (kalau sumbernya bukan Sheet tapi API JSON langsung)
+  if (Array.isArray(row.jawabanEsai)) return row.jawabanEsai;
+
+  // 2) Field berupa satu kolom berisi JSON string, mis. hasil JSON.stringify(jawabanEsai)
+  const keys = Object.keys(row);
+  const kolomJson = keys.find(k => /^jawaban\s*esai$/i.test(k.trim()) || /^esai$/i.test(k.trim()));
+  if (kolomJson && row[kolomJson]) {
+    try {
+      const parsed = JSON.parse(row[kolomJson]);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) { /* bukan JSON valid, coba cara lain di bawah */ }
+  }
+
+  // 3) Kolom per-soal terpisah, mis. "Esai 1 Teks", "esai_1_file", "Esai 1 Link", dst.
+  const nomorSet = new Set();
+  keys.forEach(k => {
+    const m = k.match(/esai[\s_-]*?(\d+)/i);
+    if (m) nomorSet.add(Number(m[1]));
+  });
+
+  const ambilKolom = (nomor, ...pola) => {
+    for (const p of pola) {
+      const re = new RegExp('esai[\\s_-]*' + nomor + '[\\s_-]*' + p + '$', 'i');
+      const k = keys.find(key => re.test(key.trim()));
+      if (k && row[k]) return row[k];
+    }
+    return '';
+  };
+
+  const hasil = [];
+  [...nomorSet].sort((a, b) => a - b).forEach(nomor => {
+    const teks = ambilKolom(nomor, 'teks', 'text', 'jawaban', 'answer');
+    const fileName = ambilKolom(nomor, 'file[_ -]?name', 'nama[_ -]?file', 'filename');
+    const fileData = ambilKolom(nomor, 'file[_ -]?data', 'filedata', 'base64');
+    const link = ambilKolom(nomor, 'link', 'url', 'drive', 'drive[_ -]?url', 'lampiran');
+    if (teks || fileName || fileData || link) {
+      hasil.push({ nomor, teks: teks || '', fileName: fileName || '', fileData: fileData || '', link: link || '' });
+    }
+  });
+  return hasil;
+}
+
+let esaiCache = { meta: null, peserta: [] };
+
+async function ambilJawabanEsai() {
+  if (!hasilScriptUrl || !hasilAdminKey) {
+    setStatus('statusEsai', 'Isi & simpan dulu URL Apps Script dan Kode Rahasia Admin di tab "⚙️ Admin Tryout" bagian 5.', 'err');
+    return;
+  }
+  const paketId = document.getElementById('esaiPaketSelect').value;
+  const meta = manifestCache.content.find(p => p.id === paketId);
+  if (!meta) { setStatus('statusEsai', 'Pilih paket tryout dulu.', 'err'); return; }
+
+  document.getElementById('esaiFolderList').innerHTML = '<p class="help">Memuat…</p>';
+  document.getElementById('btnUnduhRekapEsai').style.display = 'none';
+  esaiCache = { meta: null, peserta: [] };
+
+  setStatus('statusEsai', 'Membuka folder jawaban esai dari Google Sheet…', 'loading');
+  try {
+    const title = meta.title || '';
+    const titleShort = title.replace(/\s*\([^)]*\)\s*$/, '').trim();
+
+    let semuaBaris = [];
+    const seen = new Set();
+    const kunciCoba = ['', 'semua', 'all', titleShort, title, paketId];
+
+    for (const kunci of kunciCoba) {
+      try {
+        const rows = await ambilHasilDariScript(kunci);
+        rows.forEach(r => {
+          const key = JSON.stringify(r);
+          if (!seen.has(key)) { seen.add(key); semuaBaris.push(r); }
+        });
+      } catch (e1) { /* lanjut coba kunci lain */ }
+    }
+
+    if (!semuaBaris.length) {
+      setStatus('statusEsai', 'Tidak ada data hasil yang dikembalikan Apps Script untuk paket ini.', 'err');
+      document.getElementById('esaiFolderList').innerHTML = '<p class="help">Belum ada data.</p>';
+      return;
+    }
+
+    const cocok = semuaBaris.filter(r => cocokPaket(normalisasiBarisHasil(r), meta));
+    const pesertaList = cocok.map(r => {
+      const n = normalisasiBarisHasil(r);
+      const jawaban = parseJawabanEsaiDariBaris(r).filter(j => (j.teks && String(j.teks).trim()) || j.fileData || j.link);
+      return { nama: n.nama, noUjian: n.noUjian, waktu: n.waktu, jawaban };
+    }).filter(p => p.jawaban.length > 0);
+
+    if (!pesertaList.length) {
+      setStatus('statusEsai',
+        'Belum ada jawaban esai yang terbaca dari Sheet untuk paket ini. Lihat catatan di bagian 3 di bawah ' +
+        'untuk format kolom yang dikenali otomatis.', 'err');
+      document.getElementById('esaiFolderList').innerHTML = '<p class="help">Belum ada jawaban esai ditemukan.</p>';
+      return;
+    }
+
+    esaiCache = { meta, peserta: pesertaList };
+    renderEsaiFolder(meta, pesertaList);
+    document.getElementById('btnUnduhRekapEsai').style.display = 'inline-flex';
+    setStatus('statusEsai', `✓ Ditemukan ${pesertaList.length} peserta dengan jawaban esai.`, 'ok');
+  } catch (e) {
+    setStatus('statusEsai', 'Gagal: ' + e.message, 'err');
+    document.getElementById('esaiFolderList').innerHTML = '<p class="help">Gagal memuat data.</p>';
+  }
+}
+
+// ---------- Simpan koreksi (nilai + catatan) di browser (localStorage), per paket ----------
+function koreksiEsaiKey(paketId) { return 'kf_koreksi_esai_' + paketId; }
+function getKoreksiEsai(paketId) {
+  try { return JSON.parse(localStorage.getItem(koreksiEsaiKey(paketId)) || '{}'); } catch (e) { return {}; }
+}
+function setKoreksiEsaiSatu(paketId, noUjian, nomor, data) {
+  const all = getKoreksiEsai(paketId);
+  const key = noUjian + '_' + nomor;
+  all[key] = { ...(all[key] || {}), ...data };
+  localStorage.setItem(koreksiEsaiKey(paketId), JSON.stringify(all));
+  return all[key];
+}
+
+function renderEsaiFolder(meta, pesertaList) {
+  const box = document.getElementById('esaiFolderList');
+  const koreksi = getKoreksiEsai(meta.id);
+
+  box.innerHTML = pesertaList.map((p, pi) => {
+    const items = p.jawaban.map((j, ji) => {
+      const k = koreksi[p.noUjian + '_' + j.nomor] || {};
+      const nilai = (k.nilai !== undefined && k.nilai !== null) ? k.nilai : '';
+      const catatan = k.catatan || '';
+      const ghUrl = k.githubUrl || '';
+
+      const teksHtml = j.teks
+        ? `<div class="esai-jawaban-teks">${String(j.teks).replace(/</g, '&lt;')}</div>`
+        : `<div class="esai-jawaban-teks muted">(tidak ada jawaban teks)</div>`;
+
+      let fileHtml;
+      if (j.fileData) {
+        const namaFile = j.fileName || ('esai-' + j.nomor + '.pdf');
+        fileHtml = `
+          <a class="btn btn-outline btn-sm" download="${namaFile}" href="data:application/pdf;base64,${j.fileData}" target="_blank" rel="noopener">📄 Lihat / Unduh PDF</a>
+          <button type="button" class="btn btn-outline btn-sm btn-upload-gh" data-peserta="${pi}" data-jawaban="${ji}">⬆️ Upload ke GitHub</button>`;
+      } else if (j.link) {
+        fileHtml = `<a class="btn btn-outline btn-sm" href="${j.link}" target="_blank" rel="noopener">🔗 Buka Lampiran</a>`;
+      } else {
+        fileHtml = `<span class="muted" style="font-size:12px;">Tidak ada file lampiran</span>`;
+      }
+
+      return `
+        <div class="esai-item" data-peserta="${pi}" data-jawaban="${ji}">
+          <span class="esai-nomor">Soal No. ${j.nomor}</span>
+          ${teksHtml}
+          <div class="esai-file-row">${fileHtml}</div>
+          <div class="esai-gh-link" style="${ghUrl ? '' : 'display:none;'}">Tersimpan di GitHub: <a href="${ghUrl}" target="_blank" rel="noopener">${ghUrl}</a></div>
+          <div class="esai-koreksi-row">
+            <div>
+              <label style="margin-top:0;">Nilai (0-100)</label>
+              <input type="number" min="0" max="100" class="esai-nilai" value="${nilai}">
+            </div>
+            <div style="flex:1; min-width:180px;">
+              <label style="margin-top:0;">Catatan Koreksi</label>
+              <textarea class="esai-catatan" rows="2" placeholder="Catatan untuk peserta...">${String(catatan).replace(/</g, '&lt;')}</textarea>
+            </div>
+          </div>
+          <button type="button" class="btn btn-hijau btn-sm btn-simpan-koreksi" data-peserta="${pi}" data-jawaban="${ji}">💾 Simpan Koreksi</button>
+          <span class="esai-simpan-status" style="font-size:12px; color:var(--abu); margin-left:8px;"></span>
+        </div>`;
+    }).join('');
+
+    return `
+      <details class="esai-folder" ${pi === 0 ? 'open' : ''}>
+        <summary>
+          <span>📁 ${p.nama} <span class="muted">(${p.noUjian})</span></span>
+          <span class="muted" style="font-size:12px;">${p.jawaban.length} jawaban esai</span>
+        </summary>
+        <div class="esai-folder-body">${items}</div>
+      </details>`;
+  }).join('');
+
+  box.onclick = (e) => {
+    const btnUp = e.target.closest('.btn-upload-gh');
+    if (btnUp) { handleUploadEsaiKeGitHub(Number(btnUp.dataset.peserta), Number(btnUp.dataset.jawaban), btnUp); return; }
+    const btnSave = e.target.closest('.btn-simpan-koreksi');
+    if (btnSave) { handleSimpanKoreksiEsai(Number(btnSave.dataset.peserta), Number(btnSave.dataset.jawaban), btnSave); return; }
+  };
+}
+
+// Ambil sha file (kalau sudah ada) supaya upload ulang meng-update, bukan gagal/duplikat.
+async function ghGetShaEsai(path) {
+  try {
+    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}&_=${Date.now()}`;
+    const res = await fetch(url, { headers: ghToken ? { 'Authorization': 'token ' + ghToken } : {} });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.sha || null;
+  } catch (e) { return null; }
+}
+
+async function ghPutBinaryFileUpdate(path, base64Content, message) {
+  const sha = await ghGetShaEsai(path);
+  const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`;
+  const body = { message, content: base64Content, branch: GITHUB_BRANCH };
+  if (sha) body.sha = sha;
+  const res = await fetch(url, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal upload ke GitHub');
+  }
+  return res.json();
+}
+
+async function handleUploadEsaiKeGitHub(pi, ji, btn) {
+  const meta = esaiCache.meta;
+  const p = esaiCache.peserta[pi];
+  const j = p && p.jawaban[ji];
+  if (!meta || !j || !j.fileData) return;
+
+  if (!ghToken) {
+    alert('Sambungkan GitHub dulu di tab "⚙️ Admin Tryout" → bagian 1 (Koneksi GitHub), lalu klik "Simpan Koneksi GitHub".');
+    return;
+  }
+
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Mengupload…';
+  try {
+    const namaFile = `${slugify(p.noUjian || ('peserta-' + pi))}_soal${j.nomor}.pdf`;
+    const path = `${ESAI_GITHUB_FOLDER}/${slugify(meta.id || meta.title)}/${namaFile}`;
+    await ghPutBinaryFileUpdate(path, j.fileData, `Upload jawaban esai: ${p.nama} (${p.noUjian}) - Soal No. ${j.nomor}`);
+    const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${path}`;
+    setKoreksiEsaiSatu(meta.id, p.noUjian, j.nomor, { githubUrl: rawUrl });
+
+    const wrap = btn.closest('.esai-item');
+    const linkBox = wrap.querySelector('.esai-gh-link');
+    linkBox.style.display = 'block';
+    linkBox.innerHTML = `Tersimpan di GitHub: <a href="${rawUrl}" target="_blank" rel="noopener">${rawUrl}</a>`;
+    btn.textContent = '✓ Terupload';
+  } catch (e) {
+    alert('Gagal upload ke GitHub: ' + e.message);
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+async function handleSimpanKoreksiEsai(pi, ji, btn) {
+  const meta = esaiCache.meta;
+  const p = esaiCache.peserta[pi];
+  const j = p && p.jawaban[ji];
+  if (!meta || !j) return;
+
+  const wrap = btn.closest('.esai-item');
+  const nilai = wrap.querySelector('.esai-nilai').value;
+  const catatan = wrap.querySelector('.esai-catatan').value;
+  const statusEl = wrap.querySelector('.esai-simpan-status');
+
+  setKoreksiEsaiSatu(meta.id, p.noUjian, j.nomor, { nilai, catatan });
+  statusEl.textContent = '✓ Tersimpan di browser ini';
+  statusEl.style.color = 'var(--hijau)';
+
+  // Best-effort: kirim juga ke Apps Script (kalau endpointnya sudah ditambahkan admin).
+  if (hasilScriptUrl && hasilAdminKey) {
+    try {
+      await fetch(hasilScriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'simpanKoreksiEsai',
+          key: hasilAdminKey,
+          paketId: meta.id,
+          noUjian: p.noUjian,
+          nomor: j.nomor,
+          nilaiEsai: nilai,
+          catatan: catatan
+        })
+      });
+      statusEl.textContent = '✓ Tersimpan di browser & dikirim ke Apps Script';
+    } catch (e) {
+      // Apps Script mungkin belum punya endpoint ini — tidak apa, tetap tersimpan lokal.
+    }
+  }
+}
+
+function unduhRekapKoreksiEsai() {
+  const { meta, peserta } = esaiCache;
+  if (!meta || !peserta || !peserta.length) {
+    setStatus('statusEsai', 'Buka folder jawaban esai dulu sebelum mengunduh rekap.', 'err');
+    return;
+  }
+  const koreksi = getKoreksiEsai(meta.id);
+  const rows = [];
+  peserta.forEach(p => {
+    p.jawaban.forEach(j => {
+      const k = koreksi[p.noUjian + '_' + j.nomor] || {};
+      rows.push([
+        p.nama, p.noUjian, 'No. ' + j.nomor,
+        (k.nilai !== undefined && k.nilai !== '') ? k.nilai : '-',
+        k.catatan || '-'
+      ]);
+    });
+  });
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+    doc.setTextColor(...PDF_WARNA.unguTua);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('Rekap Koreksi Jawaban Esai', 36, 80);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(...PDF_WARNA.abu);
+    doc.text(`${meta.title}  ·  ${String(meta.jenjang).toUpperCase()}  ·  ${peserta.length} peserta`, 36, 100);
+
+    doc.autoTable({
+      startY: 116,
+      head: [['Nama', 'No. Ujian', 'Soal', 'Nilai', 'Catatan']],
+      body: rows,
+      styles: { fontSize: 8.5, cellPadding: 5 },
+      headStyles: { fillColor: PDF_WARNA.unguTua, textColor: 255 },
+      alternateRowStyles: { fillColor: [253, 249, 255] },
+      margin: { left: 36, right: 36, top: 60 },
+      didDrawPage: (dataArg) => {
+        const pw = doc.internal.pageSize.getWidth();
+        const ph = doc.internal.pageSize.getHeight();
+        doc.setFillColor(...PDF_WARNA.unguTua);
+        doc.rect(0, 0, pw, 46, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.text('KlinikFisikapku', 36, 29);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(255, 217, 236);
+        doc.text('Koreksi Esai', pw - 36, 29, { align: 'right' });
+        doc.setFontSize(8.5);
+        doc.setTextColor(...PDF_WARNA.abu);
+        doc.text(`Halaman ${dataArg.pageNumber}`, pw - 36, ph - 20, { align: 'right' });
+      }
+    });
+
+    doc.save(`Koreksi-Esai-${slugify(meta.title)}-KlinikFisikapku.pdf`);
+    setStatus('statusEsai', '✓ Rekap koreksi esai berhasil diunduh.', 'ok');
+  } catch (e) {
+    setStatus('statusEsai', 'Gagal membuat PDF: ' + e.message, 'err');
+  }
 }
 
 loadManifest();
