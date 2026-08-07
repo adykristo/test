@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Upload Soal | KlinikFisikapku</title>
+<title>Admin — KlinikFisikapku</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <style>
   :root{
     --ungu-tua:#3d1a63;
@@ -18,14 +19,15 @@
     font-family:'Segoe UI','Trebuchet MS',sans-serif;
     background:var(--bg);
     color:#2b1a3d;
-    padding:40px 16px;
+    line-height:1.6;
   }
-  .wrap{ max-width:520px; margin:0 auto; }
+#panelSoal { padding:40px 16px; }
+#panelSoal .wrap { max-width:520px; margin:0 auto; }
 
-  h1{ color:var(--ungu-tua); font-size:24px; margin-bottom:6px; }
-  .sub{ color:var(--abu); font-size:14px; margin-bottom:28px; }
+#panelSoal h1 { color:var(--ungu-tua); font-size:24px; margin-bottom:6px; }
+#panelSoal .sub { color:var(--abu); font-size:14px; margin-bottom:28px; }
 
-  .card{
+#panelSoal .card {
     background:#fff;
     border:1px solid #f0e2fa;
     border-radius:18px;
@@ -33,13 +35,13 @@
     margin-bottom:20px;
     box-shadow:0 6px 16px rgba(123,47,247,0.06);
   }
-  .card h2{
+#panelSoal .card h2 {
     font-size:15px;
     color:var(--ungu-tua);
     margin-bottom:14px;
   }
 
-  label{
+#panelSoal label {
     display:block;
     font-size:13px;
     font-weight:700;
@@ -47,9 +49,9 @@
     margin-bottom:6px;
     margin-top:14px;
   }
-  label:first-of-type{ margin-top:0; }
+#panelSoal label:first-of-type { margin-top:0; }
 
-  input[type=text], input[type=password], input[type=date], input[type=file], select{
+#panelSoal input[type=text], #panelSoal input[type=password], #panelSoal input[type=date], #panelSoal input[type=file], #panelSoal select {
     width:100%;
     padding:11px 14px;
     border:1px solid #ecdcf7;
@@ -58,15 +60,15 @@
     font-family:inherit;
     background:#fdfaff;
   }
-  select{ appearance:auto; cursor:pointer; }
-  input:focus, select:focus{ outline:2px solid var(--pink); border-color:var(--pink); }
+#panelSoal select { appearance:auto; cursor:pointer; }
+#panelSoal input:focus, #panelSoal select:focus { outline:2px solid var(--pink); border-color:var(--pink); }
 
-  .jenjang-row{
+#panelSoal .jenjang-row {
     display:flex;
     gap:8px;
     margin-top:6px;
   }
-  .jenjang-row label.pill{
+#panelSoal .jenjang-row label.pill {
     flex:1;
     margin:0;
     text-align:center;
@@ -80,16 +82,16 @@
     cursor:pointer;
     transition:background .15s ease, color .15s ease, border-color .15s ease;
   }
-  .jenjang-row input[type=radio]{
+#panelSoal .jenjang-row input[type=radio] {
     display:none;
   }
-  .jenjang-row input[type=radio]:checked + label.pill{
+#panelSoal .jenjang-row input[type=radio]:checked + label.pill {
     background:linear-gradient(90deg, var(--pink), var(--ungu));
     color:#fff;
     border-color:transparent;
   }
 
-  .checkbox-row{
+#panelSoal .checkbox-row {
     display:flex;
     align-items:center;
     gap:8px;
@@ -97,9 +99,9 @@
     font-size:13px;
     color:var(--abu);
   }
-  .checkbox-row input{ width:auto; }
+#panelSoal .checkbox-row input { width:auto; }
 
-  button{
+#panelSoal button {
     width:100%;
     margin-top:22px;
     background:var(--pink);
@@ -111,18 +113,18 @@
     border-radius:999px;
     cursor:pointer;
   }
-  button:hover{ background:var(--ungu); }
-  button:disabled{ background:#d9c8e8; cursor:not-allowed; }
+#panelSoal button:hover { background:var(--ungu); }
+#panelSoal button:disabled { background:#d9c8e8; cursor:not-allowed; }
 
-  button.secondary{
+#panelSoal button.secondary {
     background:#fff;
     color:var(--ungu-tua);
     border:1.5px solid var(--ungu);
     margin-top:12px;
   }
-  button.secondary:hover{ background:var(--pink-muda); }
+#panelSoal button.secondary:hover { background:var(--pink-muda); }
 
-  .status{
+#panelSoal .status {
     margin-top:16px;
     font-size:13px;
     padding:12px 14px;
@@ -130,18 +132,18 @@
     display:none;
     white-space:pre-line;
   }
-  .status.ok{ background:#eafaf0; color:#1a7a44; display:block; }
-  .status.err{ background:#fdeaea; color:#b02a2a; display:block; }
-  .status.loading{ background:var(--pink-muda); color:var(--ungu-tua); display:block; }
+#panelSoal .status.ok { background:#eafaf0; color:#1a7a44; display:block; }
+#panelSoal .status.err { background:#fdeaea; color:#b02a2a; display:block; }
+#panelSoal .status.loading { background:var(--pink-muda); color:var(--ungu-tua); display:block; }
 
-  .note{
+#panelSoal .note {
     font-size:12px;
     color:var(--abu);
     line-height:1.6;
   }
-  a{ color:var(--pink); }
+#panelSoal a { color:var(--pink); }
 
-  .soal-item{
+#panelSoal .soal-item {
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -152,10 +154,10 @@
     margin-bottom:10px;
     flex-wrap:wrap;
   }
-  .soal-item .info{ font-size:13px; }
-  .soal-item .info b{ color:var(--ungu-tua); }
-  .soal-item .info span{ display:block; color:var(--abu); font-size:12px; margin-top:2px; }
-  .soal-item button{
+#panelSoal .soal-item .info { font-size:13px; }
+#panelSoal .soal-item .info b { color:var(--ungu-tua); }
+#panelSoal .soal-item .info span { display:block; color:var(--abu); font-size:12px; margin-top:2px; }
+#panelSoal .soal-item button {
     width:auto;
     margin:0;
     padding:8px 16px;
@@ -164,11 +166,132 @@
     color:#b02a2a;
     border:1px solid #f5b8b8;
   }
-  .soal-item button:hover{ background:#fcdcdc; }
-  .soal-item button:disabled{ background:#eee; color:#999; border-color:#ddd; }
+#panelSoal .soal-item button:hover { background:#fcdcdc; }
+#panelSoal .soal-item button:disabled { background:#eee; color:#999; border-color:#ddd; }
+
+/* ===== Style khusus panel Admin Tryout ===== */
+#panelTryout { padding-bottom:60px; }
+#panelTryout header {
+    background:linear-gradient(120deg, var(--ungu-tua), var(--ungu) 55%, var(--pink));
+    color:#fff; padding:26px 20px; text-align:center;
+  }
+#panelTryout header h1 { font-size:20px; margin-bottom:4px; }
+#panelTryout header p { font-size:13px; color:var(--pink-muda); }
+#panelTryout main { max-width:900px; margin:0 auto; padding:26px 18px; }
+
+#panelTryout .box {
+    background:#fff; border:1px solid #f0e2fa; border-radius:16px;
+    padding:22px 22px; margin-bottom:22px; box-shadow:0 6px 16px rgba(123,47,247,0.06);
+  }
+#panelTryout .box h2 { font-size:16px; color:var(--ungu-tua); margin-bottom:14px; }
+#panelTryout .box h3 { font-size:14px; color:var(--ungu-tua); margin-bottom:10px; }
+
+#panelTryout label { display:block; font-size:12.5px; font-weight:700; color:var(--ungu-tua); margin-bottom:5px; margin-top:12px; }
+#panelTryout label:first-child { margin-top:0; }
+#panelTryout input[type=text], #panelTryout input[type=number], #panelTryout input[type=password], #panelTryout select, #panelTryout textarea {
+    width:100%; border:1.5px solid #e6d6f5; border-radius:10px; padding:10px 12px;
+    font-size:13.5px; font-family:inherit; color:#2b1a3d; background:#fff;
+  }
+#panelTryout textarea { resize:vertical; min-height:70px; }
+#panelTryout input:focus, #panelTryout select:focus, #panelTryout textarea:focus { outline:none; border-color:var(--ungu); }
+#panelTryout .row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+#panelTryout .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  @media (max-width:640px){ #panelTryout .row, #panelTryout .row3{ grid-template-columns:1fr; } }
+
+#panelTryout .preview {
+    margin-top:8px; padding:10px 14px; background:var(--bg); border:1px dashed #e6d6f5;
+    border-radius:10px; font-size:13.5px; min-height:20px;
+  }
+#panelTryout .preview:empty::before { content:'Pratinjau akan muncul di sini…'; color:#b8a9c9; }
+
+#panelTryout .status-bar { font-size:13px; padding:12px 16px; border-radius:10px; margin-bottom:16px; display:none; }
+#panelTryout .status-bar.show { display:block; }
+#panelTryout .status-bar.ok { background:#dff5e6; color:#1f7a41; }
+#panelTryout .status-bar.err { background:#fde3e3; color:#c0392b; }
+#panelTryout .status-bar.loading { background:#f0e2fa; color:var(--ungu-tua); }
+
+#panelTryout .soal-block {
+    border:1.5px solid #f0e2fa; border-radius:14px; padding:18px; margin-bottom:16px; position:relative;
+  }
+#panelTryout .soal-block .soal-block-head {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
+  }
+#panelTryout .soal-block .soal-block-head span { font-size:13px; font-weight:800; color:var(--ungu-tua); }
+#panelTryout .soal-block .soal-block-actions button {
+    border:none; background:none; cursor:pointer; font-size:12.5px; font-weight:700; padding:4px 8px;
+  }
+#panelTryout .soal-block .soal-block-actions .hapus { color:var(--merah); }
+#panelTryout .soal-block .soal-block-actions .naik, #panelTryout .soal-block .soal-block-actions .turun { color:var(--abu); }
+
+#panelTryout .pilihan-row { display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+#panelTryout .pilihan-row .huruf-badge {
+    flex-shrink:0; width:30px; height:38px; display:flex; align-items:center; justify-content:center;
+    background:var(--ungu-tua); color:#fff; font-weight:700; font-size:13px; border-radius:8px;
+  }
+#panelTryout .pilihan-row input { flex:1; }
+#panelTryout .pilihan-row .radio-benar { flex-shrink:0; display:flex; flex-direction:column; align-items:center; font-size:10.5px; color:var(--abu); gap:2px; width:44px; }
+#panelTryout .pilihan-row .radio-benar input { width:auto; }
+
+#panelTryout button.btn {
+    border:none; border-radius:999px; font-size:13.5px; font-weight:700; padding:11px 22px; cursor:pointer;
+  }
+#panelTryout .btn-outline { background:#f0e2fa; color:var(--ungu-tua); }
+#panelTryout .btn-primary { background:linear-gradient(90deg, var(--pink), var(--ungu)); color:#fff; }
+#panelTryout .btn-hijau { background:var(--hijau); color:#fff; }
+#panelTryout .btn-block { width:100%; }
+
+#panelTryout .paket-item {
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    padding:12px 16px; border:1px solid #f0e2fa; border-radius:12px; margin-bottom:10px;
+  }
+#panelTryout .paket-item .info { font-size:13px; }
+#panelTryout .paket-item .info b { color:var(--ungu-tua); }
+#panelTryout .paket-item .info span { color:var(--abu); font-size:12px; display:block; margin-top:2px; }
+#panelTryout .paket-item .aksi { display:flex; gap:8px; }
+#panelTryout .paket-item .aksi button { font-size:12px; padding:7px 14px; }
+
+#panelTryout .help { font-size:11.5px; color:var(--abu); margin-top:5px; }
+#panelTryout .token-saved { font-size:11.5px; color:var(--hijau); margin-top:5px; display:none; }
+#panelTryout .token-saved.show { display:block; }
+
+/* ===== Tab switcher ===== */
+.admin-tabs{
+  display:flex;
+  max-width:900px;
+  margin:0 auto;
+  gap:8px;
+  padding:16px 16px 0;
+}
+.admin-tabs button{
+  flex:1;
+  width:auto;
+  margin:0;
+  padding:12px 10px;
+  font-size:13.5px;
+  font-weight:700;
+  border:1.5px solid #ecdcf7;
+  border-radius:12px;
+  background:#fff;
+  color:var(--ungu-tua);
+  cursor:pointer;
+}
+.admin-tabs button.active{
+  background:linear-gradient(90deg, var(--pink), var(--ungu));
+  color:#fff;
+  border-color:transparent;
+}
+.tab-panel{ display:none; }
+.tab-panel.active{ display:block; }
 </style>
 </head>
 <body>
+
+<div class="admin-tabs">
+  <button type="button" class="tab-btn active" id="tabBtnSoal" onclick="switchAdminTab('panelSoal')">📤 Upload Soal</button>
+  <button type="button" class="tab-btn" id="tabBtnTryout" onclick="switchAdminTab('panelTryout')">⚙️ Admin Tryout</button>
+</div>
+
+<div id="panelSoal" class="tab-panel active">
 <div class="wrap">
 
   <h1>Upload Soal &amp; Pembahasan</h1>
@@ -264,8 +387,129 @@
   </div>
 
 </div>
+</div>
+
+<div id="panelTryout" class="tab-panel">
+<header>
+  <h1>⚙️ Admin Tryout — KlinikFisikapku</h1>
+  <p>Buat &amp; kelola paket soal tryout pilihan ganda (support LaTeX)</p>
+</header>
+
+<main>
+
+  <div class="box">
+    <h2>1. Koneksi GitHub</h2>
+    <label>Personal Access Token (scope: repo)</label>
+    <input type="password" id="ghTokenTryout" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+    <p class="help">Token disimpan hanya di browser kamu (localStorage), tidak dikirim ke mana pun selain GitHub API. Buat token di GitHub → Settings → Developer settings → Personal access tokens (Fine-grained atau Classic dengan scope <code>repo</code>).</p>
+    <p class="token-saved" id="tokenSavedMsg">✓ Token tersimpan di browser ini.</p>
+    <div class="row" style="margin-top:12px;">
+      <div>
+        <label>Repo</label>
+        <input type="text" id="ghRepoDisplay" disabled>
+      </div>
+      <div>
+        <label>Branch</label>
+        <input type="text" id="ghBranchDisplay" disabled>
+      </div>
+    </div>
+    <button class="btn btn-outline" style="margin-top:14px;" onclick="saveToken()">Simpan Token</button>
+  </div>
+
+  <div class="box">
+    <h2>2. Paket Tryout Tersimpan</h2>
+    <div id="statusManifest" class="status-bar loading show">Memuat daftar paket…</div>
+    <div id="paketAdminList"></div>
+    <button class="btn btn-primary" style="margin-top:6px;" onclick="mulaiPaketBaru()">+ Buat Paket Tryout Baru</button>
+  </div>
+
+  <div class="box" id="formBox" style="display:none;">
+    <h2 id="formTitle">3. Detail Paket Tryout</h2>
+    <div id="statusForm" class="status-bar"></div>
+
+    <div class="row3">
+      <div>
+        <label>Jenjang</label>
+        <select id="fJenjang">
+          <option value="sd">SD</option>
+          <option value="smp">SMP</option>
+          <option value="sma" selected>SMA</option>
+        </select>
+      </div>
+      <div>
+        <label>Durasi (menit)</label>
+        <input type="number" id="fDurasi" value="60" min="1">
+      </div>
+      <div>
+        <label>Topik</label>
+        <input type="text" id="fTopik" placeholder="mis. Kinematika &amp; Dinamika">
+      </div>
+    </div>
+    <label>Judul Paket Tryout</label>
+    <input type="text" id="fTitle" placeholder="mis. Tryout OSN Fisika SMA Paket 1">
+
+    <h3 style="margin-top:22px;">Daftar Soal</h3>
+    <div id="soalContainer"></div>
+    <button class="btn btn-outline btn-block" onclick="tambahSoal()">+ Tambah Soal</button>
+
+    <div style="display:flex; gap:12px; margin-top:22px; flex-wrap:wrap;">
+      <button class="btn btn-hijau" onclick="simpanPaket()">💾 Simpan &amp; Publish ke GitHub</button>
+      <button class="btn btn-outline" onclick="batalForm()">Batal</button>
+    </div>
+    <p class="help">Rumus matematika/fisika ditulis pakai LaTeX, diapit tanda dolar. Contoh: <code>$v = \frac{1}{2}at^2$</code> untuk inline, atau <code>$$F = ma$$</code> untuk rumus besar di baris sendiri.</p>
+  </div>
+
+  <div class="box">
+    <h2>4. Kelola Nomor Ujian &amp; Nama Peserta (Whitelist)</h2>
+    <p class="help">Nama &amp; Nomor Ujian yang boleh mengikuti tryout harus didaftarkan di sini dulu. Di website utama, peserta hanya bisa mengetik Nomor Ujian — nama otomatis diambil dari daftar ini dan tidak bisa diketik bebas oleh peserta.</p>
+    <div id="statusPeserta" class="status-bar loading show">Memuat daftar peserta…</div>
+
+    <div id="pesertaAdminList"></div>
+
+    <h3 style="margin-top:20px;">Tambah / Edit Satu Peserta</h3>
+    <div class="row">
+      <div>
+        <label>Nomor Ujian</label>
+        <input type="text" id="pNoUjian" placeholder="mis. SD001">
+      </div>
+      <div>
+        <label>Nama Lengkap</label>
+        <input type="text" id="pNama" placeholder="mis. Ahmad Fauzan">
+      </div>
+    </div>
+    <label>Boleh Ikut Paket Tryout</label>
+    <select id="pPaketMode" onchange="togglePaketPilihan()">
+      <option value="semua">Semua paket tryout</option>
+      <option value="tertentu">Hanya paket tertentu</option>
+    </select>
+    <div id="pPaketPilihanWrap" style="display:none; margin-top:8px;">
+      <div id="pPaketPilihanList" class="help"></div>
+    </div>
+    <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
+      <button class="btn btn-hijau" onclick="simpanSatuPeserta()">💾 Simpan Peserta</button>
+      <button class="btn btn-outline" onclick="batalEditPeserta()">Batal Edit</button>
+    </div>
+
+    <h3 style="margin-top:26px;">Tambah Banyak Sekaligus (Bulk)</h3>
+    <p class="help">Satu baris = satu peserta, format: <code>NomorUjian, Nama Lengkap</code>. Semua yang ditambah lewat cara ini otomatis berlaku untuk <b>semua paket tryout</b> — kalau perlu dibatasi ke paket tertentu, edit satu-satu setelah ditambah.</p>
+    <textarea id="pBulkText" placeholder="SD001, Ahmad Fauzan&#10;SD002, Siti Aminah"></textarea>
+    <button class="btn btn-outline" style="margin-top:10px;" onclick="simpanBulkPeserta()">+ Tambah dari Daftar di Atas</button>
+  </div>
+
+</main>
+</div>
 
 <script>
+function switchAdminTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.admin-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  (id === 'panelSoal' ? document.getElementById('tabBtnSoal') : document.getElementById('tabBtnTryout')).classList.add('active');
+}
+</script>
+
+<script>
+/* ================== PANEL 1: UPLOAD SOAL (soal harian) ================== */
 const $ = id => document.getElementById(id);
 
 $('tanggalS').valueAsDate = new Date();
@@ -673,6 +917,627 @@ $('loadListBtn').addEventListener('click', async () => {
     $('loadListBtn').disabled = false;
   }
 });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script>
+/* ================== PANEL 2: ADMIN TRYOUT ================== */
+// ================== KONFIGURASI ==================
+const GITHUB_USER = "adykristo";
+const GITHUB_REPO  = "test";
+const GITHUB_BRANCH = "main";
+const MANIFEST_PATH = "data/manifest-tryout.json";
+const TRYOUT_FOLDER = "data/tryout";
+// ===================================================
+
+document.getElementById('ghRepoDisplay').value = `${GITHUB_USER}/${GITHUB_REPO}`;
+document.getElementById('ghBranchDisplay').value = GITHUB_BRANCH;
+
+let ghToken = localStorage.getItem('kf_gh_token_tryout') || '';
+document.getElementById('ghTokenTryout').value = ghToken;
+if (ghToken) document.getElementById('tokenSavedMsg').classList.add('show');
+
+function saveToken() {
+  ghToken = document.getElementById('ghTokenTryout').value.trim();
+  localStorage.setItem('kf_gh_token_tryout', ghToken);
+  document.getElementById('tokenSavedMsg').classList.add('show');
+  alert('Token disimpan di browser ini.');
+}
+
+function renderKatexIn(el) {
+  if (window.renderMathInElement) {
+    renderMathInElement(el, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$', right: '$', display: false },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '\\[', right: '\\]', display: true }
+      ],
+      throwOnError: false
+    });
+  }
+}
+
+function setStatus(elId, text, type) {
+  const el = document.getElementById(elId);
+  el.textContent = text;
+  el.className = 'status-bar show ' + type;
+}
+
+// ---------- GitHub API helpers ----------
+function ghHeaders() {
+  return {
+    'Authorization': 'token ' + ghToken,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json'
+  };
+}
+
+async function ghGetFile(path) {
+  const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}`;
+  const res = await fetch(url, { headers: ghToken ? { 'Authorization': 'token ' + ghToken } : {} });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('Gagal mengambil file: ' + path);
+  const data = await res.json();
+  const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+  return { content: JSON.parse(content), sha: data.sha };
+}
+
+async function ghPutFile(path, jsonObj, sha, message) {
+  const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`;
+  const contentStr = JSON.stringify(jsonObj, null, 2);
+  const base64Content = btoa(unescape(encodeURIComponent(contentStr)));
+  const body = {
+    message: message,
+    content: base64Content,
+    branch: GITHUB_BRANCH
+  };
+  if (sha) body.sha = sha;
+  const res = await fetch(url, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal menyimpan ke GitHub');
+  }
+  return res.json();
+}
+
+async function ghDeleteFile(path, sha, message) {
+  const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`;
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: ghHeaders(),
+    body: JSON.stringify({ message, sha, branch: GITHUB_BRANCH })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal menghapus file');
+  }
+}
+
+// upload file biner (gambar) ke GitHub, dipakai untuk fitur "Gambar Soal"
+async function ghPutBinaryFile(path, base64Content, message) {
+  const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`;
+  const body = { message, content: base64Content, branch: GITHUB_BRANCH };
+  const res = await fetch(url, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal upload gambar');
+  }
+  return res.json();
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+const GAMBAR_SOAL_FOLDER = "data/tryout-gambar";
+
+async function uploadGambarSoal(inputEl) {
+  if (!ghToken) {
+    alert('Masukkan & simpan token GitHub dulu di bagian atas sebelum upload gambar.');
+    inputEl.value = '';
+    return;
+  }
+  const file = inputEl.files[0];
+  if (!file) return;
+  const block = inputEl.closest('.soal-block');
+  const urlInput = block.querySelector('.input-gambar-url');
+  const preview = block.querySelector('.preview-gambar');
+  preview.innerHTML = '<span style="color:var(--abu);">Mengunggah gambar…</span>';
+  try {
+    const base64 = await fileToBase64(file);
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const path = `${GAMBAR_SOAL_FOLDER}/${Date.now()}-${safeName}`;
+    const res = await ghPutBinaryFile(path, base64, `Upload gambar soal: ${safeName}`);
+    urlInput.value = res.content.download_url;
+    updatePreview(urlInput);
+  } catch (e) {
+    preview.innerHTML = `<span style="color:#c0392b;">Gagal upload: ${e.message}</span>`;
+  } finally {
+    inputEl.value = '';
+  }
+}
+
+// ---------- Manifest & list ----------
+let manifestCache = { content: [], sha: null };
+
+async function loadManifest() {
+  setStatus('statusManifest', 'Memuat daftar paket…', 'loading');
+  try {
+    const result = await ghGetFile(MANIFEST_PATH);
+    manifestCache = result ? { content: result.content, sha: result.sha } : { content: [], sha: null };
+    renderPaketAdminList();
+    document.getElementById('statusManifest').classList.remove('show');
+  } catch (e) {
+    setStatus('statusManifest', 'Gagal memuat manifest: ' + e.message, 'err');
+  }
+}
+
+function renderPaketAdminList() {
+  const box = document.getElementById('paketAdminList');
+  if (!manifestCache.content.length) {
+    box.innerHTML = '<p class="help">Belum ada paket tryout. Klik "Buat Paket Tryout Baru" untuk mulai.</p>';
+    return;
+  }
+  box.innerHTML = manifestCache.content.map(p => `
+    <div class="paket-item">
+      <div class="info">
+        <b>${p.title}</b>
+        <span>${p.jenjang.toUpperCase()} · ${p.topik || '-'} · ${p.jumlah_soal} soal · ${p.durasi_menit} menit</span>
+      </div>
+      <div class="aksi">
+        <button class="btn btn-outline" onclick="editPaket('${p.id}')">Edit</button>
+        <button class="btn btn-outline" style="color:#c0392b;" onclick="hapusPaket('${p.id}')">Hapus</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ---------- Form state ----------
+let currentPaketId = null; // null = baru
+let soalIdCounter = 0;
+
+function mulaiPaketBaru() {
+  currentPaketId = null;
+  document.getElementById('formTitle').textContent = '3. Buat Paket Tryout Baru';
+  document.getElementById('fJenjang').value = 'sma';
+  document.getElementById('fDurasi').value = 60;
+  document.getElementById('fTopik').value = '';
+  document.getElementById('fTitle').value = '';
+  document.getElementById('soalContainer').innerHTML = '';
+  document.getElementById('statusForm').className = 'status-bar';
+  soalIdCounter = 0;
+  tambahSoal();
+  document.getElementById('formBox').style.display = 'block';
+  document.getElementById('formBox').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function editPaket(id) {
+  const meta = manifestCache.content.find(p => p.id === id);
+  if (!meta) return;
+  setStatus('statusForm', 'Memuat soal…', 'loading');
+  document.getElementById('formBox').style.display = 'block';
+  try {
+    const result = await ghGetFile(meta.file);
+    if (!result) throw new Error('File paket tidak ditemukan');
+    const paket = result.content;
+    currentPaketId = id;
+    document.getElementById('formTitle').textContent = '3. Edit Paket: ' + paket.title;
+    document.getElementById('fJenjang').value = paket.jenjang;
+    document.getElementById('fDurasi').value = paket.durasi_menit;
+    document.getElementById('fTopik').value = paket.topik || '';
+    document.getElementById('fTitle').value = paket.title;
+    document.getElementById('soalContainer').innerHTML = '';
+    soalIdCounter = 0;
+    paket.soal.forEach(s => tambahSoal(s));
+    document.getElementById('statusForm').className = 'status-bar';
+    document.getElementById('formBox').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    setStatus('statusForm', 'Gagal memuat paket: ' + e.message, 'err');
+  }
+}
+
+function batalForm() {
+  document.getElementById('formBox').style.display = 'none';
+  currentPaketId = null;
+}
+
+async function hapusPaket(id) {
+  const meta = manifestCache.content.find(p => p.id === id);
+  if (!meta) return;
+  if (!confirm(`Yakin hapus paket "${meta.title}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
+  setStatus('statusManifest', 'Menghapus paket…', 'loading');
+  try {
+    const fileResult = await ghGetFile(meta.file);
+    if (fileResult) {
+      await ghDeleteFile(meta.file, fileResult.sha, `Hapus paket tryout: ${meta.title}`);
+    }
+    const newManifest = manifestCache.content.filter(p => p.id !== id);
+    const putRes = await ghPutFile(MANIFEST_PATH, newManifest, manifestCache.sha, `Update manifest tryout (hapus ${meta.title})`);
+    manifestCache = { content: newManifest, sha: putRes.content.sha };
+    renderPaketAdminList();
+    document.getElementById('statusManifest').classList.remove('show');
+  } catch (e) {
+    setStatus('statusManifest', 'Gagal menghapus: ' + e.message, 'err');
+  }
+}
+
+// ---------- Soal builder ----------
+function tambahSoal(existing) {
+  soalIdCounter++;
+  const uid = 'sblock-' + soalIdCounter;
+  const container = document.getElementById('soalContainer');
+  const wrap = document.createElement('div');
+  wrap.className = 'soal-block';
+  wrap.id = uid;
+  wrap.dataset.soalId = (existing && existing.id) || ('q' + Date.now() + '-' + soalIdCounter);
+
+  const huruf = ['A', 'B', 'C', 'D', 'E'];
+  const pilihanExisting = (existing && existing.pilihan) || {};
+  const jawabanBenarExisting = (existing && existing.jawaban_benar) || 'A';
+
+  wrap.innerHTML = `
+    <div class="soal-block-head">
+      <span>Soal #<span class="nomor-tampil"></span></span>
+      <div class="soal-block-actions">
+        <button class="naik" onclick="pindahSoal('${uid}',-1)">↑</button>
+        <button class="turun" onclick="pindahSoal('${uid}',1)">↓</button>
+        <button class="hapus" onclick="hapusSoalBlock('${uid}')">✕ Hapus</button>
+      </div>
+    </div>
+    <label>Pertanyaan (boleh pakai LaTeX, mis. $F=ma$, boleh dikosongkan jika soal berupa gambar)</label>
+    <textarea class="input-pertanyaan" oninput="updatePreview(this)">${(existing && existing.pertanyaan) || ''}</textarea>
+    <div class="preview preview-pertanyaan"></div>
+
+    <label style="margin-top:16px;">Gambar Soal (opsional — upload foto/scan soal fisika)</label>
+    <input type="file" accept="image/*" class="input-gambar-file" onchange="uploadGambarSoal(this)">
+    <input type="text" class="input-gambar-url" placeholder="Atau tempel link gambar langsung (opsional)" value="${(existing && existing.gambar) || ''}" oninput="updatePreview(this)" style="margin-top:8px;">
+    <div class="preview preview-gambar"></div>
+
+    <label style="margin-top:16px;">Pilihan Jawaban</label>
+    ${huruf.map(h => `
+      <div class="pilihan-row">
+        <div class="huruf-badge">${h}</div>
+        <input type="text" class="input-pilihan" data-huruf="${h}" placeholder="Teks pilihan ${h}${h==='E' ? ' (opsional)' : ''}" value="${(pilihanExisting[h] || '').replace(/"/g,'&quot;')}" oninput="updatePreview(this)">
+        <div class="radio-benar">
+          <input type="radio" name="jawabanBenar-${uid}" value="${h}" ${jawabanBenarExisting === h ? 'checked' : ''}>
+          <span>Benar</span>
+        </div>
+      </div>
+      <div class="preview preview-pilihan-${h}" style="margin-left:44px; margin-bottom:8px;"></div>
+    `).join('')}
+
+    <label>Pembahasan (opsional, boleh LaTeX)</label>
+    <textarea class="input-pembahasan" oninput="updatePreview(this)">${(existing && existing.pembahasan) || ''}</textarea>
+    <div class="preview preview-pembahasan"></div>
+  `;
+  container.appendChild(wrap);
+  renumberSoal();
+
+  // initial preview render
+  wrap.querySelectorAll('.input-pertanyaan, .input-pilihan, .input-pembahasan, .input-gambar-url').forEach(updatePreview);
+}
+
+function updatePreview(inputEl) {
+  const block = inputEl.closest('.soal-block');
+  if (inputEl.classList.contains('input-pertanyaan')) {
+    const prev = block.querySelector('.preview-pertanyaan');
+    prev.innerHTML = inputEl.value;
+    renderKatexIn(prev);
+  } else if (inputEl.classList.contains('input-pilihan')) {
+    const h = inputEl.dataset.huruf;
+    const prev = block.querySelector('.preview-pilihan-' + h);
+    prev.innerHTML = inputEl.value;
+    renderKatexIn(prev);
+  } else if (inputEl.classList.contains('input-pembahasan')) {
+    const prev = block.querySelector('.preview-pembahasan');
+    prev.innerHTML = inputEl.value;
+    renderKatexIn(prev);
+  } else if (inputEl.classList.contains('input-gambar-url')) {
+    const prev = block.querySelector('.preview-gambar');
+    const val = inputEl.value.trim();
+    prev.innerHTML = val ? `<img src="${val}" alt="Preview gambar soal" style="max-width:220px;border-radius:8px;display:block;">` : '';
+  }
+}
+
+function hapusSoalBlock(uid) {
+  if (!confirm('Hapus soal ini dari paket?')) return;
+  document.getElementById(uid).remove();
+  renumberSoal();
+}
+
+function pindahSoal(uid, dir) {
+  const el = document.getElementById(uid);
+  const container = document.getElementById('soalContainer');
+  if (dir === -1 && el.previousElementSibling) {
+    container.insertBefore(el, el.previousElementSibling);
+  } else if (dir === 1 && el.nextElementSibling) {
+    container.insertBefore(el.nextElementSibling, el);
+  }
+  renumberSoal();
+}
+
+function renumberSoal() {
+  document.querySelectorAll('#soalContainer .soal-block').forEach((block, i) => {
+    block.querySelector('.nomor-tampil').textContent = i + 1;
+  });
+}
+
+// ---------- Save/Publish ----------
+function slugify(text) {
+  return text.toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '') || ('paket-' + Date.now());
+}
+
+function kumpulkanDataForm() {
+  const title = document.getElementById('fTitle').value.trim();
+  const jenjang = document.getElementById('fJenjang').value;
+  const topik = document.getElementById('fTopik').value.trim();
+  const durasi_menit = parseInt(document.getElementById('fDurasi').value, 10) || 60;
+
+  if (!title) throw new Error('Judul paket tidak boleh kosong.');
+
+  const blocks = [...document.querySelectorAll('#soalContainer .soal-block')];
+  if (!blocks.length) throw new Error('Tambahkan minimal 1 soal.');
+
+  const soal = blocks.map((block, i) => {
+    const pertanyaan = block.querySelector('.input-pertanyaan').value.trim();
+    const gambar = block.querySelector('.input-gambar-url').value.trim();
+    if (!pertanyaan && !gambar) throw new Error(`Soal #${i + 1}: isi pertanyaan teks, atau upload/isi gambar soal.`);
+
+    const pilihan = {};
+    block.querySelectorAll('.input-pilihan').forEach(inp => {
+      const val = inp.value.trim();
+      if (val) pilihan[inp.dataset.huruf] = val;
+    });
+    if (Object.keys(pilihan).length < 2) {
+      throw new Error(`Soal #${i + 1}: isi minimal 2 pilihan jawaban.`);
+    }
+
+    const radioChecked = block.querySelector('input[type=radio]:checked');
+    if (!radioChecked) throw new Error(`Soal #${i + 1}: pilih jawaban yang benar.`);
+    const jawaban_benar = radioChecked.value;
+    if (!pilihan[jawaban_benar]) {
+      throw new Error(`Soal #${i + 1}: jawaban benar (${jawaban_benar}) belum diisi teksnya.`);
+    }
+
+    const pembahasan = block.querySelector('.input-pembahasan').value.trim();
+
+    return {
+      id: block.dataset.soalId,
+      pertanyaan,
+      gambar,
+      pilihan,
+      jawaban_benar,
+      pembahasan
+    };
+  });
+
+  return { title, jenjang, topik, durasi_menit, soal };
+}
+
+async function simpanPaket() {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu di bagian atas.'); return; }
+
+  let data;
+  try {
+    data = kumpulkanDataForm();
+  } catch (e) {
+    setStatus('statusForm', e.message, 'err');
+    return;
+  }
+
+  const id = currentPaketId || slugify(data.title) + '-' + Date.now().toString(36);
+  const filePath = `${TRYOUT_FOLDER}/${id}.json`;
+  const paketObj = { id, title: data.title, jenjang: data.jenjang, topik: data.topik, durasi_menit: data.durasi_menit, soal: data.soal };
+
+  setStatus('statusForm', 'Menyimpan ke GitHub…', 'loading');
+  try {
+    // 1. simpan file paket
+    let existingSha = null;
+    if (currentPaketId) {
+      const existingFile = await ghGetFile(filePath);
+      if (existingFile) existingSha = existingFile.sha;
+    }
+    await ghPutFile(filePath, paketObj, existingSha, `${currentPaketId ? 'Update' : 'Tambah'} paket tryout: ${data.title}`);
+
+    // 2. update manifest
+    const manifestEntry = {
+      id, title: data.title, jenjang: data.jenjang, topik: data.topik,
+      durasi_menit: data.durasi_menit, jumlah_soal: data.soal.length,
+      file: filePath
+    };
+    let newManifest = manifestCache.content.filter(p => p.id !== id);
+    newManifest.push(manifestEntry);
+    const putRes = await ghPutFile(MANIFEST_PATH, newManifest, manifestCache.sha, `Update manifest tryout: ${data.title}`);
+    manifestCache = { content: newManifest, sha: putRes.content.sha };
+
+    setStatus('statusForm', '✓ Paket berhasil disimpan & dipublikasikan!', 'ok');
+    renderPaketAdminList();
+    currentPaketId = id;
+  } catch (e) {
+    setStatus('statusForm', 'Gagal menyimpan: ' + e.message, 'err');
+  }
+}
+
+// ================== KELOLA PESERTA (WHITELIST NAMA & NOMOR UJIAN) ==================
+const DAFTAR_PESERTA_PATH = "data/daftar-peserta.json";
+let pesertaCache = { content: [], sha: null };
+let editingNoUjianAsli = null; // dipakai saat mode edit peserta
+
+async function loadDaftarPesertaAdmin() {
+  setStatus('statusPeserta', 'Memuat daftar peserta…', 'loading');
+  try {
+    const result = await ghGetFile(DAFTAR_PESERTA_PATH);
+    pesertaCache = result ? { content: result.content, sha: result.sha } : { content: [], sha: null };
+    renderPesertaAdminList();
+    document.getElementById('statusPeserta').classList.remove('show');
+  } catch (e) {
+    setStatus('statusPeserta', 'Gagal memuat daftar peserta: ' + e.message, 'err');
+  }
+}
+
+function renderPesertaAdminList() {
+  const box = document.getElementById('pesertaAdminList');
+  if (!pesertaCache.content.length) {
+    box.innerHTML = '<p class="help">Belum ada peserta terdaftar.</p>';
+    return;
+  }
+  box.innerHTML = pesertaCache.content.map(p => {
+    const paketLabel = (!p.paket || p.paket === 'semua' || (Array.isArray(p.paket) && !p.paket.length))
+      ? 'Semua paket'
+      : (Array.isArray(p.paket) ? p.paket.join(', ') : p.paket);
+    const noUjianSafe = String(p.noUjian).replace(/'/g, "\\'");
+    return `
+    <div class="paket-item">
+      <div class="info">
+        <b>${p.nama}</b>
+        <span>No. Ujian: ${p.noUjian} · Paket: ${paketLabel}</span>
+      </div>
+      <div class="aksi">
+        <button class="btn btn-outline" onclick="editPesertaSatu('${noUjianSafe}')">Edit</button>
+        <button class="btn btn-outline" style="color:#c0392b;" onclick="hapusPesertaSatu('${noUjianSafe}')">Hapus</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function isiPilihanPaketCheckbox(selected) {
+  const wrap = document.getElementById('pPaketPilihanList');
+  const list = manifestCache.content;
+  if (!list.length) {
+    wrap.innerHTML = '<span>Belum ada paket tryout tersimpan. Buat paket dulu di bagian atas.</span>';
+    return;
+  }
+  const selectedArr = Array.isArray(selected) ? selected : [];
+  wrap.innerHTML = list.map(p => `
+    <label style="display:flex; align-items:center; gap:8px; font-weight:400; margin-top:6px;">
+      <input type="checkbox" class="chk-paket-peserta" value="${p.id}" ${selectedArr.includes(p.id) ? 'checked' : ''} style="width:auto;">
+      ${p.title} (${p.jenjang.toUpperCase()})
+    </label>
+  `).join('');
+}
+
+function togglePaketPilihan() {
+  const mode = document.getElementById('pPaketMode').value;
+  const wrap = document.getElementById('pPaketPilihanWrap');
+  wrap.style.display = mode === 'tertentu' ? 'block' : 'none';
+  if (mode === 'tertentu') isiPilihanPaketCheckbox([]);
+}
+
+function editPesertaSatu(noUjian) {
+  const data = pesertaCache.content.find(p => String(p.noUjian) === noUjian);
+  if (!data) return;
+  editingNoUjianAsli = String(data.noUjian);
+  document.getElementById('pNoUjian').value = data.noUjian;
+  document.getElementById('pNama').value = data.nama;
+  const isTertentu = Array.isArray(data.paket) && data.paket.length > 0;
+  document.getElementById('pPaketMode').value = isTertentu ? 'tertentu' : 'semua';
+  document.getElementById('pPaketPilihanWrap').style.display = isTertentu ? 'block' : 'none';
+  if (isTertentu) isiPilihanPaketCheckbox(data.paket);
+  document.getElementById('pNoUjian').scrollIntoView({ behavior: 'smooth' });
+}
+
+function batalEditPeserta() {
+  editingNoUjianAsli = null;
+  document.getElementById('pNoUjian').value = '';
+  document.getElementById('pNama').value = '';
+  document.getElementById('pPaketMode').value = 'semua';
+  document.getElementById('pPaketPilihanWrap').style.display = 'none';
+}
+
+async function simpanSatuPeserta() {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu di bagian atas.'); return; }
+  const noUjian = document.getElementById('pNoUjian').value.trim();
+  const nama = document.getElementById('pNama').value.trim();
+  if (!noUjian || !nama) { setStatus('statusPeserta', 'Nomor Ujian dan Nama wajib diisi.', 'err'); return; }
+
+  const mode = document.getElementById('pPaketMode').value;
+  let paket = 'semua';
+  if (mode === 'tertentu') {
+    paket = [...document.querySelectorAll('.chk-paket-peserta:checked')].map(c => c.value);
+    if (!paket.length) { setStatus('statusPeserta', 'Pilih minimal 1 paket, atau ganti ke "Semua paket".', 'err'); return; }
+  }
+
+  const dup = pesertaCache.content.find(p =>
+    String(p.noUjian).toLowerCase() === noUjian.toLowerCase() && String(p.noUjian) !== editingNoUjianAsli
+  );
+  if (dup) { setStatus('statusPeserta', `Nomor Ujian "${noUjian}" sudah dipakai peserta lain.`, 'err'); return; }
+
+  let newContent = pesertaCache.content.filter(p => String(p.noUjian) !== editingNoUjianAsli);
+  newContent.push({ noUjian, nama, paket });
+
+  setStatus('statusPeserta', 'Menyimpan…', 'loading');
+  try {
+    const putRes = await ghPutFile(DAFTAR_PESERTA_PATH, newContent, pesertaCache.sha, `${editingNoUjianAsli ? 'Update' : 'Tambah'} peserta: ${nama} (${noUjian})`);
+    pesertaCache = { content: newContent, sha: putRes.content.sha };
+    setStatus('statusPeserta', '✓ Peserta tersimpan.', 'ok');
+    renderPesertaAdminList();
+    batalEditPeserta();
+  } catch (e) {
+    setStatus('statusPeserta', 'Gagal menyimpan: ' + e.message, 'err');
+  }
+}
+
+async function hapusPesertaSatu(noUjian) {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
+  if (!confirm(`Hapus peserta dengan Nomor Ujian "${noUjian}"?`)) return;
+  const newContent = pesertaCache.content.filter(p => String(p.noUjian) !== noUjian);
+  setStatus('statusPeserta', 'Menghapus…', 'loading');
+  try {
+    const putRes = await ghPutFile(DAFTAR_PESERTA_PATH, newContent, pesertaCache.sha, `Hapus peserta: ${noUjian}`);
+    pesertaCache = { content: newContent, sha: putRes.content.sha };
+    renderPesertaAdminList();
+    document.getElementById('statusPeserta').classList.remove('show');
+  } catch (e) {
+    setStatus('statusPeserta', 'Gagal menghapus: ' + e.message, 'err');
+  }
+}
+
+async function simpanBulkPeserta() {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu di bagian atas.'); return; }
+  const raw = document.getElementById('pBulkText').value.trim();
+  if (!raw) { setStatus('statusPeserta', 'Isi daftar peserta dulu di kotak bulk.', 'err'); return; }
+
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const tambahan = [];
+  for (const line of lines) {
+    const parts = line.split(',');
+    if (parts.length < 2) { setStatus('statusPeserta', `Format salah di baris: "${line}". Gunakan: NomorUjian, Nama`, 'err'); return; }
+    const noUjian = parts[0].trim();
+    const nama = parts.slice(1).join(',').trim();
+    if (!noUjian || !nama) { setStatus('statusPeserta', `Format salah di baris: "${line}".`, 'err'); return; }
+    tambahan.push({ noUjian, nama, paket: 'semua' });
+  }
+
+  let newContent = [...pesertaCache.content];
+  tambahan.forEach(t => {
+    newContent = newContent.filter(p => String(p.noUjian).toLowerCase() !== t.noUjian.toLowerCase());
+    newContent.push(t);
+  });
+
+  setStatus('statusPeserta', 'Menyimpan…', 'loading');
+  try {
+    const putRes = await ghPutFile(DAFTAR_PESERTA_PATH, newContent, pesertaCache.sha, `Tambah ${tambahan.length} peserta (bulk)`);
+    pesertaCache = { content: newContent, sha: putRes.content.sha };
+    setStatus('statusPeserta', `✓ ${tambahan.length} peserta berhasil ditambahkan/diupdate.`, 'ok');
+    renderPesertaAdminList();
+    document.getElementById('pBulkText').value = '';
+  } catch (e) {
+    setStatus('statusPeserta', 'Gagal menyimpan: ' + e.message, 'err');
+  }
+}
+
+loadManifest();
+loadDaftarPesertaAdmin();
 </script>
 
 </body>
