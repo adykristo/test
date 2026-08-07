@@ -140,6 +140,32 @@
     line-height:1.6;
   }
   a{ color:var(--pink); }
+
+  .soal-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 14px;
+    border:1px solid #f0e2fa;
+    border-radius:12px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+  }
+  .soal-item .info{ font-size:13px; }
+  .soal-item .info b{ color:var(--ungu-tua); }
+  .soal-item .info span{ display:block; color:var(--abu); font-size:12px; margin-top:2px; }
+  .soal-item button{
+    width:auto;
+    margin:0;
+    padding:8px 16px;
+    font-size:12.5px;
+    background:#fdeaea;
+    color:#b02a2a;
+    border:1px solid #f5b8b8;
+  }
+  .soal-item button:hover{ background:#fcdcdc; }
+  .soal-item button:disabled{ background:#eee; color:#999; border-color:#ddd; }
 </style>
 </head>
 <body>
@@ -213,6 +239,28 @@
 
     <button id="submitBtnS">Upload &amp; Tampilkan di Web</button>
     <div id="statusS" class="status"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Hapus Soal</h2>
+
+    <label>Filter Jenjang</label>
+    <select id="filterJenjangHapus">
+      <option value="semua">Semua Jenjang</option>
+      <option value="sd">SD</option>
+      <option value="smp">SMP</option>
+      <option value="sma">SMA</option>
+    </select>
+
+    <button type="button" id="loadListBtn" class="secondary">Muat Daftar Soal</button>
+    <div id="statusHapus" class="status"></div>
+    <div id="daftarSoalHapus" style="margin-top:14px;"></div>
+
+    <p class="note" style="margin-top:12px;">
+      Menghapus soal akan menghapus gambar soal &amp; gambar pembahasannya dari
+      GitHub, dan langsung menghilangkan soal tsb dari daftar
+      <code>data/manifest-soal.json</code>. Tindakan ini tidak bisa dibatalkan.
+    </p>
   </div>
 
 </div>
@@ -473,6 +521,156 @@ $('submitBtnS').addEventListener('click', async () => {
     setStatusS('err', e.message || 'Terjadi kesalahan.');
   } finally {
     $('submitBtnS').disabled = false;
+  }
+});
+
+/* ================== HAPUS SOAL ================== */
+
+// ambil sha sebuah file (dibutuhkan GitHub API untuk menghapus file).
+// kalau file tidak ketemu / gagal diambil, balikin null saja (tidak melempar error)
+// supaya proses hapus soal tetap lanjut walau salah satu gambarnya sudah tidak ada.
+async function ghGetFileSha(path, cfg) {
+  try {
+    const res = await ghRequest(`${path}?ref=${cfg.branch}&_=${Date.now()}`, { method: 'GET' }, cfg);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.sha || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function deleteFileIfExists(path, message, cfg) {
+  const sha = await ghGetFileSha(path, cfg);
+  if (!sha) return; // sudah tidak ada / gagal diambil, lewati saja
+  const res = await ghRequest(path, {
+    method: 'DELETE',
+    body: JSON.stringify({ message, sha, branch: cfg.branch })
+  }, cfg);
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || ('Gagal menghapus file: ' + path));
+  }
+}
+
+// hapus 1 entri dari manifest berdasarkan soalImage (dipakai sebagai penanda unik),
+// dengan retry otomatis kalau kebentur konflik SHA (mis. ada perubahan lain barengan)
+async function updateManifestRemoveWithRetry(soalImagePath, cfg, attempt = 1) {
+  const { list, sha } = await fetchManifest(cfg);
+  const filtered = list.filter(item => item.soalImage !== soalImagePath);
+
+  const updateRes = await ghRequest('data/manifest-soal.json', {
+    method: 'PUT',
+    body: JSON.stringify({
+      message: `Hapus soal: ${soalImagePath}`,
+      content: toBase64Unicode(JSON.stringify(filtered, null, 2)),
+      sha: sha,
+      branch: cfg.branch
+    })
+  }, cfg);
+
+  if (!updateRes.ok) {
+    const errData = await updateRes.json().catch(() => ({}));
+    const isShaConflict = updateRes.status === 409 || updateRes.status === 422;
+    if (isShaConflict && attempt < 3) {
+      await new Promise(r => setTimeout(r, 500));
+      return updateManifestRemoveWithRetry(soalImagePath, cfg, attempt + 1);
+    }
+    throw new Error(errData.message || 'Gagal memperbarui manifest-soal.json.');
+  }
+}
+
+function setStatusHapus(type, msg) {
+  const el = $('statusHapus');
+  el.className = 'status ' + type;
+  el.textContent = msg;
+}
+
+function formatTanggalHapus(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  return d.getDate() + ' ' + bulan[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function renderDaftarSoalHapus(list) {
+  const box = $('daftarSoalHapus');
+  if (!list.length) {
+    box.innerHTML = '<p class="note">Tidak ada soal untuk filter ini.</p>';
+    return;
+  }
+  // terbaru di atas
+  const sorted = [...list].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+  box.innerHTML = sorted.map(item => `
+    <div class="soal-item" data-soal-image="${item.soalImage.replace(/"/g, '&quot;')}">
+      <div class="info">
+        <b>${item.title}</b>
+        <span>${item.jenjang.toUpperCase()} · ${item.topik || '-'} · ${formatTanggalHapus(item.tanggal)}</span>
+      </div>
+      <button type="button" class="btn-hapus-soal">Hapus</button>
+    </div>
+  `).join('');
+
+  box.querySelectorAll('.btn-hapus-soal').forEach(btn => {
+    btn.addEventListener('click', () => hapusSoalSatu(btn));
+  });
+}
+
+async function hapusSoalSatu(btn) {
+  const cfg = getCfg();
+  if (!cfg.user || !cfg.repo || !cfg.token) {
+    setStatusHapus('err', 'Isi dulu Username, Repo, dan Token GitHub-nya di bagian atas.');
+    return;
+  }
+
+  const wrapper = btn.closest('.soal-item');
+  const soalImagePath = wrapper.dataset.soalImage;
+  const judul = wrapper.querySelector('.info b').textContent;
+  const solusiImagePath = soalImagePath.replace(/-soal\.([a-zA-Z0-9]+)$/, '-solusi.$1');
+
+  if (!confirm(`Yakin hapus soal "${judul}"? Gambar soal & pembahasannya juga akan terhapus dari GitHub. Tindakan ini tidak bisa dibatalkan.`)) {
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Menghapus…';
+  setStatusHapus('loading', `Menghapus "${judul}"…`);
+
+  try {
+    await deleteFileIfExists(soalImagePath, `Hapus gambar soal: ${judul}`, cfg);
+    await deleteFileIfExists(solusiImagePath, `Hapus gambar pembahasan: ${judul}`, cfg);
+    await updateManifestRemoveWithRetry(soalImagePath, cfg);
+
+    wrapper.remove();
+    setStatusHapus('ok', `✓ Soal "${judul}" berhasil dihapus. Perubahan akan terlihat di web dalam ± 30–60 detik.`);
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Hapus';
+    setStatusHapus('err', e.message || 'Gagal menghapus soal.');
+  }
+}
+
+$('loadListBtn').addEventListener('click', async () => {
+  const cfg = getCfg();
+  if (!cfg.user || !cfg.repo || !cfg.token) {
+    setStatusHapus('err', 'Isi dulu Username, Repo, dan Token GitHub-nya di bagian atas.');
+    return;
+  }
+  saveIfRemember();
+  $('loadListBtn').disabled = true;
+  setStatusHapus('loading', 'Memuat daftar soal…');
+  try {
+    const { list } = await fetchManifest(cfg);
+    const jenjangFilter = $('filterJenjangHapus').value;
+    const filtered = jenjangFilter === 'semua' ? list : list.filter(item => item.jenjang === jenjangFilter);
+    renderDaftarSoalHapus(filtered);
+    $('statusHapus').className = 'status';
+    $('statusHapus').textContent = '';
+  } catch (e) {
+    setStatusHapus('err', e.message || 'Gagal memuat daftar soal.');
+  } finally {
+    $('loadListBtn').disabled = false;
   }
 });
 </script>
