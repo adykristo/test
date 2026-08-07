@@ -1,14 +1,5 @@
 [
   {
-    "id": "to-1-msiac0ec",
-    "title": "to 1",
-    "jenjang": "smp",
-    "topik": "dinamika",
-    "durasi_menit": 5,
-    "jumlah_soal": 1,
-    "file": "data/tryout/to-1-msiac0ec.json"
-  },
-  {
     "id": "fd-msicg64a",
     "title": "fd",
     "jenjang": "sd",
