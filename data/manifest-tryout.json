@@ -1,15 +1,5 @@
 [
   {
-    "id": "vektor-msijcnbn",
-    "title": "Vektor",
-    "jenjang": "smp",
-    "topik": "Kinematika",
-    "durasi_menit": 15,
-    "jumlah_soal": 4,
-    "file": "data/tryout/vektor-msijcnbn.json",
-    "aktif": true
-  },
-  {
     "id": "qqq-msjf958i",
     "title": "qqq",
     "jenjang": "sd",
