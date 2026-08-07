@@ -553,6 +553,46 @@
     color:#3d2a52;
   }
   .review-card .pembahasan b{ color:var(--ungu-tua); }
+
+  /* ===== DATA PESERTA ===== */
+  .peserta-box{
+    max-width:460px;
+    margin:0 auto;
+    background:#fff;
+    border:1px solid #f0e2fa;
+    border-radius:18px;
+    padding:30px 26px;
+    box-shadow:0 6px 16px rgba(123,47,247,0.06);
+  }
+  .peserta-box h3{ color:var(--ungu-tua); font-size:17px; margin-bottom:4px; text-align:center; }
+  .peserta-box .sub{ text-align:center; color:var(--abu); font-size:13px; margin-bottom:22px; }
+  .peserta-box label{ display:block; font-size:12.5px; font-weight:700; color:var(--ungu-tua); margin-bottom:5px; margin-top:14px; }
+  .peserta-box label:first-of-type{ margin-top:0; }
+  .peserta-box input{
+    width:100%; border:1.5px solid #e6d6f5; border-radius:10px; padding:11px 14px;
+    font-size:14px; font-family:inherit;
+  }
+  .peserta-box input:focus{ outline:none; border-color:var(--ungu); }
+  .peserta-box .info-paket{
+    background:var(--pink-muda); border-radius:10px; padding:10px 14px; font-size:12.5px;
+    color:var(--ungu-tua); margin-bottom:6px;
+  }
+  .peserta-box .btn-mulai{
+    width:100%; margin-top:22px; border:none; border-radius:999px;
+    background:linear-gradient(90deg, var(--pink), var(--ungu)); color:#fff;
+    font-size:14.5px; font-weight:700; padding:13px; cursor:pointer;
+  }
+  .peserta-box .err-msg{ color:#c0392b; font-size:12.5px; margin-top:10px; display:none; }
+  .peserta-box .err-msg.show{ display:block; }
+
+  .kirim-status{
+    text-align:center; font-size:12.5px; padding:10px 14px; border-radius:10px; margin-bottom:16px;
+  }
+  .kirim-status.sending{ background:#f0e2fa; color:var(--ungu-tua); }
+  .kirim-status.sent{ background:#dff5e6; color:#1f7a41; }
+  .kirim-status.failed{ background:#fde3e3; color:#c0392b; }
+  .peserta-ringkas{ text-align:center; font-size:12.5px; color:var(--abu); margin-bottom:16px; }
+  .peserta-ringkas b{ color:var(--ungu-tua); }
 </style>
 </head>
 <body>
@@ -639,6 +679,19 @@
     <div id="paketList" class="paket-list"><div class="empty">Memuat daftar tryout…</div></div>
   </section>
 
+  <section id="page-tryout-peserta" class="page">
+    <div class="peserta-box">
+      <h3>Isi Data Peserta</h3>
+      <div class="sub" id="pesertaSubJudul">-</div>
+      <label>Nama Lengkap</label>
+      <input type="text" id="inputNamaPeserta" placeholder="Tulis nama lengkap kamu">
+      <label>Nomor Ujian</label>
+      <input type="text" id="inputNoUjian" placeholder="Tulis nomor ujian kamu">
+      <div class="err-msg" id="pesertaErr"></div>
+      <button class="btn-mulai" onclick="mulaiUjianSetelahData()">Mulai Ujian</button>
+    </div>
+  </section>
+
   <section id="page-tryout-attempt" class="page">
     <div class="tryout-header">
       <div>
@@ -661,6 +714,8 @@
       <h2 id="hasilJudul">Hasil Tryout</h2>
       <span>Persiapan OSN Fisika</span>
     </div>
+    <div class="peserta-ringkas" id="hasilPesertaRingkas"></div>
+    <div class="kirim-status sending" id="kirimStatus">Mengirim hasil ke guru…</div>
     <div class="hasil-summary">
       <div style="font-size:13.5px; color:var(--abu);">Skor Kamu</div>
       <div class="nilai" id="hasilNilai">0</div>
@@ -673,6 +728,7 @@
     </div>
     <div id="hasilReview"></div>
     <div class="tryout-footer-nav">
+      <button class="btn-secondary" onclick="downloadHasilCadangan()">⬇ Download Hasil (cadangan)</button>
       <button class="btn-primary" onclick="gotoPage('tryout')">Kembali ke Daftar Tryout</button>
     </div>
   </section>
@@ -1008,22 +1064,46 @@ async function startTryout(paketId) {
     const res = await fetch(meta.file + '?_=' + Date.now());
     const paket = await res.json();
 
-    tryoutState = {
-      paket,
-      jawaban: {},
-      index: 0,
-      sisaDetik: (paket.durasi_menit || meta.durasi_menit || 30) * 60,
-      timerHandle: null
-    };
-
-    document.getElementById('attemptJudul').textContent = paket.title;
-    gotoPage('tryout-attempt');
-    renderNavigator();
-    renderCurrentSoal();
-    startTimer();
+    // simpan sementara, minta data peserta dulu sebelum mulai timer
+    pendingTryout = { paket, meta };
+    document.getElementById('pesertaSubJudul').textContent = paket.title + ' · ' + (paket.durasi_menit || meta.durasi_menit) + ' menit';
+    document.getElementById('inputNamaPeserta').value = '';
+    document.getElementById('inputNoUjian').value = '';
+    document.getElementById('pesertaErr').classList.remove('show');
+    gotoPage('tryout-peserta');
   } catch (e) {
     alert('Gagal memuat soal tryout. Coba refresh halaman.');
   }
+}
+
+let pendingTryout = null;
+
+function mulaiUjianSetelahData() {
+  const nama = document.getElementById('inputNamaPeserta').value.trim();
+  const noUjian = document.getElementById('inputNoUjian').value.trim();
+  const errEl = document.getElementById('pesertaErr');
+  if (!nama || !noUjian) {
+    errEl.textContent = 'Nama dan Nomor Ujian wajib diisi sebelum memulai.';
+    errEl.classList.add('show');
+    return;
+  }
+  errEl.classList.remove('show');
+
+  const { paket, meta } = pendingTryout;
+  tryoutState = {
+    paket,
+    peserta: { nama, noUjian },
+    jawaban: {},
+    index: 0,
+    sisaDetik: (paket.durasi_menit || meta.durasi_menit || 30) * 60,
+    timerHandle: null
+  };
+
+  document.getElementById('attemptJudul').textContent = paket.title;
+  gotoPage('tryout-attempt');
+  renderNavigator();
+  renderCurrentSoal();
+  startTimer();
 }
 
 function startTimer() {
@@ -1150,7 +1230,11 @@ function submitTryout(autoSubmit) {
   const total = soalList.length;
   const nilai = total ? Math.round((benar / total) * 100) : 0;
 
+  const peserta = tryoutState.peserta || { nama: '-', noUjian: '-' };
+
   document.getElementById('hasilJudul').textContent = 'Hasil: ' + tryoutState.paket.title;
+  document.getElementById('hasilPesertaRingkas').innerHTML =
+    `Nama: <b>${peserta.nama}</b> &nbsp;·&nbsp; No. Ujian: <b>${peserta.noUjian}</b>`;
   document.getElementById('hasilNilai').textContent = nilai;
   document.getElementById('hasilBenar').textContent = benar;
   document.getElementById('hasilSalah').textContent = salah;
@@ -1160,10 +1244,66 @@ function submitTryout(autoSubmit) {
   reviewBox.innerHTML = reviewHtml;
   renderKatexIn(reviewBox);
 
+  lastHasil = {
+    nama: peserta.nama,
+    noUjian: peserta.noUjian,
+    paket: tryoutState.paket.title,
+    jenjang: tryoutState.paket.jenjang,
+    topik: tryoutState.paket.topik || '',
+    nilai, benar, salah, kosong, total,
+    waktu: new Date().toISOString()
+  };
+
   gotoPage('tryout-result');
+  kirimHasilKeSheet(lastHasil);
+
   if (autoSubmit) {
     setTimeout(() => alert('Waktu habis! Jawaban kamu otomatis dikumpulkan.'), 200);
   }
+}
+
+let lastHasil = null;
+
+// ==== Ganti dengan URL Web App Google Apps Script kamu setelah deploy ====
+const GOOGLE_SCRIPT_URL = "";
+// ===========================================================================
+
+function kirimHasilKeSheet(hasil) {
+  const statusEl = document.getElementById('kirimStatus');
+  if (!GOOGLE_SCRIPT_URL) {
+    statusEl.textContent = 'Pengiriman otomatis belum diaktifkan admin. Gunakan tombol "Download Hasil" di bawah sebagai cadangan.';
+    statusEl.className = 'kirim-status failed';
+    return;
+  }
+  statusEl.textContent = 'Mengirim hasil ke guru…';
+  statusEl.className = 'kirim-status sending';
+
+  fetch(GOOGLE_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(hasil)
+  }).then(() => {
+    // mode no-cors: kita tidak bisa baca respons, jadi anggap terkirim
+    statusEl.textContent = '✓ Hasil berhasil dikirim ke guru.';
+    statusEl.className = 'kirim-status sent';
+  }).catch(() => {
+    statusEl.textContent = 'Gagal mengirim otomatis. Silakan klik "Download Hasil" di bawah lalu kirim manual ke guru.';
+    statusEl.className = 'kirim-status failed';
+  });
+}
+
+function downloadHasilCadangan() {
+  if (!lastHasil) return;
+  const blob = new Blob([JSON.stringify(lastHasil, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `hasil-tryout-${lastHasil.noUjian || 'peserta'}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 loadTryoutManifest();
