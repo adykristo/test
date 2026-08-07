@@ -1136,6 +1136,7 @@ function cariPesertaTerdaftar(noUjian, paketId) {
 }
 
 // dipanggil setiap kali peserta mengetik nomor ujian, untuk menampilkan pratinjau nama
+// + langsung BLOKIR jika nomor ini sudah pernah menyelesaikan paket ini
 function cekNomorUjian() {
   const noUjian = document.getElementById('inputNoUjian').value.trim();
   const errEl = document.getElementById('pesertaErr');
@@ -1148,7 +1149,21 @@ function cekNomorUjian() {
 
   if (!noUjian || !pendingTryout) return;
 
-  const { meta } = pendingTryout;
+  const { paket, meta } = pendingTryout;
+  const paketIdCek = meta.id || (paket && paket.id) || '';
+  const paketTitleCek = (paket && paket.title) || meta.title || '';
+
+  // LANGSUNG BLOKIR jika sudah pernah selesai (localStorage) — tanpa perlu klik Mulai
+  if (typeof sudahPernahTryoutLokal === 'function' && sudahPernahTryoutLokal(noUjian, paketIdCek, paketTitleCek)) {
+    errEl.textContent =
+      '🚫 AKSES DIBLOKIR\n\n' +
+      'Nomor Ujian "' + noUjian + '" sudah pernah menyelesaikan tryout ini.\n' +
+      'Anda tidak dapat masuk/mengulang ujian yang sama.\n\n' +
+      'Hubungi admin jika ini keliru.';
+    errEl.classList.add('show');
+    return;
+  }
+
   const data = cariPesertaTerdaftar(noUjian, meta.id);
 
   if (!data) {
@@ -1165,6 +1180,25 @@ function cekNomorUjian() {
   document.getElementById('pesertaNamaTerverifikasi').textContent = data.nama;
   boxTerverifikasi.style.display = 'block';
   btnMulai.disabled = false;
+
+  // Cek juga ke server di latar belakang; jika sudah pernah, langsung blokir
+  if (typeof cekNomorUjianSudahDipakai === 'function') {
+    cekNomorUjianSudahDipakai(noUjian, paketIdCek, paketTitleCek).then(sudah => {
+      // Pastikan masih nomor yang sama yang sedang diketik
+      if (document.getElementById('inputNoUjian').value.trim() !== noUjian) return;
+      if (sudah) {
+        tandaiTryoutSelesaiLokal(noUjian, paketIdCek, paketTitleCek);
+        errEl.textContent =
+          '🚫 AKSES DIBLOKIR\n\n' +
+          'Nomor Ujian "' + noUjian + '" sudah pernah mengumpulkan jawaban untuk paket ini.\n' +
+          'Anda tidak dapat masuk/mengulang ujian yang sama.\n\n' +
+          'Hubungi admin jika ini keliru.';
+        errEl.classList.add('show');
+        boxTerverifikasi.style.display = 'none';
+        btnMulai.disabled = true;
+      }
+    }).catch(() => { /* biarkan; akan dicek lagi saat klik Mulai */ });
+  }
 }
 
 async function mulaiUjianSetelahData() {
