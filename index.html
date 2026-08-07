@@ -684,7 +684,6 @@
       <h3>Verifikasi Data Peserta</h3>
       <div class="sub" id="pesertaSubJudul">-</div>
       <div class="info-paket">Nama peserta terdaftar oleh admin. Masukkan Nomor Ujian yang sudah diberikan admin kamu.</div>
-      <div class="info-paket" style="background:#fde3e3; color:#c0392b;">⚠️ Satu Nomor Ujian hanya bisa dipakai <b>satu kali</b> untuk setiap paket tryout. Setelah mengumpulkan jawaban, nomor ujian ini tidak bisa dipakai lagi untuk paket yang sama.</div>
       <label>Nomor Ujian</label>
       <input type="text" id="inputNoUjian" placeholder="Tulis nomor ujian yang diberikan admin" oninput="cekNomorUjian()">
       <div class="err-msg" id="pesertaErr"></div>
@@ -1163,26 +1162,6 @@ async function mulaiUjianSetelahData() {
   }
   errEl.classList.remove('show');
 
-  // ==== cek ke server (Google Sheet) apakah nomor ujian ini SUDAH PERNAH mengumpulkan
-  // jawaban untuk paket tryout ini. Kalau sudah, tidak boleh mengulang. ====
-  btnMulai.disabled = true;
-  const teksAsliBtn = btnMulai.textContent;
-  btnMulai.textContent = 'Memeriksa status…';
-  try {
-    const sudahDipakai = await cekNomorUjianSudahDipakai(noUjian, meta.id);
-    if (sudahDipakai) {
-      errEl.textContent = 'Nomor Ujian ini SUDAH PERNAH digunakan untuk mengumpulkan tryout ini dan tidak bisa dipakai lagi. Kalau merasa ini keliru, hubungi admin.';
-      errEl.classList.add('show');
-      btnMulai.disabled = false;
-      btnMulai.textContent = teksAsliBtn;
-      return;
-    }
-  } catch (e) {
-    // Kalau pengecekan gagal (mis. koneksi), tetap lanjutkan — pengecekan akhir tetap
-    // dilakukan lagi saat jawaban dikumpulkan (submit), jadi tidak bisa dipakai dobel.
-  }
-  btnMulai.textContent = teksAsliBtn;
-
   tryoutState = {
     paket,
     peserta: { nama: data.nama, noUjian },
@@ -1398,13 +1377,9 @@ function kirimHasilKeSheet(hasil) {
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(hasil)
   }).then(res => res.json()).then(resData => {
-    if (resData && resData.status === 'sudah_pernah') {
-      statusEl.textContent = 'Nomor ujian ini sudah pernah mengumpulkan tryout ini sebelumnya, jadi hasil kali ini TIDAK disimpan ganda. Hubungi guru kalau ini keliru.';
-      statusEl.className = 'kirim-status failed';
-    } else {
-      statusEl.textContent = '✓ Hasil berhasil dikirim ke guru.';
-      statusEl.className = 'kirim-status sent';
-    }
+    // Nomor ujian boleh dipakai berulang — hasil tetap diterima & disimpan
+    statusEl.textContent = '✓ Hasil berhasil dikirim ke guru.';
+    statusEl.className = 'kirim-status sent';
   }).catch(() => {
     statusEl.textContent = 'Gagal mengirim otomatis (masalah koneksi). Screenshot layar ini dan hubungi guru untuk verifikasi manual.';
     statusEl.className = 'kirim-status failed';

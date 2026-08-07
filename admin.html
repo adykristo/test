@@ -674,21 +674,29 @@
 
   <div class="box">
     <h2>1. Koneksi GitHub</h2>
-    <label>Personal Access Token (scope: repo)</label>
-    <input type="password" id="ghTokenTryout" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-    <p class="help">Token disimpan hanya di browser kamu (localStorage). Buat token di GitHub → Settings → Developer settings → Personal access tokens (Fine-grained atau Classic dengan scope <code>repo</code>).</p>
-    <p class="token-saved" id="tokenSavedMsg">✓ Token tersimpan di browser ini.</p>
-    <div class="row" style="margin-top:12px;">
+    <div class="row">
       <div>
-        <label>Repo</label>
-        <input type="text" id="ghRepoDisplay" disabled>
+        <label>Username GitHub</label>
+        <input type="text" id="ghUserTryout" placeholder="contoh: adykristo">
       </div>
       <div>
-        <label>Branch</label>
-        <input type="text" id="ghBranchDisplay" disabled>
+        <label>Nama Repository</label>
+        <input type="text" id="ghRepoTryout" placeholder="contoh: test">
       </div>
     </div>
-    <button class="btn btn-outline" style="margin-top:14px;" onclick="saveToken()">Simpan Token</button>
+    <div class="row" style="margin-top:4px;">
+      <div>
+        <label>Branch</label>
+        <input type="text" id="ghBranchTryout" placeholder="main" value="main">
+      </div>
+      <div>
+        <label>Personal Access Token</label>
+        <input type="password" id="ghTokenTryout" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      </div>
+    </div>
+    <p class="help">Token &amp; data repo disimpan hanya di browser kamu (localStorage). Buat token di GitHub → Settings → Developer settings → Personal access tokens (Fine-grained: Contents Read and write, atau Classic dengan scope <code>repo</code>).</p>
+    <p class="token-saved" id="tokenSavedMsg">✓ Koneksi GitHub tersimpan di browser ini.</p>
+    <button class="btn btn-outline" style="margin-top:14px;" onclick="saveToken()">Simpan Koneksi GitHub</button>
   </div>
 
   <div class="box">
@@ -1413,25 +1421,43 @@ async function hapusFileOsn(btn) {
 <script>
 /* ================== PANEL 2: ADMIN TRYOUT ================== */
 // ================== KONFIGURASI ==================
-const GITHUB_USER = "adykristo";
-const GITHUB_REPO  = "test";
-const GITHUB_BRANCH = "main";
 const MANIFEST_PATH = "data/manifest-tryout.json";
 const TRYOUT_FOLDER = "data/tryout";
 // ===================================================
 
-document.getElementById('ghRepoDisplay').value = `${GITHUB_USER}/${GITHUB_REPO}`;
-document.getElementById('ghBranchDisplay').value = GITHUB_BRANCH;
+// Ambil dari localStorage, fallback ke nilai default (sama dengan repo yang dipakai sebelumnya)
+let GITHUB_USER = localStorage.getItem('kf_gh_user_tryout') || localStorage.getItem('kf_ghUser') || 'adykristo';
+let GITHUB_REPO = localStorage.getItem('kf_gh_repo_tryout') || localStorage.getItem('kf_ghRepo') || 'test';
+let GITHUB_BRANCH = localStorage.getItem('kf_gh_branch_tryout') || localStorage.getItem('kf_ghBranch') || 'main';
+let ghToken = localStorage.getItem('kf_gh_token_tryout') || localStorage.getItem('kf_ghToken') || '';
 
-let ghToken = localStorage.getItem('kf_gh_token_tryout') || '';
+document.getElementById('ghUserTryout').value = GITHUB_USER;
+document.getElementById('ghRepoTryout').value = GITHUB_REPO;
+document.getElementById('ghBranchTryout').value = GITHUB_BRANCH;
 document.getElementById('ghTokenTryout').value = ghToken;
 if (ghToken) document.getElementById('tokenSavedMsg').classList.add('show');
 
 function saveToken() {
+  GITHUB_USER = document.getElementById('ghUserTryout').value.trim();
+  GITHUB_REPO = document.getElementById('ghRepoTryout').value.trim();
+  GITHUB_BRANCH = document.getElementById('ghBranchTryout').value.trim() || 'main';
   ghToken = document.getElementById('ghTokenTryout').value.trim();
+
+  if (!GITHUB_USER || !GITHUB_REPO || !ghToken) {
+    alert('Isi Username, Nama Repository, dan Personal Access Token dulu.');
+    return;
+  }
+
+  localStorage.setItem('kf_gh_user_tryout', GITHUB_USER);
+  localStorage.setItem('kf_gh_repo_tryout', GITHUB_REPO);
+  localStorage.setItem('kf_gh_branch_tryout', GITHUB_BRANCH);
   localStorage.setItem('kf_gh_token_tryout', ghToken);
+
   document.getElementById('tokenSavedMsg').classList.add('show');
-  alert('Token disimpan di browser ini.');
+  alert('Koneksi GitHub disimpan di browser ini.');
+  // Muat ulang daftar paket dengan kredensial baru
+  loadManifest();
+  loadDaftarPesertaAdmin();
 }
 
 function renderKatexIn(el) {
@@ -2256,7 +2282,9 @@ async function simpanBulkPeserta() {
 }
 
 // ================== UNDUH HASIL TRYOUT PESERTA (PDF) ==================
-let hasilScriptUrl = localStorage.getItem('kf_hasil_script_url') || '';
+// Default URL sama dengan GOOGLE_SCRIPT_URL di index.html — bisa diganti lewat form
+const DEFAULT_HASIL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYnIAUlMxIOJDa7y_sJqWzXfB_6AsFZyhB1RLUnIoxqsPewch5GiooYK3xCZJORLWw/exec";
+let hasilScriptUrl = localStorage.getItem('kf_hasil_script_url') || DEFAULT_HASIL_SCRIPT_URL;
 let hasilAdminKey = localStorage.getItem('kf_hasil_admin_key') || '';
 document.getElementById('hasilScriptUrl').value = hasilScriptUrl;
 document.getElementById('hasilAdminKey').value = hasilAdminKey;
