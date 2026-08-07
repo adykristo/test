@@ -34,5 +34,14 @@
     "durasi_menit": 1,
     "jumlah_soal": 1,
     "file": "data/tryout/fbsf-msidfylp.json"
+  },
+  {
+    "id": "osk-msifatfz",
+    "title": "OSK",
+    "jenjang": "sma",
+    "topik": "OSK",
+    "durasi_menit": 60,
+    "jumlah_soal": 1,
+    "file": "data/tryout/osk-msifatfz.json"
   }
 ]
