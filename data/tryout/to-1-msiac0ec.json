@@ -1,9 +1,9 @@
 {
   "id": "to-1-msiac0ec",
   "title": "to 1",
-  "jenjang": "sma",
-  "topik": "",
-  "durasi_menit": 60,
+  "jenjang": "smp",
+  "topik": "dinamika",
+  "durasi_menit": 5,
   "soal": [
     {
       "id": "q1786067238177-1",
@@ -15,7 +15,7 @@
         "D": "fd",
         "E": "fd"
       },
-      "jawaban_benar": "E",
+      "jawaban_benar": "D",
       "pembahasan": "afafafaf"
     }
   ]
