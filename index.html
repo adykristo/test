@@ -5,7 +5,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KlinikFisikapku — Soal &amp; Pembahasan OSN</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    processEscapes: true
+  },
+  options: {
+    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 <style>
   :root{
     --ungu-tua:#3d1a63;
@@ -475,6 +487,20 @@
     justify-content:center;
   }
   .pilihan-item .teks{ flex:1; font-size:14.5px; padding-top:3px; }
+  .tipe-badge{
+    display:inline-block; font-size:11px; font-weight:700; padding:3px 10px;
+    border-radius:999px; background:var(--pink-muda); color:var(--ungu-tua); margin-bottom:10px;
+  }
+  .isian-box, .esai-box{ margin-top:14px; }
+  .isian-box textarea, .esai-box textarea{
+    width:100%; min-height:90px; border:1.5px solid var(--abu-muda); border-radius:12px;
+    padding:12px 14px; font-size:14.5px; font-family:inherit; resize:vertical;
+  }
+  .isian-box textarea:focus, .esai-box textarea:focus{ outline:none; border-color:var(--ungu); }
+  .esai-box input[type=file]{ margin-top:10px; font-size:13px; }
+  .esai-preview{ margin-top:10px; max-width:100%; border-radius:10px; display:block; }
+  .esai-file-name{ font-size:12.5px; color:var(--abu); margin-top:6px; }
+
 
   .tryout-footer-nav{
     display:flex;
@@ -785,8 +811,6 @@
   <strong>2026-KlinikFisikapku</strong>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <script>
 let allSoal = [];
 const JENJANG_LIST = ['sd', 'smp', 'sma'];
@@ -1020,16 +1044,15 @@ async function loadDaftarPeserta() {
 let tryoutState = null; // { paket, jawaban:{}, index, sisaDetik, timerHandle }
 
 function renderKatexIn(el) {
-  if (window.renderMathInElement) {
-    renderMathInElement(el, {
-      delimiters: [
-        { left: '$$', right: '$$', display: true },
-        { left: '$', right: '$', display: false },
-        { left: '\\(', right: '\\)', display: false },
-        { left: '\\[', right: '\\]', display: true }
-      ],
-      throwOnError: false
-    });
+  if (!el) return;
+  if (window.MathJax && MathJax.typesetPromise) {
+    if (MathJax.typesetClear) {
+      try { MathJax.typesetClear([el]); } catch (e) { /* ignore */ }
+    }
+    MathJax.typesetPromise([el]).catch(function () { /* ignore render errors */ });
+  } else {
+    // MathJax belum siap — coba lagi sebentar
+    setTimeout(function () { renderKatexIn(el); }, 120);
   }
 }
 
@@ -1323,7 +1346,7 @@ function renderNavigator() {
   nav.innerHTML = soalList.map((s, i) => {
     const cls = ['navigator-btn'];
     if (i === tryoutState.index) cls.push('current');
-    else if (tryoutState.jawaban[s.id] !== undefined) cls.push('answered');
+    else if (sudahDijawab(s, tryoutState.jawaban)) cls.push('answered');
     return `<button class="${cls.join(' ')}" onclick="jumpToSoal(${i})">${i + 1}</button>`;
   }).join('');
 }
@@ -1341,6 +1364,34 @@ function tryoutNext() {
   if (tryoutState.index < tryoutState.paket.soal.length - 1) jumpToSoal(tryoutState.index + 1);
 }
 
+function getTipeSoal(s) {
+  if (!s) return 'pg5';
+  if (s.tipe === 'isian' || s.tipe === 'esai' || s.tipe === 'pg4' || s.tipe === 'pg5') return s.tipe;
+  if (s.tipe === 'pg') return 'pg5';
+  const keys = Object.keys(s.pilihan || {});
+  if (keys.length && !keys.includes('E')) return 'pg4';
+  return 'pg5';
+}
+
+function labelTipeSoal(tipe) {
+  if (tipe === 'pg4') return 'Pilihan Ganda (4 opsi)';
+  if (tipe === 'pg5') return 'Pilihan Ganda (5 opsi)';
+  if (tipe === 'isian') return 'Isian Singkat';
+  if (tipe === 'esai') return 'Esai';
+  return 'Pilihan Ganda';
+}
+
+function sudahDijawab(s, jawabanMap) {
+  const j = jawabanMap[s.id];
+  if (j === undefined || j === null || j === '') return false;
+  const tipe = getTipeSoal(s);
+  if (tipe === 'esai') {
+    if (typeof j === 'object') return !!(j.teks && j.teks.trim()) || !!j.fileName || !!j.fileData;
+    return String(j).trim() !== '';
+  }
+  return true;
+}
+
 function renderCurrentSoal() {
   const soalList = tryoutState.paket.soal;
   const i = tryoutState.index;
@@ -1349,26 +1400,52 @@ function renderCurrentSoal() {
   document.getElementById('btnPrevSoal').disabled = i === 0;
   document.getElementById('btnNextSoal').disabled = i === soalList.length - 1;
 
+  const tipe = getTipeSoal(s);
   const dipilih = tryoutState.jawaban[s.id];
-  const huruf = ['A', 'B', 'C', 'D', 'E'];
+  const huruf = tipe === 'pg4' ? ['A','B','C','D'] : ['A','B','C','D','E'];
 
-  // dukung soal berbentuk gambar: admin cukup isi field "gambar": "url-gambar.jpg" di JSON soal
   const gambarSoalHtml = s.gambar
     ? `<img src="${s.gambar}" alt="Gambar Soal ${i + 1}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`
     : '';
 
+  let bodyHtml = '';
+  if (tipe === 'isian') {
+    const val = (typeof dipilih === 'string' ? dipilih : '') || '';
+    bodyHtml = `
+      <div class="isian-box">
+        <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin-bottom:6px;">Jawaban singkat</label>
+        <textarea id="inputIsianAktif" placeholder="Ketik jawabanmu di sini (boleh angka, teks, atau rumus)..." oninput="simpanIsian('${s.id}')">${val.replace(/</g,'&lt;')}</textarea>
+      </div>`;
+  } else if (tipe === 'esai') {
+    const obj = (dipilih && typeof dipilih === 'object') ? dipilih : { teks: typeof dipilih === 'string' ? dipilih : '', fileName: '', fileData: '' };
+    const preview = obj.fileData ? `<img class="esai-preview" src="${obj.fileData}" alt="Preview jawaban">` : '';
+    const fname = obj.fileName ? `<div class="esai-file-name">File: ${obj.fileName}</div>` : '';
+    bodyHtml = `
+      <div class="esai-box">
+        <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin-bottom:6px;">Jawaban esai</label>
+        <textarea id="inputEsaiAktif" placeholder="Tulis jawaban esai di sini..." oninput="simpanEsaiTeks('${s.id}')">${(obj.teks || '').replace(/</g,'&lt;')}</textarea>
+        <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin:12px 0 6px;">Upload foto / file jawaban (opsional)</label>
+        <input type="file" id="inputEsaiFile" accept="image/*,.pdf" onchange="simpanEsaiFile('${s.id}', this)">
+        ${fname}${preview}
+      </div>`;
+  } else {
+    bodyHtml = `
+      <div class="pilihan-list">
+        ${huruf.filter(h => s.pilihan && s.pilihan[h] !== undefined && s.pilihan[h] !== '').map(h => `
+          <div class="pilihan-item ${dipilih === h ? 'selected' : ''}" onclick="pilihJawaban('${s.id}','${h}')">
+            <span class="huruf">${h}</span>
+            <span class="teks">${s.pilihan[h]}</span>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
   const player = document.getElementById('attemptPlayer');
   player.innerHTML = `
+    <div class="tipe-badge">${labelTipeSoal(tipe)}</div>
     <div class="nomor">Soal Nomor ${i + 1}</div>
     <div class="pertanyaan">${s.pertanyaan || ''}${gambarSoalHtml}</div>
-    <div class="pilihan-list">
-      ${huruf.filter(h => s.pilihan && s.pilihan[h] !== undefined && s.pilihan[h] !== '').map(h => `
-        <div class="pilihan-item ${dipilih === h ? 'selected' : ''}" onclick="pilihJawaban('${s.id}','${h}')">
-          <span class="huruf">${h}</span>
-          <span class="teks">${s.pilihan[h]}</span>
-        </div>
-      `).join('')}
-    </div>
+    ${bodyHtml}
   `;
   renderKatexIn(player);
 }
@@ -1379,9 +1456,44 @@ function pilihJawaban(soalId, huruf) {
   renderCurrentSoal();
 }
 
+function simpanIsian(soalId) {
+  const el = document.getElementById('inputIsianAktif');
+  if (!el) return;
+  tryoutState.jawaban[soalId] = el.value;
+  renderNavigator();
+}
+
+function simpanEsaiTeks(soalId) {
+  const el = document.getElementById('inputEsaiAktif');
+  if (!el) return;
+  const prev = tryoutState.jawaban[soalId];
+  const base = (prev && typeof prev === 'object') ? prev : { teks: '', fileName: '', fileData: '' };
+  tryoutState.jawaban[soalId] = { ...base, teks: el.value };
+  renderNavigator();
+}
+
+function simpanEsaiFile(soalId, inputEl) {
+  const file = inputEl.files && inputEl.files[0];
+  if (!file) return;
+  if (file.size > 3 * 1024 * 1024) {
+    alert('Ukuran file maksimal 3 MB.');
+    inputEl.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const prev = tryoutState.jawaban[soalId];
+    const base = (prev && typeof prev === 'object') ? prev : { teks: '', fileName: '', fileData: '' };
+    tryoutState.jawaban[soalId] = { ...base, fileName: file.name, fileData: reader.result };
+    renderNavigator();
+    renderCurrentSoal();
+  };
+  reader.readAsDataURL(file);
+}
+
 function confirmSubmitTryout() {
   const total = tryoutState.paket.soal.length;
-  const terjawab = Object.keys(tryoutState.jawaban).length;
+  const terjawab = tryoutState.paket.soal.filter(s => sudahDijawab(s, tryoutState.jawaban)).length;
   const sisa = total - terjawab;
   const pesan = sisa > 0
     ? `Masih ada ${sisa} soal yang belum dijawab. Yakin ingin mengumpulkan sekarang?`
@@ -1401,25 +1513,54 @@ function submitTryout(autoSubmit) {
   } catch (e) { /* ignore */ }
 
   const soalList = tryoutState.paket.soal;
-  let benar = 0, salah = 0, kosong = 0;
+  let benar = 0, salah = 0, kosong = 0, esaiCount = 0;
+
+  function normIsian(t) {
+    return String(t || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+  function cekIsianBenar(user, kunci) {
+    const u = normIsian(user);
+    if (!u) return false;
+    return String(kunci || '').split('|').map(normIsian).filter(Boolean).some(k => k === u);
+  }
 
   const reviewHtml = soalList.map((s, i) => {
+    const tipe = getTipeSoal(s);
     const userJawaban = tryoutState.jawaban[s.id];
-    const isBenar = userJawaban === s.jawaban_benar;
     let statusCls = 'kosong', statusText = 'Belum Dijawab';
-    if (userJawaban !== undefined) {
-      if (isBenar) { benar++; statusCls = 'benar'; statusText = 'Benar'; }
+    let opsiHtml = '';
+
+    if (tipe === 'esai') {
+      const obj = (userJawaban && typeof userJawaban === 'object') ? userJawaban : { teks: userJawaban || '', fileName: '', fileData: '' };
+      const ada = !!(obj.teks && String(obj.teks).trim()) || !!obj.fileName || !!obj.fileData;
+      if (ada) { esaiCount++; statusCls = 'benar'; statusText = 'Esai (koreksi manual)'; }
+      else { kosong++; }
+      opsiHtml = `<div class="opsi-review">Jawaban: ${(obj.teks || '-').replace(/</g,'&lt;')}${obj.fileName ? '<br>File: ' + obj.fileName : ''}</div>`;
+      if (obj.fileData && String(obj.fileData).startsWith('data:image')) {
+        opsiHtml += `<img src="${obj.fileData}" alt="Lampiran" style="max-width:100%;border-radius:10px;margin-top:8px;display:block;">`;
+      }
+    } else if (tipe === 'isian') {
+      const teks = typeof userJawaban === 'string' ? userJawaban : '';
+      if (!teks.trim()) { kosong++; }
+      else if (cekIsianBenar(teks, s.kunci_isian || s.jawaban_benar)) { benar++; statusCls = 'benar'; statusText = 'Benar'; }
       else { salah++; statusCls = 'salah'; statusText = 'Salah'; }
+      opsiHtml = `<div class="opsi-review">Jawabanmu: ${String(teks || '-').replace(/</g,'&lt;')}</div>`
+        + `<div class="opsi-review jawaban-benar">Kunci: ${String(s.kunci_isian || s.jawaban_benar || '-').replace(/</g,'&lt;')}</div>`;
     } else {
-      kosong++;
+      const isBenar = userJawaban === s.jawaban_benar;
+      if (userJawaban !== undefined && userJawaban !== null && userJawaban !== '') {
+        if (isBenar) { benar++; statusCls = 'benar'; statusText = 'Benar'; }
+        else { salah++; statusCls = 'salah'; statusText = 'Salah'; }
+      } else { kosong++; }
+      const huruf = getTipeSoal(s) === 'pg4' ? ['A','B','C','D'] : ['A','B','C','D','E'];
+      opsiHtml = huruf.filter(h => s.pilihan && s.pilihan[h] !== undefined && s.pilihan[h] !== '').map(h => {
+        let cls = 'opsi-review';
+        if (h === s.jawaban_benar) cls += ' jawaban-benar';
+        else if (h === userJawaban) cls += ' jawaban-user-salah';
+        return `<div class="${cls}">${h}. ${s.pilihan[h]}</div>`;
+      }).join('');
     }
-    const huruf = ['A', 'B', 'C', 'D', 'E'];
-    const opsiHtml = huruf.filter(h => s.pilihan && s.pilihan[h] !== undefined && s.pilihan[h] !== '').map(h => {
-      let cls = 'opsi-review';
-      if (h === s.jawaban_benar) cls += ' jawaban-benar';
-      else if (h === userJawaban) cls += ' jawaban-user-salah';
-      return `<div class="${cls}">${h}. ${s.pilihan[h]}</div>`;
-    }).join('');
+
     const pembahasanHtml = s.pembahasan
       ? `<div class="pembahasan"><b>Pembahasan:</b> ${s.pembahasan}</div>` : '';
     const gambarSoalHtml = s.gambar
@@ -1428,14 +1569,16 @@ function submitTryout(autoSubmit) {
     return `
       <div class="review-card">
         <span class="status ${statusCls}">${statusText}</span>
-        <div class="pertanyaan"><b>${i + 1}.</b> ${s.pertanyaan || ''}${gambarSoalHtml}</div>
+        <div class="pertanyaan"><b>${i + 1}.</b> [${labelTipeSoal(tipe)}] ${s.pertanyaan || ''}${gambarSoalHtml}</div>
         ${opsiHtml}
         ${pembahasanHtml}
       </div>`;
   }).join('');
 
   const total = soalList.length;
-  const nilai = total ? Math.round((benar / total) * 100) : 0;
+  const jumlahEsai = soalList.filter(s => getTipeSoal(s) === 'esai').length;
+  const totalOtomatis = total - jumlahEsai; // semua soal esai dikoreksi manual
+  const nilai = totalOtomatis > 0 ? Math.round((benar / totalOtomatis) * 100) : 0;
 
   const peserta = tryoutState.peserta || { nama: '-', noUjian: '-' };
 

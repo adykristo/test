@@ -4,7 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — KlinikFisikapku</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    processEscapes: true
+  },
+  options: {
+    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
@@ -667,7 +679,7 @@
 <div id="panelTryout" class="tab-panel">
 <header>
   <h1>⚙️ Admin Tryout — KlinikFisikapku</h1>
-  <p>Buat &amp; kelola paket soal tryout pilihan ganda (support LaTeX)</p>
+  <p>Buat &amp; kelola paket soal tryout: PG 4/5 opsi, isian singkat, esai (support LaTeX &amp; gambar)</p>
 </header>
 
 <main>
@@ -1422,8 +1434,6 @@ async function hapusFileOsn(btn) {
 }
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <script>
 /* ================== PANEL 2: ADMIN TRYOUT ================== */
 // ================== KONFIGURASI ==================
@@ -1467,16 +1477,14 @@ function saveToken() {
 }
 
 function renderKatexIn(el) {
-  if (window.renderMathInElement) {
-    renderMathInElement(el, {
-      delimiters: [
-        { left: '$$', right: '$$', display: true },
-        { left: '$', right: '$', display: false },
-        { left: '\\(', right: '\\)', display: false },
-        { left: '\\[', right: '\\]', display: true }
-      ],
-      throwOnError: false
-    });
+  if (!el) return;
+  if (window.MathJax && MathJax.typesetPromise) {
+    if (MathJax.typesetClear) {
+      try { MathJax.typesetClear([el]); } catch (e) { /* ignore */ }
+    }
+    MathJax.typesetPromise([el]).catch(function () { /* ignore */ });
+  } else {
+    setTimeout(function () { renderKatexIn(el); }, 120);
   }
 }
 
@@ -1962,6 +1970,17 @@ async function downloadPaketPDF(id) {
 }
 
 // ---------- Soal builder ----------
+function tipeSoalDariExisting(existing) {
+  if (!existing) return 'pg5';
+  if (existing.tipe === 'isian' || existing.tipe === 'esai') return existing.tipe;
+  if (existing.tipe === 'pg4') return 'pg4';
+  if (existing.tipe === 'pg5' || existing.tipe === 'pg') return 'pg5';
+  // kompatibilitas paket lama
+  const keys = Object.keys((existing && existing.pilihan) || {});
+  if (keys.length && !keys.includes('E') && existing.jawaban_benar !== 'E') return 'pg4';
+  return 'pg5';
+}
+
 function tambahSoal(existing) {
   soalIdCounter++;
   const uid = 'sblock-' + soalIdCounter;
@@ -1971,9 +1990,11 @@ function tambahSoal(existing) {
   wrap.id = uid;
   wrap.dataset.soalId = (existing && existing.id) || ('q' + Date.now() + '-' + soalIdCounter);
 
+  const tipe0 = tipeSoalDariExisting(existing);
   const huruf = ['A', 'B', 'C', 'D', 'E'];
   const pilihanExisting = (existing && existing.pilihan) || {};
   const jawabanBenarExisting = (existing && existing.jawaban_benar) || 'A';
+  const kunciIsian = (existing && (existing.kunci_isian || existing.jawaban_benar)) || '';
 
   wrap.innerHTML = `
     <div class="soal-block-head">
@@ -1984,37 +2005,73 @@ function tambahSoal(existing) {
         <button class="hapus" onclick="hapusSoalBlock('${uid}')">✕ Hapus</button>
       </div>
     </div>
-    <label>Pertanyaan (boleh pakai LaTeX, mis. $F=ma$, boleh dikosongkan jika soal berupa gambar)</label>
+
+    <label>Tipe Soal</label>
+    <select class="input-tipe-soal" onchange="onGantiTipeSoal('${uid}')">
+      <option value="pg5" ${tipe0==='pg5'?'selected':''}>Pilihan Ganda — 5 opsi (A–E)</option>
+      <option value="pg4" ${tipe0==='pg4'?'selected':''}>Pilihan Ganda — 4 opsi (A–D)</option>
+      <option value="isian" ${tipe0==='isian'?'selected':''}>Isian Singkat</option>
+      <option value="esai" ${tipe0==='esai'?'selected':''}>Esai (jawaban teks + upload)</option>
+    </select>
+
+    <label style="margin-top:14px;">Pertanyaan (boleh LaTeX, mis. $F=ma$; boleh kosong jika hanya gambar)</label>
     <textarea class="input-pertanyaan" oninput="updatePreview(this)">${(existing && existing.pertanyaan) || ''}</textarea>
     <div class="preview preview-pertanyaan"></div>
 
-    <label style="margin-top:16px;">Gambar Soal (opsional — upload foto/scan soal fisika)</label>
+    <label style="margin-top:16px;">Gambar Soal (opsional — upload / tempel link)</label>
     <input type="file" accept="image/*" class="input-gambar-file" onchange="uploadGambarSoal(this)">
     <input type="text" class="input-gambar-url" placeholder="Atau tempel link gambar langsung (opsional)" value="${(existing && existing.gambar) || ''}" oninput="updatePreview(this)" style="margin-top:8px;">
     <div class="preview preview-gambar"></div>
 
-    <label style="margin-top:16px;">Pilihan Jawaban</label>
-    ${huruf.map(h => `
-      <div class="pilihan-row">
-        <div class="huruf-badge">${h}</div>
-        <input type="text" class="input-pilihan" data-huruf="${h}" placeholder="Teks pilihan ${h}${h==='E' ? ' (opsional)' : ''}" value="${(pilihanExisting[h] || '').replace(/"/g,'&quot;')}" oninput="updatePreview(this)">
-        <div class="radio-benar">
-          <input type="radio" name="jawabanBenar-${uid}" value="${h}" ${jawabanBenarExisting === h ? 'checked' : ''}>
-          <span>Benar</span>
+    <div class="area-pg" style="margin-top:16px;">
+      <label>Pilihan Jawaban</label>
+      ${huruf.map(h => `
+        <div class="pilihan-row" data-opsi="${h}">
+          <div class="huruf-badge">${h}</div>
+          <input type="text" class="input-pilihan" data-huruf="${h}" placeholder="Teks pilihan ${h}" value="${(pilihanExisting[h] || '').replace(/"/g,'&quot;')}" oninput="updatePreview(this)">
+          <div class="radio-benar">
+            <input type="radio" name="jawabanBenar-${uid}" value="${h}" ${jawabanBenarExisting === h ? 'checked' : ''}>
+            <span>Benar</span>
+          </div>
         </div>
-      </div>
-      <div class="preview preview-pilihan-${h}" style="margin-left:44px; margin-bottom:8px;"></div>
-    `).join('')}
+        <div class="preview preview-pilihan-${h}" style="margin-left:44px; margin-bottom:8px;"></div>
+      `).join('')}
+    </div>
 
-    <label>Pembahasan (opsional, boleh LaTeX)</label>
+    <div class="area-isian" style="margin-top:16px; display:none;">
+      <label>Kunci Jawaban Isian</label>
+      <input type="text" class="input-kunci-isian" placeholder="Contoh: 10 N  |  10N  (pisahkan alternatif dengan | )" value="${String(kunciIsian).replace(/"/g,'&quot;')}">
+      <p class="help" style="margin-top:4px;">Boleh beberapa alternatif dipisah tanda |. Penilaian mengabaikan huruf besar/kecil dan spasi berlebih. Support LaTeX di pertanyaan.</p>
+    </div>
+
+    <div class="area-esai" style="margin-top:16px; display:none;">
+      <p class="help">Soal esai: peserta mengetik jawaban dan/atau mengunggah foto/file jawaban. Tidak dinilai otomatis (status: menunggu koreksi).</p>
+    </div>
+
+    <label style="margin-top:16px;">Pembahasan (opsional, boleh LaTeX)</label>
     <textarea class="input-pembahasan" oninput="updatePreview(this)">${(existing && existing.pembahasan) || ''}</textarea>
     <div class="preview preview-pembahasan"></div>
   `;
   container.appendChild(wrap);
   renumberSoal();
-
-  // initial preview render
+  onGantiTipeSoal(uid);
   wrap.querySelectorAll('.input-pertanyaan, .input-pilihan, .input-pembahasan, .input-gambar-url').forEach(updatePreview);
+}
+
+function onGantiTipeSoal(uid) {
+  const block = document.getElementById(uid);
+  if (!block) return;
+  const tipe = block.querySelector('.input-tipe-soal').value;
+  const areaPg = block.querySelector('.area-pg');
+  const areaIsian = block.querySelector('.area-isian');
+  const areaEsai = block.querySelector('.area-esai');
+  areaPg.style.display = (tipe === 'pg4' || tipe === 'pg5') ? 'block' : 'none';
+  areaIsian.style.display = tipe === 'isian' ? 'block' : 'none';
+  areaEsai.style.display = tipe === 'esai' ? 'block' : 'none';
+  // tampilkan/sembunyikan opsi E
+  block.querySelectorAll('.pilihan-row[data-opsi="E"], .preview-pilihan-E').forEach(el => {
+    el.style.display = tipe === 'pg4' ? 'none' : '';
+  });
 }
 
 function updatePreview(inputEl) {
@@ -2087,32 +2144,42 @@ function kumpulkanDataForm() {
     const gambar = block.querySelector('.input-gambar-url').value.trim();
     if (!pertanyaan && !gambar) throw new Error(`Soal #${i + 1}: isi pertanyaan teks, atau upload/isi gambar soal.`);
 
+    const tipe = (block.querySelector('.input-tipe-soal') || {}).value || 'pg5';
+    const pembahasan = block.querySelector('.input-pembahasan').value.trim();
+    const base = { id: block.dataset.soalId, tipe, pertanyaan, gambar, pembahasan };
+
+    if (tipe === 'isian') {
+      const kunci = (block.querySelector('.input-kunci-isian') || {}).value.trim();
+      if (!kunci) throw new Error(`Soal #${i + 1}: isi kunci jawaban isian.`);
+      return { ...base, kunci_isian: kunci, jawaban_benar: kunci, pilihan: {} };
+    }
+
+    if (tipe === 'esai') {
+      return { ...base, pilihan: {}, jawaban_benar: '' };
+    }
+
+    // Pilihan ganda pg4 / pg5
+    const maxHuruf = tipe === 'pg4' ? ['A','B','C','D'] : ['A','B','C','D','E'];
     const pilihan = {};
     block.querySelectorAll('.input-pilihan').forEach(inp => {
+      const h = inp.dataset.huruf;
+      if (!maxHuruf.includes(h)) return;
       const val = inp.value.trim();
-      if (val) pilihan[inp.dataset.huruf] = val;
+      if (val) pilihan[h] = val;
     });
     if (Object.keys(pilihan).length < 2) {
       throw new Error(`Soal #${i + 1}: isi minimal 2 pilihan jawaban.`);
     }
-
     const radioChecked = block.querySelector('input[type=radio]:checked');
     if (!radioChecked) throw new Error(`Soal #${i + 1}: pilih jawaban yang benar.`);
     const jawaban_benar = radioChecked.value;
+    if (tipe === 'pg4' && jawaban_benar === 'E') {
+      throw new Error(`Soal #${i + 1}: mode 4 opsi tidak boleh kunci E.`);
+    }
     if (!pilihan[jawaban_benar]) {
       throw new Error(`Soal #${i + 1}: jawaban benar (${jawaban_benar}) belum diisi teksnya.`);
     }
-
-    const pembahasan = block.querySelector('.input-pembahasan').value.trim();
-
-    return {
-      id: block.dataset.soalId,
-      pertanyaan,
-      gambar,
-      pilihan,
-      jawaban_benar,
-      pembahasan
-    };
+    return { ...base, pilihan, jawaban_benar };
   });
 
   return { title, jenjang, topik, durasi_menit, kode_akses, aktif, soal };
