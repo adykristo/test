@@ -806,9 +806,11 @@
     <select id="hasilPaketSelect"><option value="">Memuat daftar paket…</option></select>
 
     <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
-      <button class="btn btn-primary" onclick="unduhHasilPesertaPDF()">📥 Ambil &amp; Unduh Hasil (PDF)</button>
+      <button class="btn btn-primary" onclick="ambilHasilPeserta()">📋 Ambil Hasil</button>
+      <button class="btn btn-hijau" id="btnUnduhPdfHasil" style="display:none;" onclick="unduhHasilPesertaPDF()">📥 Unduh PDF</button>
     </div>
     <div id="statusHasilPeserta" class="status-bar"></div>
+    <div id="hasilPesertaPreview" style="display:none; margin-top:16px;"></div>
   </div>
 
 </main>
@@ -2400,7 +2402,10 @@ function cocokPaket(row, meta) {
   return false;
 }
 
-async function unduhHasilPesertaPDF() {
+// Cache hasil yang sedang ditampilkan di admin (untuk unduh PDF)
+let hasilPesertaCache = { meta: null, data: [] };
+
+async function ambilHasilPeserta() {
   if (!hasilScriptUrl || !hasilAdminKey) {
     setStatus('statusHasilPeserta', 'Isi & simpan dulu URL Apps Script dan Kode Rahasia Admin di atas.', 'err');
     return;
@@ -2409,13 +2414,18 @@ async function unduhHasilPesertaPDF() {
   const meta = manifestCache.content.find(p => p.id === paketId);
   if (!meta) { setStatus('statusHasilPeserta', 'Pilih paket tryout dulu.', 'err'); return; }
 
+  const preview = document.getElementById('hasilPesertaPreview');
+  const btnPdf = document.getElementById('btnUnduhPdfHasil');
+  preview.style.display = 'none';
+  preview.innerHTML = '';
+  btnPdf.style.display = 'none';
+  hasilPesertaCache = { meta: null, data: [] };
+
   setStatus('statusHasilPeserta', 'Mengambil data hasil dari Google Sheet…', 'loading');
   try {
     const title = meta.title || '';
     const titleShort = title.replace(/\s*\([^)]*\)\s*$/, '').trim();
 
-    // UTAMA: ambil SEMUA data dulu (paket kosong), lalu filter di browser.
-    // Ini mengatasi perbedaan judul di Sheet vs admin (mis. "TRY OUT 1 FISI" vs "TRY OUT 1 FISIKA (SMA)").
     let semuaBaris = [];
     const seen = new Set();
     const kunciCoba = ['', 'semua', 'all', titleShort, title, paketId];
@@ -2443,22 +2453,91 @@ async function unduhHasilPesertaPDF() {
     let data = dinormalisasi.filter(r => cocokPaket(r, meta));
 
     if (!data.length) {
-      // Tampilkan nama paket yang ADA di Sheet agar admin tahu harus pilih yang mana / rename
       const namaDiSheet = [...new Set(dinormalisasi.map(r => r.paket).filter(Boolean))];
       setStatus(
         'statusHasilPeserta',
-        `Tidak ketemu hasil untuk paket "${meta.title}".\n` +
-        `Nama paket di Google Sheet: ${namaDiSheet.join(' | ') || '(kosong)'}.\n` +
-        `Samakan judul paket di admin dengan yang tertulis di Sheet, atau unduh lewat paket yang namanya mirip.`,
+        `Tidak ketemu hasil untuk paket "${meta.title}". Nama paket di Google Sheet: ${namaDiSheet.join(' | ') || '(kosong)'}.`,
         'err'
       );
       return;
     }
 
-    buatPdfHasilPeserta(meta, data);
-    setStatus('statusHasilPeserta', `✓ PDF berhasil dibuat untuk ${data.length} peserta.`, 'ok');
+    // Urutkan nilai tertinggi dulu
+    data = data.slice().sort((a, b) => (Number(b.nilai) || 0) - (Number(a.nilai) || 0));
+    hasilPesertaCache = { meta, data };
+
+    tampilkanHasilPeserta(meta, data);
+    btnPdf.style.display = 'inline-flex';
+    setStatus('statusHasilPeserta', `✓ Ditemukan ${data.length} peserta. Klik "Unduh PDF" jika ingin menyimpan.`, 'ok');
   } catch (e) {
     setStatus('statusHasilPeserta', 'Gagal: ' + e.message, 'err');
+  }
+}
+
+function tampilkanHasilPeserta(meta, data) {
+  const preview = document.getElementById('hasilPesertaPreview');
+  const nilaiArr = data.map(d => Number(d.nilai) || 0);
+  const rata = (nilaiArr.reduce((a, b) => a + b, 0) / nilaiArr.length).toFixed(1);
+  const tertinggi = Math.max(...nilaiArr);
+  const terendah = Math.min(...nilaiArr);
+
+  const rows = data.map((d, i) => {
+    const waktu = d.waktu ? new Date(d.waktu).toLocaleString('id-ID') : '-';
+    return `<tr>
+      <td style="text-align:center;">${i + 1}</td>
+      <td>${d.nama || '-'}</td>
+      <td>${d.noUjian || '-'}</td>
+      <td style="text-align:center; font-weight:700; color:var(--ungu-tua);">${d.nilai}</td>
+      <td style="text-align:center;">${d.benar}</td>
+      <td style="text-align:center;">${d.salah}</td>
+      <td style="text-align:center;">${d.kosong}</td>
+      <td style="font-size:12px; color:var(--abu);">${waktu}</td>
+    </tr>`;
+  }).join('');
+
+  preview.innerHTML = `
+    <div style="background:#faf7ff; border:1px solid var(--abu-muda); border-radius:14px; padding:16px 18px;">
+      <div style="display:flex; flex-wrap:wrap; gap:10px 18px; margin-bottom:12px; font-size:13px;">
+        <span><b>${meta.title}</b></span>
+        <span style="color:var(--abu);">${String(meta.jenjang || '').toUpperCase()} · ${data.length} peserta</span>
+        <span>Rata-rata: <b>${rata}</b></span>
+        <span>Tertinggi: <b>${tertinggi}</b></span>
+        <span>Terendah: <b>${terendah}</b></span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead>
+            <tr style="background:var(--ungu-tua); color:#fff;">
+              <th style="padding:8px 10px; text-align:center;">No</th>
+              <th style="padding:8px 10px; text-align:left;">Nama</th>
+              <th style="padding:8px 10px; text-align:left;">No. Ujian</th>
+              <th style="padding:8px 10px; text-align:center;">Nilai</th>
+              <th style="padding:8px 10px; text-align:center;">Benar</th>
+              <th style="padding:8px 10px; text-align:center;">Salah</th>
+              <th style="padding:8px 10px; text-align:center;">Kosong</th>
+              <th style="padding:8px 10px; text-align:left;">Waktu Submit</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  preview.style.display = 'block';
+}
+
+function unduhHasilPesertaPDF() {
+  const { meta, data } = hasilPesertaCache;
+  if (!meta || !data || !data.length) {
+    setStatus('statusHasilPeserta', 'Ambil hasil dulu sebelum mengunduh PDF.', 'err');
+    return;
+  }
+  try {
+    buatPdfHasilPeserta(meta, data);
+    setStatus('statusHasilPeserta', `✓ PDF berhasil diunduh (${data.length} peserta).`, 'ok');
+  } catch (e) {
+    setStatus('statusHasilPeserta', 'Gagal membuat PDF: ' + e.message, 'err');
   }
 }
 
