@@ -500,6 +500,7 @@ window.MathJax = {
   .esai-box input[type=file]{ margin-top:10px; font-size:13px; }
   .esai-preview{ margin-top:10px; max-width:100%; border-radius:10px; display:block; }
   .esai-file-name{ font-size:12.5px; color:var(--abu); margin-top:6px; }
+  .esai-save-note{font-size:11.5px;color:var(--abu);margin-top:6px;}
 
 
   .tryout-footer-nav{
@@ -1424,8 +1425,13 @@ function renderCurrentSoal() {
       <div class="esai-box">
         <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin-bottom:6px;">Jawaban esai</label>
         <textarea id="inputEsaiAktif" placeholder="Tulis jawaban esai di sini..." oninput="simpanEsaiTeks('${s.id}')">${(obj.teks || '').replace(/</g,'&lt;')}</textarea>
-        <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin:12px 0 6px;">Upload foto / file jawaban (opsional)</label>
-        <input type="file" id="inputEsaiFile" accept="image/*,.pdf" onchange="simpanEsaiFile('${s.id}', this)">
+        <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin:12px 0 6px;">
+          Upload jawaban esai <span style="color:#c0392b;">(WAJIB PDF)</span>
+        </label>
+        <input type="file" id="inputEsaiFile" accept="application/pdf,.pdf" onchange="simpanEsaiFile('${s.id}', this)">
+        <div class="esai-save-note" style="font-size:11.5px;color:#c0392b;font-weight:600;margin-top:6px;">
+          Jawaban esai wajib diunggah dalam format PDF. Maksimal ukuran file 100 MB.
+        </div>
         ${fname}${preview}
       </div>`;
   } else {
@@ -1475,8 +1481,18 @@ function simpanEsaiTeks(soalId) {
 function simpanEsaiFile(soalId, inputEl) {
   const file = inputEl.files && inputEl.files[0];
   if (!file) return;
-  if (file.size > 3 * 1024 * 1024) {
-    alert('Ukuran file maksimal 3 MB.');
+
+  const isPdf = file.type === 'application/pdf' ||
+    String(file.name || '').toLowerCase().endsWith('.pdf');
+
+  if (!isPdf) {
+    alert('Jawaban esai wajib dalam format PDF. Silakan pilih file PDF.');
+    inputEl.value = '';
+    return;
+  }
+
+  if (file.size > 100 * 1024 * 1024) {
+    alert('Ukuran file PDF maksimal 100 MB.');
     inputEl.value = '';
     return;
   }
@@ -1513,6 +1529,27 @@ function submitTryout(autoSubmit) {
   } catch (e) { /* ignore */ }
 
   const soalList = tryoutState.paket.soal;
+
+  // Semua soal esai wajib memiliki file PDF sebelum dikumpulkan.
+  const esaiTanpaPdf = soalList.filter(s => {
+    if (getTipeSoal(s) !== 'esai') return false;
+    const j = tryoutState.jawaban[s.id];
+    const obj = (j && typeof j === 'object') ? j : {};
+    return !obj.fileName ||
+      !String(obj.fileName).toLowerCase().endsWith('.pdf') ||
+      !obj.fileData;
+  });
+
+  if (esaiTanpaPdf.length > 0) {
+    alert(
+      'Jawaban esai belum lengkap.\n\n' +
+      'Setiap soal esai WAJIB diunggah dalam format PDF.\n' +
+      'Soal yang belum memiliki PDF: ' +
+      esaiTanpaPdf.map(s => soalList.indexOf(s) + 1).join(', ')
+    );
+    return;
+  }
+
   let benar = 0, salah = 0, kosong = 0, esaiCount = 0;
 
   function normIsian(t) {
@@ -1594,6 +1631,23 @@ function submitTryout(autoSubmit) {
   reviewBox.innerHTML = reviewHtml;
   renderKatexIn(reviewBox);
 
+  // Data jawaban esai/lampiran dikirim terpisah agar bisa disimpan oleh Apps Script
+  // ke Google Drive tanpa mengubah mekanisme penilaian yang sudah ada.
+  const jawabanEsai = soalList.map((s, i) => {
+    if (getTipeSoal(s) !== 'esai') return null;
+    const j = tryoutState.jawaban[s.id];
+    const obj = (j && typeof j === 'object')
+      ? j
+      : { teks: typeof j === 'string' ? j : '', fileName: '', fileData: '' };
+    return {
+      nomor: i + 1,
+      soalId: s.id,
+      teks: obj.teks || '',
+      fileName: obj.fileName || '',
+      fileData: obj.fileData || ''
+    };
+  }).filter(Boolean);
+
   lastHasil = {
     nama: peserta.nama,
     noUjian: peserta.noUjian,
@@ -1602,7 +1656,8 @@ function submitTryout(autoSubmit) {
     jenjang: tryoutState.paket.jenjang,
     topik: tryoutState.paket.topik || '',
     nilai, benar, salah, kosong, total,
-    waktu: new Date().toISOString()
+    waktu: new Date().toISOString(),
+    jawabanEsai
   };
 
   gotoPage('tryout-result');
