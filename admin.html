@@ -731,6 +731,10 @@
     <label>Judul Paket Tryout</label>
     <input type="text" id="fTitle" placeholder="mis. Tryout OSN Fisika SMA Paket 1">
 
+    <label>Kode Akses (opsional)</label>
+    <input type="text" id="fKodeAkses" placeholder="mis. OSN2026 — kosongkan jika tidak perlu kode">
+    <p class="help" style="margin-top:4px;">Jika diisi, peserta wajib memasukkan kode ini bersama Nomor Ujian sebelum mulai tryout. Bagikan kode hanya ke peserta yang diizinkan.</p>
+
     <label style="display:flex; align-items:center; gap:8px; margin-top:16px; font-weight:400; font-size:13px; color:var(--abu);">
       <input type="checkbox" id="fAktif" style="width:auto;" checked>
       Tampilkan paket ini ke peserta di halaman Tryout (Aktif)
@@ -1605,12 +1609,15 @@ function renderPaketAdminList() {
     const badge = aktif
       ? `<span style="display:inline-block; margin-top:4px; font-size:11px; font-weight:700; color:var(--hijau);">● Aktif — terlihat di web</span>`
       : `<span style="display:inline-block; margin-top:4px; font-size:11px; font-weight:700; color:var(--merah);">● Nonaktif — disembunyikan dari web</span>`;
+    const kodeBadge = (p.kode_akses && String(p.kode_akses).trim())
+      ? `<span style="display:inline-block; margin-top:4px; margin-left:8px; font-size:11px; font-weight:700; color:var(--ungu);">🔒 Kode akses aktif</span>`
+      : '';
     return `
     <div class="paket-item">
       <div class="info">
         <b>${p.title}</b>
         <span>${p.jenjang.toUpperCase()} · ${p.topik || '-'} · ${p.jumlah_soal} soal · ${p.durasi_menit} menit</span>
-        ${badge}
+        ${badge}${kodeBadge}
       </div>
       <div class="aksi">
         <button class="btn btn-outline" onclick="toggleAktifPaket('${p.id}')">${aktif ? 'Sembunyikan' : 'Tampilkan'}</button>
@@ -1652,6 +1659,7 @@ function mulaiPaketBaru() {
   document.getElementById('fDurasi').value = 60;
   document.getElementById('fTopik').value = '';
   document.getElementById('fTitle').value = '';
+  document.getElementById('fKodeAkses').value = '';
   document.getElementById('fAktif').checked = true;
   document.getElementById('soalContainer').innerHTML = '';
   document.getElementById('statusForm').className = 'status-bar';
@@ -1676,6 +1684,7 @@ async function editPaket(id) {
     document.getElementById('fDurasi').value = paket.durasi_menit;
     document.getElementById('fTopik').value = paket.topik || '';
     document.getElementById('fTitle').value = paket.title;
+    document.getElementById('fKodeAkses').value = paket.kode_akses || meta.kode_akses || '';
     document.getElementById('fAktif').checked = meta.aktif !== false;
     document.getElementById('soalContainer').innerHTML = '';
     soalIdCounter = 0;
@@ -2026,6 +2035,7 @@ function kumpulkanDataForm() {
   const jenjang = document.getElementById('fJenjang').value;
   const topik = document.getElementById('fTopik').value.trim();
   const durasi_menit = parseInt(document.getElementById('fDurasi').value, 10) || 60;
+  const kode_akses = document.getElementById('fKodeAkses').value.trim();
   const aktif = document.getElementById('fAktif').checked;
 
   if (!title) throw new Error('Judul paket tidak boleh kosong.');
@@ -2066,7 +2076,7 @@ function kumpulkanDataForm() {
     };
   });
 
-  return { title, jenjang, topik, durasi_menit, aktif, soal };
+  return { title, jenjang, topik, durasi_menit, kode_akses, aktif, soal };
 }
 
 async function simpanPaket() {
@@ -2082,7 +2092,11 @@ async function simpanPaket() {
 
   const id = currentPaketId || slugify(data.title) + '-' + Date.now().toString(36);
   const filePath = `${TRYOUT_FOLDER}/${id}.json`;
-  const paketObj = { id, title: data.title, jenjang: data.jenjang, topik: data.topik, durasi_menit: data.durasi_menit, soal: data.soal };
+  const paketObj = {
+    id, title: data.title, jenjang: data.jenjang, topik: data.topik,
+    durasi_menit: data.durasi_menit, kode_akses: data.kode_akses || '',
+    soal: data.soal
+  };
 
   setStatus('statusForm', 'Menyimpan ke GitHub…', 'loading');
   try {
@@ -2098,7 +2112,8 @@ async function simpanPaket() {
     const manifestEntry = {
       id, title: data.title, jenjang: data.jenjang, topik: data.topik,
       durasi_menit: data.durasi_menit, jumlah_soal: data.soal.length,
-      file: filePath, aktif: data.aktif
+      file: filePath, aktif: data.aktif,
+      kode_akses: data.kode_akses || ''
     };
     let newManifest = manifestCache.content.filter(p => p.id !== id);
     newManifest.push(manifestEntry);

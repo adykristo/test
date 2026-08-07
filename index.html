@@ -683,9 +683,11 @@
     <div class="peserta-box">
       <h3>Verifikasi Data Peserta</h3>
       <div class="sub" id="pesertaSubJudul">-</div>
-      <div class="info-paket">Nama peserta terdaftar oleh admin. Masukkan Nomor Ujian yang sudah diberikan admin kamu.</div>
+      <div class="info-paket">Nama peserta terdaftar oleh admin. Masukkan Nomor Ujian (dan Kode Akses jika diminta) yang sudah diberikan admin.</div>
       <label>Nomor Ujian</label>
       <input type="text" id="inputNoUjian" placeholder="Tulis nomor ujian yang diberikan admin" oninput="cekNomorUjian()">
+      <label id="labelKodeAkses" style="display:none;">Kode Akses</label>
+      <input type="text" id="inputKodeAkses" placeholder="Tulis kode akses dari admin" style="display:none;" autocomplete="off">
       <div class="err-msg" id="pesertaErr"></div>
       <div class="info-paket" id="pesertaTerverifikasi" style="display:none; margin-top:14px;">
         Nama Terdaftar: <b id="pesertaNamaTerverifikasi">-</b>
@@ -1089,9 +1091,23 @@ async function startTryout(paketId) {
     pendingTryout = { paket, meta };
     document.getElementById('pesertaSubJudul').textContent = paket.title + ' · ' + (paket.durasi_menit || meta.durasi_menit) + ' menit';
     document.getElementById('inputNoUjian').value = '';
+    document.getElementById('inputKodeAkses').value = '';
     document.getElementById('pesertaErr').classList.remove('show');
     document.getElementById('pesertaTerverifikasi').style.display = 'none';
     document.getElementById('btnMulaiUjian').disabled = true;
+
+    // Tampilkan field Kode Akses hanya jika paket punya kode
+    const kodeWajib = String(paket.kode_akses || meta.kode_akses || '').trim();
+    const labelKode = document.getElementById('labelKodeAkses');
+    const inputKode = document.getElementById('inputKodeAkses');
+    if (kodeWajib) {
+      labelKode.style.display = 'block';
+      inputKode.style.display = 'block';
+    } else {
+      labelKode.style.display = 'none';
+      inputKode.style.display = 'none';
+    }
+
     gotoPage('tryout-peserta');
   } catch (e) {
     alert('Gagal memuat soal tryout. Coba refresh halaman.');
@@ -1160,6 +1176,23 @@ async function mulaiUjianSetelahData() {
     errEl.classList.add('show');
     return;
   }
+
+  // Validasi Kode Akses (jika paket memilikinya)
+  const kodeWajib = String(paket.kode_akses || meta.kode_akses || '').trim();
+  if (kodeWajib) {
+    const kodeInput = document.getElementById('inputKodeAkses').value.trim();
+    if (!kodeInput) {
+      errEl.textContent = 'Kode Akses wajib diisi. Minta kode ini ke admin.';
+      errEl.classList.add('show');
+      return;
+    }
+    if (kodeInput.toLowerCase() !== kodeWajib.toLowerCase()) {
+      errEl.textContent = 'Kode Akses salah. Pastikan mengetik kode yang diberikan admin.';
+      errEl.classList.add('show');
+      return;
+    }
+  }
+
   errEl.classList.remove('show');
 
   tryoutState = {
