@@ -1,0 +1,22 @@
+[
+  {
+    "noUjian": "SD001",
+    "nama": "Ahmad Fauzan",
+    "paket": "semua"
+  },
+  {
+    "noUjian": "SD002",
+    "nama": "Siti Aminah",
+    "paket": "semua"
+  },
+  {
+    "noUjian": "SMP101",
+    "nama": "Budi Santoso",
+    "paket": ["paket-smp-1"]
+  },
+  {
+    "noUjian": "SMA201",
+    "nama": "Dewi Lestari",
+    "paket": "semua"
+  }
+]

@@ -173,6 +173,43 @@
     <p class="help">Rumus matematika/fisika ditulis pakai LaTeX, diapit tanda dolar. Contoh: <code>$v = \frac{1}{2}at^2$</code> untuk inline, atau <code>$$F = ma$$</code> untuk rumus besar di baris sendiri.</p>
   </div>
 
+  <div class="box">
+    <h2>4. Kelola Nomor Ujian &amp; Nama Peserta (Whitelist)</h2>
+    <p class="help">Nama &amp; Nomor Ujian yang boleh mengikuti tryout harus didaftarkan di sini dulu. Di website utama, peserta hanya bisa mengetik Nomor Ujian — nama otomatis diambil dari daftar ini dan tidak bisa diketik bebas oleh peserta.</p>
+    <div id="statusPeserta" class="status-bar loading show">Memuat daftar peserta…</div>
+
+    <div id="pesertaAdminList"></div>
+
+    <h3 style="margin-top:20px;">Tambah / Edit Satu Peserta</h3>
+    <div class="row">
+      <div>
+        <label>Nomor Ujian</label>
+        <input type="text" id="pNoUjian" placeholder="mis. SD001">
+      </div>
+      <div>
+        <label>Nama Lengkap</label>
+        <input type="text" id="pNama" placeholder="mis. Ahmad Fauzan">
+      </div>
+    </div>
+    <label>Boleh Ikut Paket Tryout</label>
+    <select id="pPaketMode" onchange="togglePaketPilihan()">
+      <option value="semua">Semua paket tryout</option>
+      <option value="tertentu">Hanya paket tertentu</option>
+    </select>
+    <div id="pPaketPilihanWrap" style="display:none; margin-top:8px;">
+      <div id="pPaketPilihanList" class="help"></div>
+    </div>
+    <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
+      <button class="btn btn-hijau" onclick="simpanSatuPeserta()">💾 Simpan Peserta</button>
+      <button class="btn btn-outline" onclick="batalEditPeserta()">Batal Edit</button>
+    </div>
+
+    <h3 style="margin-top:26px;">Tambah Banyak Sekaligus (Bulk)</h3>
+    <p class="help">Satu baris = satu peserta, format: <code>NomorUjian, Nama Lengkap</code>. Semua yang ditambah lewat cara ini otomatis berlaku untuk <b>semua paket tryout</b> — kalau perlu dibatasi ke paket tertentu, edit satu-satu setelah ditambah.</p>
+    <textarea id="pBulkText" placeholder="SD001, Ahmad Fauzan&#10;SD002, Siti Aminah"></textarea>
+    <button class="btn btn-outline" style="margin-top:10px;" onclick="simpanBulkPeserta()">+ Tambah dari Daftar di Atas</button>
+  </div>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -267,6 +304,55 @@ async function ghDeleteFile(path, sha, message) {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || 'Gagal menghapus file');
+  }
+}
+
+// upload file biner (gambar) ke GitHub, dipakai untuk fitur "Gambar Soal"
+async function ghPutBinaryFile(path, base64Content, message) {
+  const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`;
+  const body = { message, content: base64Content, branch: GITHUB_BRANCH };
+  const res = await fetch(url, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal upload gambar');
+  }
+  return res.json();
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+const GAMBAR_SOAL_FOLDER = "data/tryout-gambar";
+
+async function uploadGambarSoal(inputEl) {
+  if (!ghToken) {
+    alert('Masukkan & simpan token GitHub dulu di bagian atas sebelum upload gambar.');
+    inputEl.value = '';
+    return;
+  }
+  const file = inputEl.files[0];
+  if (!file) return;
+  const block = inputEl.closest('.soal-block');
+  const urlInput = block.querySelector('.input-gambar-url');
+  const preview = block.querySelector('.preview-gambar');
+  preview.innerHTML = '<span style="color:var(--abu);">Mengunggah gambar…</span>';
+  try {
+    const base64 = await fileToBase64(file);
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const path = `${GAMBAR_SOAL_FOLDER}/${Date.now()}-${safeName}`;
+    const res = await ghPutBinaryFile(path, base64, `Upload gambar soal: ${safeName}`);
+    urlInput.value = res.content.download_url;
+    updatePreview(urlInput);
+  } catch (e) {
+    preview.innerHTML = `<span style="color:#c0392b;">Gagal upload: ${e.message}</span>`;
+  } finally {
+    inputEl.value = '';
   }
 }
 
@@ -398,9 +484,14 @@ function tambahSoal(existing) {
         <button class="hapus" onclick="hapusSoalBlock('${uid}')">✕ Hapus</button>
       </div>
     </div>
-    <label>Pertanyaan (boleh pakai LaTeX, mis. $F=ma$)</label>
+    <label>Pertanyaan (boleh pakai LaTeX, mis. $F=ma$, boleh dikosongkan jika soal berupa gambar)</label>
     <textarea class="input-pertanyaan" oninput="updatePreview(this)">${(existing && existing.pertanyaan) || ''}</textarea>
     <div class="preview preview-pertanyaan"></div>
+
+    <label style="margin-top:16px;">Gambar Soal (opsional — upload foto/scan soal fisika)</label>
+    <input type="file" accept="image/*" class="input-gambar-file" onchange="uploadGambarSoal(this)">
+    <input type="text" class="input-gambar-url" placeholder="Atau tempel link gambar langsung (opsional)" value="${(existing && existing.gambar) || ''}" oninput="updatePreview(this)" style="margin-top:8px;">
+    <div class="preview preview-gambar"></div>
 
     <label style="margin-top:16px;">Pilihan Jawaban</label>
     ${huruf.map(h => `
@@ -423,7 +514,7 @@ function tambahSoal(existing) {
   renumberSoal();
 
   // initial preview render
-  wrap.querySelectorAll('.input-pertanyaan, .input-pilihan, .input-pembahasan').forEach(updatePreview);
+  wrap.querySelectorAll('.input-pertanyaan, .input-pilihan, .input-pembahasan, .input-gambar-url').forEach(updatePreview);
 }
 
 function updatePreview(inputEl) {
@@ -441,6 +532,10 @@ function updatePreview(inputEl) {
     const prev = block.querySelector('.preview-pembahasan');
     prev.innerHTML = inputEl.value;
     renderKatexIn(prev);
+  } else if (inputEl.classList.contains('input-gambar-url')) {
+    const prev = block.querySelector('.preview-gambar');
+    const val = inputEl.value.trim();
+    prev.innerHTML = val ? `<img src="${val}" alt="Preview gambar soal" style="max-width:220px;border-radius:8px;display:block;">` : '';
   }
 }
 
@@ -487,7 +582,8 @@ function kumpulkanDataForm() {
 
   const soal = blocks.map((block, i) => {
     const pertanyaan = block.querySelector('.input-pertanyaan').value.trim();
-    if (!pertanyaan) throw new Error(`Soal #${i + 1}: pertanyaan tidak boleh kosong.`);
+    const gambar = block.querySelector('.input-gambar-url').value.trim();
+    if (!pertanyaan && !gambar) throw new Error(`Soal #${i + 1}: isi pertanyaan teks, atau upload/isi gambar soal.`);
 
     const pilihan = {};
     block.querySelectorAll('.input-pilihan').forEach(inp => {
@@ -510,6 +606,7 @@ function kumpulkanDataForm() {
     return {
       id: block.dataset.soalId,
       pertanyaan,
+      gambar,
       pilihan,
       jawaban_benar,
       pembahasan
@@ -563,7 +660,176 @@ async function simpanPaket() {
   }
 }
 
+// ================== KELOLA PESERTA (WHITELIST NAMA & NOMOR UJIAN) ==================
+const DAFTAR_PESERTA_PATH = "data/daftar-peserta.json";
+let pesertaCache = { content: [], sha: null };
+let editingNoUjianAsli = null; // dipakai saat mode edit peserta
+
+async function loadDaftarPesertaAdmin() {
+  setStatus('statusPeserta', 'Memuat daftar peserta…', 'loading');
+  try {
+    const result = await ghGetFile(DAFTAR_PESERTA_PATH);
+    pesertaCache = result ? { content: result.content, sha: result.sha } : { content: [], sha: null };
+    renderPesertaAdminList();
+    document.getElementById('statusPeserta').classList.remove('show');
+  } catch (e) {
+    setStatus('statusPeserta', 'Gagal memuat daftar peserta: ' + e.message, 'err');
+  }
+}
+
+function renderPesertaAdminList() {
+  const box = document.getElementById('pesertaAdminList');
+  if (!pesertaCache.content.length) {
+    box.innerHTML = '<p class="help">Belum ada peserta terdaftar.</p>';
+    return;
+  }
+  box.innerHTML = pesertaCache.content.map(p => {
+    const paketLabel = (!p.paket || p.paket === 'semua' || (Array.isArray(p.paket) && !p.paket.length))
+      ? 'Semua paket'
+      : (Array.isArray(p.paket) ? p.paket.join(', ') : p.paket);
+    const noUjianSafe = String(p.noUjian).replace(/'/g, "\\'");
+    return `
+    <div class="paket-item">
+      <div class="info">
+        <b>${p.nama}</b>
+        <span>No. Ujian: ${p.noUjian} · Paket: ${paketLabel}</span>
+      </div>
+      <div class="aksi">
+        <button class="btn btn-outline" onclick="editPesertaSatu('${noUjianSafe}')">Edit</button>
+        <button class="btn btn-outline" style="color:#c0392b;" onclick="hapusPesertaSatu('${noUjianSafe}')">Hapus</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function isiPilihanPaketCheckbox(selected) {
+  const wrap = document.getElementById('pPaketPilihanList');
+  const list = manifestCache.content;
+  if (!list.length) {
+    wrap.innerHTML = '<span>Belum ada paket tryout tersimpan. Buat paket dulu di bagian atas.</span>';
+    return;
+  }
+  const selectedArr = Array.isArray(selected) ? selected : [];
+  wrap.innerHTML = list.map(p => `
+    <label style="display:flex; align-items:center; gap:8px; font-weight:400; margin-top:6px;">
+      <input type="checkbox" class="chk-paket-peserta" value="${p.id}" ${selectedArr.includes(p.id) ? 'checked' : ''} style="width:auto;">
+      ${p.title} (${p.jenjang.toUpperCase()})
+    </label>
+  `).join('');
+}
+
+function togglePaketPilihan() {
+  const mode = document.getElementById('pPaketMode').value;
+  const wrap = document.getElementById('pPaketPilihanWrap');
+  wrap.style.display = mode === 'tertentu' ? 'block' : 'none';
+  if (mode === 'tertentu') isiPilihanPaketCheckbox([]);
+}
+
+function editPesertaSatu(noUjian) {
+  const data = pesertaCache.content.find(p => String(p.noUjian) === noUjian);
+  if (!data) return;
+  editingNoUjianAsli = String(data.noUjian);
+  document.getElementById('pNoUjian').value = data.noUjian;
+  document.getElementById('pNama').value = data.nama;
+  const isTertentu = Array.isArray(data.paket) && data.paket.length > 0;
+  document.getElementById('pPaketMode').value = isTertentu ? 'tertentu' : 'semua';
+  document.getElementById('pPaketPilihanWrap').style.display = isTertentu ? 'block' : 'none';
+  if (isTertentu) isiPilihanPaketCheckbox(data.paket);
+  document.getElementById('pNoUjian').scrollIntoView({ behavior: 'smooth' });
+}
+
+function batalEditPeserta() {
+  editingNoUjianAsli = null;
+  document.getElementById('pNoUjian').value = '';
+  document.getElementById('pNama').value = '';
+  document.getElementById('pPaketMode').value = 'semua';
+  document.getElementById('pPaketPilihanWrap').style.display = 'none';
+}
+
+async function simpanSatuPeserta() {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu di bagian atas.'); return; }
+  const noUjian = document.getElementById('pNoUjian').value.trim();
+  const nama = document.getElementById('pNama').value.trim();
+  if (!noUjian || !nama) { setStatus('statusPeserta', 'Nomor Ujian dan Nama wajib diisi.', 'err'); return; }
+
+  const mode = document.getElementById('pPaketMode').value;
+  let paket = 'semua';
+  if (mode === 'tertentu') {
+    paket = [...document.querySelectorAll('.chk-paket-peserta:checked')].map(c => c.value);
+    if (!paket.length) { setStatus('statusPeserta', 'Pilih minimal 1 paket, atau ganti ke "Semua paket".', 'err'); return; }
+  }
+
+  const dup = pesertaCache.content.find(p =>
+    String(p.noUjian).toLowerCase() === noUjian.toLowerCase() && String(p.noUjian) !== editingNoUjianAsli
+  );
+  if (dup) { setStatus('statusPeserta', `Nomor Ujian "${noUjian}" sudah dipakai peserta lain.`, 'err'); return; }
+
+  let newContent = pesertaCache.content.filter(p => String(p.noUjian) !== editingNoUjianAsli);
+  newContent.push({ noUjian, nama, paket });
+
+  setStatus('statusPeserta', 'Menyimpan…', 'loading');
+  try {
+    const putRes = await ghPutFile(DAFTAR_PESERTA_PATH, newContent, pesertaCache.sha, `${editingNoUjianAsli ? 'Update' : 'Tambah'} peserta: ${nama} (${noUjian})`);
+    pesertaCache = { content: newContent, sha: putRes.content.sha };
+    setStatus('statusPeserta', '✓ Peserta tersimpan.', 'ok');
+    renderPesertaAdminList();
+    batalEditPeserta();
+  } catch (e) {
+    setStatus('statusPeserta', 'Gagal menyimpan: ' + e.message, 'err');
+  }
+}
+
+async function hapusPesertaSatu(noUjian) {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
+  if (!confirm(`Hapus peserta dengan Nomor Ujian "${noUjian}"?`)) return;
+  const newContent = pesertaCache.content.filter(p => String(p.noUjian) !== noUjian);
+  setStatus('statusPeserta', 'Menghapus…', 'loading');
+  try {
+    const putRes = await ghPutFile(DAFTAR_PESERTA_PATH, newContent, pesertaCache.sha, `Hapus peserta: ${noUjian}`);
+    pesertaCache = { content: newContent, sha: putRes.content.sha };
+    renderPesertaAdminList();
+    document.getElementById('statusPeserta').classList.remove('show');
+  } catch (e) {
+    setStatus('statusPeserta', 'Gagal menghapus: ' + e.message, 'err');
+  }
+}
+
+async function simpanBulkPeserta() {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu di bagian atas.'); return; }
+  const raw = document.getElementById('pBulkText').value.trim();
+  if (!raw) { setStatus('statusPeserta', 'Isi daftar peserta dulu di kotak bulk.', 'err'); return; }
+
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const tambahan = [];
+  for (const line of lines) {
+    const parts = line.split(',');
+    if (parts.length < 2) { setStatus('statusPeserta', `Format salah di baris: "${line}". Gunakan: NomorUjian, Nama`, 'err'); return; }
+    const noUjian = parts[0].trim();
+    const nama = parts.slice(1).join(',').trim();
+    if (!noUjian || !nama) { setStatus('statusPeserta', `Format salah di baris: "${line}".`, 'err'); return; }
+    tambahan.push({ noUjian, nama, paket: 'semua' });
+  }
+
+  let newContent = [...pesertaCache.content];
+  tambahan.forEach(t => {
+    newContent = newContent.filter(p => String(p.noUjian).toLowerCase() !== t.noUjian.toLowerCase());
+    newContent.push(t);
+  });
+
+  setStatus('statusPeserta', 'Menyimpan…', 'loading');
+  try {
+    const putRes = await ghPutFile(DAFTAR_PESERTA_PATH, newContent, pesertaCache.sha, `Tambah ${tambahan.length} peserta (bulk)`);
+    pesertaCache = { content: newContent, sha: putRes.content.sha };
+    setStatus('statusPeserta', `✓ ${tambahan.length} peserta berhasil ditambahkan/diupdate.`, 'ok');
+    renderPesertaAdminList();
+    document.getElementById('pBulkText').value = '';
+  } catch (e) {
+    setStatus('statusPeserta', 'Gagal menyimpan: ' + e.message, 'err');
+  }
+}
+
 loadManifest();
+loadDaftarPesertaAdmin();
 </script>
 </body>
 </html>

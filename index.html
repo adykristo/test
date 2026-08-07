@@ -681,14 +681,16 @@
 
   <section id="page-tryout-peserta" class="page">
     <div class="peserta-box">
-      <h3>Isi Data Peserta</h3>
+      <h3>Verifikasi Data Peserta</h3>
       <div class="sub" id="pesertaSubJudul">-</div>
-      <label>Nama Lengkap</label>
-      <input type="text" id="inputNamaPeserta" placeholder="Tulis nama lengkap kamu">
+      <div class="info-paket">Nama peserta terdaftar oleh admin. Masukkan Nomor Ujian yang sudah diberikan admin kamu.</div>
       <label>Nomor Ujian</label>
-      <input type="text" id="inputNoUjian" placeholder="Tulis nomor ujian kamu">
+      <input type="text" id="inputNoUjian" placeholder="Tulis nomor ujian yang diberikan admin" oninput="cekNomorUjian()">
       <div class="err-msg" id="pesertaErr"></div>
-      <button class="btn-mulai" onclick="mulaiUjianSetelahData()">Mulai Ujian</button>
+      <div class="info-paket" id="pesertaTerverifikasi" style="display:none; margin-top:14px;">
+        Nama Terdaftar: <b id="pesertaNamaTerverifikasi">-</b>
+      </div>
+      <button class="btn-mulai" id="btnMulaiUjian" onclick="mulaiUjianSetelahData()" disabled>Mulai Ujian</button>
     </div>
   </section>
 
@@ -998,6 +1000,20 @@ const TRYOUT_MANIFEST_PATH = 'data/manifest-tryout.json';
 let tryoutManifest = [];
 let currentTryoutJenjang = 'sd';
 
+// ==== Daftar peserta resmi (diisi admin). Nama & Nomor Ujian TIDAK boleh diketik bebas oleh peserta,
+// harus sudah terdaftar admin di file data/daftar-peserta.json ====
+const DAFTAR_PESERTA_PATH = 'data/daftar-peserta.json';
+let daftarPeserta = [];
+
+async function loadDaftarPeserta() {
+  try {
+    const res = await fetch(DAFTAR_PESERTA_PATH + '?_=' + Date.now());
+    daftarPeserta = await res.json();
+  } catch (e) {
+    daftarPeserta = [];
+  }
+}
+
 // state saat mengerjakan
 let tryoutState = null; // { paket, jawaban:{}, index, sisaDetik, timerHandle }
 
@@ -1067,9 +1083,10 @@ async function startTryout(paketId) {
     // simpan sementara, minta data peserta dulu sebelum mulai timer
     pendingTryout = { paket, meta };
     document.getElementById('pesertaSubJudul').textContent = paket.title + ' · ' + (paket.durasi_menit || meta.durasi_menit) + ' menit';
-    document.getElementById('inputNamaPeserta').value = '';
     document.getElementById('inputNoUjian').value = '';
     document.getElementById('pesertaErr').classList.remove('show');
+    document.getElementById('pesertaTerverifikasi').style.display = 'none';
+    document.getElementById('btnMulaiUjian').disabled = true;
     gotoPage('tryout-peserta');
   } catch (e) {
     alert('Gagal memuat soal tryout. Coba refresh halaman.');
@@ -1078,21 +1095,70 @@ async function startTryout(paketId) {
 
 let pendingTryout = null;
 
-function mulaiUjianSetelahData() {
-  const nama = document.getElementById('inputNamaPeserta').value.trim();
+// cari data peserta terdaftar (dari data/daftar-peserta.json yang diisi admin)
+// dan cek apakah nomor ujian tsb boleh mengikuti paket tryout yang sedang dipilih
+function cariPesertaTerdaftar(noUjian, paketId) {
+  if (!noUjian) return null;
+  const data = daftarPeserta.find(p => String(p.noUjian || '').trim().toLowerCase() === noUjian.trim().toLowerCase());
+  if (!data) return null;
+  const paketAllow = data.paket;
+  const bolehSemuaPaket = !paketAllow || paketAllow === 'semua' ||
+    (Array.isArray(paketAllow) && paketAllow.length === 0);
+  const bolehPaketIni = bolehSemuaPaket || (Array.isArray(paketAllow) && paketAllow.includes(paketId));
+  if (!bolehPaketIni) return { ...data, _tidakBolehUntukPaketIni: true };
+  return data;
+}
+
+// dipanggil setiap kali peserta mengetik nomor ujian, untuk menampilkan pratinjau nama
+function cekNomorUjian() {
   const noUjian = document.getElementById('inputNoUjian').value.trim();
   const errEl = document.getElementById('pesertaErr');
-  if (!nama || !noUjian) {
-    errEl.textContent = 'Nama dan Nomor Ujian wajib diisi sebelum memulai.';
+  const boxTerverifikasi = document.getElementById('pesertaTerverifikasi');
+  const btnMulai = document.getElementById('btnMulaiUjian');
+
+  errEl.classList.remove('show');
+  boxTerverifikasi.style.display = 'none';
+  btnMulai.disabled = true;
+
+  if (!noUjian || !pendingTryout) return;
+
+  const { meta } = pendingTryout;
+  const data = cariPesertaTerdaftar(noUjian, meta.id);
+
+  if (!data) {
+    errEl.textContent = 'Nomor Ujian tidak ditemukan. Pastikan penulisannya benar atau hubungi admin untuk didaftarkan.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (data._tidakBolehUntukPaketIni) {
+    errEl.textContent = 'Nomor Ujian kamu belum didaftarkan admin untuk paket tryout ini.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  document.getElementById('pesertaNamaTerverifikasi').textContent = data.nama;
+  boxTerverifikasi.style.display = 'block';
+  btnMulai.disabled = false;
+}
+
+function mulaiUjianSetelahData() {
+  const noUjian = document.getElementById('inputNoUjian').value.trim();
+  const errEl = document.getElementById('pesertaErr');
+  const { paket, meta } = pendingTryout;
+  const data = cariPesertaTerdaftar(noUjian, meta.id);
+
+  if (!data || data._tidakBolehUntukPaketIni) {
+    errEl.textContent = data && data._tidakBolehUntukPaketIni
+      ? 'Nomor Ujian kamu belum didaftarkan admin untuk paket tryout ini.'
+      : 'Nomor Ujian tidak terdaftar. Hubungi admin untuk didaftarkan terlebih dahulu.';
     errEl.classList.add('show');
     return;
   }
   errEl.classList.remove('show');
 
-  const { paket, meta } = pendingTryout;
   tryoutState = {
     paket,
-    peserta: { nama, noUjian },
+    peserta: { nama: data.nama, noUjian },
     jawaban: {},
     index: 0,
     sisaDetik: (paket.durasi_menit || meta.durasi_menit || 30) * 60,
@@ -1162,10 +1228,15 @@ function renderCurrentSoal() {
   const dipilih = tryoutState.jawaban[s.id];
   const huruf = ['A', 'B', 'C', 'D', 'E'];
 
+  // dukung soal berbentuk gambar: admin cukup isi field "gambar": "url-gambar.jpg" di JSON soal
+  const gambarSoalHtml = s.gambar
+    ? `<img src="${s.gambar}" alt="Gambar Soal ${i + 1}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`
+    : '';
+
   const player = document.getElementById('attemptPlayer');
   player.innerHTML = `
     <div class="nomor">Soal Nomor ${i + 1}</div>
-    <div class="pertanyaan">${s.pertanyaan}</div>
+    <div class="pertanyaan">${s.pertanyaan || ''}${gambarSoalHtml}</div>
     <div class="pilihan-list">
       ${huruf.filter(h => s.pilihan && s.pilihan[h] !== undefined && s.pilihan[h] !== '').map(h => `
         <div class="pilihan-item ${dipilih === h ? 'selected' : ''}" onclick="pilihJawaban('${s.id}','${h}')">
@@ -1218,10 +1289,13 @@ function submitTryout(autoSubmit) {
     }).join('');
     const pembahasanHtml = s.pembahasan
       ? `<div class="pembahasan"><b>Pembahasan:</b> ${s.pembahasan}</div>` : '';
+    const gambarSoalHtml = s.gambar
+      ? `<img src="${s.gambar}" alt="Gambar Soal ${i + 1}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`
+      : '';
     return `
       <div class="review-card">
         <span class="status ${statusCls}">${statusText}</span>
-        <div class="pertanyaan"><b>${i + 1}.</b> ${s.pertanyaan}</div>
+        <div class="pertanyaan"><b>${i + 1}.</b> ${s.pertanyaan || ''}${gambarSoalHtml}</div>
         ${opsiHtml}
         ${pembahasanHtml}
       </div>`;
@@ -1307,6 +1381,7 @@ function downloadHasilCadangan() {
 }
 
 loadTryoutManifest();
+loadDaftarPeserta();
 </script>
 
 </body>
