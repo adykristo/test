@@ -2376,15 +2376,24 @@ function cocokPaket(row, meta) {
   const pid = String(row.paketId || '').toLowerCase().trim();
   const id = String(meta.id || '').toLowerCase().trim();
   const title = String(meta.title || '').toLowerCase().trim();
+  const titleShort = title.replace(/\s*\([^)]*\)\s*$/, '').trim();
   if (!p && !pid) return false;
-  if (pid && pid === id) return true;
-  if (p && p === id) return true;
-  if (p && p === title) return true;
+  if (pid && (pid === id || pid === title || pid === titleShort)) return true;
+  if (p && (p === id || p === title || p === titleShort)) return true;
   // cocok sebagian (judul di sheet sering lebih pendek, mis. "TRY OUT 1 FISI")
   if (p && title && (title.includes(p) || p.includes(title))) return true;
+  if (p && titleShort && (titleShort.includes(p) || p.includes(titleShort))) return true;
+  // normalisasi: buang spasi/tanda baca, bandingkan awalan
+  const compact = s => s.replace(/[^a-z0-9]/g, '');
+  if (p && title) {
+    const cp = compact(p);
+    const ct = compact(title);
+    const cs = compact(titleShort);
+    if (cp && (ct.includes(cp) || cp.includes(ct) || cs.includes(cp) || cp.includes(cs))) return true;
+  }
   // potong kata signifikan
   if (p && title) {
-    const words = title.split(/\s+/).filter(w => w.length > 2);
+    const words = titleShort.split(/\s+/).filter(w => w.length > 1);
     const hit = words.filter(w => p.includes(w)).length;
     if (words.length && hit >= Math.min(2, words.length)) return true;
   }
@@ -2402,13 +2411,14 @@ async function unduhHasilPesertaPDF() {
 
   setStatus('statusHasilPeserta', 'Mengambil data hasil dari Google Sheet…', 'loading');
   try {
-    // Kunci yang dicoba — termasuk judul & potongan judul (sesuai data di Sheet)
     const title = meta.title || '';
-    const titleShort = title.replace(/\s*\([^)]*\)\s*$/, '').trim(); // buang "(SMA)" dll
-    const kunciCoba = [paketId, title, titleShort, 'semua', 'all', '*', ''];
+    const titleShort = title.replace(/\s*\([^)]*\)\s*$/, '').trim();
 
+    // UTAMA: ambil SEMUA data dulu (paket kosong), lalu filter di browser.
+    // Ini mengatasi perbedaan judul di Sheet vs admin (mis. "TRY OUT 1 FISI" vs "TRY OUT 1 FISIKA (SMA)").
     let semuaBaris = [];
     const seen = new Set();
+    const kunciCoba = ['', 'semua', 'all', titleShort, title, paketId];
 
     for (const kunci of kunciCoba) {
       try {
@@ -2417,38 +2427,31 @@ async function unduhHasilPesertaPDF() {
           const key = JSON.stringify(r);
           if (!seen.has(key)) { seen.add(key); semuaBaris.push(r); }
         });
-        // Jika kunci spesifik (bukan semua) sudah dapat data, tetap lanjut kumpulkan
-      } catch (e1) {
-        // lanjut kunci berikutnya
-      }
+      } catch (e1) { /* lanjut */ }
     }
 
     if (!semuaBaris.length) {
       setStatus(
         'statusHasilPeserta',
-        'Tidak ada data yang dikembalikan Apps Script.\n' +
-        'Pastikan Kode Rahasia Admin benar, dan function doGet mendukung action=hasil.',
+        'Tidak ada data yang dikembalikan Apps Script. Pastikan Kode Rahasia Admin benar dan script sudah di-Deploy ulang (New version).',
         'err'
       );
       return;
     }
 
-    // Normalisasi + filter cocok paket yang dipilih
     const dinormalisasi = semuaBaris.map(normalisasiBarisHasil);
     let data = dinormalisasi.filter(r => cocokPaket(r, meta));
 
-    // Jika filter terlalu ketat tapi ada data, tampilkan semua hasil yang ada (biar tetap bisa diunduh)
-    if (!data.length && dinormalisasi.length) {
-      data = dinormalisasi;
+    if (!data.length) {
+      // Tampilkan nama paket yang ADA di Sheet agar admin tahu harus pilih yang mana / rename
+      const namaDiSheet = [...new Set(dinormalisasi.map(r => r.paket).filter(Boolean))];
       setStatus(
         'statusHasilPeserta',
-        `Filter paket tidak cocok persis. Menampilkan SEMUA ${data.length} baris hasil dari Sheet (judul di Sheet mungkin beda dengan admin).`,
-        'loading'
+        `Tidak ketemu hasil untuk paket "${meta.title}".\n` +
+        `Nama paket di Google Sheet: ${namaDiSheet.join(' | ') || '(kosong)'}.\n` +
+        `Samakan judul paket di admin dengan yang tertulis di Sheet, atau unduh lewat paket yang namanya mirip.`,
+        'err'
       );
-    }
-
-    if (!data.length) {
-      setStatus('statusHasilPeserta', 'Sheet kosong / tidak ada baris hasil.', 'err');
       return;
     }
 
