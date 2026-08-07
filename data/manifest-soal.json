@@ -14,5 +14,13 @@
     "jenjang": "smp",
     "soalImage": "soal-osn/smp/1786081768512_pengukuran-soal.jpeg",
     "solusiImage": "soal-osn/smp/1786081768512_pengukuran-solusi.jpeg"
+  },
+  {
+    "title": "Pengukuran",
+    "topik": "Pengukuran",
+    "tanggal": "2026-08-07",
+    "jenjang": "sma",
+    "soalImage": "soal-osn/sma/1786081796272_pengukuran-soal.jpeg",
+    "solusiImage": "soal-osn/sma/1786081796272_pengukuran-solusi.jpeg"
   }
 ]
