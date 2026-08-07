@@ -687,7 +687,7 @@
     <div class="peserta-box">
       <h3>Verifikasi Data Peserta</h3>
       <div class="sub" id="pesertaSubJudul">-</div>
-      <div class="info-paket">Masukkan <b>Nomor Ujian</b> yang sudah didaftarkan admin. Setiap nomor hanya boleh ujian <b>satu kali</b> per paket — setelah selesai, nomor yang sama akan diblokir.</div>
+      <div class="info-paket">Masukkan <b>Nomor Ujian</b> yang sudah didaftarkan admin. Jika diminta, isi juga <b>Kode Akses</b>. Setiap nomor hanya boleh ujian <b>satu kali</b> per paket — setelah selesai, nomor yang sama akan diblokir.</div>
       <label>Nomor Ujian</label>
       <input type="text" id="inputNoUjian" placeholder="Tulis nomor ujian yang diberikan admin" oninput="cekNomorUjian()">
       <label id="labelKodeAkses" style="display:none;">Kode Akses</label>
@@ -858,18 +858,15 @@ function formatTanggal(iso) {
   return d.getDate() + ' ' + bulan[d.getMonth()];
 }
 
-// ==== GANTI SESUAI REPO GITHUB TEMPAT FILE OSN DISIMPAN ====
-const GITHUB_USER = "adykristo";     // username GitHub kamu
-const GITHUB_REPO  = "test";          // nama repo tempat file OSN disimpan
-const GITHUB_BRANCH = "main";         // nama branch utama, biasanya "main" (cek di repo kalau beda)
-const GITHUB_BASE_PATH = "unduhan-osn";  // folder utama di dalam repo (terpisah dari folder admin/soal latihan)
-// folder + label tampilan untuk tiap jenjang:
+const GITHUB_USER = "adykristo";
+const GITHUB_REPO = "test";
+const GITHUB_BRANCH = "main";
+const GITHUB_BASE_PATH = "unduhan-osn";
 const JENJANG_FOLDERS = [
-  { key: 'sd',  label: 'Soal OSN IPA SD',    path: `${GITHUB_BASE_PATH}/sd`  },
-  { key: 'smp', label: 'Soal OSN IPA SMP',   path: `${GITHUB_BASE_PATH}/smp` },
-  { key: 'sma', label: 'Soal OSN FISIKA SMA',path: `${GITHUB_BASE_PATH}/sma` }
+  { key: 'sd',  label: 'Soal OSN IPA SD',     path: GITHUB_BASE_PATH + '/sd' },
+  { key: 'smp', label: 'Soal OSN IPA SMP',    path: GITHUB_BASE_PATH + '/smp' },
+  { key: 'sma', label: 'Soal OSN FISIKA SMA', path: GITHUB_BASE_PATH + '/sma' }
 ];
-// ==============================================================
 
 // pathStack: daftar {label, path} dari root sampai posisi sekarang
 let pathStack = [];
