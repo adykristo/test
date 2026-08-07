@@ -7,5 +7,14 @@
     "durasi_menit": 60,
     "jumlah_soal": 1,
     "file": "data/tryout/osk-msifatfz.json"
+  },
+  {
+    "id": "osk2-msifne5i",
+    "title": "OSK2",
+    "jenjang": "sma",
+    "topik": "SOAL OSK",
+    "durasi_menit": 60,
+    "jumlah_soal": 1,
+    "file": "data/tryout/osk2-msifne5i.json"
   }
 ]
