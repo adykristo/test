@@ -30,17 +30,6 @@
     "aktif": true
   },
   {
-    "id": "paket-1-msjdu5cx",
-    "title": "Paket 1",
-    "jenjang": "sma",
-    "topik": "Kinematika",
-    "durasi_menit": 61,
-    "jumlah_soal": 4,
-    "file": "data/tryout/paket-1-msjdu5cx.json",
-    "aktif": true,
-    "kode_akses": ""
-  },
-  {
     "id": "qqq-msjf958i",
     "title": "qqq",
     "jenjang": "sd",
