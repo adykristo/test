@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KlinikFisikapku — Soal &amp; Pembahasan OSN</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <style>
   :root{
     --ungu-tua:#3d1a63;
@@ -328,6 +329,230 @@
     font-size:13px;
   }
   footer strong{ color:#fff; }
+
+  /* ===== TRYOUT ===== */
+  .tryout-tabs{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+  .tryout-tabs button{
+    border:1px solid #f0e2fa;
+    background:#fff;
+    color:var(--ungu-tua);
+    font-size:13px;
+    font-weight:700;
+    padding:8px 16px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .tryout-tabs button.active{
+    background:linear-gradient(90deg, var(--pink), var(--ungu));
+    color:#fff;
+    border-color:transparent;
+  }
+  .paket-list{ display:grid; gap:16px; }
+  .paket-card{
+    background:#fff;
+    border:1px solid #f0e2fa;
+    border-radius:18px;
+    padding:20px 22px;
+    box-shadow:0 6px 16px rgba(123,47,247,0.06);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .paket-card h3{ color:var(--ungu-tua); font-size:16px; margin-bottom:6px; }
+  .paket-card .meta{ font-size:12.5px; color:var(--abu); display:flex; gap:14px; flex-wrap:wrap; }
+  .paket-card .mulai-btn{
+    background:linear-gradient(90deg, var(--pink), var(--ungu));
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    padding:10px 22px;
+    border-radius:999px;
+    border:none;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .paket-card .mulai-btn:hover{ opacity:.9; }
+
+  .tryout-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+    background:#fff;
+    border:1px solid #f0e2fa;
+    border-radius:16px;
+    padding:14px 20px;
+    margin-bottom:18px;
+    position:sticky;
+    top:66px;
+    z-index:10;
+    box-shadow:0 6px 16px rgba(123,47,247,0.06);
+  }
+  .tryout-header .judul{ font-size:14px; font-weight:700; color:var(--ungu-tua); }
+  .tryout-header .progres{ font-size:12.5px; color:var(--abu); }
+  .tryout-header .timer{
+    font-size:15px;
+    font-weight:800;
+    color:#fff;
+    background:var(--ungu-tua);
+    padding:6px 16px;
+    border-radius:999px;
+  }
+  .tryout-header .timer.warning{ background:#d64545; }
+
+  .navigator{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .navigator button{
+    width:34px;
+    height:34px;
+    border-radius:8px;
+    border:1px solid #f0e2fa;
+    background:#fff;
+    color:var(--ungu-tua);
+    font-size:12.5px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .navigator button.answered{ background:var(--pink-muda); border-color:var(--pink); }
+  .navigator button.current{ background:var(--ungu); color:#fff; border-color:var(--ungu); }
+
+  .soal-player{
+    background:#fff;
+    border:1px solid #f0e2fa;
+    border-radius:18px;
+    padding:26px 24px;
+    box-shadow:0 6px 16px rgba(123,47,247,0.06);
+    margin-bottom:18px;
+  }
+  .soal-player .nomor{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--ungu);
+    background:var(--pink-muda);
+    display:inline-block;
+    padding:4px 12px;
+    border-radius:999px;
+    margin-bottom:14px;
+  }
+  .soal-player .pertanyaan{ font-size:16px; margin-bottom:20px; line-height:1.7; }
+  .soal-player .pertanyaan img{ max-width:100%; border-radius:10px; margin-top:10px; }
+  .pilihan-list{ display:grid; gap:10px; }
+  .pilihan-item{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    border:1.5px solid #f0e2fa;
+    border-radius:12px;
+    padding:12px 16px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .pilihan-item:hover{ border-color:var(--pink); }
+  .pilihan-item.selected{ border-color:var(--ungu); background:var(--pink-muda); }
+  .pilihan-item .huruf{
+    flex-shrink:0;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    background:var(--ungu-tua);
+    color:#fff;
+    font-size:12.5px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .pilihan-item .teks{ flex:1; font-size:14.5px; padding-top:3px; }
+
+  .tryout-footer-nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:60px;
+  }
+  .tryout-footer-nav button{
+    border:none;
+    border-radius:999px;
+    font-size:13.5px;
+    font-weight:700;
+    padding:11px 22px;
+    cursor:pointer;
+  }
+  .btn-secondary{ background:#f0e2fa; color:var(--ungu-tua); }
+  .btn-primary{ background:linear-gradient(90deg, var(--pink), var(--ungu)); color:#fff; }
+  .btn-submit{ background:#2e9e5b; color:#fff; }
+  .tryout-footer-nav button:disabled{ opacity:.4; cursor:not-allowed; }
+
+  .hasil-summary{
+    background:#fff;
+    border:1px solid #f0e2fa;
+    border-radius:18px;
+    padding:30px 24px;
+    text-align:center;
+    margin-bottom:24px;
+    box-shadow:0 6px 16px rgba(123,47,247,0.06);
+  }
+  .hasil-summary .nilai{
+    font-size:44px;
+    font-weight:800;
+    color:var(--ungu-tua);
+    margin:10px 0;
+  }
+  .hasil-summary .rincian{
+    display:flex;
+    justify-content:center;
+    gap:26px;
+    flex-wrap:wrap;
+    margin-top:14px;
+    font-size:13.5px;
+    color:var(--abu);
+  }
+  .hasil-summary .rincian b{ color:var(--ungu-tua); }
+
+  .review-card{
+    background:#fff;
+    border:1px solid #f0e2fa;
+    border-radius:16px;
+    padding:20px 22px;
+    margin-bottom:14px;
+  }
+  .review-card .status{
+    display:inline-block;
+    font-size:11.5px;
+    font-weight:700;
+    padding:4px 10px;
+    border-radius:999px;
+    margin-bottom:10px;
+  }
+  .review-card .status.benar{ background:#dff5e6; color:#1f7a41; }
+  .review-card .status.salah{ background:#fde3e3; color:#c0392b; }
+  .review-card .status.kosong{ background:#f0e2fa; color:var(--abu); }
+  .review-card .pertanyaan{ font-size:14.5px; margin-bottom:12px; }
+  .review-card .opsi-review{ font-size:13.5px; padding:8px 12px; border-radius:8px; margin-bottom:6px; }
+  .review-card .opsi-review.jawaban-benar{ background:#dff5e6; font-weight:700; }
+  .review-card .opsi-review.jawaban-user-salah{ background:#fde3e3; }
+  .review-card .pembahasan{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px dashed #f0e2fa;
+    font-size:13.5px;
+    color:#3d2a52;
+  }
+  .review-card .pembahasan b{ color:var(--ungu-tua); }
 </style>
 </head>
 <body>
@@ -343,6 +568,7 @@
   <button data-page="sd">Soal Latihan Tingkat SD</button>
   <button data-page="smp">Soal Latihan Tingkat SMP</button>
   <button data-page="sma">Soal Latihan Tingkat SMA</button>
+  <button data-page="tryout">Tryout</button>
   <button data-page="download">Kumpulan Soal OSN</button>
   <button data-page="kontak">Kontak</button>
 </nav>
@@ -400,6 +626,57 @@
     <div id="listSMA" class="soal-list"><div class="empty">Memuat soal…</div></div>
   </section>
 
+  <section id="page-tryout" class="page">
+    <div class="page-title">
+      <h2>Tryout Pilihan Ganda</h2>
+      <span>Persiapan OSN Fisika</span>
+    </div>
+    <div class="tryout-tabs" id="tryoutJenjangTabs">
+      <button data-jenjang="sd" class="active">SD</button>
+      <button data-jenjang="smp">SMP</button>
+      <button data-jenjang="sma">SMA</button>
+    </div>
+    <div id="paketList" class="paket-list"><div class="empty">Memuat daftar tryout…</div></div>
+  </section>
+
+  <section id="page-tryout-attempt" class="page">
+    <div class="tryout-header">
+      <div>
+        <div class="judul" id="attemptJudul">-</div>
+        <div class="progres" id="attemptProgres">Soal 1 dari 1</div>
+      </div>
+      <div class="timer" id="attemptTimer">00:00</div>
+    </div>
+    <div class="navigator" id="attemptNavigator"></div>
+    <div class="soal-player" id="attemptPlayer"></div>
+    <div class="tryout-footer-nav">
+      <button class="btn-secondary" id="btnPrevSoal" onclick="tryoutPrev()">‹ Sebelumnya</button>
+      <button class="btn-submit" onclick="confirmSubmitTryout()">Selesai &amp; Kumpulkan</button>
+      <button class="btn-primary" id="btnNextSoal" onclick="tryoutNext()">Selanjutnya ›</button>
+    </div>
+  </section>
+
+  <section id="page-tryout-result" class="page">
+    <div class="page-title">
+      <h2 id="hasilJudul">Hasil Tryout</h2>
+      <span>Persiapan OSN Fisika</span>
+    </div>
+    <div class="hasil-summary">
+      <div style="font-size:13.5px; color:var(--abu);">Skor Kamu</div>
+      <div class="nilai" id="hasilNilai">0</div>
+      <div class="rincian">
+        <span>Benar: <b id="hasilBenar">0</b></span>
+        <span>Salah: <b id="hasilSalah">0</b></span>
+        <span>Kosong: <b id="hasilKosong">0</b></span>
+        <span>Total Soal: <b id="hasilTotal">0</b></span>
+      </div>
+    </div>
+    <div id="hasilReview"></div>
+    <div class="tryout-footer-nav">
+      <button class="btn-primary" onclick="gotoPage('tryout')">Kembali ke Daftar Tryout</button>
+    </div>
+  </section>
+
   <section id="page-download" class="page">
     <div class="page-title">
       <h2>Soal OSN</h2>
@@ -445,6 +722,8 @@
   <strong>2026-KlinikFisikapku</strong>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <script>
 let allSoal = [];
 const JENJANG_LIST = ['sd', 'smp', 'sma'];
@@ -653,10 +932,241 @@ document.querySelectorAll('.jenjang-card').forEach(card => {
 });
 
 const startPage = (location.hash || '#home').replace('#', '');
-if (['home','sd','smp','sma','download','kontak'].includes(startPage)) gotoPage(startPage);
+if (['home','sd','smp','sma','tryout','download','kontak'].includes(startPage)) gotoPage(startPage);
 
 loadSoal();
 loadDownloadFiles();
+
+// ==================== TRYOUT ====================
+const TRYOUT_MANIFEST_PATH = 'data/manifest-tryout.json';
+let tryoutManifest = [];
+let currentTryoutJenjang = 'sd';
+
+// state saat mengerjakan
+let tryoutState = null; // { paket, jawaban:{}, index, sisaDetik, timerHandle }
+
+function renderKatexIn(el) {
+  if (window.renderMathInElement) {
+    renderMathInElement(el, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$', right: '$', display: false },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '\\[', right: '\\]', display: true }
+      ],
+      throwOnError: false
+    });
+  }
+}
+
+async function loadTryoutManifest() {
+  const box = document.getElementById('paketList');
+  try {
+    const res = await fetch(TRYOUT_MANIFEST_PATH + '?_=' + Date.now());
+    tryoutManifest = await res.json();
+  } catch (e) {
+    tryoutManifest = [];
+  }
+  renderPaketList();
+}
+
+function renderPaketList() {
+  const box = document.getElementById('paketList');
+  const items = tryoutManifest.filter(p => String(p.jenjang || '').toLowerCase() === currentTryoutJenjang);
+  if (!items.length) {
+    box.innerHTML = '<div class="empty">Belum ada paket tryout untuk jenjang ini. Cek lagi nanti ya!</div>';
+    return;
+  }
+  box.innerHTML = items.map(p => `
+    <div class="paket-card">
+      <div>
+        <h3>${p.title}</h3>
+        <div class="meta">
+          <span>📚 ${p.topik || 'Campuran'}</span>
+          <span>📝 ${p.jumlah_soal} soal</span>
+          <span>⏱️ ${p.durasi_menit} menit</span>
+        </div>
+      </div>
+      <button class="mulai-btn" onclick="startTryout('${p.id}')">Mulai Tryout</button>
+    </div>
+  `).join('');
+}
+
+document.querySelectorAll('#tryoutJenjangTabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentTryoutJenjang = btn.dataset.jenjang;
+    document.querySelectorAll('#tryoutJenjangTabs button').forEach(b => b.classList.toggle('active', b === btn));
+    renderPaketList();
+  });
+});
+
+async function startTryout(paketId) {
+  const meta = tryoutManifest.find(p => p.id === paketId);
+  if (!meta) return;
+  const box = document.getElementById('paketList');
+  try {
+    const res = await fetch(meta.file + '?_=' + Date.now());
+    const paket = await res.json();
+
+    tryoutState = {
+      paket,
+      jawaban: {},
+      index: 0,
+      sisaDetik: (paket.durasi_menit || meta.durasi_menit || 30) * 60,
+      timerHandle: null
+    };
+
+    document.getElementById('attemptJudul').textContent = paket.title;
+    gotoPage('tryout-attempt');
+    renderNavigator();
+    renderCurrentSoal();
+    startTimer();
+  } catch (e) {
+    alert('Gagal memuat soal tryout. Coba refresh halaman.');
+  }
+}
+
+function startTimer() {
+  clearInterval(tryoutState.timerHandle);
+  updateTimerDisplay();
+  tryoutState.timerHandle = setInterval(() => {
+    tryoutState.sisaDetik--;
+    updateTimerDisplay();
+    if (tryoutState.sisaDetik <= 0) {
+      clearInterval(tryoutState.timerHandle);
+      submitTryout(true);
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('attemptTimer');
+  const m = Math.floor(tryoutState.sisaDetik / 60);
+  const s = tryoutState.sisaDetik % 60;
+  el.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  el.classList.toggle('warning', tryoutState.sisaDetik <= 60);
+}
+
+function renderNavigator() {
+  const nav = document.getElementById('attemptNavigator');
+  const soalList = tryoutState.paket.soal;
+  nav.innerHTML = soalList.map((s, i) => {
+    const cls = ['navigator-btn'];
+    if (i === tryoutState.index) cls.push('current');
+    else if (tryoutState.jawaban[s.id] !== undefined) cls.push('answered');
+    return `<button class="${cls.join(' ')}" onclick="jumpToSoal(${i})">${i + 1}</button>`;
+  }).join('');
+}
+
+function jumpToSoal(i) {
+  tryoutState.index = i;
+  renderNavigator();
+  renderCurrentSoal();
+}
+
+function tryoutPrev() {
+  if (tryoutState.index > 0) jumpToSoal(tryoutState.index - 1);
+}
+function tryoutNext() {
+  if (tryoutState.index < tryoutState.paket.soal.length - 1) jumpToSoal(tryoutState.index + 1);
+}
+
+function renderCurrentSoal() {
+  const soalList = tryoutState.paket.soal;
+  const i = tryoutState.index;
+  const s = soalList[i];
+  document.getElementById('attemptProgres').textContent = `Soal ${i + 1} dari ${soalList.length}`;
+  document.getElementById('btnPrevSoal').disabled = i === 0;
+  document.getElementById('btnNextSoal').disabled = i === soalList.length - 1;
+
+  const dipilih = tryoutState.jawaban[s.id];
+  const huruf = ['A', 'B', 'C', 'D', 'E'];
+
+  const player = document.getElementById('attemptPlayer');
+  player.innerHTML = `
+    <div class="nomor">Soal Nomor ${i + 1}</div>
+    <div class="pertanyaan">${s.pertanyaan}</div>
+    <div class="pilihan-list">
+      ${huruf.filter(h => s.pilihan && s.pilihan[h] !== undefined && s.pilihan[h] !== '').map(h => `
+        <div class="pilihan-item ${dipilih === h ? 'selected' : ''}" onclick="pilihJawaban('${s.id}','${h}')">
+          <span class="huruf">${h}</span>
+          <span class="teks">${s.pilihan[h]}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  renderKatexIn(player);
+}
+
+function pilihJawaban(soalId, huruf) {
+  tryoutState.jawaban[soalId] = huruf;
+  renderNavigator();
+  renderCurrentSoal();
+}
+
+function confirmSubmitTryout() {
+  const total = tryoutState.paket.soal.length;
+  const terjawab = Object.keys(tryoutState.jawaban).length;
+  const sisa = total - terjawab;
+  const pesan = sisa > 0
+    ? `Masih ada ${sisa} soal yang belum dijawab. Yakin ingin mengumpulkan sekarang?`
+    : 'Yakin ingin mengumpulkan jawaban sekarang?';
+  if (confirm(pesan)) submitTryout(false);
+}
+
+function submitTryout(autoSubmit) {
+  clearInterval(tryoutState.timerHandle);
+  const soalList = tryoutState.paket.soal;
+  let benar = 0, salah = 0, kosong = 0;
+
+  const reviewHtml = soalList.map((s, i) => {
+    const userJawaban = tryoutState.jawaban[s.id];
+    const isBenar = userJawaban === s.jawaban_benar;
+    let statusCls = 'kosong', statusText = 'Belum Dijawab';
+    if (userJawaban !== undefined) {
+      if (isBenar) { benar++; statusCls = 'benar'; statusText = 'Benar'; }
+      else { salah++; statusCls = 'salah'; statusText = 'Salah'; }
+    } else {
+      kosong++;
+    }
+    const huruf = ['A', 'B', 'C', 'D', 'E'];
+    const opsiHtml = huruf.filter(h => s.pilihan && s.pilihan[h] !== undefined && s.pilihan[h] !== '').map(h => {
+      let cls = 'opsi-review';
+      if (h === s.jawaban_benar) cls += ' jawaban-benar';
+      else if (h === userJawaban) cls += ' jawaban-user-salah';
+      return `<div class="${cls}">${h}. ${s.pilihan[h]}</div>`;
+    }).join('');
+    const pembahasanHtml = s.pembahasan
+      ? `<div class="pembahasan"><b>Pembahasan:</b> ${s.pembahasan}</div>` : '';
+    return `
+      <div class="review-card">
+        <span class="status ${statusCls}">${statusText}</span>
+        <div class="pertanyaan"><b>${i + 1}.</b> ${s.pertanyaan}</div>
+        ${opsiHtml}
+        ${pembahasanHtml}
+      </div>`;
+  }).join('');
+
+  const total = soalList.length;
+  const nilai = total ? Math.round((benar / total) * 100) : 0;
+
+  document.getElementById('hasilJudul').textContent = 'Hasil: ' + tryoutState.paket.title;
+  document.getElementById('hasilNilai').textContent = nilai;
+  document.getElementById('hasilBenar').textContent = benar;
+  document.getElementById('hasilSalah').textContent = salah;
+  document.getElementById('hasilKosong').textContent = kosong;
+  document.getElementById('hasilTotal').textContent = total;
+  const reviewBox = document.getElementById('hasilReview');
+  reviewBox.innerHTML = reviewHtml;
+  renderKatexIn(reviewBox);
+
+  gotoPage('tryout-result');
+  if (autoSubmit) {
+    setTimeout(() => alert('Waktu habis! Jawaban kamu otomatis dikumpulkan.'), 200);
+  }
+}
+
+loadTryoutManifest();
 </script>
 
 </body>
