@@ -2328,6 +2328,69 @@ function populateHasilPaketSelect() {
   }
 }
 
+async function ambilHasilDariScript(kunciPaket) {
+  let url = `${hasilScriptUrl}?action=hasil&key=${encodeURIComponent(hasilAdminKey)}&_=${Date.now()}`;
+  if (kunciPaket !== null && kunciPaket !== undefined && kunciPaket !== '') {
+    url += `&paket=${encodeURIComponent(kunciPaket)}`;
+  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Gagal mengambil data (status ' + res.status + ').');
+  const data = await res.json();
+  if (data && data.error) {
+    throw new Error(data.error === 'unauthorized' ? 'Kode Rahasia Admin salah / ditolak Apps Script. Pastikan sama dengan ADMIN_KEY di script.' : String(data.error));
+  }
+  return Array.isArray(data) ? data : [];
+}
+
+// Normalisasi baris hasil dari Sheet (nama kolom bisa beda-beda)
+function normalisasiBarisHasil(r) {
+  const get = (...keys) => {
+    for (const k of keys) {
+      if (r[k] !== undefined && r[k] !== null && r[k] !== '') return r[k];
+    }
+    return '';
+  };
+  let nama = String(get('nama', 'Nama', 'name'));
+  let noUjian = String(get('noUjian', 'No Ujian', 'no_ujian', 'nomerUjian', 'NoUjian'));
+  // Antisipasi kolom tertukar di Sheet (angka di Nama, teks di No Ujian)
+  if (/^\d+$/.test(nama) && noUjian && !/^\d+$/.test(noUjian)) {
+    const tmp = nama; nama = noUjian; noUjian = tmp;
+  }
+  return {
+    nama: nama || '-',
+    noUjian: noUjian || '-',
+    paket: String(get('paket', 'Paket', 'paketId', 'judul', 'title')),
+    paketId: String(get('paketId', 'PaketId', 'id_paket')),
+    nilai: get('nilai', 'Nilai', 'score'),
+    benar: get('benar', 'Benar'),
+    salah: get('salah', 'Salah'),
+    kosong: get('kosong', 'Kosong'),
+    waktu: get('waktu', 'Waktu', 'timestamp', 'time'),
+    jenjang: get('jenjang', 'Jenjang'),
+    topik: get('topik', 'Topik')
+  };
+}
+
+function cocokPaket(row, meta) {
+  const p = String(row.paket || '').toLowerCase().trim();
+  const pid = String(row.paketId || '').toLowerCase().trim();
+  const id = String(meta.id || '').toLowerCase().trim();
+  const title = String(meta.title || '').toLowerCase().trim();
+  if (!p && !pid) return false;
+  if (pid && pid === id) return true;
+  if (p && p === id) return true;
+  if (p && p === title) return true;
+  // cocok sebagian (judul di sheet sering lebih pendek, mis. "TRY OUT 1 FISI")
+  if (p && title && (title.includes(p) || p.includes(title))) return true;
+  // potong kata signifikan
+  if (p && title) {
+    const words = title.split(/\s+/).filter(w => w.length > 2);
+    const hit = words.filter(w => p.includes(w)).length;
+    if (words.length && hit >= Math.min(2, words.length)) return true;
+  }
+  return false;
+}
+
 async function unduhHasilPesertaPDF() {
   if (!hasilScriptUrl || !hasilAdminKey) {
     setStatus('statusHasilPeserta', 'Isi & simpan dulu URL Apps Script dan Kode Rahasia Admin di atas.', 'err');
@@ -2339,17 +2402,56 @@ async function unduhHasilPesertaPDF() {
 
   setStatus('statusHasilPeserta', 'Mengambil data hasil dari Google Sheet…', 'loading');
   try {
-    const url = `${hasilScriptUrl}?action=hasil&paket=${encodeURIComponent(paketId)}&key=${encodeURIComponent(hasilAdminKey)}&_=${Date.now()}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Gagal mengambil data (status ' + res.status + ').');
-    const data = await res.json();
-    if (data && data.error) {
-      throw new Error(data.error === 'unauthorized' ? 'Kode Rahasia Admin salah / ditolak Apps Script.' : data.error);
+    // Kunci yang dicoba — termasuk judul & potongan judul (sesuai data di Sheet)
+    const title = meta.title || '';
+    const titleShort = title.replace(/\s*\([^)]*\)\s*$/, '').trim(); // buang "(SMA)" dll
+    const kunciCoba = [paketId, title, titleShort, 'semua', 'all', '*', ''];
+
+    let semuaBaris = [];
+    const seen = new Set();
+
+    for (const kunci of kunciCoba) {
+      try {
+        const rows = await ambilHasilDariScript(kunci);
+        rows.forEach(r => {
+          const key = JSON.stringify(r);
+          if (!seen.has(key)) { seen.add(key); semuaBaris.push(r); }
+        });
+        // Jika kunci spesifik (bukan semua) sudah dapat data, tetap lanjut kumpulkan
+      } catch (e1) {
+        // lanjut kunci berikutnya
+      }
     }
-    if (!Array.isArray(data) || !data.length) {
-      setStatus('statusHasilPeserta', 'Belum ada peserta yang mengumpulkan hasil untuk paket ini.', 'err');
+
+    if (!semuaBaris.length) {
+      setStatus(
+        'statusHasilPeserta',
+        'Tidak ada data yang dikembalikan Apps Script.\n' +
+        'Pastikan Kode Rahasia Admin benar, dan function doGet mendukung action=hasil.',
+        'err'
+      );
       return;
     }
+
+    // Normalisasi + filter cocok paket yang dipilih
+    const dinormalisasi = semuaBaris.map(normalisasiBarisHasil);
+    let data = dinormalisasi.filter(r => cocokPaket(r, meta));
+
+    // Jika filter terlalu ketat tapi ada data, tampilkan semua hasil yang ada (biar tetap bisa diunduh)
+    if (!data.length && dinormalisasi.length) {
+      data = dinormalisasi;
+      setStatus(
+        'statusHasilPeserta',
+        `Filter paket tidak cocok persis. Menampilkan SEMUA ${data.length} baris hasil dari Sheet (judul di Sheet mungkin beda dengan admin).`,
+        'loading'
+      );
+    }
+
+    if (!data.length) {
+      setStatus('statusHasilPeserta', 'Sheet kosong / tidak ada baris hasil.', 'err');
+      return;
+    }
+
     buatPdfHasilPeserta(meta, data);
     setStatus('statusHasilPeserta', `✓ PDF berhasil dibuat untuk ${data.length} peserta.`, 'ok');
   } catch (e) {
