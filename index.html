@@ -1044,7 +1044,9 @@ async function loadTryoutManifest() {
 
 function renderPaketList() {
   const box = document.getElementById('paketList');
-  const items = tryoutManifest.filter(p => String(p.jenjang || '').toLowerCase() === currentTryoutJenjang);
+  const items = tryoutManifest.filter(p =>
+    String(p.jenjang || '').toLowerCase() === currentTryoutJenjang && p.aktif !== false
+  );
   if (!items.length) {
     box.innerHTML = '<div class="empty">Belum ada paket tryout untuk jenjang ini. Cek lagi nanti ya!</div>';
     return;
@@ -1075,6 +1077,10 @@ document.querySelectorAll('#tryoutJenjangTabs button').forEach(btn => {
 async function startTryout(paketId) {
   const meta = tryoutManifest.find(p => p.id === paketId);
   if (!meta) return;
+  if (meta.aktif === false) {
+    alert('Paket tryout ini sedang tidak aktif / disembunyikan oleh admin.');
+    return;
+  }
   const box = document.getElementById('paketList');
   try {
     const res = await fetch(meta.file + '?_=' + Date.now());

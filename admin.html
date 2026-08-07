@@ -484,6 +484,12 @@
     <label>Judul Paket Tryout</label>
     <input type="text" id="fTitle" placeholder="mis. Tryout OSN Fisika SMA Paket 1">
 
+    <label style="display:flex; align-items:center; gap:8px; margin-top:16px; font-weight:400; font-size:13px; color:var(--abu);">
+      <input type="checkbox" id="fAktif" style="width:auto;" checked>
+      Tampilkan paket ini ke peserta di halaman Tryout (Aktif)
+    </label>
+    <p class="help" style="margin-top:4px;">Kalau dicentang: paket langsung terlihat &amp; bisa dikerjakan peserta di web setelah disimpan. Kalau tidak dicentang: paket tersimpan tapi disembunyikan dari web (mis. masih draft/belum siap) — bisa diaktifkan kapan saja lewat daftar paket di bawah.</p>
+
     <h3 style="margin-top:22px;">Daftar Soal</h3>
     <div id="soalContainer"></div>
     <button class="btn btn-outline btn-block" onclick="tambahSoal()">+ Tambah Soal</button>
@@ -1307,18 +1313,43 @@ function renderPaketAdminList() {
     box.innerHTML = '<p class="help">Belum ada paket tryout. Klik "Buat Paket Tryout Baru" untuk mulai.</p>';
     return;
   }
-  box.innerHTML = manifestCache.content.map(p => `
+  box.innerHTML = manifestCache.content.map(p => {
+    const aktif = p.aktif !== false; // default true kalau field belum ada (paket lama)
+    const badge = aktif
+      ? `<span style="display:inline-block; margin-top:4px; font-size:11px; font-weight:700; color:var(--hijau);">● Aktif — terlihat di web</span>`
+      : `<span style="display:inline-block; margin-top:4px; font-size:11px; font-weight:700; color:var(--merah);">● Nonaktif — disembunyikan dari web</span>`;
+    return `
     <div class="paket-item">
       <div class="info">
         <b>${p.title}</b>
         <span>${p.jenjang.toUpperCase()} · ${p.topik || '-'} · ${p.jumlah_soal} soal · ${p.durasi_menit} menit</span>
+        ${badge}
       </div>
       <div class="aksi">
+        <button class="btn btn-outline" onclick="toggleAktifPaket('${p.id}')">${aktif ? 'Sembunyikan' : 'Tampilkan'}</button>
         <button class="btn btn-outline" onclick="editPaket('${p.id}')">Edit</button>
         <button class="btn btn-outline" style="color:#c0392b;" onclick="hapusPaket('${p.id}')">Hapus</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
+}
+
+async function toggleAktifPaket(id) {
+  const meta = manifestCache.content.find(p => p.id === id);
+  if (!meta) return;
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu di bagian atas.'); return; }
+  const aktifSekarang = meta.aktif !== false;
+  const aktifBaru = !aktifSekarang;
+  setStatus('statusManifest', aktifBaru ? 'Menampilkan paket ke web…' : 'Menyembunyikan paket dari web…', 'loading');
+  try {
+    const newManifest = manifestCache.content.map(p => p.id === id ? { ...p, aktif: aktifBaru } : p);
+    const putRes = await ghPutFile(MANIFEST_PATH, newManifest, manifestCache.sha, `${aktifBaru ? 'Aktifkan' : 'Sembunyikan'} paket tryout: ${meta.title}`);
+    manifestCache = { content: newManifest, sha: putRes.content.sha };
+    renderPaketAdminList();
+    document.getElementById('statusManifest').classList.remove('show');
+  } catch (e) {
+    setStatus('statusManifest', 'Gagal mengubah status: ' + e.message, 'err');
+  }
 }
 
 // ---------- Form state ----------
@@ -1332,6 +1363,7 @@ function mulaiPaketBaru() {
   document.getElementById('fDurasi').value = 60;
   document.getElementById('fTopik').value = '';
   document.getElementById('fTitle').value = '';
+  document.getElementById('fAktif').checked = true;
   document.getElementById('soalContainer').innerHTML = '';
   document.getElementById('statusForm').className = 'status-bar';
   soalIdCounter = 0;
@@ -1355,6 +1387,7 @@ async function editPaket(id) {
     document.getElementById('fDurasi').value = paket.durasi_menit;
     document.getElementById('fTopik').value = paket.topik || '';
     document.getElementById('fTitle').value = paket.title;
+    document.getElementById('fAktif').checked = meta.aktif !== false;
     document.getElementById('soalContainer').innerHTML = '';
     soalIdCounter = 0;
     paket.soal.forEach(s => tambahSoal(s));
@@ -1504,6 +1537,7 @@ function kumpulkanDataForm() {
   const jenjang = document.getElementById('fJenjang').value;
   const topik = document.getElementById('fTopik').value.trim();
   const durasi_menit = parseInt(document.getElementById('fDurasi').value, 10) || 60;
+  const aktif = document.getElementById('fAktif').checked;
 
   if (!title) throw new Error('Judul paket tidak boleh kosong.');
 
@@ -1543,7 +1577,7 @@ function kumpulkanDataForm() {
     };
   });
 
-  return { title, jenjang, topik, durasi_menit, soal };
+  return { title, jenjang, topik, durasi_menit, aktif, soal };
 }
 
 async function simpanPaket() {
@@ -1575,7 +1609,7 @@ async function simpanPaket() {
     const manifestEntry = {
       id, title: data.title, jenjang: data.jenjang, topik: data.topik,
       durasi_menit: data.durasi_menit, jumlah_soal: data.soal.length,
-      file: filePath
+      file: filePath, aktif: data.aktif
     };
     let newManifest = manifestCache.content.filter(p => p.id !== id);
     newManifest.push(manifestEntry);
