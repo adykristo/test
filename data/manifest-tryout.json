@@ -25,5 +25,14 @@
     "durasi_menit": 1,
     "jumlah_soal": 1,
     "file": "data/tryout/fsfsf-msid3yc4.json"
+  },
+  {
+    "id": "fbsf-msidfylp",
+    "title": "fbsf",
+    "jenjang": "sma",
+    "topik": "fsb",
+    "durasi_menit": 60,
+    "jumlah_soal": 1,
+    "file": "data/tryout/fbsf-msidfylp.json"
   }
 ]
