@@ -1,16 +1,5 @@
 [
   {
-    "id": "aaa-msjgfvkc",
-    "title": "aaa",
-    "jenjang": "sma",
-    "topik": "aaa",
-    "durasi_menit": 60,
-    "jumlah_soal": 1,
-    "file": "data/tryout/aaa-msjgfvkc.json",
-    "aktif": true,
-    "kode_akses": ""
-  },
-  {
     "id": "gg-msjuvbaf",
     "title": "gg",
     "jenjang": "sd",
