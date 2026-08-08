@@ -3013,7 +3013,20 @@ function renderEsaiFolder(meta, pesertaList) {
           <a class="btn btn-outline btn-sm" download="${namaFile}" href="data:application/pdf;base64,${j.fileData}" target="_blank" rel="noopener">📄 Lihat / Unduh PDF</a>
           <button type="button" class="btn btn-outline btn-sm btn-upload-gh" data-peserta="${pi}" data-jawaban="${ji}">⬆️ Upload ke GitHub</button>`;
       } else if (j.link) {
-        fileHtml = `<a class="btn btn-outline btn-sm" href="${j.link}" target="_blank" rel="noopener">🔗 Buka Lampiran</a>`;
+        // Kolom "link" seharusnya berisi URL Google Drive. Tapi kalau Apps Script gagal
+        // menyimpan file ke Drive (mis. error izin DriveApp), yang tersimpan di Sheet
+        // adalah TEKS PESAN ERROR, bukan URL. Kalau dipaksa jadi <a href>, klik-nya akan
+        // membuka teks error itu sebagai alamat (404 di GitHub Pages). Jadi divalidasi dulu.
+        const linkValid = /^https?:\/\//i.test(String(j.link).trim());
+        if (linkValid) {
+          fileHtml = `<a class="btn btn-outline btn-sm" href="${j.link}" target="_blank" rel="noopener">🔗 Buka Lampiran</a>`;
+        } else {
+          fileHtml = `<div class="esai-gh-link" style="color:#b0294f; background:#fdeaf0; border:1px solid #f6c3d5; padding:8px 12px; border-radius:10px; font-size:12px;">
+            ⚠️ Gagal menyimpan lampiran ini di Drive (bukan link, tapi pesan error dari Apps Script):<br>
+            <code style="font-size:11px;">${String(j.link).replace(/</g, '&lt;')}</code><br>
+            Ini masalah izin/otorisasi <code>DriveApp</code> di Apps Script, bukan di panel admin ini — perlu diperbaiki di script backend.
+          </div>`;
+        }
       } else {
         fileHtml = `<span class="muted" style="font-size:12px;">Tidak ada file lampiran</span>`;
       }

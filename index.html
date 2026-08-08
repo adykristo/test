@@ -714,7 +714,7 @@ window.MathJax = {
     <div class="peserta-box">
       <h3>Verifikasi Data Peserta</h3>
       <div class="sub" id="pesertaSubJudul">-</div>
-      <div class="info-paket">Masukkan <b>Nomor Ujian</b> yang sudah didaftarkan admin. Jika diminta, isi juga <b>Kode Akses</b>. Setiap nomor hanya boleh ujian <b>satu kali</b> per paket — setelah selesai, nomor yang sama akan diblokir.</div>
+      <div class="info-paket">Masukkan <b>Nomor Ujian</b> yang sudah didaftarkan admin. Jika diminta, isi juga <b>Kode Akses</b>. Nomor Ujian yang sama boleh dipakai lebih dari satu kali / oleh lebih dari satu peserta.</div>
       <label>Nomor Ujian</label>
       <input type="text" id="inputNoUjian" placeholder="Tulis nomor ujian yang diberikan admin" oninput="cekNomorUjian()">
       <label id="labelKodeAkses" style="display:none;">Kode Akses</label>
@@ -1155,8 +1155,9 @@ function cariPesertaTerdaftar(noUjian, paketId) {
   return data;
 }
 
-// dipanggil setiap kali peserta mengetik nomor ujian, untuk menampilkan pratinjau nama
-// + langsung BLOKIR jika nomor ini sudah pernah menyelesaikan paket ini
+// dipanggil setiap kali peserta mengetik nomor ujian, untuk menampilkan pratinjau nama.
+// CATATAN: Nomor Ujian sekarang boleh dipakai berkali-kali, jadi tidak ada lagi
+// pengecekan "sudah pernah selesai" di sini.
 function cekNomorUjian() {
   const noUjian = document.getElementById('inputNoUjian').value.trim();
   const errEl = document.getElementById('pesertaErr');
@@ -1169,21 +1170,7 @@ function cekNomorUjian() {
 
   if (!noUjian || !pendingTryout) return;
 
-  const { paket, meta } = pendingTryout;
-  const paketIdCek = meta.id || (paket && paket.id) || '';
-  const paketTitleCek = (paket && paket.title) || meta.title || '';
-
-  // LANGSUNG BLOKIR jika sudah pernah selesai (localStorage) — tanpa perlu klik Mulai
-  if (typeof sudahPernahTryoutLokal === 'function' && sudahPernahTryoutLokal(noUjian, paketIdCek, paketTitleCek)) {
-    errEl.textContent =
-      '🚫 AKSES DIBLOKIR\n\n' +
-      'Nomor Ujian "' + noUjian + '" sudah pernah menyelesaikan tryout ini.\n' +
-      'Anda tidak dapat masuk/mengulang ujian yang sama.\n\n' +
-      'Hubungi admin jika ini keliru.';
-    errEl.classList.add('show');
-    return;
-  }
-
+  const { meta } = pendingTryout;
   const data = cariPesertaTerdaftar(noUjian, meta.id);
 
   if (!data) {
@@ -1200,25 +1187,6 @@ function cekNomorUjian() {
   document.getElementById('pesertaNamaTerverifikasi').textContent = data.nama;
   boxTerverifikasi.style.display = 'block';
   btnMulai.disabled = false;
-
-  // Cek juga ke server di latar belakang; jika sudah pernah, langsung blokir
-  if (typeof cekNomorUjianSudahDipakai === 'function') {
-    cekNomorUjianSudahDipakai(noUjian, paketIdCek, paketTitleCek).then(sudah => {
-      // Pastikan masih nomor yang sama yang sedang diketik
-      if (document.getElementById('inputNoUjian').value.trim() !== noUjian) return;
-      if (sudah) {
-        tandaiTryoutSelesaiLokal(noUjian, paketIdCek, paketTitleCek);
-        errEl.textContent =
-          '🚫 AKSES DIBLOKIR\n\n' +
-          'Nomor Ujian "' + noUjian + '" sudah pernah mengumpulkan jawaban untuk paket ini.\n' +
-          'Anda tidak dapat masuk/mengulang ujian yang sama.\n\n' +
-          'Hubungi admin jika ini keliru.';
-        errEl.classList.add('show');
-        boxTerverifikasi.style.display = 'none';
-        btnMulai.disabled = true;
-      }
-    }).catch(() => { /* biarkan; akan dicek lagi saat klik Mulai */ });
-  }
 }
 
 async function mulaiUjianSetelahData() {
@@ -1254,54 +1222,8 @@ async function mulaiUjianSetelahData() {
 
   errEl.classList.remove('show');
 
-  // ===== BLOK: satu nomor ujian hanya boleh 1x per paket =====
-  const paketIdCek = meta.id || paket.id || '';
-  const paketTitleCek = paket.title || meta.title || '';
-
-  // 1) Cek localStorage (langsung, tanpa internet)
-  if (sudahPernahTryoutLokal(noUjian, paketIdCek, paketTitleCek)) {
-    errEl.textContent =
-      '🚫 AKSES DIBLOKIR\n\n' +
-      'Nomor Ujian "' + noUjian + '" sudah pernah mengerjakan tryout ini.\n' +
-      'Setiap nomor hanya boleh ujian 1 kali per paket.\n\n' +
-      'Anda tidak dapat mengulang. Hubungi admin jika ini keliru.';
-    errEl.classList.add('show');
-    return;
-  }
-
-  // 2) Cek ke Google Sheet (server) — wajib; kalau gagal koneksi tetap diblok agar tidak bisa mengulang
-  btnMulai.disabled = true;
-  const teksAsliBtn = btnMulai.textContent;
-  btnMulai.textContent = 'Memeriksa status…';
-  try {
-    const sudahDipakai = await cekNomorUjianSudahDipakai(noUjian, paketIdCek, paketTitleCek);
-    if (sudahDipakai) {
-      // Sinkronkan juga ke localStorage supaya blok berikutnya lebih cepat
-      tandaiTryoutSelesaiLokal(noUjian, paketIdCek, paketTitleCek);
-      errEl.textContent =
-        '🚫 AKSES DIBLOKIR\n\n' +
-        'Nomor Ujian "' + noUjian + '" sudah pernah mengumpulkan jawaban untuk paket ini.\n' +
-        'Ujian ulang tidak diizinkan.\n\n' +
-        'Hubungi admin/guru jika Anda merasa ini kesalahan.';
-      errEl.classList.add('show');
-      btnMulai.disabled = false;
-      btnMulai.textContent = teksAsliBtn;
-      return;
-    }
-  } catch (e) {
-    // Fail-closed: jika server tidak bisa dicek, jangan izinkan mulai
-    errEl.textContent =
-      '🚫 TIDAK BISA MEMULAI UJIAN\n\n' +
-      'Sistem belum bisa memverifikasi status Nomor Ujian (koneksi bermasalah).\n' +
-      'Demi keamanan, ujian tidak dapat dimulai saat ini.\n\n' +
-      'Periksa internet Anda, lalu coba lagi. Atau hubungi admin.';
-    errEl.classList.add('show');
-    btnMulai.disabled = false;
-    btnMulai.textContent = teksAsliBtn;
-    return;
-  }
-  btnMulai.textContent = teksAsliBtn;
-  btnMulai.disabled = false;
+  // Nomor Ujian sekarang boleh dipakai berkali-kali / oleh lebih dari satu peserta,
+  // jadi tidak ada lagi pengecekan "sudah pernah mengerjakan" di sini — langsung mulai.
 
   tryoutState = {
     paket,
@@ -1520,14 +1442,6 @@ function confirmSubmitTryout() {
 function submitTryout(autoSubmit) {
   clearInterval(tryoutState.timerHandle);
 
-  // Segera tandai di browser: nomor ini sudah menyelesaikan paket ini (cegah mengulang)
-  try {
-    const p = tryoutState.peserta || {};
-    const paketId = (tryoutState.meta && tryoutState.meta.id) || tryoutState.paket.id || '';
-    const paketTitle = tryoutState.paket.title || '';
-    tandaiTryoutSelesaiLokal(p.noUjian, paketId, paketTitle);
-  } catch (e) { /* ignore */ }
-
   const soalList = tryoutState.paket.soal;
 
   // Semua soal esai wajib memiliki file PDF sebelum dikumpulkan.
@@ -1674,50 +1588,8 @@ let lastHasil = null;
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYnIAUlMxIOJDa7y_sJqWzXfB_6AsFZyhB1RLUnIoxqsPewch5GiooYK3xCZJORLWw/exec";
 // ===========================================================================
 
-// ----- Blok lokal (browser): cegah mengulang di perangkat yang sama -----
-function kunciTryoutLokal(noUjian, paketId, paketTitle) {
-  const n = String(noUjian || '').trim().toLowerCase();
-  const keys = [];
-  if (paketId) keys.push('kf_done_' + String(paketId) + '_' + n);
-  if (paketTitle) keys.push('kf_done_title_' + String(paketTitle).trim().toLowerCase() + '_' + n);
-  return keys;
-}
-function sudahPernahTryoutLokal(noUjian, paketId, paketTitle) {
-  return kunciTryoutLokal(noUjian, paketId, paketTitle).some(k => localStorage.getItem(k) === '1');
-}
-function tandaiTryoutSelesaiLokal(noUjian, paketId, paketTitle) {
-  kunciTryoutLokal(noUjian, paketId, paketTitle).forEach(k => localStorage.setItem(k, '1'));
-}
-
-// Cek ke Apps Script apakah noUjian+paket sudah pernah mengumpulkan hasil.
-// Mencoba dengan paketId dulu, lalu judul paket (kompatibel dengan data lama).
-async function cekNomorUjianSudahDipakai(noUjian, paketId, paketTitle) {
-  if (!GOOGLE_SCRIPT_URL) throw new Error('URL Apps Script belum diisi.');
-
-  async function cekSatu(kunciPaket) {
-    if (!kunciPaket) return false;
-    const url = `${GOOGLE_SCRIPT_URL}?action=cek&noUjian=${encodeURIComponent(noUjian)}&paket=${encodeURIComponent(kunciPaket)}&_=${Date.now()}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Gagal memeriksa status nomor ujian.');
-    const data = await res.json();
-    return !!data.sudahDipakai;
-  }
-
-  // Cek pakai id dan judul — jika salah satu true, anggap sudah dipakai
-  const byId = await cekSatu(paketId);
-  if (byId) return true;
-  if (paketTitle && paketTitle !== paketId) {
-    const byTitle = await cekSatu(paketTitle);
-    if (byTitle) return true;
-  }
-  return false;
-}
-
 function kirimHasilKeSheet(hasil) {
   const statusEl = document.getElementById('kirimStatus');
-
-  // Langsung tandai di browser agar nomor ujian ini tidak bisa mengulang di perangkat ini
-  tandaiTryoutSelesaiLokal(hasil.noUjian, hasil.paketId, hasil.paket);
 
   if (!GOOGLE_SCRIPT_URL) {
     statusEl.textContent = 'Pengiriman otomatis belum diaktifkan admin. Hubungi guru untuk verifikasi hasil kamu secara manual.';
@@ -1733,7 +1605,11 @@ function kirimHasilKeSheet(hasil) {
     body: JSON.stringify(hasil)
   }).then(res => res.json()).then(resData => {
     if (resData && resData.status === 'sudah_pernah') {
-      statusEl.textContent = '🚫 DIBLOKIR: Nomor ujian ini sudah pernah mengumpulkan tryout ini. Hasil kali ini TIDAK disimpan (cegah ujian ulang). Hubungi guru jika ini keliru.';
+      // Catatan: status ini seharusnya tidak muncul lagi karena Apps Script versi
+      // terbaru tidak lagi memblokir submit ganda (Nomor Ujian boleh dipakai
+      // berkali-kali). Ditangani di sini hanya untuk jaga-jaga kalau backend
+      // belum diupdate ke versi terbaru.
+      statusEl.textContent = 'Hasil kali ini tidak tersimpan karena versi Apps Script di server belum yang terbaru. Update Code.gs di Apps Script lalu deploy ulang.';
       statusEl.className = 'kirim-status failed';
     } else {
       statusEl.textContent = '✓ Hasil berhasil dikirim ke guru.';
