@@ -246,17 +246,28 @@ window.MathJax = {
     padding:11px 20px;
     cursor:pointer;
     font-family:inherit;
-    transition:opacity .15s, background .15s;
+    transition:transform .12s ease, box-shadow .15s ease, background .15s ease, opacity .15s ease, border-color .15s ease;
   }
   button:disabled{ opacity:.45; cursor:not-allowed; }
+  button:not(:disabled):active, .btn:not(:disabled):active{
+    transform:scale(.96);
+  }
 
   .btn-primary, #submitBtnS, #uploadOsnBtn{
     background:linear-gradient(90deg, var(--pink), var(--ungu));
     color:#fff;
     width:100%;
     margin-top:18px;
+    box-shadow:0 3px 10px rgba(248,87,166,.28);
   }
-  .btn-primary:hover, #submitBtnS:hover, #uploadOsnBtn:hover{ opacity:.92; }
+  .btn-primary:hover, #submitBtnS:hover, #uploadOsnBtn:hover{
+    opacity:.95;
+    box-shadow:0 5px 16px rgba(248,87,166,.4);
+    transform:translateY(-1px);
+  }
+  .btn-primary:active, #submitBtnS:active, #uploadOsnBtn:active{
+    box-shadow:0 2px 6px rgba(248,87,166,.3);
+  }
 
   .btn-outline, button.secondary, #testBtn, #loadListBtn, #loadOsnListBtn{
     background:#fff;
@@ -264,17 +275,33 @@ window.MathJax = {
     border:1.5px solid #dcccf0;
     width:100%;
     margin-top:10px;
+    box-shadow:0 1px 3px rgba(61,26,99,.05);
   }
   .btn-outline:hover, button.secondary:hover,
   #testBtn:hover, #loadListBtn:hover, #loadOsnListBtn:hover{
     background:var(--pink-muda);
+    border-color:var(--pink);
+    color:var(--ungu-tua);
+    transform:translateY(-1px);
+    box-shadow:0 4px 12px rgba(248,87,166,.22);
+  }
+  .btn-outline:active, button.secondary:active,
+  #testBtn:active, #loadListBtn:active, #loadOsnListBtn:active{
+    background:#fce3f0;
+    border-color:var(--ungu);
   }
 
   .btn-hijau{
     background:var(--hijau);
     color:#fff;
+    box-shadow:0 3px 10px rgba(46,158,91,.28);
   }
-  .btn-hijau:hover{ opacity:.9; }
+  .btn-hijau:hover{
+    opacity:.95;
+    transform:translateY(-1px);
+    box-shadow:0 5px 16px rgba(46,158,91,.38);
+  }
+  .btn-hijau:active{ box-shadow:0 2px 6px rgba(46,158,91,.3); }
 
   .btn-block{ width:100%; }
 
@@ -514,25 +541,111 @@ window.MathJax = {
     font-weight:700;
     padding:11px 20px;
     cursor:pointer;
+    transition:transform .12s ease, box-shadow .15s ease, background .15s ease, opacity .15s ease, border-color .15s ease;
+  }
+  #panelTryout button.btn:not(:disabled):active, #panelEsai button.btn:not(:disabled):active{
+    transform:scale(.96);
   }
   #panelTryout .btn-outline, #panelEsai .btn-outline{
     background:#fff;
     color:var(--ungu-tua);
     border:1.5px solid #dcccf0;
+    box-shadow:0 1px 3px rgba(61,26,99,.05);
+  }
+  #panelTryout .btn-outline:hover, #panelEsai .btn-outline:hover{
+    background:var(--pink-muda);
+    border-color:var(--pink);
+    transform:translateY(-1px);
+    box-shadow:0 4px 12px rgba(248,87,166,.22);
+  }
+  #panelTryout .btn-outline:active, #panelEsai .btn-outline:active{
+    background:#fce3f0;
+    border-color:var(--ungu);
   }
   #panelTryout .btn-primary, #panelEsai .btn-primary{
     background:linear-gradient(90deg, var(--pink), var(--ungu));
     color:#fff;
+    box-shadow:0 3px 10px rgba(248,87,166,.28);
+  }
+  #panelTryout .btn-primary:hover, #panelEsai .btn-primary:hover{
+    opacity:.95;
+    transform:translateY(-1px);
+    box-shadow:0 5px 16px rgba(248,87,166,.4);
   }
   #panelTryout .btn-hijau, #panelEsai .btn-hijau{
     background:var(--hijau);
     color:#fff;
+    box-shadow:0 3px 10px rgba(46,158,91,.28);
+  }
+  #panelTryout .btn-hijau:hover, #panelEsai .btn-hijau:hover{
+    opacity:.95;
+    transform:translateY(-1px);
+    box-shadow:0 5px 16px rgba(46,158,91,.38);
   }
 
   /* Hide old panelTryout header (we use shared header) */
   #panelTryout > header{ display:none; }
 
   /* ===== PANEL JAWABAN ESAI (folder koreksi) ===== */
+  #panelEsai main{ padding-top:22px; }
+  #panelEsai header{
+    padding:22px 24px 16px;
+  }
+  #panelEsai header h1{
+    font-size:19px;
+    font-weight:700;
+    color:var(--ungu-tua);
+    margin:0;
+    line-height:1.3;
+  }
+  #panelEsai header p{
+    font-size:12.5px;
+    color:var(--abu);
+    margin:2px 0 0;
+    line-height:1.4;
+  }
+  #panelEsai .esai-toolbar{
+    display:flex;
+    align-items:flex-end;
+    gap:12px;
+    flex-wrap:wrap;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:18px 20px;
+    box-shadow:var(--shadow);
+    margin-bottom:14px;
+  }
+  #panelEsai .esai-toolbar-field{
+    flex:1;
+    min-width:220px;
+  }
+  #panelEsai .esai-toolbar-field label{
+    margin-top:0;
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--ungu-tua);
+  }
+  #panelEsai .esai-toolbar select{
+    margin-top:6px;
+  }
+  #panelEsai .esai-toolbar button{
+    height:44px;
+    white-space:nowrap;
+  }
+  #panelEsai .esai-empty{
+    text-align:center;
+    padding:48px 20px;
+    background:var(--card);
+    border:1.5px dashed #e3d3f5;
+    border-radius:16px;
+    color:var(--abu);
+  }
+  #panelEsai .esai-empty-icon{
+    font-size:34px;
+    margin-bottom:10px;
+    opacity:.8;
+  }
   #panelEsai .btn-sm{
     padding:7px 14px;
     font-size:12.5px;
@@ -540,10 +653,14 @@ window.MathJax = {
   #panelEsai .esai-folder{
     background:var(--card);
     border:1px solid var(--border);
+    border-left:4px solid var(--ungu);
     border-radius:14px;
     margin-bottom:12px;
     overflow:hidden;
+    box-shadow:var(--shadow);
+    transition:border-color .15s;
   }
+  #panelEsai .esai-folder[open]{ border-left-color:var(--pink); }
   #panelEsai .esai-folder summary{
     list-style:none;
     cursor:pointer;
@@ -557,6 +674,7 @@ window.MathJax = {
     font-size:13.5px;
     background:#faf7ff;
   }
+  #panelEsai .esai-folder summary:hover{ background:#f4ecfe; }
   #panelEsai .esai-folder summary::-webkit-details-marker{ display:none; }
   #panelEsai .esai-folder summary .muted{ font-weight:400; color:var(--abu); }
   #panelEsai .esai-folder-body{
@@ -910,29 +1028,26 @@ window.MathJax = {
 
 <div id="panelEsai" class="tab-panel">
 <header>
-  <h1>📝 Jawaban Esai — Koreksi Manual</h1>
-  <p>Semua jawaban esai peserta dikumpulkan per paket, dikelompokkan per peserta seperti folder, supaya mudah dibuka &amp; dikoreksi satu per satu.</p>
+  <h1>📝 Jawaban Esai</h1>
+  <p>Buka jawaban esai per paket, dikelompokkan per peserta, langsung koreksi di sini.</p>
 </header>
 <main>
 
-  <div class="box">
-    <h2>Jawaban Esai</h2>
-    <p class="help">
-      Pakai konfigurasi Apps Script &amp; Kode Rahasia Admin yang sama dengan tab
-      "⚙️ Admin Tryout" → bagian 5.
-    </p>
-    <label>Pilih Paket Tryout</label>
-    <select id="esaiPaketSelect"><option value="">Memuat daftar paket…</option></select>
-
-    <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
-      <button class="btn btn-primary" onclick="ambilJawabanEsai()">📂 Buka Jawaban Esai</button>
-      <button class="btn btn-hijau" id="btnUnduhRekapEsai" style="display:none;" onclick="unduhRekapKoreksiEsai()">📥 Unduh Rekap Koreksi (PDF)</button>
+  <div class="esai-toolbar">
+    <div class="esai-toolbar-field">
+      <label>Paket Tryout</label>
+      <select id="esaiPaketSelect"><option value="">Memuat daftar paket…</option></select>
     </div>
-    <div id="statusEsai" class="status-bar"></div>
+    <button class="btn btn-primary" onclick="ambilJawabanEsai()">📂 Buka Jawaban Esai</button>
+    <button class="btn btn-hijau" id="btnUnduhRekapEsai" style="display:none;" onclick="unduhRekapKoreksiEsai()">📥 Unduh Rekap (PDF)</button>
   </div>
+  <div id="statusEsai" class="status-bar"></div>
 
-  <div class="box" id="esaiFolderBox">
-    <div id="esaiFolderList"><p class="help">Belum ada data. Pilih paket lalu klik "Buka Jawaban Esai" di atas.</p></div>
+  <div id="esaiFolderList">
+    <div class="esai-empty">
+      <div class="esai-empty-icon">🗂️</div>
+      <p>Pilih paket lalu klik <strong>"Buka Jawaban Esai"</strong> untuk mulai koreksi.</p>
+    </div>
   </div>
 
 </main>
@@ -2894,7 +3009,7 @@ async function ambilJawabanEsai() {
   const meta = manifestCache.content.find(p => p.id === paketId);
   if (!meta) { setStatus('statusEsai', 'Pilih paket tryout dulu.', 'err'); return; }
 
-  document.getElementById('esaiFolderList').innerHTML = '<p class="help">Memuat…</p>';
+  document.getElementById('esaiFolderList').innerHTML = '<div class="esai-empty"><div class="esai-empty-icon">⏳</div><p>Memuat…</p></div>';
   document.getElementById('btnUnduhRekapEsai').style.display = 'none';
   esaiCache = { meta: null, peserta: [] };
 
@@ -2919,7 +3034,7 @@ async function ambilJawabanEsai() {
 
     if (!semuaBaris.length) {
       setStatus('statusEsai', 'Tidak ada data hasil yang dikembalikan Apps Script untuk paket ini.', 'err');
-      document.getElementById('esaiFolderList').innerHTML = '<p class="help">Belum ada data.</p>';
+      document.getElementById('esaiFolderList').innerHTML = '<div class="esai-empty"><div class="esai-empty-icon">📭</div><p>Belum ada data hasil untuk paket ini.</p></div>';
       return;
     }
 
@@ -2934,7 +3049,7 @@ async function ambilJawabanEsai() {
       setStatus('statusEsai',
         'Belum ada jawaban esai yang terbaca dari Sheet untuk paket ini. Lihat catatan di bagian 3 di bawah ' +
         'untuk format kolom yang dikenali otomatis.', 'err');
-      document.getElementById('esaiFolderList').innerHTML = '<p class="help">Belum ada jawaban esai ditemukan.</p>';
+      document.getElementById('esaiFolderList').innerHTML = '<div class="esai-empty"><div class="esai-empty-icon">📭</div><p>Belum ada jawaban esai ditemukan untuk paket ini.</p></div>';
       return;
     }
 
@@ -2944,7 +3059,7 @@ async function ambilJawabanEsai() {
     setStatus('statusEsai', `✓ Ditemukan ${pesertaList.length} peserta dengan jawaban esai.`, 'ok');
   } catch (e) {
     setStatus('statusEsai', 'Gagal: ' + e.message, 'err');
-    document.getElementById('esaiFolderList').innerHTML = '<p class="help">Gagal memuat data.</p>';
+    document.getElementById('esaiFolderList').innerHTML = '<div class="esai-empty"><div class="esai-empty-icon">⚠️</div><p>Gagal memuat data.</p></div>';
   }
 }
 
