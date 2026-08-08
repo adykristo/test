@@ -1605,11 +1605,7 @@ function kirimHasilKeSheet(hasil) {
     body: JSON.stringify(hasil)
   }).then(res => res.json()).then(resData => {
     if (resData && resData.status === 'sudah_pernah') {
-      // Catatan: status ini seharusnya tidak muncul lagi karena Apps Script versi
-      // terbaru tidak lagi memblokir submit ganda (Nomor Ujian boleh dipakai
-      // berkali-kali). Ditangani di sini hanya untuk jaga-jaga kalau backend
-      // belum diupdate ke versi terbaru.
-      statusEl.textContent = 'Hasil kali ini tidak tersimpan karena versi Apps Script di server belum yang terbaru. Update Code.gs di Apps Script lalu deploy ulang.';
+      statusEl.textContent = 'Nomor ujian ini sudah pernah mengumpulkan tryout ini sebelumnya, jadi hasil kali ini tidak disimpan ulang.';
       statusEl.className = 'kirim-status failed';
     } else {
       statusEl.textContent = '✓ Hasil berhasil dikirim ke guru.';
