@@ -424,21 +424,58 @@ window.MathJax = {
     display:flex;
     flex-wrap:wrap;
     gap:8px;
-    margin-bottom:20px;
+    margin-bottom:12px;
   }
   .navigator button{
     width:34px;
     height:34px;
     border-radius:8px;
-    border:1px solid #f0e2fa;
+    border:1.5px solid #e0d0f0;
     background:#fff;
     color:var(--ungu-tua);
     font-size:12.5px;
     font-weight:700;
     cursor:pointer;
   }
-  .navigator button.answered{ background:var(--pink-muda); border-color:var(--pink); }
-  .navigator button.current{ background:var(--ungu); color:#fff; border-color:var(--ungu); }
+  .navigator button.unanswered{
+    background:#fff;
+    border-color:#e0d0f0;
+    color:var(--abu);
+  }
+  .navigator button.answered{
+    background:#dff5e6;
+    border-color:#2e9e5b;
+    color:#1f7a41;
+  }
+  .navigator button.current{
+    background:var(--ungu);
+    color:#fff;
+    border-color:var(--ungu);
+    box-shadow:0 0 0 2px rgba(123,47,247,.25);
+  }
+  .navigator-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px 18px;
+    margin-bottom:18px;
+    font-size:12px;
+    color:var(--abu);
+  }
+  .navigator-legend span{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .navigator-legend i{
+    display:inline-block;
+    width:14px;
+    height:14px;
+    border-radius:4px;
+    border:1.5px solid #e0d0f0;
+  }
+  .navigator-legend i.leg-answered{ background:#dff5e6; border-color:#2e9e5b; }
+  .navigator-legend i.leg-current{ background:var(--ungu); border-color:var(--ungu); }
+  .navigator-legend i.leg-empty{ background:#fff; border-color:#e0d0f0; }
 
   .soal-player{
     background:#fff;
@@ -732,13 +769,20 @@ window.MathJax = {
       <div>
         <div class="judul" id="attemptJudul">-</div>
         <div class="progres" id="attemptProgres">Soal 1 dari 1</div>
+        <div class="progres" id="attemptTerjawab" style="margin-top:2px; font-size:12px; color:var(--ungu);">Terjawab: 0 / 0</div>
       </div>
       <div class="timer" id="attemptTimer">00:00</div>
     </div>
     <div class="navigator" id="attemptNavigator"></div>
+    <div class="navigator-legend" id="attemptLegend">
+      <span><i class="leg-current"></i> Sedang dikerjakan</span>
+      <span><i class="leg-answered"></i> Sudah dijawab</span>
+      <span><i class="leg-empty"></i> Belum dijawab</span>
+    </div>
     <div class="soal-player" id="attemptPlayer"></div>
     <div class="tryout-footer-nav">
       <button class="btn-secondary" id="btnPrevSoal" onclick="tryoutPrev()">‹ Sebelumnya</button>
+      <button class="btn-secondary" type="button" onclick="loncatKeSoalKosong()" title="Pindah ke soal yang belum dijawab">Ke soal kosong</button>
       <button class="btn-submit" onclick="confirmSubmitTryout()">Selesai &amp; Kumpulkan</button>
       <button class="btn-primary" id="btnNextSoal" onclick="tryoutNext()">Selanjutnya ›</button>
     </div>
@@ -751,6 +795,9 @@ window.MathJax = {
     </div>
     <div class="peserta-ringkas" id="hasilPesertaRingkas"></div>
     <div class="kirim-status sending" id="kirimStatus">Mengirim hasil ke guru…</div>
+    <div style="text-align:center; margin-bottom:14px;">
+      <button type="button" id="btnKirimUlang" class="btn-primary" style="display:none; width:auto; padding:10px 22px;" onclick="kirimUlangHasil()">🔄 Coba Kirim Ulang</button>
+    </div>
     <div class="hasil-summary">
       <div style="font-size:13.5px; color:var(--abu);">Skor Kamu</div>
       <div class="nilai" id="hasilNilai">0</div>
@@ -1043,6 +1090,53 @@ async function loadDaftarPeserta() {
 
 // state saat mengerjakan
 let tryoutState = null; // { paket, jawaban:{}, index, sisaDetik, timerHandle }
+let tryoutSubmitted = false; // true setelah submit — nonaktifkan beforeunload & autosave
+
+function autosaveKey(paketId, noUjian) {
+  return 'kf_tryout_draft_' + String(paketId || '') + '_' + String(noUjian || '');
+}
+
+function simpanAutosave() {
+  if (!tryoutState || tryoutSubmitted) return;
+  try {
+    const key = autosaveKey(
+      (tryoutState.meta && tryoutState.meta.id) || tryoutState.paket.id,
+      tryoutState.peserta && tryoutState.peserta.noUjian
+    );
+    const payload = {
+      jawaban: tryoutState.jawaban,
+      index: tryoutState.index,
+      sisaDetik: tryoutState.sisaDetik,
+      savedAt: Date.now()
+    };
+    localStorage.setItem(key, JSON.stringify(payload));
+  } catch (e) { /* quota penuh / private mode — abaikan */ }
+}
+
+function muatAutosave(paketId, noUjian) {
+  try {
+    const raw = localStorage.getItem(autosaveKey(paketId, noUjian));
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+function hapusAutosave(paketId, noUjian) {
+  try {
+    localStorage.removeItem(autosaveKey(paketId, noUjian));
+  } catch (e) { /* ignore */ }
+}
+
+// Peringatan jika peserta mencoba menutup / refresh saat masih mengerjakan
+window.addEventListener('beforeunload', function (e) {
+  if (tryoutState && !tryoutSubmitted) {
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+});
 
 function renderKatexIn(el) {
   if (!el) return;
@@ -1225,13 +1319,34 @@ async function mulaiUjianSetelahData() {
   // Nomor Ujian sekarang boleh dipakai berkali-kali / oleh lebih dari satu peserta,
   // jadi tidak ada lagi pengecekan "sudah pernah mengerjakan" di sini — langsung mulai.
 
+  const durasiDetik = (paket.durasi_menit || meta.durasi_menit || 30) * 60;
+  const draft = muatAutosave(meta.id || paket.id, noUjian);
+
+  let jawabanAwal = {};
+  let indexAwal = 0;
+  let sisaAwal = durasiDetik;
+  let restoreMsg = '';
+
+  if (draft && draft.jawaban && typeof draft.jawaban === 'object') {
+    // Hanya restore jika draft masih masuk akal (sisa waktu > 0)
+    if (typeof draft.sisaDetik === 'number' && draft.sisaDetik > 0) {
+      jawabanAwal = draft.jawaban;
+      indexAwal = Math.min(Math.max(0, draft.index || 0), (paket.soal || []).length - 1);
+      sisaAwal = Math.min(durasiDetik, draft.sisaDetik);
+      restoreMsg = 'Ditemukan jawaban sementara dari sesi sebelumnya. Dilanjutkan dari situ.';
+    } else {
+      hapusAutosave(meta.id || paket.id, noUjian);
+    }
+  }
+
+  tryoutSubmitted = false;
   tryoutState = {
     paket,
     meta,
     peserta: { nama: data.nama, noUjian },
-    jawaban: {},
-    index: 0,
-    sisaDetik: (paket.durasi_menit || meta.durasi_menit || 30) * 60,
+    jawaban: jawabanAwal,
+    index: indexAwal,
+    sisaDetik: sisaAwal,
     timerHandle: null
   };
 
@@ -1240,6 +1355,9 @@ async function mulaiUjianSetelahData() {
   renderNavigator();
   renderCurrentSoal();
   startTimer();
+  if (restoreMsg) {
+    setTimeout(function () { alert(restoreMsg); }, 300);
+  }
 }
 
 function startTimer() {
@@ -1248,6 +1366,8 @@ function startTimer() {
   tryoutState.timerHandle = setInterval(() => {
     tryoutState.sisaDetik--;
     updateTimerDisplay();
+    // Autosave tiap 15 detik agar sisa waktu ikut tersimpan
+    if (tryoutState.sisaDetik % 15 === 0) simpanAutosave();
     if (tryoutState.sisaDetik <= 0) {
       clearInterval(tryoutState.timerHandle);
       submitTryout(true);
@@ -1266,12 +1386,22 @@ function updateTimerDisplay() {
 function renderNavigator() {
   const nav = document.getElementById('attemptNavigator');
   const soalList = tryoutState.paket.soal;
+  let terjawab = 0;
   nav.innerHTML = soalList.map((s, i) => {
+    const answered = sudahDijawab(s, tryoutState.jawaban);
+    if (answered) terjawab++;
     const cls = ['navigator-btn'];
     if (i === tryoutState.index) cls.push('current');
-    else if (sudahDijawab(s, tryoutState.jawaban)) cls.push('answered');
-    return `<button class="${cls.join(' ')}" onclick="jumpToSoal(${i})">${i + 1}</button>`;
+    else if (answered) cls.push('answered');
+    else cls.push('unanswered');
+    return `<button class="${cls.join(' ')}" onclick="jumpToSoal(${i})" title="${answered ? 'Sudah dijawab' : 'Belum dijawab'}">${i + 1}</button>`;
   }).join('');
+  const elTerjawab = document.getElementById('attemptTerjawab');
+  if (elTerjawab) {
+    elTerjawab.textContent = 'Terjawab: ' + terjawab + ' / ' + soalList.length +
+      (terjawab < soalList.length ? '  ·  Belum: ' + (soalList.length - terjawab) : '  ·  Semua terjawab ✓');
+  }
+  simpanAutosave();
 }
 
 function jumpToSoal(i) {
@@ -1285,6 +1415,19 @@ function tryoutPrev() {
 }
 function tryoutNext() {
   if (tryoutState.index < tryoutState.paket.soal.length - 1) jumpToSoal(tryoutState.index + 1);
+}
+function loncatKeSoalKosong() {
+  if (!tryoutState) return;
+  const soalList = tryoutState.paket.soal;
+  // Cari dari soal setelah yang sekarang, lalu putar dari awal
+  for (let offset = 1; offset <= soalList.length; offset++) {
+    const i = (tryoutState.index + offset) % soalList.length;
+    if (!sudahDijawab(soalList[i], tryoutState.jawaban)) {
+      jumpToSoal(i);
+      return;
+    }
+  }
+  alert('Semua soal sudah dijawab.');
 }
 
 function getTipeSoal(s) {
@@ -1309,8 +1452,11 @@ function sudahDijawab(s, jawabanMap) {
   if (j === undefined || j === null || j === '') return false;
   const tipe = getTipeSoal(s);
   if (tipe === 'esai') {
-    if (typeof j === 'object') return !!(j.teks && j.teks.trim()) || !!j.fileName || !!j.fileData;
-    return String(j).trim() !== '';
+    // Esai dianggap terjawab hanya jika sudah ada file PDF (sesuai syarat submit)
+    if (typeof j === 'object') {
+      return !!(j.fileName && String(j.fileName).toLowerCase().endsWith('.pdf') && j.fileData);
+    }
+    return false;
   }
   return true;
 }
@@ -1340,21 +1486,33 @@ function renderCurrentSoal() {
         <textarea id="inputIsianAktif" placeholder="Ketik jawabanmu di sini (boleh angka, teks, atau rumus)..." oninput="simpanIsian('${s.id}')">${val.replace(/</g,'&lt;')}</textarea>
       </div>`;
   } else if (tipe === 'esai') {
-    const obj = (dipilih && typeof dipilih === 'object') ? dipilih : { teks: typeof dipilih === 'string' ? dipilih : '', fileName: '', fileData: '' };
-    const preview = obj.fileData ? `<img class="esai-preview" src="${obj.fileData}" alt="Preview jawaban">` : '';
-    const fname = obj.fileName ? `<div class="esai-file-name">File: ${obj.fileName}</div>` : '';
+    const obj = (dipilih && typeof dipilih === 'object') ? dipilih : { teks: typeof dipilih === 'string' ? dipilih : '', fileName: '', fileData: '', fileSize: 0 };
+    const adaPdf = !!(obj.fileName && String(obj.fileName).toLowerCase().endsWith('.pdf') && obj.fileData);
+    const sizeLabel = obj.fileSize
+      ? (obj.fileSize < 1024 * 1024
+          ? (obj.fileSize / 1024).toFixed(1) + ' KB'
+          : (obj.fileSize / (1024 * 1024)).toFixed(2) + ' MB')
+      : '';
+    const statusFile = adaPdf
+      ? `<div style="margin-top:10px;padding:10px 12px;background:#dff5e6;border:1px solid #a8e0b8;border-radius:10px;font-size:13px;color:#1f7a41;">
+           ✓ PDF terunggah: <b>${String(obj.fileName).replace(/</g,'&lt;')}</b>${sizeLabel ? ' (' + sizeLabel + ')' : ''}
+           <button type="button" onclick="hapusEsaiFile('${s.id}')" style="margin-left:10px;border:none;background:#fdeaea;color:#c0392b;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;cursor:pointer;">Hapus</button>
+         </div>`
+      : `<div style="margin-top:10px;padding:10px 12px;background:#fdeaea;border:1px solid #f5b8b8;border-radius:10px;font-size:13px;color:#c0392b;">
+           ⚠ Belum ada file PDF. Upload PDF wajib sebelum mengumpulkan.
+         </div>`;
     bodyHtml = `
       <div class="esai-box">
-        <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin-bottom:6px;">Jawaban esai</label>
-        <textarea id="inputEsaiAktif" placeholder="Tulis jawaban esai di sini..." oninput="simpanEsaiTeks('${s.id}')">${(obj.teks || '').replace(/</g,'&lt;')}</textarea>
+        <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin-bottom:6px;">Jawaban esai (teks, opsional)</label>
+        <textarea id="inputEsaiAktif" placeholder="Tulis jawaban esai di sini (opsional)..." oninput="simpanEsaiTeks('${s.id}')">${(obj.teks || '').replace(/</g,'&lt;')}</textarea>
         <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin:12px 0 6px;">
-          Upload jawaban esai <span style="color:#c0392b;">(WAJIB PDF)</span>
+          Upload jawaban esai <span style="color:#c0392b;">(WAJIB PDF, maks. 8 MB)</span>
         </label>
         <input type="file" id="inputEsaiFile" accept="application/pdf,.pdf" onchange="simpanEsaiFile('${s.id}', this)">
-        <div class="esai-save-note" style="font-size:11.5px;color:#c0392b;font-weight:600;margin-top:6px;">
-          Jawaban esai wajib diunggah dalam format PDF. Maksimal ukuran file 100 MB.
+        <div class="esai-save-note" style="font-size:11.5px;color:var(--abu);margin-top:6px;">
+          Hanya file PDF yang diterima. Setelah upload, status di bawah harus hijau.
         </div>
-        ${fname}${preview}
+        ${statusFile}
       </div>`;
   } else {
     bodyHtml = `
@@ -1413,29 +1571,66 @@ function simpanEsaiFile(soalId, inputEl) {
     return;
   }
 
-  if (file.size > 100 * 1024 * 1024) {
-    alert('Ukuran file PDF maksimal 100 MB.');
+  // Batas praktis agar tidak gagal di Apps Script (bukan 100 MB)
+  const MAX_SIZE = 8 * 1024 * 1024; // 8 MB
+  if (file.size > MAX_SIZE) {
+    alert('Ukuran file PDF maksimal 8 MB. Kompres dulu atau pilih file yang lebih kecil.');
     inputEl.value = '';
     return;
   }
+
   const reader = new FileReader();
   reader.onload = () => {
+    // Kirim pure base64 (tanpa prefix data:application/pdf;base64,)
+    // supaya Apps Script bisa langsung decode tanpa error
+    let base64 = reader.result || '';
+    if (base64.indexOf('base64,') !== -1) {
+      base64 = base64.split('base64,')[1];
+    }
+
     const prev = tryoutState.jawaban[soalId];
-    const base = (prev && typeof prev === 'object') ? prev : { teks: '', fileName: '', fileData: '' };
-    tryoutState.jawaban[soalId] = { ...base, fileName: file.name, fileData: reader.result };
+    const base = (prev && typeof prev === 'object') ? prev : { teks: '', fileName: '', fileData: '', fileSize: 0 };
+    tryoutState.jawaban[soalId] = {
+      ...base,
+      fileName: file.name,
+      fileData: base64,
+      fileSize: file.size
+    };
     renderNavigator();
     renderCurrentSoal();
+  };
+  reader.onerror = () => {
+    alert('Gagal membaca file PDF. Coba lagi.');
+    inputEl.value = '';
   };
   reader.readAsDataURL(file);
 }
 
+function hapusEsaiFile(soalId) {
+  const prev = tryoutState.jawaban[soalId];
+  const base = (prev && typeof prev === 'object') ? prev : { teks: '', fileName: '', fileData: '', fileSize: 0 };
+  tryoutState.jawaban[soalId] = { ...base, fileName: '', fileData: '', fileSize: 0 };
+  renderNavigator();
+  renderCurrentSoal();
+}
+
 function confirmSubmitTryout() {
-  const total = tryoutState.paket.soal.length;
-  const terjawab = tryoutState.paket.soal.filter(s => sudahDijawab(s, tryoutState.jawaban)).length;
-  const sisa = total - terjawab;
-  const pesan = sisa > 0
-    ? `Masih ada ${sisa} soal yang belum dijawab. Yakin ingin mengumpulkan sekarang?`
-    : 'Yakin ingin mengumpulkan jawaban sekarang?';
+  const soalList = tryoutState.paket.soal;
+  const total = soalList.length;
+  const kosongIdx = [];
+  soalList.forEach((s, i) => {
+    if (!sudahDijawab(s, tryoutState.jawaban)) kosongIdx.push(i + 1);
+  });
+  const sisa = kosongIdx.length;
+  let pesan;
+  if (sisa > 0) {
+    const daftar = kosongIdx.length <= 12
+      ? kosongIdx.join(', ')
+      : kosongIdx.slice(0, 12).join(', ') + ', …';
+    pesan = 'Masih ada ' + sisa + ' soal belum dijawab (nomor: ' + daftar + ').\n\nYakin ingin mengumpulkan sekarang?';
+  } else {
+    pesan = 'Semua soal sudah dijawab.\n\nYakin ingin mengumpulkan sekarang?';
+  }
   if (confirm(pesan)) submitTryout(false);
 }
 
@@ -1455,14 +1650,28 @@ function submitTryout(autoSubmit) {
   });
 
   if (esaiTanpaPdf.length > 0) {
+    // Kembalikan timer jika peserta masih harus melengkapi esai (bukan auto-submit waktu habis)
+    if (!autoSubmit) {
+      startTimer();
+    }
     alert(
       'Jawaban esai belum lengkap.\n\n' +
       'Setiap soal esai WAJIB diunggah dalam format PDF.\n' +
       'Soal yang belum memiliki PDF: ' +
       esaiTanpaPdf.map(s => soalList.indexOf(s) + 1).join(', ')
     );
-    return;
+    // Jika waktu habis tapi esai belum lengkap, tetap lanjutkan (nilai esai kosong)
+    if (!autoSubmit) return;
   }
+
+  tryoutSubmitted = true;
+
+  // Hapus draft autosave setelah submit berhasil lewat validasi
+  try {
+    const pid = (tryoutState.meta && tryoutState.meta.id) || tryoutState.paket.id;
+    const no = tryoutState.peserta && tryoutState.peserta.noUjian;
+    hapusAutosave(pid, no);
+  } catch (e) { /* ignore */ }
 
   let benar = 0, salah = 0, kosong = 0, esaiCount = 0;
 
@@ -1590,6 +1799,8 @@ const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYnIAUlMxIOJ
 
 function kirimHasilKeSheet(hasil) {
   const statusEl = document.getElementById('kirimStatus');
+  const btnUlang = document.getElementById('btnKirimUlang');
+  if (btnUlang) btnUlang.style.display = 'none';
 
   if (!GOOGLE_SCRIPT_URL) {
     statusEl.textContent = 'Pengiriman otomatis belum diaktifkan admin. Hubungi guru untuk verifikasi hasil kamu secara manual.';
@@ -1607,14 +1818,27 @@ function kirimHasilKeSheet(hasil) {
     if (resData && resData.status === 'sudah_pernah') {
       statusEl.textContent = 'Nomor ujian ini sudah pernah mengumpulkan tryout ini sebelumnya, jadi hasil kali ini tidak disimpan ulang.';
       statusEl.className = 'kirim-status failed';
+    } else if (resData && resData.status === 'error') {
+      statusEl.textContent = 'Gagal menyimpan: ' + (resData.message || 'error dari server') + '. Coba kirim ulang.';
+      statusEl.className = 'kirim-status failed';
+      if (btnUlang) btnUlang.style.display = 'inline-block';
     } else {
       statusEl.textContent = '✓ Hasil berhasil dikirim ke guru.';
       statusEl.className = 'kirim-status sent';
     }
   }).catch(() => {
-    statusEl.textContent = 'Gagal mengirim otomatis (masalah koneksi). Screenshot layar ini dan hubungi guru untuk verifikasi manual.';
+    statusEl.textContent = 'Gagal mengirim otomatis (masalah koneksi). Klik "Coba Kirim Ulang" atau screenshot layar ini dan hubungi guru.';
     statusEl.className = 'kirim-status failed';
+    if (btnUlang) btnUlang.style.display = 'inline-block';
   });
+}
+
+function kirimUlangHasil() {
+  if (!lastHasil) {
+    alert('Tidak ada data hasil untuk dikirim ulang.');
+    return;
+  }
+  kirimHasilKeSheet(lastHasil);
 }
 
 loadTryoutManifest();
