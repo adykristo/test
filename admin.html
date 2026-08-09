@@ -365,6 +365,38 @@ window.MathJax = {
   }
   .soal-item button:hover{ background:#fcdcdc; }
   .soal-item button:disabled{ background:#eee; color:#999; border-color:#ddd; }
+  .soal-item{ align-items:flex-start; }
+  .yt-edit{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:8px;
+  }
+  .yt-edit input[type="url"]{
+    flex:1 1 220px;
+    min-width:180px;
+    margin:0;
+    padding:7px 10px;
+    font-size:12px;
+    border:1px solid var(--border);
+    border-radius:8px;
+  }
+  .yt-edit label{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:12px;
+    font-weight:400;
+    margin:0;
+    white-space:nowrap;
+  }
+  .yt-edit .btn-simpan-yt{
+    background:#e9f7ee !important;
+    color:#1a7a3d !important;
+    border:1px solid #b6e3c6 !important;
+  }
+  .yt-edit .btn-simpan-yt:hover{ background:#d7f0e0 !important; }
 
   /* ===== PANEL TRYOUT ===== */
   #panelTryout main, #panelEsai main{
@@ -812,6 +844,13 @@ window.MathJax = {
     <label>File Gambar Pembahasan</label>
     <input type="file" id="fileSolusi" accept="image/*">
 
+    <label>Link YouTube Pembahasan (opsional)</label>
+    <input type="url" id="ytLinkS" placeholder="https://youtube.com/watch?v=...">
+    <div class="checkbox-row">
+      <input type="checkbox" id="ytShowS" checked>
+      <label style="margin:0; font-weight:400;">Tampilkan tombol link YouTube di halaman pembahasan</label>
+    </div>
+
     <button id="submitBtnS">Upload &amp; Tampilkan di Web</button>
     <div id="statusS" class="status"></div>
   </div>
@@ -1230,6 +1269,8 @@ $('submitBtnS').addEventListener('click', async () => {
   const tanggal = $('tanggalS').value;
   const fileSoal = $('fileSoal').files[0];
   const fileSolusi = $('fileSolusi').files[0];
+  const youtubeLink = $('ytLinkS').value.trim();
+  const showYoutube = $('ytShowS').checked;
 
   if (!cfg.user || !cfg.repo || !cfg.token) {
     setStatusS('err', 'Isi dulu Username, Repo, dan Token GitHub-nya di bagian atas, lalu klik "Test Koneksi" dulu.');
@@ -1286,7 +1327,7 @@ $('submitBtnS').addEventListener('click', async () => {
     setStatusS('loading', 'Memperbarui daftar soal…');
 
     await updateManifestWithRetry(
-      { title, topik, tanggal, jenjang, soalImage: soalPath, solusiImage: solusiPath },
+      { title, topik, tanggal, jenjang, soalImage: soalPath, solusiImage: solusiPath, youtubeLink, showYoutube },
       cfg
     );
 
@@ -1295,6 +1336,8 @@ $('submitBtnS').addEventListener('click', async () => {
     $('topikS').value = '';
     $('fileSoal').value = '';
     $('fileSolusi').value = '';
+    $('ytLinkS').value = '';
+    $('ytShowS').checked = true;
 
   } catch (e) {
     setStatusS('err', e.message || 'Terjadi kesalahan.');
@@ -1373,6 +1416,10 @@ function formatTanggalHapus(iso) {
   return d.getDate() + ' ' + bulan[d.getMonth()] + ' ' + d.getFullYear();
 }
 
+function escAttr(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
 function renderDaftarSoalHapus(list) {
   const box = $('daftarSoalHapus');
   if (!list.length) {
@@ -1381,19 +1428,86 @@ function renderDaftarSoalHapus(list) {
   }
   // terbaru di atas
   const sorted = [...list].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
-  box.innerHTML = sorted.map(item => `
+  box.innerHTML = sorted.map(item => {
+    const ytChecked = item.showYoutube === false ? '' : 'checked';
+    return `
     <div class="soal-item" data-soal-image="${item.soalImage.replace(/"/g, '&quot;')}">
       <div class="info">
         <b>${item.title}</b>
         <span>${item.jenjang.toUpperCase()} · ${item.topik || '-'} · ${formatTanggalHapus(item.tanggal)}</span>
+        <div class="yt-edit">
+          <input type="url" class="yt-edit-input" placeholder="Link YouTube pembahasan (opsional)" value="${escAttr(item.youtubeLink || '')}">
+          <label><input type="checkbox" class="yt-edit-show" ${ytChecked}> Tampilkan</label>
+          <button type="button" class="btn-simpan-yt">Simpan Link</button>
+        </div>
       </div>
       <button type="button" class="btn-hapus-soal">Hapus</button>
     </div>
-  `).join('');
+  `; }).join('');
 
   box.querySelectorAll('.btn-hapus-soal').forEach(btn => {
     btn.addEventListener('click', () => hapusSoalSatu(btn));
   });
+  box.querySelectorAll('.btn-simpan-yt').forEach(btn => {
+    btn.addEventListener('click', () => simpanYoutubeSoal(btn));
+  });
+}
+
+// Simpan/ubah link YouTube pembahasan untuk 1 soal yang sudah ada, tanpa
+// perlu upload ulang gambar. Hanya field youtubeLink & showYoutube yang diubah.
+async function updateManifestEntryWithRetry(soalImagePath, patch, cfg, attempt = 1) {
+  const { list, sha } = await fetchManifest(cfg);
+  const idx = list.findIndex(item => item.soalImage === soalImagePath);
+  if (idx === -1) throw new Error('Soal tidak ditemukan di manifest (mungkin sudah dihapus/diubah).');
+  list[idx] = { ...list[idx], ...patch };
+
+  const updateRes = await ghRequest('data/manifest-soal.json', {
+    method: 'PUT',
+    body: JSON.stringify({
+      message: `Update link YouTube: ${list[idx].title}`,
+      content: toBase64Unicode(JSON.stringify(list, null, 2)),
+      sha: sha,
+      branch: cfg.branch
+    })
+  }, cfg);
+
+  if (!updateRes.ok) {
+    const errData = await updateRes.json().catch(() => ({}));
+    const isShaConflict = updateRes.status === 409 || updateRes.status === 422;
+    if (isShaConflict && attempt < 3) {
+      await new Promise(r => setTimeout(r, 500));
+      return updateManifestEntryWithRetry(soalImagePath, patch, cfg, attempt + 1);
+    }
+    throw new Error(errData.message || 'Gagal memperbarui manifest-soal.json.');
+  }
+}
+
+async function simpanYoutubeSoal(btn) {
+  const cfg = getCfg();
+  if (!cfg.user || !cfg.repo || !cfg.token) {
+    setStatusHapus('err', 'Isi dulu Username, Repo, dan Token GitHub-nya di bagian atas.');
+    return;
+  }
+
+  const wrapper = btn.closest('.soal-item');
+  const soalImagePath = wrapper.dataset.soalImage;
+  const youtubeLink = wrapper.querySelector('.yt-edit-input').value.trim();
+  const showYoutube = wrapper.querySelector('.yt-edit-show').checked;
+
+  btn.disabled = true;
+  const oldText = btn.textContent;
+  btn.textContent = 'Menyimpan…';
+  setStatusHapus('loading', 'Menyimpan link YouTube…');
+
+  try {
+    await updateManifestEntryWithRetry(soalImagePath, { youtubeLink, showYoutube }, cfg);
+    setStatusHapus('ok', '✓ Link YouTube tersimpan. Perubahan muncul di web dalam ± 30–60 detik.');
+  } catch (e) {
+    setStatusHapus('err', e.message || 'Gagal menyimpan link YouTube.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldText;
+  }
 }
 
 async function hapusSoalSatu(btn) {

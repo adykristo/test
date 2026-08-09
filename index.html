@@ -187,13 +187,29 @@ window.MathJax = {
     cursor:pointer;
   }
   .soal-card .toggle-btn:hover{ background:var(--ungu); }
+  .soal-card .pembahasan-wrap{ display:none; }
+  .soal-card .pembahasan-wrap.show{ display:block; }
   .soal-card .solusi-img{
     width:100%;
-    display:none;
     margin-top:14px;
     border-radius:12px;
+    display:block;
   }
-  .soal-card .solusi-img.show{ display:block; }
+  .soal-card .yt-link{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:12px;
+    background:#FF0000;
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    padding:10px 20px;
+    border-radius:999px;
+    text-decoration:none;
+  }
+  .soal-card .yt-link:hover{ background:#cc0000; }
 
   .page-title{
     display:flex;
@@ -886,6 +902,10 @@ function renderCounts() {
   });
 }
 
+function escAttr(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
 function renderJenjang(jenjang) {
   const listEl = document.getElementById('list' + jenjang.toUpperCase());
   const items = allSoal
@@ -899,6 +919,9 @@ function renderJenjang(jenjang) {
 
   listEl.innerHTML = items.map((item, i) => {
     const uid = jenjang + '-' + i;
+    const ytBtn = (item.showYoutube && item.youtubeLink)
+      ? `<a class="yt-link" href="${escAttr(item.youtubeLink)}" target="_blank" rel="noopener noreferrer">▶ Tonton Video Pembahasan di YouTube</a>`
+      : '';
     return `
     <div class="soal-card">
       <div class="head">
@@ -911,16 +934,19 @@ function renderJenjang(jenjang) {
       <img class="soal-img" src="${item.soalImage}" alt="${item.title}">
       <div class="toggle-wrap">
         <button class="toggle-btn" onclick="toggleSolusi('${uid}')">Lihat Pembahasan</button>
-        <img class="solusi-img" id="solusi-${uid}" src="${item.solusiImage}" alt="Pembahasan ${item.title}">
+        <div class="pembahasan-wrap" id="solusi-${uid}">
+          <img class="solusi-img" src="${item.solusiImage}" alt="Pembahasan ${item.title}">
+          ${ytBtn}
+        </div>
       </div>
     </div>`;
   }).join('');
 }
 
 function toggleSolusi(uid) {
-  const img = document.getElementById('solusi-' + uid);
-  const btn = img.previousElementSibling;
-  const showing = img.classList.toggle('show');
+  const wrap = document.getElementById('solusi-' + uid);
+  const btn = wrap.previousElementSibling;
+  const showing = wrap.classList.toggle('show');
   btn.textContent = showing ? 'Sembunyikan Pembahasan' : 'Lihat Pembahasan';
 }
 
