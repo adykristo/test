@@ -6,5 +6,20 @@
     "jenjang": "sd",
     "soalImage": "soal-osn/sd/1786279300116_soal-soal.jpeg",
     "solusiImage": "soal-osn/sd/1786279300116_soal-solusi.jpeg"
+  },
+  {
+    "title": "GAYAA",
+    "topik": "HUKUM NEWTON",
+    "tanggal": "2026-08-09",
+    "jenjang": "sd",
+    "soalImage": "soal-osn/sd/1786288283482_gayaa-soal.jpeg",
+    "solusiImage": "soal-osn/sd/1786288283482_gayaa-solusi-1.jpeg",
+    "solusiImages": [
+      "soal-osn/sd/1786288283482_gayaa-solusi-1.jpeg",
+      "soal-osn/sd/1786288283482_gayaa-solusi-2.jpeg",
+      "soal-osn/sd/1786288283482_gayaa-solusi-3.jpeg"
+    ],
+    "youtubeLink": "https://www.youtube.com/watch?si=kVx2ePuO6xZQKc21&v=gr8n-_y1dZU&feature=youtu.be",
+    "showYoutube": true
   }
 ]
