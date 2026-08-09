@@ -828,6 +828,17 @@ window.MathJax = {
     border-radius:999px;
     white-space:nowrap;
   }
+  #panelEsai .esai-metode-badge{
+    display:inline-block;
+    margin-top:6px;
+    font-size:10.5px;
+    font-weight:700;
+    padding:2px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  #panelEsai .esai-metode-teks{ background:#eef1ff; color:#3d4fc9; }
+  #panelEsai .esai-metode-file{ background:#fff0e0; color:#b5650a; }
   #panelEsai .esai-teks-cell{
     max-width:280px;
     min-width:180px;
@@ -3624,6 +3635,11 @@ function renderEsaiFolder(meta, pesertaList) {
       const nilai = (k.nilai !== undefined && k.nilai !== null) ? k.nilai : '';
       const catatan = k.catatan || '';
 
+      const metode = j.metode === 'file' ? 'file' : (j.metode === 'teks' ? 'teks' : (j.fileName || j.link ? 'file' : 'teks'));
+      const metodeBadge = metode === 'file'
+        ? '<span class="esai-metode-badge esai-metode-file">📎 Upload PDF</span>'
+        : '<span class="esai-metode-badge esai-metode-teks">✍️ Ketik</span>';
+
       const teksHtml = j.teks
         ? String(j.teks).replace(/</g, '&lt;')
         : '<span class="muted" style="font-style:italic;">(tidak ada jawaban teks)</span>';
@@ -3645,7 +3661,7 @@ function renderEsaiFolder(meta, pesertaList) {
       rowsHtml += `
         <tr class="${stripe}${groupStart}" data-peserta="${pi}" data-jawaban="${ji}">
           <td class="esai-peserta-cell"><b>${String(p.nama).replace(/</g, '&lt;')}</b><span class="muted">${p.noUjian}</span></td>
-          <td><span class="esai-nomor">No. ${j.nomor}</span></td>
+          <td><span class="esai-nomor">No. ${j.nomor}</span><br>${metodeBadge}</td>
           <td class="esai-teks-cell">${teksHtml}</td>
           <td>${fileHtml}</td>
           <td><input type="number" min="0" max="100" class="esai-nilai" value="${nilai}"></td>

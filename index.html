@@ -26,6 +26,7 @@ window.MathJax = {
     --pink-muda:#ffd9ec;
     --bg:#fdf9ff;
     --abu:#6b6478;
+    --abu-muda:#e0d0f0;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
@@ -554,6 +555,82 @@ window.MathJax = {
   .esai-preview{ margin-top:10px; max-width:100%; border-radius:10px; display:block; }
   .esai-file-name{ font-size:12.5px; color:var(--abu); margin-top:6px; }
   .esai-save-note{font-size:11.5px;color:var(--abu);margin-top:6px;}
+
+  /* ---- Pilihan metode jawaban esai (ketik / upload PDF) ---- */
+  .esai-box{
+    background:#fbf8ff;
+    border:1.5px solid #f0e2fa;
+    border-radius:14px;
+    padding:16px 18px;
+  }
+  .esai-label{
+    font-size:13px; font-weight:700; color:var(--ungu-tua);
+    display:block; margin-bottom:10px;
+  }
+  .esai-metode-pilihan{
+    display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;
+  }
+  .esai-metode-opt{
+    display:flex; align-items:center; gap:8px;
+    border:1.5px solid var(--abu-muda);
+    background:#fff;
+    border-radius:999px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ungu-tua);
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+    flex:1;
+    min-width:160px;
+    justify-content:center;
+  }
+  .esai-metode-opt:hover{ border-color:var(--pink); }
+  .esai-metode-opt.aktif{ border-color:var(--ungu); background:var(--pink-muda); }
+  .esai-metode-opt input[type=radio]{ accent-color:var(--ungu); width:15px; height:15px; margin:0; cursor:pointer; }
+  .esai-metode-hint{
+    font-size:12px; color:var(--abu); margin:-6px 0 14px;
+  }
+  .esai-input-label{
+    font-size:12.5px; font-weight:700; color:var(--ungu-tua);
+    display:block; margin-bottom:6px;
+  }
+  .esai-wajib{ color:#c0392b; font-weight:700; }
+  .esai-status-ok{
+    margin-top:10px; padding:10px 12px; background:#dff5e6; border:1px solid #a8e0b8;
+    border-radius:10px; font-size:13px; color:#1f7a41;
+  }
+  .esai-status-warn{
+    margin-top:10px; padding:10px 12px; background:#fdeaea; border:1px solid #f5b8b8;
+    border-radius:10px; font-size:13px; color:#c0392b;
+  }
+  .esai-hapus-btn{
+    margin-left:10px; border:none; background:#fdeaea; color:#c0392b; font-size:12px;
+    font-weight:700; padding:4px 10px; border-radius:999px; cursor:pointer;
+  }
+
+  /* ---- Modal kustom (pengganti alert/confirm bawaan browser) ---- */
+  .app-modal-overlay{
+    position:fixed; inset:0; background:rgba(45,20,70,0.45);
+    display:none; align-items:center; justify-content:center;
+    z-index:9999; padding:20px;
+  }
+  .app-modal-overlay.show{ display:flex; }
+  .app-modal-box{
+    background:#fff; border-radius:18px; max-width:420px; width:100%;
+    padding:26px 24px 22px; box-shadow:0 12px 40px rgba(61,26,99,0.25);
+    animation:appModalPop .16s ease;
+  }
+  @keyframes appModalPop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .app-modal-icon{ font-size:28px; margin-bottom:10px; }
+  .app-modal-msg{ font-size:14.5px; color:#2b1a3d; line-height:1.6; white-space:pre-line; margin-bottom:20px; }
+  .app-modal-actions{ display:flex; gap:10px; justify-content:flex-end; }
+  .app-modal-actions button{
+    border:none; border-radius:999px; font-size:13.5px; font-weight:700;
+    padding:10px 20px; cursor:pointer;
+  }
+  .app-modal-btn-cancel{ background:#f0e2fa; color:var(--ungu-tua); }
+  .app-modal-btn-ok{ background:linear-gradient(90deg, var(--pink), var(--ungu)); color:#fff; }
 
 
   .tryout-footer-nav{
@@ -1230,7 +1307,7 @@ async function startTryout(paketId) {
   const meta = tryoutManifest.find(p => p.id === paketId);
   if (!meta) return;
   if (meta.aktif === false) {
-    alert('Paket tryout ini sedang tidak aktif / disembunyikan oleh admin.');
+    appAlert('Paket tryout ini sedang tidak aktif / disembunyikan oleh admin.', '🚫');
     return;
   }
   const box = document.getElementById('paketList');
@@ -1261,7 +1338,7 @@ async function startTryout(paketId) {
 
     gotoPage('tryout-peserta');
   } catch (e) {
-    alert('Gagal memuat soal tryout. Coba refresh halaman.');
+    appAlert('Gagal memuat soal tryout. Coba refresh halaman.', '⚠️');
   }
 }
 
@@ -1388,7 +1465,7 @@ async function mulaiUjianSetelahData() {
   renderCurrentSoal();
   startTimer();
   if (restoreMsg) {
-    setTimeout(function () { alert(restoreMsg); }, 300);
+    setTimeout(function () { appAlert(restoreMsg, 'ℹ️'); }, 300);
   }
 }
 
@@ -1459,7 +1536,7 @@ function loncatKeSoalKosong() {
       return;
     }
   }
-  alert('Semua soal sudah dijawab.');
+  appAlert('Semua soal sudah dijawab.', '✅');
 }
 
 function getTipeSoal(s) {
@@ -1484,13 +1561,28 @@ function sudahDijawab(s, jawabanMap) {
   if (j === undefined || j === null || j === '') return false;
   const tipe = getTipeSoal(s);
   if (tipe === 'esai') {
-    // Esai dianggap terjawab hanya jika sudah ada file PDF (sesuai syarat submit)
+    // Esai dianggap terjawab sesuai metode yang dipilih peserta:
+    // - metode "teks": cukup ada tulisan jawaban
+    // - metode "file": wajib ada file PDF
     if (typeof j === 'object') {
-      return !!(j.fileName && String(j.fileName).toLowerCase().endsWith('.pdf') && j.fileData);
+      const metode = getMetodeEsai(j);
+      if (metode === 'file') {
+        return !!(j.fileName && String(j.fileName).toLowerCase().endsWith('.pdf') && j.fileData);
+      }
+      return !!(j.teks && String(j.teks).trim());
     }
     return false;
   }
   return true;
+}
+
+// Menentukan metode jawaban esai yang sedang aktif untuk satu jawaban peserta.
+// Prioritas: metode yang eksplisit dipilih peserta, lalu ditebak dari data yang ada,
+// dan default ke "teks" (ketik jawaban) kalau belum ada apa-apa sama sekali.
+function getMetodeEsai(obj) {
+  if (obj && (obj.metode === 'teks' || obj.metode === 'file')) return obj.metode;
+  if (obj && obj.fileName) return 'file';
+  return 'teks';
 }
 
 function renderCurrentSoal() {
@@ -1519,6 +1611,7 @@ function renderCurrentSoal() {
       </div>`;
   } else if (tipe === 'esai') {
     const obj = (dipilih && typeof dipilih === 'object') ? dipilih : { teks: typeof dipilih === 'string' ? dipilih : '', fileName: '', fileData: '', fileSize: 0 };
+    const metode = getMetodeEsai(obj);
     const adaPdf = !!(obj.fileName && String(obj.fileName).toLowerCase().endsWith('.pdf') && obj.fileData);
     const sizeLabel = obj.fileSize
       ? (obj.fileSize < 1024 * 1024
@@ -1526,25 +1619,35 @@ function renderCurrentSoal() {
           : (obj.fileSize / (1024 * 1024)).toFixed(2) + ' MB')
       : '';
     const statusFile = adaPdf
-      ? `<div style="margin-top:10px;padding:10px 12px;background:#dff5e6;border:1px solid #a8e0b8;border-radius:10px;font-size:13px;color:#1f7a41;">
+      ? `<div class="esai-status-ok">
            ✓ PDF terunggah: <b>${String(obj.fileName).replace(/</g,'&lt;')}</b>${sizeLabel ? ' (' + sizeLabel + ')' : ''}
-           <button type="button" onclick="hapusEsaiFile('${s.id}')" style="margin-left:10px;border:none;background:#fdeaea;color:#c0392b;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;cursor:pointer;">Hapus</button>
+           <button type="button" class="esai-hapus-btn" onclick="hapusEsaiFile('${s.id}')">Hapus</button>
          </div>`
-      : `<div style="margin-top:10px;padding:10px 12px;background:#fdeaea;border:1px solid #f5b8b8;border-radius:10px;font-size:13px;color:#c0392b;">
-           ⚠ Belum ada file PDF. Upload PDF wajib sebelum mengumpulkan.
-         </div>`;
+      : `<div class="esai-status-warn">⚠ Belum ada file PDF. Upload PDF wajib sebelum mengumpulkan.</div>`;
+
+    const inputMetodeHtml = metode === 'teks'
+      ? `<label class="esai-input-label">Jawaban esai</label>
+         <textarea id="inputEsaiAktif" placeholder="Tulis jawaban esai di sini..." oninput="simpanEsaiTeks('${s.id}')">${(obj.teks || '').replace(/</g,'&lt;')}</textarea>`
+      : `<label class="esai-input-label">Upload jawaban esai <span class="esai-wajib">(WAJIB PDF, maks. 8 MB)</span></label>
+         <input type="file" id="inputEsaiFile" accept="application/pdf,.pdf" onchange="simpanEsaiFile('${s.id}', this)">
+         <div class="esai-save-note">Hanya file PDF yang diterima. Setelah upload, status di bawah harus hijau.</div>
+         ${statusFile}`;
+
     bodyHtml = `
       <div class="esai-box">
-        <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin-bottom:6px;">Jawaban esai (teks, opsional)</label>
-        <textarea id="inputEsaiAktif" placeholder="Tulis jawaban esai di sini (opsional)..." oninput="simpanEsaiTeks('${s.id}')">${(obj.teks || '').replace(/</g,'&lt;')}</textarea>
-        <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin:12px 0 6px;">
-          Upload jawaban esai <span style="color:#c0392b;">(WAJIB PDF, maks. 8 MB)</span>
-        </label>
-        <input type="file" id="inputEsaiFile" accept="application/pdf,.pdf" onchange="simpanEsaiFile('${s.id}', this)">
-        <div class="esai-save-note" style="font-size:11.5px;color:var(--abu);margin-top:6px;">
-          Hanya file PDF yang diterima. Setelah upload, status di bawah harus hijau.
+        <label class="esai-label">Pilih cara menjawab soal esai ini (pilih salah satu):</label>
+        <div class="esai-metode-pilihan">
+          <label class="esai-metode-opt ${metode === 'teks' ? 'aktif' : ''}">
+            <input type="radio" name="esaiMetode_${s.id}" value="teks" ${metode === 'teks' ? 'checked' : ''} onchange="ubahMetodeEsai('${s.id}','teks')">
+            <span>✍️ Ketik Jawaban</span>
+          </label>
+          <label class="esai-metode-opt ${metode === 'file' ? 'aktif' : ''}">
+            <input type="radio" name="esaiMetode_${s.id}" value="file" ${metode === 'file' ? 'checked' : ''} onchange="ubahMetodeEsai('${s.id}','file')">
+            <span>📎 Upload File PDF</span>
+          </label>
         </div>
-        ${statusFile}
+        <div class="esai-metode-hint">Kamu hanya perlu memilih dan mengisi salah satu cara di atas.</div>
+        ${inputMetodeHtml}
       </div>`;
   } else {
     bodyHtml = `
@@ -1581,12 +1684,23 @@ function simpanIsian(soalId) {
   renderNavigator();
 }
 
+// Peserta memilih metode jawaban esai: "teks" (ketik) atau "file" (upload PDF).
+// Data dari metode yang tidak sedang dipilih tetap disimpan (tidak dihapus),
+// supaya kalau peserta ganti pikiran & pindah metode lagi, isian sebelumnya tidak hilang.
+function ubahMetodeEsai(soalId, metode) {
+  const prev = tryoutState.jawaban[soalId];
+  const base = (prev && typeof prev === 'object') ? prev : { teks: '', fileName: '', fileData: '', fileSize: 0 };
+  tryoutState.jawaban[soalId] = { ...base, metode };
+  renderNavigator();
+  renderCurrentSoal();
+}
+
 function simpanEsaiTeks(soalId) {
   const el = document.getElementById('inputEsaiAktif');
   if (!el) return;
   const prev = tryoutState.jawaban[soalId];
   const base = (prev && typeof prev === 'object') ? prev : { teks: '', fileName: '', fileData: '' };
-  tryoutState.jawaban[soalId] = { ...base, teks: el.value };
+  tryoutState.jawaban[soalId] = { ...base, metode: 'teks', teks: el.value };
   renderNavigator();
 }
 
@@ -1598,7 +1712,7 @@ function simpanEsaiFile(soalId, inputEl) {
     String(file.name || '').toLowerCase().endsWith('.pdf');
 
   if (!isPdf) {
-    alert('Jawaban esai wajib dalam format PDF. Silakan pilih file PDF.');
+    appAlert('Jawaban esai wajib dalam format PDF. Silakan pilih file PDF.', '⚠️');
     inputEl.value = '';
     return;
   }
@@ -1606,7 +1720,7 @@ function simpanEsaiFile(soalId, inputEl) {
   // Batas praktis agar tidak gagal di Apps Script (bukan 100 MB)
   const MAX_SIZE = 8 * 1024 * 1024; // 8 MB
   if (file.size > MAX_SIZE) {
-    alert('Ukuran file PDF maksimal 8 MB. Kompres dulu atau pilih file yang lebih kecil.');
+    appAlert('Ukuran file PDF maksimal 8 MB. Kompres dulu atau pilih file yang lebih kecil.', '⚠️');
     inputEl.value = '';
     return;
   }
@@ -1624,6 +1738,7 @@ function simpanEsaiFile(soalId, inputEl) {
     const base = (prev && typeof prev === 'object') ? prev : { teks: '', fileName: '', fileData: '', fileSize: 0 };
     tryoutState.jawaban[soalId] = {
       ...base,
+      metode: 'file',
       fileName: file.name,
       fileData: base64,
       fileSize: file.size
@@ -1632,7 +1747,7 @@ function simpanEsaiFile(soalId, inputEl) {
     renderCurrentSoal();
   };
   reader.onerror = () => {
-    alert('Gagal membaca file PDF. Coba lagi.');
+    appAlert('Gagal membaca file PDF. Coba lagi.', '⚠️');
     inputEl.value = '';
   };
   reader.readAsDataURL(file);
@@ -1646,7 +1761,7 @@ function hapusEsaiFile(soalId) {
   renderCurrentSoal();
 }
 
-function confirmSubmitTryout() {
+async function confirmSubmitTryout() {
   const soalList = tryoutState.paket.soal;
   const total = soalList.length;
   const kosongIdx = [];
@@ -1654,43 +1769,53 @@ function confirmSubmitTryout() {
     if (!sudahDijawab(s, tryoutState.jawaban)) kosongIdx.push(i + 1);
   });
   const sisa = kosongIdx.length;
-  let pesan;
+  let pesan, icon;
   if (sisa > 0) {
     const daftar = kosongIdx.length <= 12
       ? kosongIdx.join(', ')
       : kosongIdx.slice(0, 12).join(', ') + ', …';
     pesan = 'Masih ada ' + sisa + ' soal belum dijawab (nomor: ' + daftar + ').\n\nYakin ingin mengumpulkan sekarang?';
+    icon = '⚠️';
   } else {
     pesan = 'Semua soal sudah dijawab.\n\nYakin ingin mengumpulkan sekarang?';
+    icon = '✅';
   }
-  if (confirm(pesan)) submitTryout(false);
+  const yakin = await appConfirm(pesan, { icon });
+  if (yakin) submitTryout(false);
 }
 
-function submitTryout(autoSubmit) {
+async function submitTryout(autoSubmit) {
   clearInterval(tryoutState.timerHandle);
 
   const soalList = tryoutState.paket.soal;
 
-  // Semua soal esai wajib memiliki file PDF sebelum dikumpulkan.
-  const esaiTanpaPdf = soalList.filter(s => {
+  // Setiap soal esai wajib lengkap sesuai metode yang dipilih peserta:
+  // - metode "teks": jawaban tulisan tidak boleh kosong
+  // - metode "file": file PDF wajib sudah terunggah
+  const esaiBelumLengkap = soalList.filter(s => {
     if (getTipeSoal(s) !== 'esai') return false;
     const j = tryoutState.jawaban[s.id];
     const obj = (j && typeof j === 'object') ? j : {};
-    return !obj.fileName ||
-      !String(obj.fileName).toLowerCase().endsWith('.pdf') ||
-      !obj.fileData;
+    const metode = getMetodeEsai(obj);
+    if (metode === 'file') {
+      return !obj.fileName ||
+        !String(obj.fileName).toLowerCase().endsWith('.pdf') ||
+        !obj.fileData;
+    }
+    return !obj.teks || !String(obj.teks).trim();
   });
 
-  if (esaiTanpaPdf.length > 0) {
+  if (esaiBelumLengkap.length > 0) {
     // Kembalikan timer jika peserta masih harus melengkapi esai (bukan auto-submit waktu habis)
     if (!autoSubmit) {
       startTimer();
     }
-    alert(
+    await appAlert(
       'Jawaban esai belum lengkap.\n\n' +
-      'Setiap soal esai WAJIB diunggah dalam format PDF.\n' +
-      'Soal yang belum memiliki PDF: ' +
-      esaiTanpaPdf.map(s => soalList.indexOf(s) + 1).join(', ')
+      'Setiap soal esai wajib dijawab dengan salah satu cara: ketik jawaban ATAU upload file PDF.\n' +
+      'Soal yang belum lengkap: ' +
+      esaiBelumLengkap.map(s => soalList.indexOf(s) + 1).join(', '),
+      '⚠️'
     );
     // Jika waktu habis tapi esai belum lengkap, tetap lanjutkan (nilai esai kosong)
     if (!autoSubmit) return;
@@ -1724,10 +1849,15 @@ function submitTryout(autoSubmit) {
 
     if (tipe === 'esai') {
       const obj = (userJawaban && typeof userJawaban === 'object') ? userJawaban : { teks: userJawaban || '', fileName: '', fileData: '' };
-      const ada = !!(obj.teks && String(obj.teks).trim()) || !!obj.fileName || !!obj.fileData;
+      const metode = getMetodeEsai(obj);
+      const ada = metode === 'file'
+        ? !!(obj.fileName && obj.fileData)
+        : !!(obj.teks && String(obj.teks).trim());
       if (ada) { esaiCount++; statusCls = 'benar'; statusText = 'Esai (koreksi manual)'; }
       else { kosong++; }
-      opsiHtml = `<div class="opsi-review">Jawaban: ${(obj.teks || '-').replace(/</g,'&lt;')}${obj.fileName ? '<br>File: ' + obj.fileName : ''}</div>`;
+      opsiHtml = metode === 'file'
+        ? `<div class="opsi-review">Jawaban dikumpulkan sebagai file PDF${obj.fileName ? ': <b>' + String(obj.fileName).replace(/</g,'&lt;') + '</b>' : ' (belum diunggah)'}</div>`
+        : `<div class="opsi-review">Jawaban (diketik): ${(obj.teks || '-').replace(/</g,'&lt;')}</div>`;
       if (obj.fileData && String(obj.fileData).startsWith('data:image')) {
         opsiHtml += `<img src="${obj.fileData}" alt="Lampiran" style="max-width:100%;border-radius:10px;margin-top:8px;display:block;">`;
       }
@@ -1797,6 +1927,7 @@ function submitTryout(autoSubmit) {
     return {
       nomor: i + 1,
       soalId: s.id,
+      metode: getMetodeEsai(obj),
       teks: obj.teks || '',
       fileName: obj.fileName || '',
       fileData: obj.fileData || ''
@@ -1819,7 +1950,7 @@ function submitTryout(autoSubmit) {
   kirimHasilKeSheet(lastHasil);
 
   if (autoSubmit) {
-    setTimeout(() => alert('Waktu habis! Jawaban kamu otomatis dikumpulkan.'), 200);
+    setTimeout(() => appAlert('Waktu habis! Jawaban kamu otomatis dikumpulkan.', '⏰'), 200);
   }
 }
 
@@ -1867,7 +1998,7 @@ function kirimHasilKeSheet(hasil) {
 
 function kirimUlangHasil() {
   if (!lastHasil) {
-    alert('Tidak ada data hasil untuk dikirim ulang.');
+    appAlert('Tidak ada data hasil untuk dikirim ulang.', 'ℹ️');
     return;
   }
   kirimHasilKeSheet(lastHasil);
@@ -1875,6 +2006,55 @@ function kirimUlangHasil() {
 
 loadTryoutManifest();
 loadDaftarPeserta();
+</script>
+
+<div class="app-modal-overlay" id="appModalOverlay">
+  <div class="app-modal-box">
+    <div class="app-modal-icon" id="appModalIcon">💬</div>
+    <div class="app-modal-msg" id="appModalMsg"></div>
+    <div class="app-modal-actions" id="appModalActions"></div>
+  </div>
+</div>
+<script>
+// ---- Modal kustom pengganti alert()/confirm() bawaan browser ----
+// Dipakai supaya popup tidak menampilkan judul teknis seperti
+// "namadomain.github.io says" dan hanya menampilkan kalimat pesannya saja.
+let _appModalResolve = null;
+
+function _appModalShow(message, { icon = '💬', okText = 'OK', cancelText = null } = {}) {
+  const overlay = document.getElementById('appModalOverlay');
+  document.getElementById('appModalIcon').textContent = icon;
+  document.getElementById('appModalMsg').textContent = message;
+  const actions = document.getElementById('appModalActions');
+  actions.innerHTML = '';
+
+  return new Promise(resolve => {
+    if (cancelText) {
+      const btnCancel = document.createElement('button');
+      btnCancel.className = 'app-modal-btn-cancel';
+      btnCancel.textContent = cancelText;
+      btnCancel.onclick = () => { overlay.classList.remove('show'); resolve(false); };
+      actions.appendChild(btnCancel);
+    }
+    const btnOk = document.createElement('button');
+    btnOk.className = 'app-modal-btn-ok';
+    btnOk.textContent = okText;
+    btnOk.onclick = () => { overlay.classList.remove('show'); resolve(true); };
+    actions.appendChild(btnOk);
+
+    overlay.classList.add('show');
+  });
+}
+
+// Pengganti alert(): tampil, tunggu user klik OK.
+function appAlert(message, icon = 'ℹ️') {
+  return _appModalShow(message, { icon, okText: 'OK' });
+}
+
+// Pengganti confirm(): resolve(true) kalau user klik Yakin/OK, resolve(false) kalau batal.
+function appConfirm(message, { okText = 'Yakin, Kumpulkan', cancelText = 'Batal', icon = '❓' } = {}) {
+  return _appModalShow(message, { icon, okText, cancelText });
+}
 </script>
 
 </body>
