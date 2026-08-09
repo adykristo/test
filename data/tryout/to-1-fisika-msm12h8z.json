@@ -1,0 +1,58 @@
+{
+  "id": "to-1-fisika-msm12h8z",
+  "title": "TO 1 FISIKA",
+  "jenjang": "sd",
+  "topik": "GAYA",
+  "durasi_menit": 5,
+  "kode_akses": "",
+  "soal": [
+    {
+      "id": "q1786293557667-2",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah benda bermassa 2 kg didorong dengan gaya $F = 10$ N pada bidang datar licin. Berapa percepatan benda tersebut?",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-1786293556408-0.png",
+      "pembahasan": "Gunakan Hukum II Newton $a = F/m$, sehingga $a = 10/2 = 5$ m/s².",
+      "pilihan": {
+        "A": "2 m/s²",
+        "B": "5 m/s²",
+        "C": "10 m/s²",
+        "D": "20 m/s²"
+      },
+      "jawaban_benar": "B"
+    },
+    {
+      "id": "q1786293557693-3",
+      "tipe": "isian",
+      "pertanyaan": "Sebuah benda bergerak lurus berubah beraturan dari keadaan diam dengan percepatan $2\\ m/s^2$. Kecepatan benda setelah bergerak 5 sekon adalah ... m/s.",
+      "gambar": "",
+      "pembahasan": "Gunakan $v = v_0 + a t = 0 + 2(5) = 10$ m/s.",
+      "kunci_isian": "10 | 10 m/s",
+      "jawaban_benar": "10 | 10 m/s",
+      "pilihan": {}
+    },
+    {
+      "id": "q1786293557708-4",
+      "tipe": "esai",
+      "pertanyaan": "Jelaskan bunyi Hukum II Newton dan berikan satu contoh penerapannya dalam kehidupan sehari-hari.",
+      "gambar": "",
+      "pembahasan": "Jawaban peserta akan dikoreksi manual oleh guru. Bisa diisi kunci/rubrik penilaian di sini sebagai pegangan.",
+      "pilihan": {},
+      "jawaban_benar": ""
+    },
+    {
+      "id": "q1786293557709-5",
+      "tipe": "pg5",
+      "pertanyaan": "Satuan gaya dalam Sistem Internasional (SI) adalah ...",
+      "gambar": "",
+      "pembahasan": "Gaya dalam SI memiliki satuan newton (N), sesuai $F = ma$.",
+      "pilihan": {
+        "A": "joule",
+        "B": "newton",
+        "C": "watt",
+        "D": "pascal",
+        "E": "kelvin"
+      },
+      "jawaban_benar": "B"
+    }
+  ]
+}
