@@ -2009,6 +2009,12 @@ function fileToBase64(file) {
 
 const GAMBAR_SOAL_FOLDER = "data/tryout-gambar";
 
+// Penghitung berapa banyak proses upload gambar (per-soal maupun dari Word)
+// yang sedang berjalan. Dipakai simpanPaket() supaya tidak menyimpan paket
+// SEBELUM semua gambar selesai terunggah (race condition: klik Simpan
+// terlalu cepat -> field gambar masih kosong -> soal itu ikut gagal/kosong).
+let sedangUploadGambar = 0;
+
 async function uploadGambarSoal(inputEl) {
   if (!ghToken) {
     alert('Masukkan & simpan token GitHub dulu di bagian atas sebelum upload gambar.');
@@ -2021,6 +2027,7 @@ async function uploadGambarSoal(inputEl) {
   const urlInput = block.querySelector('.input-gambar-url');
   const preview = block.querySelector('.preview-gambar');
   preview.innerHTML = '<span style="color:var(--abu);">Mengunggah gambar…</span>';
+  sedangUploadGambar++;
   try {
     const base64 = await fileToBase64(file);
     const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
@@ -2032,6 +2039,7 @@ async function uploadGambarSoal(inputEl) {
     preview.innerHTML = `<span style="color:#c0392b;">Gagal upload: ${e.message}</span>`;
   } finally {
     inputEl.value = '';
+    sedangUploadGambar--;
   }
 }
 
@@ -2166,6 +2174,7 @@ async function prosesWordKeForm() {
 
     if (jumlahGambar) {
       setStatus('statusWordSoal', `Mengunggah ${jumlahGambar} gambar dari dalam Word…`, 'loading');
+      sedangUploadGambar++;
       for (let i = 0; i < soalMentah.length; i++) {
         const s = soalMentah[i];
         if (!s.gambar || !s.gambar.startsWith('data:image')) continue;
@@ -2181,11 +2190,13 @@ async function prosesWordKeForm() {
           s.gambar = '';
         }
       }
+      sedangUploadGambar--;
     }
 
     soalMentah.forEach(s => tambahSoal(s));
 
-    setStatus('statusWordSoal', `✓ Berhasil membaca ${soalMentah.length} soal dari Word dan mengisinya ke "Daftar Soal" di bawah. Periksa dulu sebelum klik "Simpan & Publish".`, 'ok');
+    setStatus('statusWordSoal', `✓ Berhasil membaca ${soalMentah.length} soal dari Word dan mengisinya ke "Daftar Soal" di bawah. Periksa dulu, lalu SCROLL KE BAWAH dan klik "Simpan & Publish ke GitHub" — soal ini masih di formulir saja dan BELUM tersimpan ke GitHub sebelum tombol itu diklik.`, 'ok');
+    document.getElementById('statusWordSoal').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } catch (e) {
     setStatus('statusWordSoal', 'Gagal memproses file Word: ' + e.message, 'err');
   } finally {
@@ -2789,11 +2800,20 @@ function kumpulkanDataForm() {
 async function simpanPaket() {
   if (!ghToken) { alert('Masukkan & simpan token GitHub dulu di bagian atas.'); return; }
 
+  if (sedangUploadGambar > 0) {
+    setStatus('statusForm', 'Masih ada gambar yang sedang diunggah — tunggu sampai selesai lalu klik "Simpan & Publish" lagi.', 'err');
+    alert('⏳ Masih ada gambar yang sedang diunggah. Tunggu prosesnya selesai (lihat preview gambar di tiap soal), baru klik "Simpan & Publish" lagi.');
+    document.getElementById('statusForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
   let data;
   try {
     data = kumpulkanDataForm();
   } catch (e) {
     setStatus('statusForm', e.message, 'err');
+    document.getElementById('statusForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    alert('❌ Paket belum tersimpan.\n\n' + e.message);
     return;
   }
 
@@ -2827,11 +2847,15 @@ async function simpanPaket() {
     const putRes = await ghPutFile(MANIFEST_PATH, newManifest, manifestCache.sha, `Update manifest tryout: ${data.title}`);
     manifestCache = { content: newManifest, sha: putRes.content.sha };
 
-    setStatus('statusForm', '✓ Paket berhasil disimpan & dipublikasikan!', 'ok');
+    setStatus('statusForm', `✓ Paket "${data.title}" berhasil disimpan & dipublikasikan ke GitHub! (${data.soal.length} soal tersimpan)`, 'ok');
+    document.getElementById('statusForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    alert(`✓ BERHASIL!\n\nPaket "${data.title}" (${data.soal.length} soal) sudah tersimpan & terpublikasi ke GitHub.`);
     renderPaketAdminList();
     currentPaketId = id;
   } catch (e) {
-    setStatus('statusForm', 'Gagal menyimpan: ' + e.message, 'err');
+    setStatus('statusForm', '❌ Gagal menyimpan: ' + e.message, 'err');
+    document.getElementById('statusForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    alert('❌ GAGAL menyimpan ke GitHub.\n\n' + e.message + '\n\nSoal BELUM tersimpan, silakan coba lagi.');
   }
 }
 
