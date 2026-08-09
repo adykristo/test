@@ -505,16 +505,67 @@ window.MathJax = {
 
   #panelTryout .soal-block{
     border:1.5px solid var(--border);
+    border-left:4px solid var(--ungu);
     border-radius:14px;
     padding:16px;
     margin-bottom:14px;
     background:#fdfbff;
+    transition:box-shadow .15s ease, border-color .15s ease;
   }
+  #panelTryout .soal-block:hover{
+    box-shadow:0 4px 16px rgba(123,47,247,.10);
+  }
+  #panelTryout .soal-block[data-tipe="isian"]{ border-left-color:#2aa876; }
+  #panelTryout .soal-block[data-tipe="esai"]{ border-left-color:var(--pink); }
+  #panelTryout .soal-block.collapsed{ padding-bottom:16px; }
   #panelTryout .soal-block .soal-block-head{
     display:flex;
     align-items:center;
     justify-content:space-between;
+    gap:10px;
     margin-bottom:12px;
+    cursor:pointer;
+    user-select:none;
+  }
+  #panelTryout .soal-block.collapsed .soal-block-head{ margin-bottom:0; }
+  #panelTryout .soal-block-title{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-width:0;
+    flex:1;
+  }
+  #panelTryout .soal-block-chevron{
+    display:inline-block;
+    flex-shrink:0;
+    font-size:11px;
+    color:var(--ungu);
+    transition:transform .15s ease;
+  }
+  #panelTryout .soal-block.collapsed .soal-block-chevron{ transform:rotate(-90deg); }
+  #panelTryout .soal-block-title .soal-tipe-badge{
+    flex-shrink:0;
+    font-size:10.5px;
+    font-weight:800;
+    padding:2px 9px;
+    border-radius:999px;
+    background:var(--pink-muda);
+    color:var(--ungu-tua);
+    letter-spacing:.02em;
+  }
+  #panelTryout .soal-block-title .soal-ringkasan{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-weight:400;
+    font-size:12.5px;
+    color:var(--abu);
+  }
+  #panelTryout .soal-block-body{
+    padding-top:2px;
+  }
+  #panelTryout .soal-block.collapsed .soal-block-body{
+    display:none;
   }
   #panelTryout .soal-block .soal-block-head span{
     font-size:13px;
@@ -1060,6 +1111,10 @@ PEMBAHASAN: (opsional, untuk pegangan koreksi manual)</pre>
     </div>
 
     <h3 style="margin-top:22px;">Daftar Soal</h3>
+    <div style="display:flex; gap:10px; margin-bottom:10px;">
+      <button type="button" class="btn btn-outline" style="font-size:12.5px; padding:6px 12px;" onclick="ciutkanSemuaSoal(true)">▸ Ciutkan Semua</button>
+      <button type="button" class="btn btn-outline" style="font-size:12.5px; padding:6px 12px;" onclick="ciutkanSemuaSoal(false)">▾ Buka Semua</button>
+    </div>
     <div id="soalContainer"></div>
     <button class="btn btn-outline btn-block" onclick="tambahSoal()">+ Tambah Soal</button>
 
@@ -2631,20 +2686,33 @@ function tambahSoal(existing) {
   wrap.dataset.soalId = (existing && existing.id) || ('q' + Date.now() + '-' + soalIdCounter);
 
   const tipe0 = tipeSoalDariExisting(existing);
+  wrap.dataset.tipe = tipe0;
+  // Soal hasil impor/edit (sudah ada isinya) diciutkan otomatis biar halaman
+  // tidak penuh; soal baru yang benar-benar kosong dibiarkan terbuka supaya
+  // langsung bisa diisi.
+  const kosongSaatDibuat = !existing || !(existing.pertanyaan || existing.gambar);
+  if (!kosongSaatDibuat) wrap.classList.add('collapsed');
+
   const huruf = ['A', 'B', 'C', 'D', 'E'];
   const pilihanExisting = (existing && existing.pilihan) || {};
   const jawabanBenarExisting = (existing && existing.jawaban_benar) || 'A';
   const kunciIsian = (existing && (existing.kunci_isian || existing.jawaban_benar)) || '';
 
   wrap.innerHTML = `
-    <div class="soal-block-head">
-      <span>Soal #<span class="nomor-tampil"></span></span>
-      <div class="soal-block-actions">
+    <div class="soal-block-head" onclick="toggleSoalBlock('${uid}')">
+      <div class="soal-block-title">
+        <span class="soal-block-chevron">▾</span>
+        <span>Soal #<span class="nomor-tampil"></span></span>
+        <span class="soal-tipe-badge"></span>
+        <span class="soal-ringkasan">${escAttr((existing && existing.pertanyaan) || (existing && existing.gambar ? '(gambar)' : ''))}</span>
+      </div>
+      <div class="soal-block-actions" onclick="event.stopPropagation()">
         <button class="naik" onclick="pindahSoal('${uid}',-1)">↑</button>
         <button class="turun" onclick="pindahSoal('${uid}',1)">↓</button>
         <button class="hapus" onclick="hapusSoalBlock('${uid}')">✕ Hapus</button>
       </div>
     </div>
+    <div class="soal-block-body">
 
     <label>Tipe Soal</label>
     <select class="input-tipe-soal" onchange="onGantiTipeSoal('${uid}')">
@@ -2691,11 +2759,43 @@ function tambahSoal(existing) {
     <label style="margin-top:16px;">Pembahasan (opsional, boleh LaTeX)</label>
     <textarea class="input-pembahasan" oninput="updatePreview(this)">${(existing && existing.pembahasan) || ''}</textarea>
     <div class="preview preview-pembahasan"></div>
+    </div>
   `;
   container.appendChild(wrap);
   renumberSoal();
   onGantiTipeSoal(uid);
   wrap.querySelectorAll('.input-pertanyaan, .input-pilihan, .input-pembahasan, .input-gambar-url').forEach(updatePreview);
+  updateRingkasanSoal(uid);
+}
+
+function toggleSoalBlock(uid) {
+  const block = document.getElementById(uid);
+  if (block) block.classList.toggle('collapsed');
+}
+
+function ciutkanSemuaSoal(ciutkan) {
+  document.querySelectorAll('#soalContainer .soal-block').forEach(b => {
+    b.classList.toggle('collapsed', ciutkan);
+  });
+}
+
+const LABEL_TIPE_SOAL = { pg5: 'PG 5 Opsi', pg4: 'PG 4 Opsi', isian: 'Isian', esai: 'Esai' };
+
+function updateRingkasanSoal(uid) {
+  const block = document.getElementById(uid);
+  if (!block) return;
+  const tipe = (block.querySelector('.input-tipe-soal') || {}).value || 'pg5';
+  block.dataset.tipe = tipe;
+  const badge = block.querySelector('.soal-tipe-badge');
+  if (badge) badge.textContent = LABEL_TIPE_SOAL[tipe] || tipe;
+  const ringkasan = block.querySelector('.soal-ringkasan');
+  if (ringkasan) {
+    const teksPertanyaan = (block.querySelector('.input-pertanyaan') || {}).value || '';
+    const adaGambar = !!((block.querySelector('.input-gambar-url') || {}).value || '').trim();
+    let cuplikan = teksPertanyaan.trim().replace(/\s+/g, ' ');
+    if (!cuplikan && adaGambar) cuplikan = '(gambar)';
+    ringkasan.textContent = cuplikan;
+  }
 }
 
 function onGantiTipeSoal(uid) {
@@ -2712,6 +2812,7 @@ function onGantiTipeSoal(uid) {
   block.querySelectorAll('.pilihan-row[data-opsi="E"], .preview-pilihan-E').forEach(el => {
     el.style.display = tipe === 'pg4' ? 'none' : '';
   });
+  updateRingkasanSoal(uid);
 }
 
 function updatePreview(inputEl) {
@@ -2720,6 +2821,7 @@ function updatePreview(inputEl) {
     const prev = block.querySelector('.preview-pertanyaan');
     prev.innerHTML = inputEl.value;
     renderKatexIn(prev);
+    updateRingkasanSoal(block.id);
   } else if (inputEl.classList.contains('input-pilihan')) {
     const h = inputEl.dataset.huruf;
     const prev = block.querySelector('.preview-pilihan-' + h);
@@ -2733,6 +2835,7 @@ function updatePreview(inputEl) {
     const prev = block.querySelector('.preview-gambar');
     const val = inputEl.value.trim();
     prev.innerHTML = val ? `<img src="${val}" alt="Preview gambar soal" style="max-width:220px;border-radius:8px;display:block;">` : '';
+    updateRingkasanSoal(block.id);
   }
 }
 
@@ -2881,10 +2984,13 @@ async function simpanPaket() {
     manifestCache = { content: newManifest, sha: putRes.content.sha };
 
     setStatus('statusForm', `✓ Paket "${data.title}" berhasil disimpan & dipublikasikan ke GitHub! (${data.soal.length} soal tersimpan)`, 'ok');
-    document.getElementById('statusForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
     alert(`✓ BERHASIL!\n\nPaket "${data.title}" (${data.soal.length} soal) sudah tersimpan & terpublikasi ke GitHub.`);
     renderPaketAdminList();
     currentPaketId = id;
+    // Tutup & rapikan form supaya halaman tidak penuh — daftar soal yang
+    // sudah tersimpan tidak perlu terus tampil di layar.
+    batalForm();
+    document.getElementById('paketAdminList').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     setStatus('statusForm', '❌ Gagal menyimpan: ' + e.message, 'err');
     document.getElementById('statusForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
