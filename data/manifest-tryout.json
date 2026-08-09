@@ -20,5 +20,16 @@
     "file": "data/tryout/2-mslnsdbx.json",
     "aktif": true,
     "kode_akses": ""
+  },
+  {
+    "id": "gaya-mslnwp8r",
+    "title": "GAYA",
+    "jenjang": "sma",
+    "topik": "HUKUM NWETON",
+    "durasi_menit": 60,
+    "jumlah_soal": 1,
+    "file": "data/tryout/gaya-mslnwp8r.json",
+    "aktif": true,
+    "kode_akses": ""
   }
 ]
