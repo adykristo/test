@@ -19,6 +19,7 @@ window.MathJax = {
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
   :root{
     --ungu-tua:#3d1a63;
@@ -995,6 +996,43 @@ window.MathJax = {
     </label>
     <p class="help" style="margin-top:4px;">Kalau dicentang: paket langsung terlihat &amp; bisa dikerjakan peserta. Kalau tidak: tersimpan tapi disembunyikan (draft).</p>
 
+    <div style="margin-top:26px; padding:16px; border:1.5px dashed var(--ungu, #7b2ff7); border-radius:12px; background:#faf5ff;">
+      <h3 style="margin-bottom:6px;">📄 Isi Soal Otomatis dari File Word (.docx)</h3>
+      <p class="help">Tulis semua soal dalam <b>satu file Word</b> (boleh berisi rumus LaTeX &amp; gambar yang ditempel langsung), lalu upload di sini. Form "Daftar Soal" di bawah akan otomatis terisi — gambar di dalam Word ikut otomatis terunggah. Ikuti format penulisan berikut persis (boleh dicontek/di-copy ke Word):</p>
+      <pre style="background:#fff; border:1px solid #eee; border-radius:8px; padding:12px 14px; font-family:'Consolas',monospace; font-size:12.5px; white-space:pre-wrap; margin:10px 0; color:#333; line-height:1.55;">1. Sebuah benda bermassa 2 kg didorong gaya $F = 10$ N. Berapa percepatannya?
+(tempel gambar soal di sini kalau ada, langsung di dalam Word)
+A. 2 m/s²
+B. 5 m/s²
+C. 10 m/s²
+D. 20 m/s²
+KUNCI: B
+PEMBAHASAN: Gunakan $a = F/m$, sehingga $a = 10/2 = 5$ m/s².
+
+2. Kecepatan benda setelah 4 sekon adalah ... m/s (isian singkat)
+TIPE: ISIAN
+KUNCI: 10 | 10 m/s
+PEMBAHASAN: Gunakan $v = v_0 + at$.
+
+3. Jelaskan bunyi Hukum II Newton dan berikan contohnya.
+TIPE: ESAI
+PEMBAHASAN: (opsional, untuk pegangan koreksi manual)</pre>
+      <a id="downloadTemplateSoalBtn" class="btn btn-outline" style="display:inline-block; text-decoration:none; margin-bottom:14px;" href="#" download="Template-Soal-Tryout-KlinikFisikapku.docx">⬇️ Download Contoh Template Soal (.docx)</a>
+      <p class="help" style="margin-top:-8px; margin-bottom:14px;">Isi file ini sesuai format sudah jadi contoh 4 soal (PG 4 opsi, PG 5 opsi, isian singkat, esai) lengkap dengan gambar & rumus — tinggal diganti isinya.</p>
+      <ul class="help" style="padding-left:18px; margin-bottom:6px;">
+        <li>Nomor di awal paragraf (<code>1.</code>, <code>2.</code>, dst) selalu menandai <b>mulainya soal baru</b>.</li>
+        <li>Pilihan jawaban ditulis <code>A.</code> s/d <code>D.</code> (4 opsi) atau s/d <code>E.</code> (5 opsi) — masing‑masing di paragraf/baris sendiri.</li>
+        <li><code>KUNCI:</code> = jawaban benar. Untuk pilihan ganda isi hurufnya (mis. <code>KUNCI: B</code>). Untuk isian singkat isi teks jawabannya (boleh beberapa alternatif dipisah <code>|</code>).</li>
+        <li><code>TIPE:</code> bersifat opsional. Isi <code>ISIAN</code> atau <code>ESAI</code> jika bukan pilihan ganda. Kalau tidak ditulis dan ada opsi A–D/E, otomatis dianggap pilihan ganda.</li>
+        <li><code>PEMBAHASAN:</code> opsional, boleh lebih dari satu baris/paragraf setelahnya.</li>
+        <li>Rumus fisika/matematika tetap ditulis manual pakai LaTeX diapit tanda dolar seperti biasa, contoh <code>$F = ma$</code> — <b>jangan</b> pakai fitur Equation bawaan Word karena tidak dapat dibaca otomatis.</li>
+        <li>Gambar cukup ditempel (paste/insert image) langsung di paragraf soal di Word — sistem otomatis mengunggahnya, admin tidak perlu upload manual lagi.</li>
+      </ul>
+      <label>Pilih File Word (.docx)</label>
+      <input type="file" id="wordSoalFile" accept=".docx">
+      <button type="button" class="btn btn-outline" style="margin-top:10px;" onclick="prosesWordKeForm()">⬆️ Proses Word &amp; Isi Otomatis ke Form di Bawah</button>
+      <div id="statusWordSoal" class="status-bar" style="margin-top:10px;"></div>
+    </div>
+
     <h3 style="margin-top:22px;">Daftar Soal</h3>
     <div id="soalContainer"></div>
     <button class="btn btn-outline btn-block" onclick="tambahSoal()">+ Tambah Soal</button>
@@ -1918,6 +1956,164 @@ async function uploadGambarSoal(inputEl) {
     updatePreview(urlInput);
   } catch (e) {
     preview.innerHTML = `<span style="color:#c0392b;">Gagal upload: ${e.message}</span>`;
+  } finally {
+    inputEl.value = '';
+  }
+}
+
+// ---------- Template contoh soal Word (untuk tombol "Download Contoh Template Soal") ----------
+const TEMPLATE_SOAL_TRYOUT_DOCX_BASE64 = "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";
+
+(function initDownloadTemplateSoal() {
+  const a = document.getElementById('downloadTemplateSoalBtn');
+  if (!a) return;
+  a.href = 'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,' + TEMPLATE_SOAL_TRYOUT_DOCX_BASE64;
+})();
+
+// ---------- Impor Soal Otomatis dari Word (.docx) ----------
+// Mengubah HTML hasil konversi Word (mammoth.js) menjadi daftar objek soal
+// dengan struktur yang sama persis dengan yang dipakai tambahSoal(existing).
+function parseWordSoalHtml(html) {
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  const blocks = [...container.children];
+
+  const soalMentah = [];
+  let current = null;
+  let section = 'pertanyaan'; // 'pertanyaan' | 'pembahasan'
+
+  function mulaiSoalBaru(teksAwal) {
+    if (current) soalMentah.push(current);
+    current = {
+      pertanyaanLines: [], gambar: '', pilihan: {},
+      jawabanRaw: '', tipeOverride: '', pembahasanLines: []
+    };
+    section = 'pertanyaan';
+    if (teksAwal) current.pertanyaanLines.push(teksAwal);
+  }
+
+  blocks.forEach(el => {
+    const teks = (el.textContent || '').replace(/\s+/g, ' ').trim();
+    const imgs = el.querySelectorAll ? [...el.querySelectorAll('img')] : [];
+
+    const mSoal = teks.match(/^(\d{1,3})[.\)]\s*(.*)$/);
+    const mOpsi = teks.match(/^([A-Ea-e])[.\)]\s+(.+)$/);
+    const mTipe = teks.match(/^TIPE\s*:\s*(.*)$/i);
+    const mKunci = teks.match(/^KUNCI\s*:\s*(.*)$/i);
+    const mPembahasan = teks.match(/^PEMBAHASAN\s*:\s*(.*)$/i);
+
+    if (mSoal && !mOpsi) {
+      mulaiSoalBaru(mSoal[2]);
+    } else if (mTipe && current) {
+      current.tipeOverride = mTipe[1].trim().toLowerCase();
+    } else if (mKunci && current) {
+      current.jawabanRaw = mKunci[1].trim();
+    } else if (mPembahasan && current) {
+      section = 'pembahasan';
+      if (mPembahasan[1]) current.pembahasanLines.push(mPembahasan[1]);
+    } else if (mOpsi && current) {
+      current.pilihan[mOpsi[1].toUpperCase()] = mOpsi[2].trim();
+    } else if (current && teks) {
+      if (section === 'pertanyaan') current.pertanyaanLines.push(teks);
+      else current.pembahasanLines.push(teks);
+    }
+
+    if (current && imgs.length) {
+      imgs.forEach(img => {
+        if (!current.gambar) current.gambar = img.getAttribute('src') || '';
+      });
+    }
+  });
+  if (current) soalMentah.push(current);
+
+  return soalMentah.map(s => {
+    const pertanyaan = s.pertanyaanLines.join('\n').trim();
+    const pembahasan = s.pembahasanLines.join('\n').trim();
+    const hurufTersedia = Object.keys(s.pilihan);
+
+    let tipe;
+    if (s.tipeOverride === 'isian') tipe = 'isian';
+    else if (s.tipeOverride === 'esai') tipe = 'esai';
+    else if (s.tipeOverride === 'pg4') tipe = 'pg4';
+    else if (s.tipeOverride === 'pg5') tipe = 'pg5';
+    else if (hurufTersedia.length === 0) tipe = s.jawabanRaw ? 'isian' : 'esai';
+    else if (!hurufTersedia.includes('E')) tipe = 'pg4';
+    else tipe = 'pg5';
+
+    let jawaban_benar = '', kunci_isian = '';
+    if (tipe === 'pg4' || tipe === 'pg5') {
+      jawaban_benar = s.jawabanRaw.toUpperCase().replace(/[^A-E]/g, '');
+    } else if (tipe === 'isian') {
+      kunci_isian = s.jawabanRaw;
+      jawaban_benar = s.jawabanRaw;
+    }
+
+    return {
+      tipe, pertanyaan, gambar: s.gambar,
+      pilihan: s.pilihan, jawaban_benar, kunci_isian, pembahasan
+    };
+  }).filter(s => s.pertanyaan || s.gambar);
+}
+
+async function prosesWordKeForm() {
+  const inputEl = document.getElementById('wordSoalFile');
+  const file = inputEl.files[0];
+  if (!file) { setStatus('statusWordSoal', 'Pilih file Word (.docx) dulu.', 'err'); return; }
+  if (typeof mammoth === 'undefined') {
+    setStatus('statusWordSoal', 'Pustaka pembaca Word gagal dimuat (cek koneksi internet), lalu muat ulang halaman.', 'err');
+    return;
+  }
+  if (!document.getElementById('soalContainer')) {
+    setStatus('statusWordSoal', 'Buka/buat paket tryout dulu sebelum mengimpor soal dari Word.', 'err');
+    return;
+  }
+
+  setStatus('statusWordSoal', 'Membaca isi file Word…', 'loading');
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml({ arrayBuffer }, {
+      convertImage: mammoth.images.imgElement(async image => {
+        const b64 = await image.read('base64');
+        return { src: 'data:' + image.contentType + ';base64,' + b64 };
+      })
+    });
+
+    const soalMentah = parseWordSoalHtml(result.value);
+    if (!soalMentah.length) {
+      setStatus('statusWordSoal', 'Tidak ada soal yang terdeteksi. Pastikan format penomoran soal (1. 2. 3. dst) sesuai contoh di atas.', 'err');
+      return;
+    }
+
+    const jumlahGambar = soalMentah.filter(s => s.gambar && s.gambar.startsWith('data:image')).length;
+    if (jumlahGambar && !ghToken) {
+      setStatus('statusWordSoal', `Terdeteksi ${jumlahGambar} gambar di dalam Word. Masukkan &amp; simpan token GitHub dulu (di atas) supaya gambar bisa ikut diunggah otomatis.`, 'err');
+      return;
+    }
+
+    if (jumlahGambar) {
+      setStatus('statusWordSoal', `Mengunggah ${jumlahGambar} gambar dari dalam Word…`, 'loading');
+      for (let i = 0; i < soalMentah.length; i++) {
+        const s = soalMentah[i];
+        if (!s.gambar || !s.gambar.startsWith('data:image')) continue;
+        try {
+          const m = s.gambar.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/s);
+          if (!m) { s.gambar = ''; continue; }
+          const ext = (m[1].split('/')[1] || 'png').replace('jpeg', 'jpg').split('+')[0];
+          const path = `${GAMBAR_SOAL_FOLDER}/word-${Date.now()}-${i}.${ext}`;
+          const res = await ghPutBinaryFile(path, m[2], `Upload gambar soal (impor Word) #${i + 1}`);
+          s.gambar = res.content.download_url;
+        } catch (e) {
+          console.warn('Gagal upload gambar soal #' + (i + 1) + ': ' + e.message);
+          s.gambar = '';
+        }
+      }
+    }
+
+    soalMentah.forEach(s => tambahSoal(s));
+
+    setStatus('statusWordSoal', `✓ Berhasil membaca ${soalMentah.length} soal dari Word dan mengisinya ke "Daftar Soal" di bawah. Periksa dulu sebelum klik "Simpan & Publish".`, 'ok');
+  } catch (e) {
+    setStatus('statusWordSoal', 'Gagal memproses file Word: ' + e.message, 'err');
   } finally {
     inputEl.value = '';
   }
