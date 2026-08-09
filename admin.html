@@ -117,6 +117,7 @@ window.MathJax = {
   }
   .page-title{
     margin-bottom:22px;
+    text-align:center;
   }
   .page-title h1{
     color:var(--ungu-tua);
@@ -622,6 +623,7 @@ window.MathJax = {
   #panelEsai main{ padding-top:22px; }
   #panelEsai header{
     padding:22px 24px 16px;
+    text-align:center;
   }
   #panelEsai header h1{
     font-size:22px;
@@ -682,84 +684,108 @@ window.MathJax = {
     padding:7px 14px;
     font-size:12.5px;
   }
-  #panelEsai .esai-folder{
+  #panelEsai .esai-warn{
+    color:#b0294f;
+    background:#fdeaf0;
+    border:1px solid #f6c3d5;
+    padding:5px 9px;
+    border-radius:8px;
+    font-size:11.5px;
+    cursor:help;
+    display:inline-block;
+  }
+  #panelEsai .esai-filter-row{
+    margin-bottom:12px;
+  }
+  #panelEsai .esai-filter-row input{
+    max-width:320px;
+    margin-top:0;
+  }
+  #panelEsai .esai-table-wrap{
     background:var(--card);
     border:1px solid var(--border);
-    border-left:4px solid var(--ungu);
-    border-radius:14px;
-    margin-bottom:12px;
-    overflow:hidden;
+    border-radius:16px;
     box-shadow:var(--shadow);
-    transition:border-color .15s;
+    overflow-x:auto;
   }
-  #panelEsai .esai-folder[open]{ border-left-color:var(--pink); }
-  #panelEsai .esai-folder summary{
-    list-style:none;
-    cursor:pointer;
-    padding:14px 16px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
+  #panelEsai .esai-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+    min-width:820px;
+  }
+  #panelEsai .esai-table thead th{
+    position:sticky;
+    top:0;
+    z-index:1;
+    text-align:left;
+    background:var(--ungu-tua);
+    color:#fff;
+    font-size:12px;
     font-weight:700;
+    padding:12px 14px;
+    white-space:nowrap;
+  }
+  #panelEsai .esai-table tbody td{
+    padding:12px 14px;
+    border-top:1px solid var(--border);
+    vertical-align:top;
+  }
+  #panelEsai .esai-table tbody tr:hover{ background:#faf7ff; }
+  #panelEsai .esai-table tbody tr.esai-row-alt{ background:#fdfbff; }
+  #panelEsai .esai-table tbody tr.esai-row-alt:hover{ background:#f4ecfe; }
+  #panelEsai .esai-table tbody tr.esai-group-start td{ border-top:2px solid var(--ungu); }
+  #panelEsai .esai-peserta-cell b{
+    display:block;
     color:var(--ungu-tua);
-    font-size:13.5px;
-    background:#faf7ff;
+    font-size:13px;
+    white-space:nowrap;
   }
-  #panelEsai .esai-folder summary:hover{ background:#f4ecfe; }
-  #panelEsai .esai-folder summary::-webkit-details-marker{ display:none; }
-  #panelEsai .esai-folder summary .muted{ font-weight:400; color:var(--abu); }
-  #panelEsai .esai-folder-body{
-    padding:6px 16px 16px;
+  #panelEsai .esai-peserta-cell .muted{
+    display:block;
+    font-size:11.5px;
+    color:var(--abu);
   }
-  #panelEsai .esai-item{
-    border-top:1px dashed var(--border);
-    padding:14px 0;
-  }
-  #panelEsai .esai-item:first-child{ border-top:none; }
   #panelEsai .esai-nomor{
     display:inline-block;
-    font-size:11.5px;
+    font-size:11px;
     font-weight:800;
     color:#fff;
     background:linear-gradient(90deg, var(--pink), var(--ungu));
     padding:3px 10px;
     border-radius:999px;
-    margin-bottom:8px;
+    white-space:nowrap;
   }
-  #panelEsai .esai-jawaban-teks{
-    background:#fdfbff;
-    border:1.5px solid #e8daf5;
-    border-radius:10px;
-    padding:10px 12px;
-    font-size:13px;
+  #panelEsai .esai-teks-cell{
+    max-width:280px;
+    min-width:180px;
+    max-height:90px;
+    overflow-y:auto;
     white-space:pre-wrap;
-    margin-bottom:10px;
+    font-size:12.5px;
+    line-height:1.45;
   }
-  #panelEsai .esai-jawaban-teks.muted{ color:var(--abu-muda); font-style:italic; }
-  #panelEsai .esai-file-row{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    margin-bottom:8px;
+  #panelEsai .esai-table input.esai-nilai{
+    width:64px;
+    margin:0;
+    padding:6px 8px;
+    font-size:13px;
+    text-align:center;
   }
-  #panelEsai .esai-warn{
-    color:#b0294f;
-    background:#fdeaf0;
-    border:1px solid #f6c3d5;
-    padding:8px 12px;
-    border-radius:10px;
-    font-size:12px;
+  #panelEsai .esai-table textarea.esai-catatan{
+    width:100%;
+    min-width:160px;
+    margin:0;
+    padding:6px 8px;
+    font-size:12.5px;
+    resize:vertical;
   }
-  #panelEsai .esai-koreksi-row{
-    display:flex;
-    gap:12px;
-    flex-wrap:wrap;
-    align-items:flex-start;
-    margin-bottom:10px;
+  #panelEsai .esai-aksi-cell{ white-space:nowrap; }
+  #panelEsai .esai-simpan-status{
+    font-size:11px;
+    color:var(--abu);
+    margin-top:6px;
   }
-  #panelEsai .esai-koreksi-row > div:first-child{ width:110px; }
-  #panelEsai .esai-nilai{ width:100%; }
 </style>
 </head>
 <body>
@@ -3157,62 +3183,84 @@ function renderEsaiFolder(meta, pesertaList) {
   const box = document.getElementById('esaiFolderList');
   const koreksi = getKoreksiEsai(meta.id);
 
-  box.innerHTML = pesertaList.map((p, pi) => {
-    const items = p.jawaban.map((j, ji) => {
+  let rowsHtml = '';
+  pesertaList.forEach((p, pi) => {
+    const stripe = pi % 2 === 1 ? ' esai-row-alt' : '';
+    p.jawaban.forEach((j, ji) => {
       const k = koreksi[p.noUjian + '_' + j.nomor] || {};
       const nilai = (k.nilai !== undefined && k.nilai !== null) ? k.nilai : '';
       const catatan = k.catatan || '';
 
       const teksHtml = j.teks
-        ? `<div class="esai-jawaban-teks">${String(j.teks).replace(/</g, '&lt;')}</div>`
-        : `<div class="esai-jawaban-teks muted">(tidak ada jawaban teks)</div>`;
+        ? String(j.teks).replace(/</g, '&lt;')
+        : '<span class="muted" style="font-style:italic;">(tidak ada jawaban teks)</span>';
 
       // "link" biasanya URL Google Drive tempat file PDF disimpan Apps Script.
       // Kalau Apps Script gagal simpan file, yang tersimpan di Sheet adalah TEKS
       // PESAN ERROR, bukan URL — jadi divalidasi dulu sebelum dijadikan link klik.
       let fileHtml;
       if (j.link && /^https?:\/\//i.test(String(j.link).trim())) {
-        fileHtml = `<a class="btn btn-outline btn-sm" href="${j.link}" target="_blank" rel="noopener">📄 Buka / Unduh File</a>`;
+        fileHtml = `<a class="btn btn-outline btn-sm" href="${j.link}" target="_blank" rel="noopener">📄 Buka</a>`;
       } else if (j.link) {
-        fileHtml = `<div class="esai-warn">⚠️ Gagal simpan lampiran: <code>${String(j.link).replace(/</g, '&lt;')}</code></div>`;
+        fileHtml = `<span class="esai-warn" title="${String(j.link).replace(/"/g, '&quot;')}">⚠️ Gagal simpan</span>`;
       } else {
-        fileHtml = `<span class="muted" style="font-size:12px;">Tidak ada file lampiran</span>`;
+        fileHtml = `<span class="muted" style="font-size:12px;">-</span>`;
       }
 
-      return `
-        <div class="esai-item" data-peserta="${pi}" data-jawaban="${ji}">
-          <span class="esai-nomor">Soal No. ${j.nomor}</span>
-          ${teksHtml}
-          <div class="esai-file-row">${fileHtml}</div>
-          <div class="esai-koreksi-row">
-            <div>
-              <label style="margin-top:0;">Nilai (0-100)</label>
-              <input type="number" min="0" max="100" class="esai-nilai" value="${nilai}">
-            </div>
-            <div style="flex:1; min-width:180px;">
-              <label style="margin-top:0;">Catatan Koreksi</label>
-              <textarea class="esai-catatan" rows="2" placeholder="Catatan untuk peserta...">${String(catatan).replace(/</g, '&lt;')}</textarea>
-            </div>
-          </div>
-          <button type="button" class="btn btn-hijau btn-sm btn-simpan-koreksi" data-peserta="${pi}" data-jawaban="${ji}">💾 Simpan Koreksi</button>
-          <span class="esai-simpan-status" style="font-size:12px; color:var(--abu); margin-left:8px;"></span>
-        </div>`;
-    }).join('');
+      const groupStart = ji === 0 ? ' esai-group-start' : '';
 
-    return `
-      <details class="esai-folder" ${pi === 0 ? 'open' : ''}>
-        <summary>
-          <span>📁 ${p.nama} <span class="muted">(${p.noUjian})</span></span>
-          <span class="muted" style="font-size:12px;">${p.jawaban.length} jawaban esai</span>
-        </summary>
-        <div class="esai-folder-body">${items}</div>
-      </details>`;
-  }).join('');
+      rowsHtml += `
+        <tr class="${stripe}${groupStart}" data-peserta="${pi}" data-jawaban="${ji}">
+          <td class="esai-peserta-cell"><b>${String(p.nama).replace(/</g, '&lt;')}</b><span class="muted">${p.noUjian}</span></td>
+          <td><span class="esai-nomor">No. ${j.nomor}</span></td>
+          <td class="esai-teks-cell">${teksHtml}</td>
+          <td>${fileHtml}</td>
+          <td><input type="number" min="0" max="100" class="esai-nilai" value="${nilai}"></td>
+          <td><textarea class="esai-catatan" rows="2" placeholder="Catatan untuk peserta...">${String(catatan).replace(/</g, '&lt;')}</textarea></td>
+          <td class="esai-aksi-cell">
+            <button type="button" class="btn btn-hijau btn-sm btn-simpan-koreksi" data-peserta="${pi}" data-jawaban="${ji}">💾 Simpan</button>
+            <div class="esai-simpan-status"></div>
+          </td>
+        </tr>`;
+    });
+  });
+
+  box.innerHTML = `
+    <div class="esai-filter-row">
+      <input type="text" id="esaiFilterInput" placeholder="🔍 Cari nama / no ujian..." oninput="filterEsaiTable(this.value)">
+    </div>
+    <div class="esai-table-wrap">
+      <table class="esai-table">
+        <thead>
+          <tr>
+            <th>Peserta</th>
+            <th>Soal</th>
+            <th>Jawaban Teks</th>
+            <th>File</th>
+            <th>Nilai</th>
+            <th>Catatan</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>`;
 
   box.onclick = (e) => {
     const btnSave = e.target.closest('.btn-simpan-koreksi');
     if (btnSave) { handleSimpanKoreksiEsai(Number(btnSave.dataset.peserta), Number(btnSave.dataset.jawaban), btnSave); return; }
   };
+}
+
+// Filter baris tabel berdasarkan nama / no ujian peserta (pencarian cepat kalau peserta banyak)
+function filterEsaiTable(query) {
+  const q = String(query || '').trim().toLowerCase();
+  const rows = document.querySelectorAll('#panelEsai .esai-table tbody tr');
+  rows.forEach(tr => {
+    if (!q) { tr.style.display = ''; return; }
+    const teks = tr.querySelector('.esai-peserta-cell').textContent.toLowerCase();
+    tr.style.display = teks.includes(q) ? '' : 'none';
+  });
 }
 
 async function handleSimpanKoreksiEsai(pi, ji, btn) {
@@ -3221,7 +3269,7 @@ async function handleSimpanKoreksiEsai(pi, ji, btn) {
   const j = p && p.jawaban[ji];
   if (!meta || !j) return;
 
-  const wrap = btn.closest('.esai-item');
+  const wrap = btn.closest('tr');
   const nilai = wrap.querySelector('.esai-nilai').value;
   const catatan = wrap.querySelector('.esai-catatan').value;
   const statusEl = wrap.querySelector('.esai-simpan-status');
