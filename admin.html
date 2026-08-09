@@ -293,6 +293,26 @@ window.MathJax = {
     border-color:var(--ungu);
   }
 
+  /* Tombol "Hapus" di kolom Gambar Pembahasan tambahan — dibuat kecil
+     supaya kolom Choose File tetap terlihat penuh/lengkap. */
+  .solusi-file-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .solusi-file-row input[type=file]{
+    flex:1;
+    min-width:0;
+  }
+  .solusi-file-row button.secondary{
+    flex:0 0 auto;
+    width:auto;
+    margin-top:0;
+    padding:7px 12px;
+    font-size:11.5px;
+    white-space:nowrap;
+  }
+
   .btn-hijau{
     background:var(--hijau);
     color:#fff;
@@ -870,11 +890,11 @@ window.MathJax = {
 
     <label>File Gambar Pembahasan</label>
     <div id="solusiFilesWrap">
-      <div class="solusi-file-row" style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <input type="file" class="input-file-solusi" accept="image/*" style="flex:1;">
+      <div class="solusi-file-row" style="margin-bottom:8px;">
+        <input type="file" class="input-file-solusi" accept="image/*">
       </div>
     </div>
-    <button type="button" class="secondary" style="margin-bottom:6px;" onclick="tambahInputSolusi()">+ Tambah Gambar Pembahasan</button>
+    <button type="button" class="secondary" style="margin-bottom:6px; width:100%;" onclick="tambahInputSolusi()">+ Tambah Gambar Pembahasan</button>
     <p class="note" style="margin-top:2px; margin-bottom:14px;">Kalau pembahasannya butuh lebih dari 1 gambar (mis. banyak langkah), klik tombol di atas untuk menambah kolom upload lagi. Semua gambar akan tampil berurutan di halaman pembahasan.</p>
 
     <label>Link YouTube Pembahasan (opsional)</label>
@@ -1335,18 +1355,18 @@ function tambahInputSolusi() {
   const wrap = $('solusiFilesWrap');
   const row = document.createElement('div');
   row.className = 'solusi-file-row';
-  row.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:8px;';
+  row.style.marginBottom = '8px';
   row.innerHTML = `
-    <input type="file" class="input-file-solusi" accept="image/*" style="flex:1;">
-    <button type="button" class="secondary" style="padding:8px 12px; white-space:nowrap;" onclick="this.parentElement.remove()">✕ Hapus</button>
+    <input type="file" class="input-file-solusi" accept="image/*">
+    <button type="button" class="secondary" onclick="this.parentElement.remove()">✕ Hapus</button>
   `;
   wrap.appendChild(row);
 }
 
 function resetInputSolusi() {
   $('solusiFilesWrap').innerHTML = `
-    <div class="solusi-file-row" style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-      <input type="file" class="input-file-solusi" accept="image/*" style="flex:1;">
+    <div class="solusi-file-row" style="margin-bottom:8px;">
+      <input type="file" class="input-file-solusi" accept="image/*">
     </div>`;
 }
 
