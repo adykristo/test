@@ -9,5 +9,16 @@
     "file": "data/tryout/to-1-mslz9jf2.json",
     "aktif": true,
     "kode_akses": ""
+  },
+  {
+    "id": "to-1-fisika-msm12h8z",
+    "title": "TO 1 FISIKA",
+    "jenjang": "sd",
+    "topik": "GAYA",
+    "durasi_menit": 5,
+    "jumlah_soal": 4,
+    "file": "data/tryout/to-1-fisika-msm12h8z.json",
+    "aktif": false,
+    "kode_akses": ""
   }
 ]
