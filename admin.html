@@ -756,6 +756,22 @@ window.MathJax = {
     padding:7px 14px;
     font-size:12.5px;
   }
+  /* Tombol "Buka" file esai: dipaksa inline-flex + nowrap supaya ikon
+     dan teksnya tidak pernah kepisah baris (patah) saat kolom sempit. */
+  #panelEsai .esai-file-cell{
+    min-width:96px;
+    white-space:nowrap;
+  }
+  #panelEsai .esai-file-cell .btn-sm{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    white-space:nowrap;
+    width:auto;
+    margin-top:0;
+    text-decoration:none;
+  }
   #panelEsai .esai-warn{
     color:#b0294f;
     background:#fdeaf0;
@@ -3663,7 +3679,7 @@ function renderEsaiFolder(meta, pesertaList) {
           <td class="esai-peserta-cell"><b>${String(p.nama).replace(/</g, '&lt;')}</b><span class="muted">${p.noUjian}</span></td>
           <td><span class="esai-nomor">No. ${j.nomor}</span><br>${metodeBadge}</td>
           <td class="esai-teks-cell">${teksHtml}</td>
-          <td>${fileHtml}</td>
+          <td class="esai-file-cell">${fileHtml}</td>
           <td><input type="number" min="0" max="100" class="esai-nilai" value="${nilai}"></td>
           <td><textarea class="esai-catatan" rows="2" placeholder="Catatan untuk peserta...">${String(catatan).replace(/</g, '&lt;')}</textarea></td>
           <td class="esai-aksi-cell">
