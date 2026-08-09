@@ -922,6 +922,12 @@ function renderJenjang(jenjang) {
     const ytBtn = (item.showYoutube && item.youtubeLink)
       ? `<a class="yt-link" href="${escAttr(item.youtubeLink)}" target="_blank" rel="noopener noreferrer">▶ Tonton Video Pembahasan di YouTube</a>`
       : '';
+    const solusiImgs = Array.isArray(item.solusiImages) && item.solusiImages.length
+      ? item.solusiImages
+      : (item.solusiImage ? [item.solusiImage] : []);
+    const solusiImgsHtml = solusiImgs.map((src, idx) =>
+      `<img class="solusi-img" src="${escAttr(src)}" alt="Pembahasan ${escAttr(item.title)} ${idx + 1}">`
+    ).join('');
     return `
     <div class="soal-card">
       <div class="head">
@@ -935,7 +941,7 @@ function renderJenjang(jenjang) {
       <div class="toggle-wrap">
         <button class="toggle-btn" onclick="toggleSolusi('${uid}')">Lihat Pembahasan</button>
         <div class="pembahasan-wrap" id="solusi-${uid}">
-          <img class="solusi-img" src="${item.solusiImage}" alt="Pembahasan ${item.title}">
+          ${solusiImgsHtml}
           ${ytBtn}
         </div>
       </div>

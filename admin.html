@@ -869,7 +869,13 @@ window.MathJax = {
     <input type="file" id="fileSoal" accept="image/*">
 
     <label>File Gambar Pembahasan</label>
-    <input type="file" id="fileSolusi" accept="image/*">
+    <div id="solusiFilesWrap">
+      <div class="solusi-file-row" style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+        <input type="file" class="input-file-solusi" accept="image/*" style="flex:1;">
+      </div>
+    </div>
+    <button type="button" class="secondary" style="margin-bottom:6px;" onclick="tambahInputSolusi()">+ Tambah Gambar Pembahasan</button>
+    <p class="note" style="margin-top:2px; margin-bottom:14px;">Kalau pembahasannya butuh lebih dari 1 gambar (mis. banyak langkah), klik tombol di atas untuk menambah kolom upload lagi. Semua gambar akan tampil berurutan di halaman pembahasan.</p>
 
     <label>Link YouTube Pembahasan (opsional)</label>
     <input type="url" id="ytLinkS" placeholder="https://youtube.com/watch?v=...">
@@ -1324,6 +1330,26 @@ $('testBtn').addEventListener('click', async () => {
   }
 });
 
+/* ---- Tambah/hapus kolom Gambar Pembahasan ---- */
+function tambahInputSolusi() {
+  const wrap = $('solusiFilesWrap');
+  const row = document.createElement('div');
+  row.className = 'solusi-file-row';
+  row.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:8px;';
+  row.innerHTML = `
+    <input type="file" class="input-file-solusi" accept="image/*" style="flex:1;">
+    <button type="button" class="secondary" style="padding:8px 12px; white-space:nowrap;" onclick="this.parentElement.remove()">✕ Hapus</button>
+  `;
+  wrap.appendChild(row);
+}
+
+function resetInputSolusi() {
+  $('solusiFilesWrap').innerHTML = `
+    <div class="solusi-file-row" style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+      <input type="file" class="input-file-solusi" accept="image/*" style="flex:1;">
+    </div>`;
+}
+
 /* ---- Tombol Upload Soal ---- */
 $('submitBtnS').addEventListener('click', async () => {
   const cfg = getCfg();
@@ -1332,7 +1358,9 @@ $('submitBtnS').addEventListener('click', async () => {
   const topik = $('topikS').value.trim();
   const tanggal = $('tanggalS').value;
   const fileSoal = $('fileSoal').files[0];
-  const fileSolusi = $('fileSolusi').files[0];
+  const fileSolusiList = [...document.querySelectorAll('.input-file-solusi')]
+    .map(inp => inp.files[0])
+    .filter(Boolean);
   const youtubeLink = $('ytLinkS').value.trim();
   const showYoutube = $('ytShowS').checked;
 
@@ -1340,8 +1368,8 @@ $('submitBtnS').addEventListener('click', async () => {
     setStatusS('err', 'Isi dulu Username, Repo, dan Token GitHub-nya di bagian atas, lalu klik "Test Koneksi" dulu.');
     return;
   }
-  if (!title || !topik || !tanggal || !fileSoal || !fileSolusi) {
-    setStatusS('err', 'Lengkapi jenjang, judul, topik, tanggal, gambar soal, dan gambar pembahasan.');
+  if (!title || !topik || !tanggal || !fileSoal || !fileSolusiList.length) {
+    setStatusS('err', 'Lengkapi jenjang, judul, topik, tanggal, gambar soal, dan minimal 1 gambar pembahasan.');
     return;
   }
 
@@ -1354,9 +1382,7 @@ $('submitBtnS').addEventListener('click', async () => {
     const safeName = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g,'');
     const stamp = Date.now();
     const extSoal = fileSoal.name.split('.').pop();
-    const extSolusi = fileSolusi.name.split('.').pop();
     const soalPath = `soal-osn/${jenjang}/${stamp}_${safeName}-soal.${extSoal}`;
-    const solusiPath = `soal-osn/${jenjang}/${stamp}_${safeName}-solusi.${extSolusi}`;
 
     const soalBase64 = await fileToBase64(fileSoal);
     const uploadSoalRes = await ghRequest(soalPath, {
@@ -1372,34 +1398,45 @@ $('submitBtnS').addEventListener('click', async () => {
       throw new Error(errData.message || 'Gagal upload gambar soal.');
     }
 
-    setStatusS('loading', 'Mengupload gambar pembahasan…');
-
-    const solusiBase64 = await fileToBase64(fileSolusi);
-    const uploadSolusiRes = await ghRequest(solusiPath, {
-      method: 'PUT',
-      body: JSON.stringify({
-        message: `Upload pembahasan: ${title}`,
-        content: solusiBase64,
-        branch: cfg.branch
-      })
-    }, cfg);
-    if (!uploadSolusiRes.ok) {
-      const errData = await uploadSolusiRes.json().catch(() => ({}));
-      throw new Error(errData.message || 'Gagal upload gambar pembahasan.');
+    const solusiPaths = [];
+    for (let i = 0; i < fileSolusiList.length; i++) {
+      const f = fileSolusiList[i];
+      setStatusS('loading', `Mengupload gambar pembahasan (${i + 1}/${fileSolusiList.length})…`);
+      const extSolusi = f.name.split('.').pop();
+      const suffix = fileSolusiList.length > 1 ? `-solusi-${i + 1}` : '-solusi';
+      const path = `soal-osn/${jenjang}/${stamp}_${safeName}${suffix}.${extSolusi}`;
+      const base64 = await fileToBase64(f);
+      const uploadSolusiRes = await ghRequest(path, {
+        method: 'PUT',
+        body: JSON.stringify({
+          message: `Upload pembahasan (${i + 1}/${fileSolusiList.length}): ${title}`,
+          content: base64,
+          branch: cfg.branch
+        })
+      }, cfg);
+      if (!uploadSolusiRes.ok) {
+        const errData = await uploadSolusiRes.json().catch(() => ({}));
+        throw new Error(errData.message || `Gagal upload gambar pembahasan ke-${i + 1}.`);
+      }
+      solusiPaths.push(path);
     }
 
     setStatusS('loading', 'Memperbarui daftar soal…');
 
     await updateManifestWithRetry(
-      { title, topik, tanggal, jenjang, soalImage: soalPath, solusiImage: solusiPath, youtubeLink, showYoutube },
+      {
+        title, topik, tanggal, jenjang, soalImage: soalPath,
+        solusiImage: solusiPaths[0], solusiImages: solusiPaths,
+        youtubeLink, showYoutube
+      },
       cfg
     );
 
-    setStatusS('ok', `Berhasil! Soal (${jenjang.toUpperCase()}) & pembahasan akan muncul di web dalam ± 30–60 detik.`);
+    setStatusS('ok', `Berhasil! Soal (${jenjang.toUpperCase()}) & ${solusiPaths.length} gambar pembahasan akan muncul di web dalam ± 30–60 detik.`);
     $('titleS').value = '';
     $('topikS').value = '';
     $('fileSoal').value = '';
-    $('fileSolusi').value = '';
+    resetInputSolusi();
     $('ytLinkS').value = '';
     $('ytShowS').checked = true;
 
@@ -1494,11 +1531,14 @@ function renderDaftarSoalHapus(list) {
   const sorted = [...list].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
   box.innerHTML = sorted.map(item => {
     const ytChecked = item.showYoutube === false ? '' : 'checked';
+    const solusiList = Array.isArray(item.solusiImages) && item.solusiImages.length
+      ? item.solusiImages
+      : (item.solusiImage ? [item.solusiImage] : []);
     return `
-    <div class="soal-item" data-soal-image="${item.soalImage.replace(/"/g, '&quot;')}">
+    <div class="soal-item" data-soal-image="${item.soalImage.replace(/"/g, '&quot;')}" data-solusi-images="${escAttr(JSON.stringify(solusiList))}">
       <div class="info">
         <b>${item.title}</b>
-        <span>${item.jenjang.toUpperCase()} · ${item.topik || '-'} · ${formatTanggalHapus(item.tanggal)}</span>
+        <span>${item.jenjang.toUpperCase()} · ${item.topik || '-'} · ${formatTanggalHapus(item.tanggal)} · ${solusiList.length} gambar pembahasan</span>
         <div class="yt-edit">
           <input type="url" class="yt-edit-input" placeholder="Link YouTube pembahasan (opsional)" value="${escAttr(item.youtubeLink || '')}">
           <label><input type="checkbox" class="yt-edit-show" ${ytChecked}> Tampilkan</label>
@@ -1584,9 +1624,21 @@ async function hapusSoalSatu(btn) {
   const wrapper = btn.closest('.soal-item');
   const soalImagePath = wrapper.dataset.soalImage;
   const judul = wrapper.querySelector('.info b').textContent;
-  const solusiImagePath = soalImagePath.replace(/-soal\.([a-zA-Z0-9]+)$/, '-solusi.$1');
 
-  if (!confirm(`Yakin hapus soal "${judul}"? Gambar soal & pembahasannya juga akan terhapus dari GitHub. Tindakan ini tidak bisa dibatalkan.`)) {
+  let solusiImagePaths = [];
+  try {
+    solusiImagePaths = JSON.parse(wrapper.dataset.solusiImages || '[]');
+  } catch (e) {
+    solusiImagePaths = [];
+  }
+  // fallback untuk data lama (sebelum fitur multi-gambar pembahasan ada):
+  // tebak nama file solusi dari nama file soal.
+  if (!solusiImagePaths.length) {
+    const guess = soalImagePath.replace(/-soal\.([a-zA-Z0-9]+)$/, '-solusi.$1');
+    if (guess !== soalImagePath) solusiImagePaths = [guess];
+  }
+
+  if (!confirm(`Yakin hapus soal "${judul}"? Gambar soal & ${solusiImagePaths.length} gambar pembahasannya juga akan terhapus dari GitHub. Tindakan ini tidak bisa dibatalkan.`)) {
     return;
   }
 
@@ -1596,7 +1648,9 @@ async function hapusSoalSatu(btn) {
 
   try {
     await deleteFileIfExists(soalImagePath, `Hapus gambar soal: ${judul}`, cfg);
-    await deleteFileIfExists(solusiImagePath, `Hapus gambar pembahasan: ${judul}`, cfg);
+    for (const p of solusiImagePaths) {
+      await deleteFileIfExists(p, `Hapus gambar pembahasan: ${judul}`, cfg);
+    }
     await updateManifestRemoveWithRetry(soalImagePath, cfg);
 
     wrapper.remove();
