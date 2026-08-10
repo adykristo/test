@@ -2970,6 +2970,13 @@ async function simpanPaket() {
     return;
   }
 
+  // Pastikan URL + ADMIN_KEY Apps Script sudah diisi (dipakai untuk kirim kunci jawaban)
+  if (!hasilScriptUrl || !hasilAdminKey) {
+    setStatus('statusForm', 'Isi & simpan dulu URL Apps Script dan Kode Rahasia Admin di bagian 5 (Unduh Hasil Tryout) sebelum menyimpan paket. Kunci jawaban akan disimpan di server, bukan di file JSON publik.', 'err');
+    alert('⚠️ Belum ada konfigurasi Apps Script.\n\nBuka bagian 5 "Unduh Hasil Tryout Peserta", isi URL Apps Script + Kode Rahasia Admin, klik Simpan, lalu coba simpan paket lagi.\n\nIni wajib supaya kunci jawaban tidak bocor ke file JSON publik di GitHub.');
+    return;
+  }
+
   let data;
   try {
     data = kumpulkanDataForm();
@@ -2982,15 +2989,38 @@ async function simpanPaket() {
 
   const id = currentPaketId || slugify(data.title) + '-' + Date.now().toString(36);
   const filePath = `${TRYOUT_FOLDER}/${id}.json`;
+
+  // === KEAMANAN: pecah data soal jadi versi PUBLIK (tanpa kunci) + daftar kunci ===
+  const kunciList = [];
+  const soalPublik = data.soal.map((s, idx) => {
+    kunciList.push({
+      soalId: s.id,
+      nomor: idx + 1,
+      tipe: s.tipe || 'pg5',
+      jawaban_benar: s.jawaban_benar || '',
+      kunci_isian: s.kunci_isian || '',
+      pembahasan: s.pembahasan || ''
+    });
+    // Objek yang di-push ke GitHub TIDAK berisi kunci & pembahasan
+    const publik = {
+      id: s.id,
+      tipe: s.tipe,
+      pertanyaan: s.pertanyaan || '',
+      gambar: s.gambar || '',
+      pilihan: s.pilihan || {}
+    };
+    return publik;
+  });
+
   const paketObj = {
     id, title: data.title, jenjang: data.jenjang, topik: data.topik,
     durasi_menit: data.durasi_menit, kode_akses: data.kode_akses || '',
-    soal: data.soal
+    soal: soalPublik
   };
 
   setStatus('statusForm', 'Menyimpan ke GitHub…', 'loading');
   try {
-    // 1. simpan file paket
+    // 1. simpan file paket (tanpa kunci)
     let existingSha = null;
     if (currentPaketId) {
       const existingFile = await ghGetFile(filePath);
@@ -3010,18 +3040,37 @@ async function simpanPaket() {
     const putRes = await ghPutFile(MANIFEST_PATH, newManifest, manifestCache.sha, `Update manifest tryout: ${data.title}`);
     manifestCache = { content: newManifest, sha: putRes.content.sha };
 
-    setStatus('statusForm', `✓ Paket "${data.title}" berhasil disimpan & dipublikasikan ke GitHub! (${data.soal.length} soal tersimpan)`, 'ok');
-    alert(`✓ BERHASIL!\n\nPaket "${data.title}" (${data.soal.length} soal) sudah tersimpan & terpublikasi ke GitHub.`);
+    // 3. kirim kunci jawaban ke Apps Script (sheet KunciJawaban) — tidak pernah ke GitHub
+    setStatus('statusForm', 'Menyimpan kunci jawaban ke server…', 'loading');
+    const kunciRes = await fetch(hasilScriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'simpanKunci',
+        key: hasilAdminKey,
+        paketId: id,
+        kunci: kunciList
+      })
+    });
+    let kunciData = null;
+    try { kunciData = await kunciRes.json(); } catch (e) { /* ignore parse */ }
+    if (!kunciData || kunciData.status !== 'ok') {
+      throw new Error(
+        'Paket sudah ter-upload ke GitHub, tapi gagal menyimpan kunci jawaban ke server. ' +
+        (kunciData && kunciData.message ? kunciData.message : 'Periksa URL Apps Script & Kode Rahasia Admin, lalu Deploy ulang script.')
+      );
+    }
+
+    setStatus('statusForm', `✓ Paket "${data.title}" berhasil disimpan & dipublikasikan! (${data.soal.length} soal, kunci aman di server)`, 'ok');
+    alert(`✓ BERHASIL!\n\nPaket "${data.title}" (${data.soal.length} soal) sudah tersimpan.\nKunci jawaban disimpan aman di server (tidak ikut di file JSON publik).`);
     renderPaketAdminList();
     currentPaketId = id;
-    // Tutup & rapikan form supaya halaman tidak penuh — daftar soal yang
-    // sudah tersimpan tidak perlu terus tampil di layar.
     batalForm();
     document.getElementById('paketAdminList').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     setStatus('statusForm', '❌ Gagal menyimpan: ' + e.message, 'err');
     document.getElementById('statusForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    alert('❌ GAGAL menyimpan ke GitHub.\n\n' + e.message + '\n\nSoal BELUM tersimpan, silakan coba lagi.');
+    alert('❌ GAGAL menyimpan.\n\n' + e.message + '\n\nSilakan coba lagi.');
   }
 }
 

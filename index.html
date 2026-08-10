@@ -1789,9 +1789,7 @@ async function submitTryout(autoSubmit) {
 
   const soalList = tryoutState.paket.soal;
 
-  // Setiap soal esai wajib lengkap sesuai metode yang dipilih peserta:
-  // - metode "teks": jawaban tulisan tidak boleh kosong
-  // - metode "file": file PDF wajib sudah terunggah
+  // Setiap soal esai wajib lengkap sesuai metode yang dipilih peserta
   const esaiBelumLengkap = soalList.filter(s => {
     if (getTipeSoal(s) !== 'esai') return false;
     const j = tryoutState.jawaban[s.id];
@@ -1806,7 +1804,6 @@ async function submitTryout(autoSubmit) {
   });
 
   if (esaiBelumLengkap.length > 0) {
-    // Kembalikan timer jika peserta masih harus melengkapi esai (bukan auto-submit waktu habis)
     if (!autoSubmit) {
       startTimer();
     }
@@ -1817,107 +1814,29 @@ async function submitTryout(autoSubmit) {
       esaiBelumLengkap.map(s => soalList.indexOf(s) + 1).join(', '),
       '⚠️'
     );
-    // Jika waktu habis tapi esai belum lengkap, tetap lanjutkan (nilai esai kosong)
     if (!autoSubmit) return;
   }
 
   tryoutSubmitted = true;
 
-  // Hapus draft autosave setelah submit berhasil lewat validasi
   try {
     const pid = (tryoutState.meta && tryoutState.meta.id) || tryoutState.paket.id;
     const no = tryoutState.peserta && tryoutState.peserta.noUjian;
     hapusAutosave(pid, no);
   } catch (e) { /* ignore */ }
 
-  let benar = 0, salah = 0, kosong = 0, esaiCount = 0;
-
-  function normIsian(t) {
-    return String(t || '').trim().toLowerCase().replace(/\s+/g, ' ');
-  }
-  function cekIsianBenar(user, kunci) {
-    const u = normIsian(user);
-    if (!u) return false;
-    return String(kunci || '').split('|').map(normIsian).filter(Boolean).some(k => k === u);
-  }
-
-  const reviewHtml = soalList.map((s, i) => {
-    const tipe = getTipeSoal(s);
-    const userJawaban = tryoutState.jawaban[s.id];
-    let statusCls = 'kosong', statusText = 'Belum Dijawab';
-    let opsiHtml = '';
-
-    if (tipe === 'esai') {
-      const obj = (userJawaban && typeof userJawaban === 'object') ? userJawaban : { teks: userJawaban || '', fileName: '', fileData: '' };
-      const metode = getMetodeEsai(obj);
-      const ada = metode === 'file'
-        ? !!(obj.fileName && obj.fileData)
-        : !!(obj.teks && String(obj.teks).trim());
-      if (ada) { esaiCount++; statusCls = 'benar'; statusText = 'Esai (koreksi manual)'; }
-      else { kosong++; }
-      opsiHtml = metode === 'file'
-        ? `<div class="opsi-review">Jawaban dikumpulkan sebagai file PDF${obj.fileName ? ': <b>' + String(obj.fileName).replace(/</g,'&lt;') + '</b>' : ' (belum diunggah)'}</div>`
-        : `<div class="opsi-review">Jawaban (diketik): ${(obj.teks || '-').replace(/</g,'&lt;')}</div>`;
-      if (obj.fileData && String(obj.fileData).startsWith('data:image')) {
-        opsiHtml += `<img src="${obj.fileData}" alt="Lampiran" style="max-width:100%;border-radius:10px;margin-top:8px;display:block;">`;
-      }
-    } else if (tipe === 'isian') {
-      const teks = typeof userJawaban === 'string' ? userJawaban : '';
-      if (!teks.trim()) { kosong++; }
-      else if (cekIsianBenar(teks, s.kunci_isian || s.jawaban_benar)) { benar++; statusCls = 'benar'; statusText = 'Benar'; }
-      else { salah++; statusCls = 'salah'; statusText = 'Salah'; }
-      opsiHtml = `<div class="opsi-review">Jawabanmu: ${String(teks || '-').replace(/</g,'&lt;')}</div>`
-        + `<div class="opsi-review jawaban-benar">Kunci: ${String(s.kunci_isian || s.jawaban_benar || '-').replace(/</g,'&lt;')}</div>`;
-    } else {
-      const isBenar = userJawaban === s.jawaban_benar;
-      if (userJawaban !== undefined && userJawaban !== null && userJawaban !== '') {
-        if (isBenar) { benar++; statusCls = 'benar'; statusText = 'Benar'; }
-        else { salah++; statusCls = 'salah'; statusText = 'Salah'; }
-      } else { kosong++; }
-      const huruf = getTipeSoal(s) === 'pg4' ? ['A','B','C','D'] : ['A','B','C','D','E'];
-      opsiHtml = huruf.filter(h => s.pilihan && s.pilihan[h] !== undefined && s.pilihan[h] !== '').map(h => {
-        let cls = 'opsi-review';
-        if (h === s.jawaban_benar) cls += ' jawaban-benar';
-        else if (h === userJawaban) cls += ' jawaban-user-salah';
-        return `<div class="${cls}">${h}. ${s.pilihan[h]}</div>`;
-      }).join('');
-    }
-
-    const pembahasanHtml = s.pembahasan
-      ? `<div class="pembahasan"><b>Pembahasan:</b> ${s.pembahasan}</div>` : '';
-    const gambarSoalHtml = s.gambar
-      ? `<img src="${s.gambar}" alt="Gambar Soal ${i + 1}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`
-      : '';
-    return `
-      <div class="review-card">
-        <span class="status ${statusCls}">${statusText}</span>
-        <div class="pertanyaan"><b>${i + 1}.</b> [${labelTipeSoal(tipe)}] ${s.pertanyaan || ''}${gambarSoalHtml}</div>
-        ${opsiHtml}
-        ${pembahasanHtml}
-      </div>`;
-  }).join('');
-
-  const total = soalList.length;
-  const jumlahEsai = soalList.filter(s => getTipeSoal(s) === 'esai').length;
-  const totalOtomatis = total - jumlahEsai; // semua soal esai dikoreksi manual
-  const nilai = totalOtomatis > 0 ? Math.round((benar / totalOtomatis) * 100) : 0;
-
   const peserta = tryoutState.peserta || { nama: '-', noUjian: '-' };
 
-  document.getElementById('hasilJudul').textContent = 'Hasil: ' + tryoutState.paket.title;
-  document.getElementById('hasilPesertaRingkas').innerHTML =
-    `Nama: <b>${peserta.nama}</b> &nbsp;·&nbsp; No. Ujian: <b>${peserta.noUjian}</b>`;
-  document.getElementById('hasilNilai').textContent = nilai;
-  document.getElementById('hasilBenar').textContent = benar;
-  document.getElementById('hasilSalah').textContent = salah;
-  document.getElementById('hasilKosong').textContent = kosong;
-  document.getElementById('hasilTotal').textContent = total;
-  const reviewBox = document.getElementById('hasilReview');
-  reviewBox.innerHTML = reviewHtml;
-  renderKatexIn(reviewBox);
+  // Metadata soal yang dikirim ke server (TANPA kunci — kunci hanya ada di server)
+  const soalMeta = soalList.map(s => ({
+    id: s.id,
+    tipe: getTipeSoal(s),
+    pertanyaan: s.pertanyaan || '',
+    gambar: s.gambar || '',
+    pilihan: s.pilihan || {}
+  }));
 
-  // Data jawaban esai/lampiran dikirim terpisah agar bisa disimpan oleh Apps Script
-  // ke Google Drive tanpa mengubah mekanisme penilaian yang sudah ada.
+  // Jawaban esai (untuk upload PDF ke Drive)
   const jawabanEsai = soalList.map((s, i) => {
     if (getTipeSoal(s) !== 'esai') return null;
     const j = tryoutState.jawaban[s.id];
@@ -1934,6 +1853,7 @@ async function submitTryout(autoSubmit) {
     };
   }).filter(Boolean);
 
+  // Payload yang dikirim: jawaban mentah saja. Scoring dilakukan di Apps Script.
   lastHasil = {
     nama: peserta.nama,
     noUjian: peserta.noUjian,
@@ -1941,10 +1861,23 @@ async function submitTryout(autoSubmit) {
     paketId: (tryoutState.meta && tryoutState.meta.id) || tryoutState.paket.id || '',
     jenjang: tryoutState.paket.jenjang,
     topik: tryoutState.paket.topik || '',
-    nilai, benar, salah, kosong, total,
     waktu: new Date().toISOString(),
-    jawabanEsai
+    jawaban: tryoutState.jawaban,
+    soalMeta: soalMeta,
+    jawabanEsai: jawabanEsai
   };
+
+  // Tampilkan halaman hasil dulu (nilai masih loading)
+  document.getElementById('hasilJudul').textContent = 'Hasil: ' + tryoutState.paket.title;
+  document.getElementById('hasilPesertaRingkas').innerHTML =
+    `Nama: <b>${peserta.nama}</b> &nbsp;·&nbsp; No. Ujian: <b>${peserta.noUjian}</b>`;
+  document.getElementById('hasilNilai').textContent = '…';
+  document.getElementById('hasilBenar').textContent = '…';
+  document.getElementById('hasilSalah').textContent = '…';
+  document.getElementById('hasilKosong').textContent = '…';
+  document.getElementById('hasilTotal').textContent = soalList.length;
+  document.getElementById('hasilReview').innerHTML =
+    '<div class="empty" style="padding:30px;">Menghitung nilai di server…</div>';
 
   gotoPage('tryout-result');
   kirimHasilKeSheet(lastHasil);
@@ -1960,6 +1893,51 @@ let lastHasil = null;
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYnIAUlMxIOJDa7y_sJqWzXfB_6AsFZyhB1RLUnIoxqsPewch5GiooYK3xCZJORLWw/exec";
 // ===========================================================================
 
+function renderReviewDariServer(review) {
+  if (!Array.isArray(review) || !review.length) {
+    return '<div class="empty">Tidak ada data review.</div>';
+  }
+  return review.map(r => {
+    const tipe = r.tipe || 'pg5';
+    let opsiHtml = '';
+
+    if (tipe === 'esai') {
+      const o = r.opsi || {};
+      opsiHtml = o.metode === 'file'
+        ? `<div class="opsi-review">Jawaban dikumpulkan sebagai file PDF${o.fileName ? ': <b>' + String(o.fileName).replace(/</g,'&lt;') + '</b>' : ''}</div>`
+        : `<div class="opsi-review">Jawaban (diketik): ${String(o.teks || '-').replace(/</g,'&lt;')}</div>`;
+    } else if (tipe === 'isian') {
+      const o = r.opsi || {};
+      opsiHtml = `<div class="opsi-review">Jawabanmu: ${String(o.user || '-').replace(/</g,'&lt;')}</div>`
+        + `<div class="opsi-review jawaban-benar">Kunci: ${String(o.kunci || '-').replace(/</g,'&lt;')}</div>`;
+    } else {
+      const o = r.opsi || {};
+      const pilihan = o.pilihan || {};
+      const huruf = Object.keys(pilihan).sort();
+      opsiHtml = huruf.map(h => {
+        let cls = 'opsi-review';
+        if (h === o.kunci) cls += ' jawaban-benar';
+        else if (h === o.user) cls += ' jawaban-user-salah';
+        return `<div class="${cls}">${h}. ${pilihan[h]}</div>`;
+      }).join('');
+    }
+
+    const pembahasanHtml = r.pembahasan
+      ? `<div class="pembahasan"><b>Pembahasan:</b> ${r.pembahasan}</div>` : '';
+    const gambarSoalHtml = r.gambar
+      ? `<img src="${r.gambar}" alt="Gambar Soal ${r.nomor}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`
+      : '';
+
+    return `
+      <div class="review-card">
+        <span class="status ${r.statusCls || 'kosong'}">${r.statusText || ''}</span>
+        <div class="pertanyaan"><b>${r.nomor}.</b> [${labelTipeSoal(tipe)}] ${r.pertanyaan || ''}${gambarSoalHtml}</div>
+        ${opsiHtml}
+        ${pembahasanHtml}
+      </div>`;
+  }).join('');
+}
+
 function kirimHasilKeSheet(hasil) {
   const statusEl = document.getElementById('kirimStatus');
   const btnUlang = document.getElementById('btnKirimUlang');
@@ -1970,7 +1948,7 @@ function kirimHasilKeSheet(hasil) {
     statusEl.className = 'kirim-status failed';
     return;
   }
-  statusEl.textContent = 'Mengirim hasil ke guru…';
+  statusEl.textContent = 'Mengirim jawaban & menghitung nilai di server…';
   statusEl.className = 'kirim-status sending';
 
   fetch(GOOGLE_SCRIPT_URL, {
@@ -1981,13 +1959,30 @@ function kirimHasilKeSheet(hasil) {
     if (resData && resData.status === 'sudah_pernah') {
       statusEl.textContent = 'Nomor ujian ini sudah pernah mengumpulkan tryout ini sebelumnya, jadi hasil kali ini tidak disimpan ulang.';
       statusEl.className = 'kirim-status failed';
+      document.getElementById('hasilNilai').textContent = '-';
+      document.getElementById('hasilReview').innerHTML =
+        '<div class="empty">Hasil tidak disimpan karena nomor ujian sudah pernah submit paket ini.</div>';
     } else if (resData && resData.status === 'error') {
       statusEl.textContent = 'Gagal menyimpan: ' + (resData.message || 'error dari server') + '. Coba kirim ulang.';
       statusEl.className = 'kirim-status failed';
       if (btnUlang) btnUlang.style.display = 'inline-block';
-    } else {
-      statusEl.textContent = '✓ Hasil berhasil dikirim ke guru.';
+    } else if (resData && resData.status === 'ok') {
+      // Isi nilai & review dari server (kunci + pembahasan baru muncul di sini)
+      document.getElementById('hasilNilai').textContent = resData.nilai;
+      document.getElementById('hasilBenar').textContent = resData.benar;
+      document.getElementById('hasilSalah').textContent = resData.salah;
+      document.getElementById('hasilKosong').textContent = resData.kosong;
+      document.getElementById('hasilTotal').textContent = resData.total;
+      const reviewBox = document.getElementById('hasilReview');
+      reviewBox.innerHTML = renderReviewDariServer(resData.review || []);
+      renderKatexIn(reviewBox);
+
+      statusEl.textContent = '✓ Hasil berhasil dikirim ke guru. Nilai dihitung di server.';
       statusEl.className = 'kirim-status sent';
+    } else {
+      statusEl.textContent = 'Respons server tidak dikenali. Coba kirim ulang.';
+      statusEl.className = 'kirim-status failed';
+      if (btnUlang) btnUlang.style.display = 'inline-block';
     }
   }).catch(() => {
     statusEl.textContent = 'Gagal mengirim otomatis (masalah koneksi). Klik "Coba Kirim Ulang" atau screenshot layar ini dan hubungi guru.';
