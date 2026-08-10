@@ -8,6 +8,7 @@
     "jumlah_soal": 10,
     "file": "data/tryout/fisika-1-msmm7gou.json",
     "aktif": true,
-    "kode_akses": ""
+    "kode_akses": "",
+    "mode_hasil": "nilai"
   }
 ]
