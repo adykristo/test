@@ -1893,10 +1893,22 @@ let lastHasil = null;
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYnIAUlMxIOJDa7y_sJqWzXfB_6AsFZyhB1RLUnIoxqsPewch5GiooYK3xCZJORLWw/exec";
 // ===========================================================================
 
-function renderReviewDariServer(review) {
+/**
+ * mode: 'lengkap' | 'jawaban' | 'nilai'
+ * - lengkap: soal + jawaban + kunci + pembahasan
+ * - jawaban: soal + jawaban peserta saja (tanpa kunci/pembahasan)
+ * - nilai: tidak menampilkan review (hanya skor di ringkasan)
+ */
+function renderReviewDariServer(review, mode) {
+  mode = mode || 'lengkap';
+  if (mode === 'nilai') {
+    return '<div class="empty" style="padding:28px 20px;">Tryout selesai. Nilai kamu sudah tercatat di atas.<br>Detail soal dan pembahasan disembunyikan oleh admin.</div>';
+  }
   if (!Array.isArray(review) || !review.length) {
     return '<div class="empty">Tidak ada data review.</div>';
   }
+  const tampilKunci = mode === 'lengkap';
+
   return review.map(r => {
     const tipe = r.tipe || 'pg5';
     let opsiHtml = '';
@@ -1908,29 +1920,38 @@ function renderReviewDariServer(review) {
         : `<div class="opsi-review">Jawaban (diketik): ${String(o.teks || '-').replace(/</g,'&lt;')}</div>`;
     } else if (tipe === 'isian') {
       const o = r.opsi || {};
-      opsiHtml = `<div class="opsi-review">Jawabanmu: ${String(o.user || '-').replace(/</g,'&lt;')}</div>`
-        + `<div class="opsi-review jawaban-benar">Kunci: ${String(o.kunci || '-').replace(/</g,'&lt;')}</div>`;
+      opsiHtml = `<div class="opsi-review">Jawabanmu: ${String(o.user || '-').replace(/</g,'&lt;')}</div>`;
+      if (tampilKunci) {
+        opsiHtml += `<div class="opsi-review jawaban-benar">Kunci: ${String(o.kunci || '-').replace(/</g,'&lt;')}</div>`;
+      }
     } else {
       const o = r.opsi || {};
       const pilihan = o.pilihan || {};
       const huruf = Object.keys(pilihan).sort();
       opsiHtml = huruf.map(h => {
         let cls = 'opsi-review';
-        if (h === o.kunci) cls += ' jawaban-benar';
-        else if (h === o.user) cls += ' jawaban-user-salah';
+        if (tampilKunci && h === o.kunci) cls += ' jawaban-benar';
+        else if (h === o.user) cls += tampilKunci ? ' jawaban-user-salah' : ' selected';
+        // Mode jawaban: tandai pilihan peserta tanpa menandai kunci
+        if (!tampilKunci && h === o.user) cls += ' jawaban-benar';
         return `<div class="${cls}">${h}. ${pilihan[h]}</div>`;
       }).join('');
     }
 
-    const pembahasanHtml = r.pembahasan
+    const pembahasanHtml = (tampilKunci && r.pembahasan)
       ? `<div class="pembahasan"><b>Pembahasan:</b> ${r.pembahasan}</div>` : '';
     const gambarSoalHtml = r.gambar
       ? `<img src="${r.gambar}" alt="Gambar Soal ${r.nomor}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`
       : '';
 
+    // Status Benar/Salah hanya ditampilkan jika mode lengkap
+    const statusHtml = tampilKunci
+      ? `<span class="status ${r.statusCls || 'kosong'}">${r.statusText || ''}</span>`
+      : `<span class="status kosong">Jawaban kamu</span>`;
+
     return `
       <div class="review-card">
-        <span class="status ${r.statusCls || 'kosong'}">${r.statusText || ''}</span>
+        ${statusHtml}
         <div class="pertanyaan"><b>${r.nomor}.</b> [${labelTipeSoal(tipe)}] ${r.pertanyaan || ''}${gambarSoalHtml}</div>
         ${opsiHtml}
         ${pembahasanHtml}
@@ -1967,14 +1988,20 @@ function kirimHasilKeSheet(hasil) {
       statusEl.className = 'kirim-status failed';
       if (btnUlang) btnUlang.style.display = 'inline-block';
     } else if (resData && resData.status === 'ok') {
-      // Isi nilai & review dari server (kunci + pembahasan baru muncul di sini)
+      // Isi nilai & review dari server — tampilan mengikuti mode_hasil dari admin
       document.getElementById('hasilNilai').textContent = resData.nilai;
       document.getElementById('hasilBenar').textContent = resData.benar;
       document.getElementById('hasilSalah').textContent = resData.salah;
       document.getElementById('hasilKosong').textContent = resData.kosong;
       document.getElementById('hasilTotal').textContent = resData.total;
+
+      const modeHasil = (tryoutState && (
+        (tryoutState.paket && tryoutState.paket.mode_hasil) ||
+        (tryoutState.meta && tryoutState.meta.mode_hasil)
+      )) || 'lengkap';
+
       const reviewBox = document.getElementById('hasilReview');
-      reviewBox.innerHTML = renderReviewDariServer(resData.review || []);
+      reviewBox.innerHTML = renderReviewDariServer(resData.review || [], modeHasil);
       renderKatexIn(reviewBox);
 
       statusEl.textContent = '✓ Hasil berhasil dikirim ke guru. Nilai dihitung di server.';

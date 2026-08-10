@@ -1100,6 +1100,14 @@ window.MathJax = {
     </label>
     <p class="help" style="margin-top:4px;">Kalau dicentang: paket langsung terlihat &amp; bisa dikerjakan peserta. Kalau tidak: tersimpan tapi disembunyikan (draft).</p>
 
+    <label style="margin-top:16px;">Tampilan hasil setelah tryout selesai</label>
+    <select id="fModeHasil">
+      <option value="lengkap">Skor + soal, jawaban peserta, kunci &amp; pembahasan</option>
+      <option value="jawaban">Skor + soal &amp; jawaban peserta saja (tanpa kunci)</option>
+      <option value="nilai">Hanya skor (nilai, benar/salah/kosong)</option>
+    </select>
+    <p class="help" style="margin-top:4px;">Mengatur apa yang dilihat peserta di halaman hasil. Opsi "Hanya skor" cocok untuk ujian resmi. Kunci tetap aman di server.</p>
+
     <div style="margin-top:26px; padding:16px; border:1.5px dashed var(--ungu, #7b2ff7); border-radius:12px; background:#faf5ff;">
       <h3 style="margin-bottom:6px;">📄 Isi Soal Otomatis dari File Word (.docx)</h3>
       <p class="help">Tulis semua soal dalam <b>satu file Word</b> (boleh berisi rumus LaTeX &amp; gambar yang ditempel langsung), lalu upload di sini. Form "Daftar Soal" di bawah akan otomatis terisi — gambar di dalam Word ikut otomatis terunggah. Ikuti format penulisan berikut persis (boleh dicontek/di-copy ke Word):</p>
@@ -1190,10 +1198,11 @@ PEMBAHASAN: (opsional, untuk pegangan koreksi manual)</pre>
   </div>
 
   <div class="box">
-    <h2>5. Unduh Hasil Tryout Peserta (PDF)</h2>
+    <h2>5. Unduh Hasil Tryout Peserta (PDF / Excel)</h2>
     <p class="help">
       Fitur ini mengambil data hasil tryout dari Google Sheet lewat Apps Script.
       Isi URL Apps Script &amp; Kode Rahasia Admin (harus sama dengan <code>ADMIN_KEY</code> di Apps Script).
+      Setelah data tampil, unduh sebagai <b>PDF</b> atau <b>Excel (.csv)</b> — file CSV langsung bisa dibuka di Microsoft Excel / Google Sheets.
     </p>
     <label>URL Google Apps Script (Web App)</label>
     <input type="text" id="hasilScriptUrl" placeholder="https://script.google.com/macros/s/xxxxxxxx/exec">
@@ -1208,6 +1217,7 @@ PEMBAHASAN: (opsional, untuk pegangan koreksi manual)</pre>
     <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
       <button class="btn btn-primary" onclick="ambilHasilPeserta()">📋 Ambil Hasil</button>
       <button class="btn btn-hijau" id="btnUnduhPdfHasil" style="display:none;" onclick="unduhHasilPesertaPDF()">📥 Unduh PDF</button>
+      <button class="btn btn-hijau" id="btnUnduhExcelHasil" style="display:none; background:#1d6f42;" onclick="unduhHasilPesertaExcel()">📊 Unduh Excel</button>
     </div>
     <div id="statusHasilPeserta" class="status-bar"></div>
     <div id="hasilPesertaPreview" style="display:none; margin-top:16px;"></div>
@@ -2393,6 +2403,7 @@ function mulaiPaketBaru() {
   document.getElementById('fTitle').value = '';
   document.getElementById('fKodeAkses').value = '';
   document.getElementById('fAktif').checked = true;
+  document.getElementById('fModeHasil').value = 'lengkap';
   document.getElementById('soalContainer').innerHTML = '';
   document.getElementById('statusForm').className = 'status-bar';
   soalIdCounter = 0;
@@ -2418,6 +2429,7 @@ async function editPaket(id) {
     document.getElementById('fTitle').value = paket.title;
     document.getElementById('fKodeAkses').value = paket.kode_akses || meta.kode_akses || '';
     document.getElementById('fAktif').checked = meta.aktif !== false;
+    document.getElementById('fModeHasil').value = paket.mode_hasil || meta.mode_hasil || 'lengkap';
     document.getElementById('soalContainer').innerHTML = '';
     soalIdCounter = 0;
     paket.soal.forEach(s => tambahSoal(s));
@@ -2908,6 +2920,7 @@ function kumpulkanDataForm() {
   const durasi_menit = parseInt(document.getElementById('fDurasi').value, 10) || 60;
   const kode_akses = document.getElementById('fKodeAkses').value.trim();
   const aktif = document.getElementById('fAktif').checked;
+  const mode_hasil = document.getElementById('fModeHasil').value || 'lengkap';
 
   if (!title) throw new Error('Judul paket tidak boleh kosong.');
 
@@ -2957,7 +2970,7 @@ function kumpulkanDataForm() {
     return { ...base, pilihan, jawaban_benar };
   });
 
-  return { title, jenjang, topik, durasi_menit, kode_akses, aktif, soal };
+  return { title, jenjang, topik, durasi_menit, kode_akses, aktif, mode_hasil, soal };
 }
 
 async function simpanPaket() {
@@ -2967,13 +2980,6 @@ async function simpanPaket() {
     setStatus('statusForm', 'Masih ada gambar yang sedang diunggah — tunggu sampai selesai lalu klik "Simpan & Publish" lagi.', 'err');
     alert('⏳ Masih ada gambar yang sedang diunggah. Tunggu prosesnya selesai (lihat preview gambar di tiap soal), baru klik "Simpan & Publish" lagi.');
     document.getElementById('statusForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-
-  // Pastikan URL + ADMIN_KEY Apps Script sudah diisi (dipakai untuk kirim kunci jawaban)
-  if (!hasilScriptUrl || !hasilAdminKey) {
-    setStatus('statusForm', 'Isi & simpan dulu URL Apps Script dan Kode Rahasia Admin di bagian 5 (Unduh Hasil Tryout) sebelum menyimpan paket. Kunci jawaban akan disimpan di server, bukan di file JSON publik.', 'err');
-    alert('⚠️ Belum ada konfigurasi Apps Script.\n\nBuka bagian 5 "Unduh Hasil Tryout Peserta", isi URL Apps Script + Kode Rahasia Admin, klik Simpan, lalu coba simpan paket lagi.\n\nIni wajib supaya kunci jawaban tidak bocor ke file JSON publik di GitHub.');
     return;
   }
 
@@ -2987,10 +2993,17 @@ async function simpanPaket() {
     return;
   }
 
+  // Pastikan URL + ADMIN_KEY Apps Script sudah diisi (untuk kirim kunci jawaban)
+  if (!hasilScriptUrl || !hasilAdminKey) {
+    setStatus('statusForm', 'Isi & simpan dulu URL Apps Script dan Kode Rahasia Admin di bagian 5 sebelum menyimpan paket.', 'err');
+    alert('⚠️ Belum ada konfigurasi Apps Script.\n\nBuka bagian 5, isi URL Apps Script + Kode Rahasia Admin, klik Simpan, lalu coba simpan paket lagi.');
+    return;
+  }
+
   const id = currentPaketId || slugify(data.title) + '-' + Date.now().toString(36);
   const filePath = `${TRYOUT_FOLDER}/${id}.json`;
 
-  // === KEAMANAN: pecah data soal jadi versi PUBLIK (tanpa kunci) + daftar kunci ===
+  // KEAMANAN: pecah soal → publik (tanpa kunci) + daftar kunci untuk server
   const kunciList = [];
   const soalPublik = data.soal.map((s, idx) => {
     kunciList.push({
@@ -3001,20 +3014,19 @@ async function simpanPaket() {
       kunci_isian: s.kunci_isian || '',
       pembahasan: s.pembahasan || ''
     });
-    // Objek yang di-push ke GitHub TIDAK berisi kunci & pembahasan
-    const publik = {
+    return {
       id: s.id,
       tipe: s.tipe,
       pertanyaan: s.pertanyaan || '',
       gambar: s.gambar || '',
       pilihan: s.pilihan || {}
     };
-    return publik;
   });
 
   const paketObj = {
     id, title: data.title, jenjang: data.jenjang, topik: data.topik,
     durasi_menit: data.durasi_menit, kode_akses: data.kode_akses || '',
+    mode_hasil: data.mode_hasil || 'lengkap',
     soal: soalPublik
   };
 
@@ -3033,14 +3045,15 @@ async function simpanPaket() {
       id, title: data.title, jenjang: data.jenjang, topik: data.topik,
       durasi_menit: data.durasi_menit, jumlah_soal: data.soal.length,
       file: filePath, aktif: data.aktif,
-      kode_akses: data.kode_akses || ''
+      kode_akses: data.kode_akses || '',
+      mode_hasil: data.mode_hasil || 'lengkap'
     };
     let newManifest = manifestCache.content.filter(p => p.id !== id);
     newManifest.push(manifestEntry);
     const putRes = await ghPutFile(MANIFEST_PATH, newManifest, manifestCache.sha, `Update manifest tryout: ${data.title}`);
     manifestCache = { content: newManifest, sha: putRes.content.sha };
 
-    // 3. kirim kunci jawaban ke Apps Script (sheet KunciJawaban) — tidak pernah ke GitHub
+    // 3. kirim kunci ke Apps Script
     setStatus('statusForm', 'Menyimpan kunci jawaban ke server…', 'loading');
     const kunciRes = await fetch(hasilScriptUrl, {
       method: 'POST',
@@ -3053,16 +3066,16 @@ async function simpanPaket() {
       })
     });
     let kunciData = null;
-    try { kunciData = await kunciRes.json(); } catch (e) { /* ignore parse */ }
+    try { kunciData = await kunciRes.json(); } catch (e) { /* ignore */ }
     if (!kunciData || kunciData.status !== 'ok') {
       throw new Error(
-        'Paket sudah ter-upload ke GitHub, tapi gagal menyimpan kunci jawaban ke server. ' +
-        (kunciData && kunciData.message ? kunciData.message : 'Periksa URL Apps Script & Kode Rahasia Admin, lalu Deploy ulang script.')
+        'Paket sudah di GitHub, tapi gagal simpan kunci ke server. ' +
+        (kunciData && kunciData.message ? kunciData.message : 'Cek URL Apps Script & Deploy ulang.')
       );
     }
 
-    setStatus('statusForm', `✓ Paket "${data.title}" berhasil disimpan & dipublikasikan! (${data.soal.length} soal, kunci aman di server)`, 'ok');
-    alert(`✓ BERHASIL!\n\nPaket "${data.title}" (${data.soal.length} soal) sudah tersimpan.\nKunci jawaban disimpan aman di server (tidak ikut di file JSON publik).`);
+    setStatus('statusForm', `✓ Paket "${data.title}" tersimpan! (${data.soal.length} soal, kunci aman di server)`, 'ok');
+    alert(`✓ BERHASIL!\n\nPaket "${data.title}" (${data.soal.length} soal) tersimpan.\nKunci di server. Mode hasil: ${data.mode_hasil || 'lengkap'}.`);
     renderPaketAdminList();
     currentPaketId = id;
     batalForm();
@@ -3070,7 +3083,7 @@ async function simpanPaket() {
   } catch (e) {
     setStatus('statusForm', '❌ Gagal menyimpan: ' + e.message, 'err');
     document.getElementById('statusForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    alert('❌ GAGAL menyimpan.\n\n' + e.message + '\n\nSilakan coba lagi.');
+    alert('❌ GAGAL menyimpan.\n\n' + e.message);
   }
 }
 
@@ -3360,9 +3373,11 @@ async function ambilHasilPeserta() {
 
   const preview = document.getElementById('hasilPesertaPreview');
   const btnPdf = document.getElementById('btnUnduhPdfHasil');
+  const btnExcel = document.getElementById('btnUnduhExcelHasil');
   preview.style.display = 'none';
   preview.innerHTML = '';
   btnPdf.style.display = 'none';
+  if (btnExcel) btnExcel.style.display = 'none';
   hasilPesertaCache = { meta: null, data: [] };
 
   setStatus('statusHasilPeserta', 'Mengambil data hasil dari Google Sheet…', 'loading');
@@ -3412,7 +3427,8 @@ async function ambilHasilPeserta() {
 
     tampilkanHasilPeserta(meta, data);
     btnPdf.style.display = 'inline-flex';
-    setStatus('statusHasilPeserta', `✓ Ditemukan ${data.length} peserta. Klik "Unduh PDF" jika ingin menyimpan.`, 'ok');
+    if (btnExcel) btnExcel.style.display = 'inline-flex';
+    setStatus('statusHasilPeserta', `✓ Ditemukan ${data.length} peserta. Unduh sebagai PDF atau Excel.`, 'ok');
   } catch (e) {
     setStatus('statusHasilPeserta', 'Gagal: ' + e.message, 'err');
   }
@@ -3483,6 +3499,79 @@ function unduhHasilPesertaPDF() {
   } catch (e) {
     setStatus('statusHasilPeserta', 'Gagal membuat PDF: ' + e.message, 'err');
   }
+}
+
+/** Unduh hasil tryout sebagai file Excel-compatible (.csv, UTF-8 BOM). */
+function unduhHasilPesertaExcel() {
+  const { meta, data } = hasilPesertaCache;
+  if (!meta || !data || !data.length) {
+    setStatus('statusHasilPeserta', 'Ambil hasil dulu sebelum mengunduh Excel.', 'err');
+    return;
+  }
+  try {
+    buatExcelHasilPeserta(meta, data);
+    setStatus('statusHasilPeserta', `✓ Excel berhasil diunduh (${data.length} peserta). Buka file dengan Microsoft Excel / Google Sheets.`, 'ok');
+  } catch (e) {
+    setStatus('statusHasilPeserta', 'Gagal membuat Excel: ' + e.message, 'err');
+  }
+}
+
+function escapeCsvCell_(val) {
+  const s = String(val == null ? '' : val);
+  // Escape quote & bungkus jika ada koma/quote/newline
+  if (/[",\n\r]/.test(s)) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function buatExcelHasilPeserta(meta, data) {
+  const sorted = data.slice().sort((a, b) => (Number(b.nilai) || 0) - (Number(a.nilai) || 0));
+  const nilaiArr = sorted.map(d => Number(d.nilai) || 0);
+  const rata = (nilaiArr.reduce((a, b) => a + b, 0) / nilaiArr.length).toFixed(1);
+  const tertinggi = Math.max(...nilaiArr);
+  const terendah = Math.min(...nilaiArr);
+
+  const lines = [];
+  // Info header
+  lines.push(['Hasil Tryout Peserta — KlinikFisikapku'].map(escapeCsvCell_).join(','));
+  lines.push(['Paket', meta.title || ''].map(escapeCsvCell_).join(','));
+  lines.push(['Jenjang', String(meta.jenjang || '').toUpperCase()].map(escapeCsvCell_).join(','));
+  lines.push(['Jumlah Peserta', sorted.length].map(escapeCsvCell_).join(','));
+  lines.push(['Rata-rata', rata].map(escapeCsvCell_).join(','));
+  lines.push(['Nilai Tertinggi', tertinggi].map(escapeCsvCell_).join(','));
+  lines.push(['Nilai Terendah', terendah].map(escapeCsvCell_).join(','));
+  lines.push(''); // baris kosong
+
+  // Header tabel
+  lines.push(['No', 'Nama', 'No. Ujian', 'Nilai', 'Benar', 'Salah', 'Kosong', 'Waktu Submit'].map(escapeCsvCell_).join(','));
+
+  sorted.forEach((d, i) => {
+    const waktu = d.waktu ? new Date(d.waktu).toLocaleString('id-ID') : '-';
+    lines.push([
+      i + 1,
+      d.nama || '-',
+      d.noUjian || '-',
+      d.nilai,
+      d.benar,
+      d.salah,
+      d.kosong,
+      waktu
+    ].map(escapeCsvCell_).join(','));
+  });
+
+  // UTF-8 BOM supaya Excel Windows membaca karakter Indonesia dengan benar
+  const bom = '\uFEFF';
+  const csvContent = bom + lines.join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Hasil-${slugify(meta.title)}-KlinikFisikapku.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function buatPdfHasilPeserta(meta, data) {
