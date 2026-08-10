@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "fisika-1-msmm7gou",
+    "title": "FISIKA 1",
+    "jenjang": "sma",
+    "topik": "KINEMATIKA",
+    "durasi_menit": 15,
+    "jumlah_soal": 10,
+    "file": "data/tryout/fisika-1-msmm7gou.json",
+    "aktif": false,
+    "kode_akses": ""
+  }
+]
