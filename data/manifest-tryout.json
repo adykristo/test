@@ -10,17 +10,5 @@
     "aktif": true,
     "kode_akses": "",
     "mode_hasil": "lengkap"
-  },
-  {
-    "id": "h-msolh2zs",
-    "title": "h",
-    "jenjang": "sma",
-    "topik": "h",
-    "durasi_menit": 12,
-    "jumlah_soal": 4,
-    "file": "data/tryout/h-msolh2zs.json",
-    "aktif": true,
-    "kode_akses": "",
-    "mode_hasil": "lengkap"
   }
 ]
