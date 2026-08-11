@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — KlinikFisikapku</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
 window.MathJax = {
   tex: {
@@ -37,11 +40,12 @@ window.MathJax = {
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
-    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family:'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     background:var(--bg);
     color:#2b1a3d;
     line-height:1.55;
     min-height:100vh;
+    -webkit-font-smoothing:antialiased;
   }
   a{color:var(--pink); text-decoration:none;}
   a:hover{text-decoration:underline;}
@@ -691,6 +695,36 @@ window.MathJax = {
   /* Hide old panelTryout header (we use shared header) */
   #panelTryout > header{ display:none; }
 
+  /* Dashboard ringkas */
+  .dash-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:12px;
+  }
+  @media (max-width:720px){
+    .dash-grid{ grid-template-columns:repeat(2, 1fr); }
+  }
+  .dash-card{
+    background:linear-gradient(145deg, #faf7ff 0%, #fff 100%);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px 14px;
+    text-align:center;
+  }
+  .dash-val{
+    font-size:26px;
+    font-weight:800;
+    color:var(--ungu-tua);
+    letter-spacing:-0.02em;
+    line-height:1.2;
+  }
+  .dash-label{
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--abu);
+    margin-top:4px;
+  }
+
   /* ===== PANEL JAWABAN ESAI (folder koreksi) ===== */
   #panelEsai main{ padding-top:22px; }
   #panelEsai header{
@@ -1051,6 +1085,29 @@ window.MathJax = {
 </header>
 
 <main>
+
+  <div class="box" id="adminDashboardBox">
+    <h2>📊 Ringkasan</h2>
+    <div class="dash-grid" id="adminDashGrid">
+      <div class="dash-card">
+        <div class="dash-val" id="dashPaketAktif">—</div>
+        <div class="dash-label">Paket aktif</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-val" id="dashTotalPaket">—</div>
+        <div class="dash-label">Total paket</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-val" id="dashPeserta">—</div>
+        <div class="dash-label">Peserta terdaftar</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-val" id="dashSoal">—</div>
+        <div class="dash-label">Total soal tryout</div>
+      </div>
+    </div>
+    <p class="help" style="margin-top:10px; margin-bottom:0;">Data diambil dari manifest paket &amp; whitelist peserta. Untuk hasil submit real-time, gunakan bagian unduh hasil di bawah.</p>
+  </div>
 
   <div class="box">
     <h2>1. Koneksi GitHub</h2>
@@ -2333,16 +2390,30 @@ async function loadManifest() {
     const result = await ghGetFile(MANIFEST_PATH);
     manifestCache = result ? { content: result.content, sha: result.sha } : { content: [], sha: null };
     renderPaketAdminList();
+    updateAdminDashboard();
     document.getElementById('statusManifest').classList.remove('show');
   } catch (e) {
     setStatus('statusManifest', 'Gagal memuat manifest: ' + e.message, 'err');
   }
 }
 
+function updateAdminDashboard() {
+  const list = (manifestCache && manifestCache.content) || [];
+  const aktif = list.filter(p => p.aktif !== false).length;
+  const totalSoal = list.reduce((sum, p) => sum + (Number(p.jumlah_soal) || 0), 0);
+  const peserta = (pesertaCache && pesertaCache.content) ? pesertaCache.content.length : 0;
+  const el = (id, v) => { const n = document.getElementById(id); if (n) n.textContent = v; };
+  el('dashPaketAktif', aktif);
+  el('dashTotalPaket', list.length);
+  el('dashPeserta', peserta);
+  el('dashSoal', totalSoal);
+}
+
 function renderPaketAdminList() {
   const box = document.getElementById('paketAdminList');
   if (!manifestCache.content.length) {
     box.innerHTML = '<p class="help">Belum ada paket tryout. Klik "Buat Paket Tryout Baru" untuk mulai.</p>';
+    updateAdminDashboard();
     return;
   }
   box.innerHTML = manifestCache.content.map(p => {
@@ -3098,6 +3169,7 @@ async function loadDaftarPesertaAdmin() {
     const result = await ghGetFile(DAFTAR_PESERTA_PATH);
     pesertaCache = result ? { content: result.content, sha: result.sha } : { content: [], sha: null };
     renderPesertaAdminList();
+    updateAdminDashboard();
     document.getElementById('statusPeserta').classList.remove('show');
   } catch (e) {
     setStatus('statusPeserta', 'Gagal memuat daftar peserta: ' + e.message, 'err');
