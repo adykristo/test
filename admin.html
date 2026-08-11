@@ -1243,6 +1243,11 @@ PEMBAHASAN: (opsional, untuk pegangan koreksi manual)</pre>
     <div id="pPaketPilihanWrap" style="display:none; margin-top:8px;">
       <div id="pPaketPilihanList" class="help"></div>
     </div>
+    <label style="display:flex; align-items:center; gap:8px; margin-top:14px; font-weight:400; font-size:13px; color:var(--abu);">
+      <input type="checkbox" id="pAktif" style="width:auto;" checked>
+      Aktif (boleh mengerjakan tryout)
+    </label>
+    <p class="help" style="margin-top:4px;">Centang setelah peserta bayar / disetujui. Jika tidak dicentang, nomor ujian terdaftar tapi belum bisa mulai tryout.</p>
     <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
       <button class="btn btn-hijau" onclick="simpanSatuPeserta()">💾 Simpan Peserta</button>
       <button class="btn btn-outline" onclick="batalEditPeserta()">Batal Edit</button>
@@ -3186,19 +3191,44 @@ function renderPesertaAdminList() {
     const paketLabel = (!p.paket || p.paket === 'semua' || (Array.isArray(p.paket) && !p.paket.length))
       ? 'Semua paket'
       : (Array.isArray(p.paket) ? p.paket.join(', ') : p.paket);
+    const aktif = p.aktif !== false;
+    const statusBadge = aktif
+      ? '<span style="color:var(--hijau); font-weight:700;">● Aktif</span>'
+      : '<span style="color:var(--merah); font-weight:700;">● Belum aktif</span>';
     const noUjianSafe = String(p.noUjian).replace(/'/g, "\\'");
     return `
     <div class="paket-item">
       <div class="info">
         <b>${p.nama}</b>
-        <span>No. Ujian: ${p.noUjian} · Paket: ${paketLabel}</span>
+        <span>No. Ujian: ${p.noUjian} · Paket: ${paketLabel} · ${statusBadge}</span>
       </div>
       <div class="aksi">
+        <button class="btn btn-outline" onclick="toggleAktifPeserta('${noUjianSafe}')">${aktif ? 'Nonaktifkan' : 'Aktifkan'}</button>
         <button class="btn btn-outline" onclick="editPesertaSatu('${noUjianSafe}')">Edit</button>
         <button class="btn btn-outline" style="color:#c0392b;" onclick="hapusPesertaSatu('${noUjianSafe}')">Hapus</button>
       </div>
     </div>`;
   }).join('');
+}
+
+async function toggleAktifPeserta(noUjian) {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
+  const data = pesertaCache.content.find(p => String(p.noUjian) === noUjian);
+  if (!data) return;
+  const aktifBaru = data.aktif === false;
+  const newContent = pesertaCache.content.map(p =>
+    String(p.noUjian) === noUjian ? { ...p, aktif: aktifBaru } : p
+  );
+  setStatus('statusPeserta', 'Menyimpan status…', 'loading');
+  try {
+    const putRes = await ghPutFile(DAFTAR_PESERTA_PATH, newContent, pesertaCache.sha, `${aktifBaru ? 'Aktifkan' : 'Nonaktifkan'} peserta: ${noUjian}`);
+    pesertaCache = { content: newContent, sha: putRes.content.sha };
+    renderPesertaAdminList();
+    updateAdminDashboard();
+    setStatus('statusPeserta', aktifBaru ? '✓ Peserta diaktifkan.' : '✓ Peserta dinonaktifkan.', 'ok');
+  } catch (e) {
+    setStatus('statusPeserta', 'Gagal: ' + e.message, 'err');
+  }
 }
 
 function isiPilihanPaketCheckbox(selected) {
@@ -3234,6 +3264,7 @@ function editPesertaSatu(noUjian) {
   document.getElementById('pPaketMode').value = isTertentu ? 'tertentu' : 'semua';
   document.getElementById('pPaketPilihanWrap').style.display = isTertentu ? 'block' : 'none';
   if (isTertentu) isiPilihanPaketCheckbox(data.paket);
+  document.getElementById('pAktif').checked = data.aktif !== false;
   document.getElementById('pNoUjian').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -3243,6 +3274,7 @@ function batalEditPeserta() {
   document.getElementById('pNama').value = '';
   document.getElementById('pPaketMode').value = 'semua';
   document.getElementById('pPaketPilihanWrap').style.display = 'none';
+  document.getElementById('pAktif').checked = true;
 }
 
 async function simpanSatuPeserta() {
@@ -3257,6 +3289,7 @@ async function simpanSatuPeserta() {
     paket = [...document.querySelectorAll('.chk-paket-peserta:checked')].map(c => c.value);
     if (!paket.length) { setStatus('statusPeserta', 'Pilih minimal 1 paket, atau ganti ke "Semua paket".', 'err'); return; }
   }
+  const aktif = document.getElementById('pAktif').checked;
 
   const dup = pesertaCache.content.find(p =>
     String(p.noUjian).toLowerCase() === noUjian.toLowerCase() && String(p.noUjian) !== editingNoUjianAsli
@@ -3264,7 +3297,7 @@ async function simpanSatuPeserta() {
   if (dup) { setStatus('statusPeserta', `Nomor Ujian "${noUjian}" sudah dipakai peserta lain.`, 'err'); return; }
 
   let newContent = pesertaCache.content.filter(p => String(p.noUjian) !== editingNoUjianAsli);
-  newContent.push({ noUjian, nama, paket });
+  newContent.push({ noUjian, nama, paket, aktif });
 
   setStatus('statusPeserta', 'Menyimpan…', 'loading');
   try {
@@ -3306,7 +3339,7 @@ async function simpanBulkPeserta() {
     const noUjian = parts[0].trim();
     const nama = parts.slice(1).join(',').trim();
     if (!noUjian || !nama) { setStatus('statusPeserta', `Format salah di baris: "${line}".`, 'err'); return; }
-    tambahan.push({ noUjian, nama, paket: 'semua' });
+    tambahan.push({ noUjian, nama, paket: 'semua', aktif: true });
   }
 
   let newContent = [...pesertaCache.content];

@@ -1747,6 +1747,8 @@ function cariPesertaTerdaftar(noUjian, paketId) {
   if (!noUjian) return null;
   const data = daftarPeserta.find(p => String(p.noUjian || '').trim().toLowerCase() === noUjian.trim().toLowerCase());
   if (!data) return null;
+  // Status aktif: default true jika field belum ada (peserta lama)
+  if (data.aktif === false) return { ...data, _belumAktif: true };
   const paketAllow = data.paket;
   const bolehSemuaPaket = !paketAllow || paketAllow === 'semua' ||
     (Array.isArray(paketAllow) && paketAllow.length === 0);
@@ -1755,9 +1757,6 @@ function cariPesertaTerdaftar(noUjian, paketId) {
   return data;
 }
 
-// dipanggil setiap kali peserta mengetik nomor ujian, untuk menampilkan pratinjau nama.
-// CATATAN: Nomor Ujian sekarang boleh dipakai berkali-kali, jadi tidak ada lagi
-// pengecekan "sudah pernah selesai" di sini.
 function cekNomorUjian() {
   const noUjian = document.getElementById('inputNoUjian').value.trim();
   const errEl = document.getElementById('pesertaErr');
@@ -1774,12 +1773,17 @@ function cekNomorUjian() {
   const data = cariPesertaTerdaftar(noUjian, meta.id);
 
   if (!data) {
-    errEl.textContent = 'Nomor Ujian tidak ditemukan. Pastikan penulisannya benar atau hubungi admin untuk didaftarkan.';
+    errEl.textContent = 'Nomor Ujian tidak ditemukan. Hubungi admin (WhatsApp) jika sudah mendaftar/membayar.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (data._belumAktif) {
+    errEl.textContent = 'Nomor Ujian belum diaktifkan. Jika sudah bayar, hubungi admin WhatsApp untuk aktivasi.';
     errEl.classList.add('show');
     return;
   }
   if (data._tidakBolehUntukPaketIni) {
-    errEl.textContent = 'Nomor Ujian kamu belum didaftarkan admin untuk paket tryout ini.';
+    errEl.textContent = 'Nomor Ujian ini belum diizinkan untuk paket tryout ini. Hubungi admin.';
     errEl.classList.add('show');
     return;
   }
@@ -1796,10 +1800,14 @@ async function mulaiUjianSetelahData() {
   const { paket, meta } = pendingTryout;
   const data = cariPesertaTerdaftar(noUjian, meta.id);
 
-  if (!data || data._tidakBolehUntukPaketIni) {
-    errEl.textContent = data && data._tidakBolehUntukPaketIni
-      ? 'Nomor Ujian kamu belum didaftarkan admin untuk paket tryout ini.'
-      : 'Nomor Ujian tidak terdaftar. Hubungi admin untuk didaftarkan terlebih dahulu.';
+  if (!data || data._belumAktif || data._tidakBolehUntukPaketIni) {
+    if (data && data._belumAktif) {
+      errEl.textContent = 'Nomor Ujian belum diaktifkan. Hubungi admin WhatsApp untuk aktivasi.';
+    } else if (data && data._tidakBolehUntukPaketIni) {
+      errEl.textContent = 'Nomor Ujian ini belum diizinkan untuk paket tryout ini. Hubungi admin.';
+    } else {
+      errEl.textContent = 'Nomor Ujian tidak terdaftar. Hubungi admin untuk didaftarkan terlebih dahulu.';
+    }
     errEl.classList.add('show');
     return;
   }
@@ -1820,10 +1828,19 @@ async function mulaiUjianSetelahData() {
     }
   }
 
-  errEl.classList.remove('show');
+  // Syarat singkat sebelum mulai
+  const setuju = await appConfirm(
+    'Dengan memulai tryout, kamu menyetujui:\n\n' +
+    '• Pengerjaan hanya 1 kali per nomor ujian\n' +
+    '• Timer berjalan dan tidak bisa diulang jika waktu habis\n' +
+    '• Jawaban dikirim ke server; nilai dihitung otomatis\n' +
+    '• Dilarang bekerja sama / menyebarkan soal\n\n' +
+    'Lanjutkan?',
+    { okText: 'Setuju, Mulai', cancelText: 'Batal', icon: '📋' }
+  );
+  if (!setuju) return;
 
-  // Nomor Ujian sekarang boleh dipakai berkali-kali / oleh lebih dari satu peserta,
-  // jadi tidak ada lagi pengecekan "sudah pernah mengerjakan" di sini — langsung mulai.
+  errEl.classList.remove('show');
 
   const durasiDetik = (paket.durasi_menit || meta.durasi_menit || 30) * 60;
   const draft = muatAutosave(meta.id || paket.id, noUjian);
