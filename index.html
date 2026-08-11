@@ -2603,7 +2603,7 @@ function unduhSertifikat() {
     if (skor >= 90) motivasi = 'Luar biasa! Cahaya penalaranmu membara — teruslah bersinar!';
     else if (skor >= 75) motivasi = 'Kerja hebat! Fondasi fisika-mu semakin kokoh. Maju terus!';
     else if (skor >= 60) motivasi = 'Bagus! Langkahmu sudah benar — asah lagi, raih yang lebih tinggi.';
-    else motivasi = 'Setiap usaha adalah awal dari keajaiban. Jangan menyerah, coba lagi!';
+    else motivasi = 'Terima kasih telah berpartisipasi — semangat belajarmu adalah prestasi tersendiri.';
 
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(10.5);
@@ -2626,23 +2626,37 @@ function unduhSertifikat() {
       : new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     doc.text(tgl, cx, 396, { align: 'center' });
 
-    // Stempel tengah bawah
+    // Stempel tengah bawah — medali dekoratif
+    doc.setDrawColor(212, 175, 55);
+    doc.setLineWidth(0.8);
+    doc.circle(cx, ph - 68, 19, 'S');
     doc.setFillColor(123, 47, 247);
     doc.circle(cx, ph - 68, 16, 'F');
     doc.setFillColor(255, 217, 236);
     doc.circle(cx, ph - 68, 11, 'F');
     doc.setFillColor(212, 175, 55);
     doc.circle(cx, ph - 68, 5.5, 'F');
+    doc.setFillColor(123, 47, 247);
+    doc.circle(cx, ph - 68, 2, 'F');
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
-    doc.setTextColor(61, 26, 99);
-    doc.text('KlinikFisikapku', cx - 88, ph - 65, { align: 'center' });
-    doc.text('OSN Fisika', cx + 88, ph - 65, { align: 'center' });
+    // Pita kecil di bawah medali
+    doc.setFillColor(212, 175, 55);
+    doc.triangle(cx - 8, ph - 52, cx - 2, ph - 52, cx - 5, ph - 42, 'F');
+    doc.triangle(cx + 8, ph - 52, cx + 2, ph - 52, cx + 5, ph - 42, 'F');
+
+    // Garis dekoratif kiri-kanan medali
+    doc.setDrawColor(212, 175, 55);
+    doc.setLineWidth(0.7);
+    doc.line(cx - 150, ph - 68, cx - 30, ph - 68);
+    doc.line(cx + 30, ph - 68, cx + 150, ph - 68);
+    doc.setFillColor(212, 175, 55);
+    doc.circle(cx - 150, ph - 68, 1.6, 'F');
+    doc.circle(cx + 150, ph - 68, 1.6, 'F');
+
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
     doc.setTextColor(154, 147, 168);
-    doc.text('Dokumen digenerate otomatis oleh sistem KlinikFisikapku', cx, ph - 40, { align: 'center' });
+    doc.text('Dokumen digenerate otomatis oleh sistem KlinikFisikapku', cx, ph - 30, { align: 'center' });
 
     const safeName = String(lastHasil.nama || 'peserta').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-') || 'peserta';
     doc.save('Sertifikat-' + safeName + '-KlinikFisikapku.pdf');
