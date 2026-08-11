@@ -7,7 +7,7 @@
     "durasi_menit": 12,
     "jumlah_soal": 4,
     "file": "data/tryout/h-msolh0i5.json",
-    "aktif": true,
+    "aktif": false,
     "kode_akses": "",
     "mode_hasil": "lengkap"
   }
