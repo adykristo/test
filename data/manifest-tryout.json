@@ -1,17 +1,5 @@
 [
   {
-    "id": "fisika-1-msmm7gou",
-    "title": "FISIKA 1",
-    "jenjang": "sma",
-    "topik": "KINEMATIKA",
-    "durasi_menit": 15,
-    "jumlah_soal": 10,
-    "file": "data/tryout/fisika-1-msmm7gou.json",
-    "aktif": true,
-    "kode_akses": "",
-    "mode_hasil": "nilai"
-  },
-  {
     "id": "kinematika-mso2eh7p",
     "title": "kinematika",
     "jenjang": "smp",
