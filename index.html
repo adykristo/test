@@ -1037,39 +1037,18 @@ window.MathJax = {
     100%{ background-position:-200% 0; }
   }
 
-  /* Cara ikut tryout */
-  .cara-wrap{ max-width:640px; margin:0 auto; }
-  .cara-wrap h2{
-    text-align:center; color:var(--ungu-tua); font-size:clamp(22px,4vw,28px);
-    font-weight:800; margin-bottom:8px;
+  /* Petunjuk singkat di halaman Try Out */
+  .tryout-petunjuk{
+    background:linear-gradient(90deg, #fff5fb, #f5f0ff);
+    border:1.5px solid #e8d5f5;
+    border-radius:12px;
+    padding:12px 16px;
+    margin-bottom:18px;
+    font-size:13px;
+    color:var(--abu);
+    line-height:1.55;
   }
-  .cara-wrap > .sub{
-    text-align:center; color:var(--abu); font-size:14.5px; margin-bottom:28px;
-  }
-  .cara-steps{ display:grid; gap:14px; }
-  .cara-step{
-    display:flex; gap:16px; align-items:flex-start;
-    background:#fff; border:1px solid #f0e2fa; border-radius:16px;
-    padding:18px 18px; box-shadow:0 4px 14px rgba(123,47,247,0.05);
-  }
-  .cara-num{
-    flex-shrink:0; width:36px; height:36px; border-radius:50%;
-    background:linear-gradient(135deg, var(--pink), var(--ungu));
-    color:#fff; font-weight:800; font-size:15px;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .cara-step h3{ font-size:15px; color:var(--ungu-tua); margin-bottom:4px; font-weight:700; }
-  .cara-step p{ font-size:13.5px; color:var(--abu); line-height:1.55; margin:0; }
-  .cara-cta{
-    text-align:center; margin-top:28px;
-  }
-  .cara-cta button{
-    border:none; border-radius:999px; font-family:inherit;
-    font-size:14.5px; font-weight:700; padding:13px 28px; cursor:pointer;
-    background:linear-gradient(90deg, var(--pink), var(--ungu)); color:#fff;
-    box-shadow:0 4px 14px rgba(248,87,166,0.3);
-  }
-  .cara-cta button:hover{ opacity:.95; }
+  .tryout-petunjuk b{ color:var(--ungu-tua); }
 </style>
 </head>
 <body>
@@ -1089,7 +1068,6 @@ window.MathJax = {
   <button data-page="smp">SMP</button>
   <button data-page="sma">SMA</button>
   <button data-page="tryout">Try Out</button>
-  <button data-page="cara">Cara Ikut Try Out</button>
   <button data-page="download">Soal OSN</button>
   <button data-page="kontak">Kontak</button>
 </nav>
@@ -1112,7 +1090,7 @@ window.MathJax = {
       <p>Kumpulan soal latihan lengkap pembahasan dan paket tryout resmi. Pilih jenjang, kerjakan, dan pantau progres belajar kamu.</p>
       <div class="hero-cta">
         <button type="button" class="btn-cta-primary" onclick="gotoPage('tryout')">Mulai Tryout</button>
-        <button type="button" class="btn-cta-secondary" onclick="gotoPage('cara')">Cara Ikut Tryout</button>
+        <button type="button" class="btn-cta-secondary" onclick="gotoPage('sma')">Lihat Soal Latihan</button>
       </div>
     </div>
     <div id="jenjangGrid" class="jenjang-grid">
@@ -1168,6 +1146,13 @@ window.MathJax = {
     <div class="page-title">
       <h2>Soal Tryout</h2>
       <span>Persiapan OSN Fisika</span>
+    </div>
+    <div class="tryout-petunjuk">
+      <b>Cara ikut:</b>
+      1) Minta Nomor Ujian ke admin →
+      2) Pilih paket di bawah →
+      3) Masukkan nomor ujian →
+      4) Kerjakan &amp; kumpulkan
     </div>
     <div class="tryout-tabs" id="tryoutJenjangTabs">
       <button data-jenjang="sd" class="active">SD</button>
@@ -1265,46 +1250,6 @@ window.MathJax = {
         <span class="row-name">Nama</span>
       </div>
       <div id="downloadBrowser"><div class="empty">Memuat…</div></div>
-    </div>
-  </section>
-
-  <section id="page-cara" class="page">
-    <div class="cara-wrap">
-      <h2>Cara Ikut Tryout</h2>
-      <p class="sub">Ikuti 4 langkah sederhana. Nomor Ujian harus sudah didaftarkan admin.</p>
-      <div class="cara-steps">
-        <div class="cara-step">
-          <div class="cara-num">1</div>
-          <div>
-            <h3>Dapatkan Nomor Ujian</h3>
-            <p>Hubungi admin KlinikFisikapku (WhatsApp) agar nama &amp; nomor ujianmu didaftarkan. Tanpa ini, kamu tidak bisa mulai tryout.</p>
-          </div>
-        </div>
-        <div class="cara-step">
-          <div class="cara-num">2</div>
-          <div>
-            <h3>Pilih paket tryout</h3>
-            <p>Buka menu <b>Try Out</b>, pilih jenjang (SD / SMP / SMA), lalu klik <b>Mulai Tryout</b> pada paket yang diinginkan.</p>
-          </div>
-        </div>
-        <div class="cara-step">
-          <div class="cara-num">3</div>
-          <div>
-            <h3>Verifikasi &amp; kerjakan</h3>
-            <p>Masukkan Nomor Ujian (dan Kode Akses jika diminta). Timer langsung berjalan. Jawab PG, isian, atau esai sesuai soal.</p>
-          </div>
-        </div>
-        <div class="cara-step">
-          <div class="cara-num">4</div>
-          <div>
-            <h3>Kumpulkan &amp; lihat hasil</h3>
-            <p>Klik <b>Selesai &amp; Kumpulkan</b>. Nilai dihitung di server. Kamu bisa unduh sertifikat jika submit berhasil.</p>
-          </div>
-        </div>
-      </div>
-      <div class="cara-cta">
-        <button type="button" onclick="gotoPage('tryout')">Ke Daftar Tryout</button>
-      </div>
     </div>
   </section>
 
@@ -1567,7 +1512,7 @@ document.querySelectorAll('.jenjang-card').forEach(card => {
 });
 
 const startPage = (location.hash || '#home').replace('#', '');
-if (['home','sd','smp','sma','tryout','cara','download','kontak'].includes(startPage)) gotoPage(startPage);
+if (['home','sd','smp','sma','tryout','download','kontak'].includes(startPage)) gotoPage(startPage);
 
 loadSoal();
 loadDownloadFiles();
