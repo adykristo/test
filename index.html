@@ -2459,7 +2459,7 @@ function kirimUlangHasil() {
   kirimHasilKeSheet(lastHasil);
 }
 
-/** Unduh sertifikat partisipasi tryout (PDF) */
+/** Unduh sertifikat partisipasi tryout (PDF) — desain artistik */
 function unduhSertifikat() {
   if (!lastHasil || lastHasil.nilai === undefined || lastHasil.nilai === null) {
     appAlert('Sertifikat hanya tersedia setelah hasil berhasil dihitung di server.', 'ℹ️');
@@ -2474,84 +2474,177 @@ function unduhSertifikat() {
     const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'landscape' });
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
+    const cx = pw / 2;
 
-    // Background frame
-    doc.setFillColor(253, 249, 255);
+    const unguTua = [61, 26, 99];
+    const ungu = [123, 47, 247];
+    const pink = [248, 87, 166];
+    const emas = [212, 175, 55];
+    const emasMuda = [246, 230, 168];
+
+    // Latar lembut + glow sudut
+    doc.setFillColor(255, 252, 255);
     doc.rect(0, 0, pw, ph, 'F');
-    doc.setDrawColor(123, 47, 247);
-    doc.setLineWidth(3);
-    doc.rect(28, 28, pw - 56, ph - 56, 'S');
-    doc.setDrawColor(248, 87, 166);
-    doc.setLineWidth(1);
-    doc.rect(36, 36, pw - 72, ph - 72, 'S');
+    doc.setFillColor(255, 230, 245);
+    doc.circle(0, 0, 170, 'F');
+    doc.circle(pw, ph, 190, 'F');
+    doc.setFillColor(235, 225, 255);
+    doc.circle(pw, 0, 150, 'F');
+    doc.circle(0, ph, 160, 'F');
+    doc.setFillColor(255, 252, 248);
+    doc.roundedRect(42, 42, pw - 84, ph - 84, 6, 6, 'F');
 
-    // Brand
-    doc.setTextColor(61, 26, 99);
+    // Bingkai triple: emas – ungu – emas
+    doc.setDrawColor(emas[0], emas[1], emas[2]);
+    doc.setLineWidth(4.5);
+    doc.roundedRect(20, 20, pw - 40, ph - 40, 8, 8, 'S');
+    doc.setDrawColor(ungu[0], ungu[1], ungu[2]);
+    doc.setLineWidth(1.8);
+    doc.roundedRect(30, 30, pw - 60, ph - 60, 5, 5, 'S');
+    doc.setDrawColor(emasMuda[0], emasMuda[1], emasMuda[2]);
+    doc.setLineWidth(0.9);
+    doc.roundedRect(36, 36, pw - 72, ph - 72, 4, 4, 'S');
+
+    // Ornamen sudut
+    function ornamenSudut(x, y, sx, sy) {
+      doc.setFillColor(emas[0], emas[1], emas[2]);
+      doc.triangle(x, y + sy * 9, x + sx * 9, y, x, y - sy * 9, 'F');
+      doc.triangle(x, y + sy * 9, x - sx * 9, y, x, y - sy * 9, 'F');
+      doc.setDrawColor(ungu[0], ungu[1], ungu[2]);
+      doc.setLineWidth(1.1);
+      doc.line(x + sx * 14, y, x + sx * 48, y);
+      doc.line(x, y + sy * 14, x, y + sy * 48);
+      doc.setFillColor(pink[0], pink[1], pink[2]);
+      doc.circle(x + sx * 16, y + sy * 16, 2.2, 'F');
+    }
+    ornamenSudut(52, 52, 1, 1);
+    ornamenSudut(pw - 52, 52, -1, 1);
+    ornamenSudut(52, ph - 52, 1, -1);
+    ornamenSudut(pw - 52, ph - 52, -1, -1);
+
+    // Pita brand
+    doc.setFillColor(unguTua[0], unguTua[1], unguTua[2]);
+    doc.roundedRect(cx - 115, 46, 230, 26, 13, 13, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('KlinikFisikapku', pw / 2, 70, { align: 'center' });
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(107, 100, 120);
-    doc.text('Sertifikat Partisipasi Tryout OSN Fisika', pw / 2, 88, { align: 'center' });
+    doc.setFontSize(11);
+    doc.text('KLINIKFISIKAPKU', cx, 64, { align: 'center' });
+    doc.setFillColor(emas[0], emas[1], emas[2]);
+    doc.circle(cx - 132, 59, 2.2, 'F');
+    doc.circle(cx + 132, 59, 2.2, 'F');
 
-    // Line
-    doc.setDrawColor(224, 208, 240);
-    doc.setLineWidth(1);
-    doc.line(80, 102, pw - 80, 102);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(12);
-    doc.setTextColor(61, 26, 99);
-    doc.text('Diberikan kepada', pw / 2, 130, { align: 'center' });
-
+    // Judul utama
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(26);
-    doc.setTextColor(123, 47, 247);
-    doc.text(String(lastHasil.nama || '-'), pw / 2, 165, { align: 'center' });
-
+    doc.setTextColor(unguTua[0], unguTua[1], unguTua[2]);
+    doc.text('SERTIFIKAT PARTISIPASI', cx, 105, { align: 'center' });
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
-    doc.setTextColor(107, 100, 120);
-    doc.text('No. Ujian: ' + String(lastHasil.noUjian || '-'), pw / 2, 185, { align: 'center' });
+    doc.setTextColor(pink[0], pink[1], pink[2]);
+    doc.text('TRYOUT', cx, 122, { align: 'center' });
 
-    doc.setTextColor(61, 26, 99);
+    // Pembatas dekoratif
+    doc.setDrawColor(emas[0], emas[1], emas[2]);
+    doc.setLineWidth(1.2);
+    doc.line(cx - 170, 136, cx - 10, 136);
+    doc.line(cx + 10, 136, cx + 170, 136);
+    doc.setFillColor(emas[0], emas[1], emas[2]);
+    doc.circle(cx, 136, 3.5, 'F');
+    doc.setFillColor(pink[0], pink[1], pink[2]);
+    doc.circle(cx, 136, 1.8, 'F');
+
+    doc.setFont('helvetica', 'italic');
     doc.setFontSize(12);
-    doc.text('atas partisipasi dalam', pw / 2, 215, { align: 'center' });
+    doc.setTextColor(107, 100, 120);
+    doc.text('Dengan bangga diberikan kepada', cx, 160, { align: 'center' });
 
+    // Nama
+    const namaPeserta = String(lastHasil.nama || '-');
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text(String(lastHasil.paket || 'Tryout'), pw / 2, 238, { align: 'center' });
-
-    // Score box
-    const boxW = 280, boxH = 56;
-    const boxX = (pw - boxW) / 2, boxY = 260;
-    doc.setFillColor(255, 217, 236);
-    doc.roundedRect(boxX, boxY, boxW, boxH, 10, 10, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
-    doc.setTextColor(61, 26, 99);
-    doc.text('Skor: ' + String(lastHasil.nilai), pw / 2, boxY + 36, { align: 'center' });
+    doc.setFontSize(namaPeserta.length > 22 ? 22 : 28);
+    doc.setTextColor(ungu[0], ungu[1], ungu[2]);
+    doc.text(namaPeserta, cx, 195, { align: 'center' });
+    const namaW = Math.min(doc.getTextWidth(namaPeserta) + 16, 420);
+    doc.setDrawColor(212, 175, 55);
+    doc.setLineWidth(1.4);
+    doc.line(cx - namaW / 2, 203, cx + namaW / 2, 203);
+    doc.setLineWidth(0.5);
+    doc.line(cx - namaW / 2, 207, cx + namaW / 2, 207);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(107, 100, 120);
-    const rincian = 'Benar ' + (lastHasil.benar || 0) +
-      '  ·  Salah ' + (lastHasil.salah || 0) +
-      '  ·  Kosong ' + (lastHasil.kosong || 0) +
-      '  ·  Total ' + (lastHasil.total || 0) + ' soal';
-    doc.text(rincian, pw / 2, 340, { align: 'center' });
+    doc.text('No. Ujian: ' + String(lastHasil.noUjian || '-'), cx, 224, { align: 'center' });
+
+    doc.setFontSize(12);
+    doc.setTextColor(61, 26, 99);
+    doc.text('atas partisipasi dan dedikasi dalam menyelesaikan tryout', cx, 248, { align: 'center' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(unguTua[0], unguTua[1], unguTua[2]);
+    doc.text(String(lastHasil.paket || 'Tryout OSN Fisika'), cx, 270, { align: 'center' });
+
+    // Badge skor berbingkai emas
+    const skor = Number(lastHasil.nilai) || 0;
+    const boxW = 190, boxH = 48;
+    const boxX = (pw - boxW) / 2, boxY = 286;
+    doc.setFillColor(212, 175, 55);
+    doc.roundedRect(boxX - 3, boxY - 3, boxW + 6, boxH + 6, 12, 12, 'F');
+    doc.setFillColor(255, 232, 242);
+    doc.roundedRect(boxX, boxY, boxW, boxH, 10, 10, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(61, 26, 99);
+    doc.text('SKOR  ' + String(skor), cx, boxY + 32, { align: 'center' });
+
+    // Motivasi sesuai skor
+    var motivasi = 'Teruslah mengasah nalar — setiap soal adalah batu loncatan menuju bintang.';
+    if (skor >= 90) motivasi = 'Luar biasa! Cahaya penalaranmu membara — teruslah bersinar!';
+    else if (skor >= 75) motivasi = 'Kerja hebat! Fondasi fisika-mu semakin kokoh. Maju terus!';
+    else if (skor >= 60) motivasi = 'Bagus! Langkahmu sudah benar — asah lagi, raih yang lebih tinggi.';
+    else motivasi = 'Setiap usaha adalah awal dari keajaiban. Jangan menyerah, coba lagi!';
+
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10.5);
+    doc.setTextColor(123, 47, 247);
+    doc.text('"' + motivasi + '"', cx, 358, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(107, 100, 120);
+    doc.text(
+      'Benar ' + (lastHasil.benar || 0) +
+      '   ·   Salah ' + (lastHasil.salah || 0) +
+      '   ·   Kosong ' + (lastHasil.kosong || 0) +
+      '   ·   Total ' + (lastHasil.total || 0) + ' soal',
+      cx, 378, { align: 'center' }
+    );
 
     const tgl = lastHasil.waktu
       ? new Date(lastHasil.waktu).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
       : new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    doc.text('Tanggal: ' + tgl, pw / 2, 360, { align: 'center' });
+    doc.text(tgl, cx, 396, { align: 'center' });
 
-    doc.setFontSize(9);
+    // Stempel tengah bawah
+    doc.setFillColor(123, 47, 247);
+    doc.circle(cx, ph - 68, 16, 'F');
+    doc.setFillColor(255, 217, 236);
+    doc.circle(cx, ph - 68, 11, 'F');
+    doc.setFillColor(212, 175, 55);
+    doc.circle(cx, ph - 68, 5.5, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(61, 26, 99);
+    doc.text('KlinikFisikapku', cx - 88, ph - 65, { align: 'center' });
+    doc.text('OSN Fisika', cx + 88, ph - 65, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
     doc.setTextColor(154, 147, 168);
-    doc.text('Dokumen ini digenerate otomatis oleh sistem KlinikFisikapku', pw / 2, ph - 48, { align: 'center' });
+    doc.text('Dokumen digenerate otomatis oleh sistem KlinikFisikapku', cx, ph - 40, { align: 'center' });
 
-    const safeName = String(lastHasil.nama || 'peserta').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-');
+    const safeName = String(lastHasil.nama || 'peserta').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-') || 'peserta';
     doc.save('Sertifikat-' + safeName + '-KlinikFisikapku.pdf');
   } catch (e) {
     appAlert('Gagal membuat sertifikat: ' + e.message, '⚠️');
