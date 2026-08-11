@@ -1,0 +1,50 @@
+{
+  "id": "h-msolh0i5",
+  "title": "h",
+  "jenjang": "sma",
+  "topik": "h",
+  "durasi_menit": 12,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "soal": [
+    {
+      "id": "q1786448749501-2",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah benda bermassa 2 kg didorong dengan gaya $F = 10$ N pada bidang datar licin. Berapa percepatan benda tersebut?",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-1786448748060-0.png",
+      "pilihan": {
+        "A": "2 m/s²",
+        "B": "5 m/s²",
+        "C": "10 m/s²",
+        "D": "20 m/s²"
+      }
+    },
+    {
+      "id": "q1786448749529-3",
+      "tipe": "isian",
+      "pertanyaan": "Sebuah benda bergerak lurus berubah beraturan dari keadaan diam dengan percepatan $2\\ m/s^2$. Kecepatan benda setelah bergerak 5 sekon adalah ... m/s.",
+      "gambar": "",
+      "pilihan": {}
+    },
+    {
+      "id": "q1786448749545-4",
+      "tipe": "esai",
+      "pertanyaan": "Jelaskan bunyi Hukum II Newton dan berikan satu contoh penerapannya dalam kehidupan sehari-hari.",
+      "gambar": "",
+      "pilihan": {}
+    },
+    {
+      "id": "q1786448749546-5",
+      "tipe": "pg5",
+      "pertanyaan": "Satuan gaya dalam Sistem Internasional (SI) adalah ...",
+      "gambar": "",
+      "pilihan": {
+        "A": "joule",
+        "B": "newton",
+        "C": "watt",
+        "D": "pascal",
+        "E": "kelvin"
+      }
+    }
+  ]
+}
