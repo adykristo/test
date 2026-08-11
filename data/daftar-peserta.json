@@ -18,5 +18,11 @@
     "noUjian": "555",
     "nama": "yiyi",
     "paket": "semua"
+  },
+  {
+    "noUjian": "777",
+    "nama": "sasa",
+    "paket": "semua",
+    "aktif": true
   }
 ]
