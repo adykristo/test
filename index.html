@@ -1036,43 +1036,32 @@ window.MathJax = {
   }
   .tryout-steps{
     display:flex;
-    flex-wrap:wrap;
-    align-items:center;
-    gap:8px 6px;
+    flex-direction:column;
+    gap:8px;
   }
   .tryout-step{
-    display:inline-flex;
+    display:flex;
     align-items:center;
-    gap:7px;
+    gap:10px;
     background:linear-gradient(135deg, #faf7ff, #fff5fb);
     border:1px solid #eee0f6;
-    border-radius:999px;
-    padding:6px 12px 6px 6px;
-    font-size:12.5px;
+    border-radius:12px;
+    padding:10px 14px 10px 10px;
+    font-size:13px;
     font-weight:600;
     color:var(--ungu-tua);
   }
   .tryout-step-num{
-    width:22px; height:22px;
+    width:26px; height:26px;
     border-radius:50%;
     background:linear-gradient(135deg, var(--pink), var(--ungu));
     color:#fff;
-    font-size:11px;
+    font-size:12px;
     font-weight:800;
     display:inline-flex;
     align-items:center;
     justify-content:center;
     flex-shrink:0;
-  }
-  .tryout-step-arrow{
-    color:#c4b0d8;
-    font-size:12px;
-    font-weight:700;
-    padding:0 2px;
-  }
-  @media (max-width:520px){
-    .tryout-step-arrow{ display:none; }
-    .tryout-steps{ gap:8px; }
   }
 </style>
 </head>
@@ -1081,7 +1070,7 @@ window.MathJax = {
 <header>
   <div class="brand">KlinikFisikapku</div>
   <h1>Kumpulan Soal-Soal Persiapan OSN Fisika</h1>
-  <p>Latihan soal &amp; tryout resmi untuk jenjang SD, SMP, dan SMA — lengkap dengan pembahasan.</p>
+  <p>Latihan soal &amp; tryout untuk jenjang SD, SMP, dan SMA — lengkap dengan pembahasan.</p>
 </header>
 
 <nav class="jenjang-nav">
@@ -1109,10 +1098,9 @@ window.MathJax = {
     <div class="hero-home">
       <div class="hero-badge">Persiapan OSN Fisika</div>
       <h2>Latihan soal &amp; tryout siap pakai untuk SD, SMP, dan SMA</h2>
-      <p>Kumpulan soal latihan lengkap pembahasan dan paket tryout. Pilih jenjang, kerjakan, dan pantau progres belajar kamu.</p>
+      <p>Kumpulan soal latihan lengkap pembahasan dan paket tryout resmi. Pilih jenjang, kerjakan, dan pantau progres belajar kamu.</p>
       <div class="hero-cta">
         <button type="button" class="btn-cta-primary" onclick="gotoPage('tryout')">Mulai Tryout</button>
-        <button type="button" class="btn-cta-secondary" onclick="gotoPage('sma')">Lihat Soal Latihan</button>
       </div>
     </div>
     <div id="jenjangGrid" class="jenjang-grid">
@@ -1172,13 +1160,10 @@ window.MathJax = {
     <div class="tryout-petunjuk">
       <div class="tryout-petunjuk-label">Cara ikut</div>
       <div class="tryout-steps">
-        <span class="tryout-step"><span class="tryout-step-num">1</span> Minta nomor ujian ke admin</span>
-        <span class="tryout-step-arrow">→</span>
-        <span class="tryout-step"><span class="tryout-step-num">2</span> Pilih paket</span>
-        <span class="tryout-step-arrow">→</span>
-        <span class="tryout-step"><span class="tryout-step-num">3</span> Masukkan nomor ujian</span>
-        <span class="tryout-step-arrow">→</span>
-        <span class="tryout-step"><span class="tryout-step-num">4</span> Kerjakan &amp; kumpulkan</span>
+        <div class="tryout-step"><span class="tryout-step-num">1</span> Minta nomor ujian ke admin</div>
+        <div class="tryout-step"><span class="tryout-step-num">2</span> Pilih paket di bawah</div>
+        <div class="tryout-step"><span class="tryout-step-num">3</span> Masukkan nomor ujian</div>
+        <div class="tryout-step"><span class="tryout-step-num">4</span> Kerjakan &amp; kumpulkan</div>
       </div>
     </div>
     <div class="tryout-tabs" id="tryoutJenjangTabs">
