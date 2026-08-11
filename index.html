@@ -960,26 +960,6 @@ window.MathJax = {
     box-shadow:0 12px 28px rgba(123,47,247,0.12);
   }
 
-  /* Logo di header */
-  header .brand-row{
-    display:inline-flex;
-    align-items:center;
-    gap:10px;
-    margin-bottom:14px;
-    position:relative;
-  }
-  header .logo-mark{
-    width:36px; height:36px;
-    border-radius:10px;
-    background:rgba(255,255,255,0.2);
-    display:flex; align-items:center; justify-content:center;
-    font-weight:800; font-size:16px; color:#fff;
-    flex-shrink:0;
-  }
-  header .brand{
-    margin-bottom:0;
-  }
-
   /* Banner pengumuman */
   .announce-banner{
     display:none;
@@ -1039,25 +1019,67 @@ window.MathJax = {
 
   /* Petunjuk singkat di halaman Try Out */
   .tryout-petunjuk{
-    background:linear-gradient(90deg, #fff5fb, #f5f0ff);
-    border:1.5px solid #e8d5f5;
-    border-radius:12px;
-    padding:12px 16px;
+    background:#fff;
+    border:1px solid #efe4f8;
+    border-radius:14px;
+    padding:12px 14px;
     margin-bottom:18px;
-    font-size:13px;
-    color:var(--abu);
-    line-height:1.55;
+    box-shadow:0 2px 10px rgba(123,47,247,0.04);
   }
-  .tryout-petunjuk b{ color:var(--ungu-tua); }
+  .tryout-petunjuk-label{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ungu);
+    margin-bottom:10px;
+  }
+  .tryout-steps{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px 6px;
+  }
+  .tryout-step{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    background:linear-gradient(135deg, #faf7ff, #fff5fb);
+    border:1px solid #eee0f6;
+    border-radius:999px;
+    padding:6px 12px 6px 6px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ungu-tua);
+  }
+  .tryout-step-num{
+    width:22px; height:22px;
+    border-radius:50%;
+    background:linear-gradient(135deg, var(--pink), var(--ungu));
+    color:#fff;
+    font-size:11px;
+    font-weight:800;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .tryout-step-arrow{
+    color:#c4b0d8;
+    font-size:12px;
+    font-weight:700;
+    padding:0 2px;
+  }
+  @media (max-width:520px){
+    .tryout-step-arrow{ display:none; }
+    .tryout-steps{ gap:8px; }
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand-row">
-    <div class="logo-mark" aria-hidden="true">K</div>
-    <div class="brand">KlinikFisikapku</div>
-  </div>
+  <div class="brand">KlinikFisikapku</div>
   <h1>Kumpulan Soal-Soal Persiapan OSN Fisika</h1>
   <p>Latihan soal &amp; tryout resmi untuk jenjang SD, SMP, dan SMA — lengkap dengan pembahasan.</p>
 </header>
@@ -1148,11 +1170,16 @@ window.MathJax = {
       <span>Persiapan OSN Fisika</span>
     </div>
     <div class="tryout-petunjuk">
-      <b>Cara ikut:</b>
-      1) Minta Nomor Ujian ke admin →
-      2) Pilih paket di bawah →
-      3) Masukkan nomor ujian →
-      4) Kerjakan &amp; kumpulkan
+      <div class="tryout-petunjuk-label">Cara ikut</div>
+      <div class="tryout-steps">
+        <span class="tryout-step"><span class="tryout-step-num">1</span> Minta nomor ujian ke admin</span>
+        <span class="tryout-step-arrow">→</span>
+        <span class="tryout-step"><span class="tryout-step-num">2</span> Pilih paket</span>
+        <span class="tryout-step-arrow">→</span>
+        <span class="tryout-step"><span class="tryout-step-num">3</span> Masukkan nomor ujian</span>
+        <span class="tryout-step-arrow">→</span>
+        <span class="tryout-step"><span class="tryout-step-num">4</span> Kerjakan &amp; kumpulkan</span>
+      </div>
     </div>
     <div class="tryout-tabs" id="tryoutJenjangTabs">
       <button data-jenjang="sd" class="active">SD</button>
