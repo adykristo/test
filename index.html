@@ -1530,11 +1530,20 @@ loadSoal();
 loadDownloadFiles();
 loadPengumuman();
 
-/** Banner pengumuman dari data/pengumuman.json (opsional) */
+/** Banner pengumuman dari data/pengumuman.json (opsional) — hanya tampil jika ada tryout aktif */
 async function loadPengumuman() {
   const banner = document.getElementById('announceBanner');
   if (!banner) return;
   try {
+    // Cek dulu apakah ada paket tryout yang aktif di manifest
+    const manifestRes = await fetch('data/manifest-tryout.json?_=' + Date.now());
+    let adaTryoutAktif = false;
+    if (manifestRes.ok) {
+      const manifestData = await manifestRes.json();
+      adaTryoutAktif = Array.isArray(manifestData) && manifestData.some(p => p.aktif !== false);
+    }
+    if (!adaTryoutAktif) return;
+
     const res = await fetch('data/pengumuman.json?_=' + Date.now());
     if (!res.ok) return;
     const data = await res.json();
