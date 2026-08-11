@@ -24,5 +24,11 @@
     "nama": "sasa",
     "paket": "semua",
     "aktif": true
+  },
+  {
+    "noUjian": "888",
+    "nama": "dede",
+    "paket": "semua",
+    "aktif": true
   }
 ]
