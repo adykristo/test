@@ -1,0 +1,39 @@
+{
+  "id": "kinematika-mspmta3i",
+  "title": "kinematika",
+  "jenjang": "sma",
+  "topik": "dinamika teranslasi",
+  "durasi_menit": 1,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "soal": [
+    {
+      "id": "q1786511456045-2",
+      "tipe": "esai",
+      "pertanyaan": "Sebuah benda bermassa 2 kg didorong dengan gaya $F = 10$ N pada bidang datar licin. Berapa percepatan benda tersebut?A. 2 m/s²B. 5 m/s²C. 10 m/s²D. 20 m/s²KUNCI: BPEMBAHASAN: Gunakan Hukum II Newton $a = F/m$, sehingga $a = 10/2 = 5$ m/s².",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-1786511453288-0.png",
+      "pilihan": {}
+    },
+    {
+      "id": "q1786511456132-3",
+      "tipe": "esai",
+      "pertanyaan": "Sebuah benda bergerak lurus berubah beraturan dari keadaan diam dengan percepatan $2\\ m/s^2$. Kecepatan benda setelah bergerak 5 sekon adalah ... m/s.TIPE: ISIANKUNCI: 10 | 10 m/sPEMBAHASAN: Gunakan $v = v_0 + a t = 0 + 2(5) = 10$ m/s.",
+      "gambar": "",
+      "pilihan": {}
+    },
+    {
+      "id": "q1786511456173-4",
+      "tipe": "esai",
+      "pertanyaan": "Jelaskan bunyi Hukum II Newton dan berikan satu contoh penerapannya dalam kehidupan sehari-hari.TIPE: ESAIPEMBAHASAN: Jawaban peserta akan dikoreksi manual oleh guru. Bisa diisi kunci/rubrik penilaian di sini sebagai pegangan.",
+      "gambar": "",
+      "pilihan": {}
+    },
+    {
+      "id": "q1786511456176-5",
+      "tipe": "esai",
+      "pertanyaan": "Satuan gaya dalam Sistem Internasional (SI) adalah ...A. jouleB. newtonC. wattD. pascalE. kelvinKUNCI: BPEMBAHASAN: Gaya dalam SI memiliki satuan newton (N), sesuai $F = ma$.",
+      "gambar": "",
+      "pilihan": {}
+    }
+  ]
+}
