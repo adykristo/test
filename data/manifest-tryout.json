@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "kinematika-mspmta3i",
+    "title": "kinematika",
+    "jenjang": "sma",
+    "topik": "dinamika teranslasi",
+    "durasi_menit": 1,
+    "jumlah_soal": 4,
+    "file": "data/tryout/kinematika-mspmta3i.json",
+    "aktif": true,
+    "kode_akses": "",
+    "mode_hasil": "lengkap"
+  }
+]
