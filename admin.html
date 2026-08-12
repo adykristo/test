@@ -977,6 +977,21 @@ window.MathJax = {
   </div>
 
   <div class="card">
+    <h2><span class="num">⚙️</span> Pengaturan Tampilan Situs</h2>
+    <p class="note" style="margin-top:0; margin-bottom:12px;">
+      Atur fitur yang tampil di halaman siswa. Perubahan disimpan ke
+      <code>data/pengaturan-situs.json</code> di GitHub.
+    </p>
+    <div class="checkbox-row" style="margin-top:0;">
+      <input type="checkbox" id="setLatihanAcak" checked>
+      <label style="margin:0; font-weight:400;" for="setLatihanAcak">Tampilkan tombol <strong>Latihan 5 Soal Acak</strong> di halaman SD / SMP / SMA</label>
+    </div>
+    <button type="button" id="btnSimpanPengaturan" class="btn-primary" style="margin-top:16px;">Simpan Pengaturan</button>
+    <button type="button" id="btnMuatPengaturan" class="secondary" style="margin-top:10px;">Muat Pengaturan dari GitHub</button>
+    <div id="statusPengaturan" class="status"></div>
+  </div>
+
+  <div class="card">
     <h2><span class="num">2</span> Soal &amp; Pembahasan</h2>
 
     <label>Jenjang</label>
@@ -1354,6 +1369,94 @@ function getCfg() {
     token: $('ghToken').value.trim()
   };
 }
+
+/* ===== Pengaturan situs (data/pengaturan-situs.json) ===== */
+const PENGATURAN_PATH = 'data/pengaturan-situs.json';
+const PENGATURAN_DEFAULT = { latihanAcak: true };
+
+async function muatPengaturanSitus() {
+  const st = $('statusPengaturan');
+  const cfg = getCfg();
+  if (!cfg.user || !cfg.repo || !cfg.token) {
+    if (st) { st.className = 'status err'; st.textContent = 'Isi koneksi GitHub dulu (Username, Repo, Token).'; st.style.display = 'block'; }
+    return null;
+  }
+  if (st) { st.className = 'status loading'; st.textContent = 'Memuat pengaturan…'; st.style.display = 'block'; }
+  try {
+    const res = await ghRequest(PENGATURAN_PATH + '?ref=' + encodeURIComponent(cfg.branch) + '&_=' + Date.now(), { method: 'GET' }, cfg);
+    if (res.status === 404) {
+      applyPengaturanForm(PENGATURAN_DEFAULT);
+      if (st) { st.className = 'status ok'; st.textContent = 'Belum ada file pengaturan — memakai default (Latihan Acak: aktif).'; }
+      return { data: { ...PENGATURAN_DEFAULT }, sha: null };
+    }
+    if (!res.ok) throw new Error('Gagal baca pengaturan (status ' + res.status + ')');
+    const meta = await res.json();
+    const data = JSON.parse(fromBase64Unicode(meta.content.replace(/\n/g, '')));
+    applyPengaturanForm(data);
+    if (st) { st.className = 'status ok'; st.textContent = '✓ Pengaturan dimuat dari GitHub.'; }
+    return { data, sha: meta.sha };
+  } catch (e) {
+    if (st) { st.className = 'status err'; st.textContent = 'Gagal: ' + e.message; }
+    return null;
+  }
+}
+
+function applyPengaturanForm(data) {
+  const cb = $('setLatihanAcak');
+  if (cb) cb.checked = data.latihanAcak !== false;
+}
+
+async function simpanPengaturanSitus() {
+  const st = $('statusPengaturan');
+  const cfg = getCfg();
+  if (!cfg.user || !cfg.repo || !cfg.token) {
+    if (st) { st.className = 'status err'; st.textContent = 'Isi koneksi GitHub dulu.'; st.style.display = 'block'; }
+    return;
+  }
+  saveIfRemember();
+  if (st) { st.className = 'status loading'; st.textContent = 'Menyimpan pengaturan…'; st.style.display = 'block'; }
+  try {
+    let sha = null;
+    const getRes = await ghRequest(PENGATURAN_PATH + '?ref=' + encodeURIComponent(cfg.branch), { method: 'GET' }, cfg);
+    if (getRes.ok) {
+      const meta = await getRes.json();
+      sha = meta.sha;
+    }
+    const data = {
+      latihanAcak: !!($('setLatihanAcak') && $('setLatihanAcak').checked)
+    };
+    const body = {
+      message: 'Update pengaturan situs (latihan acak: ' + (data.latihanAcak ? 'aktif' : 'nonaktif') + ')',
+      content: toBase64Unicode(JSON.stringify(data, null, 2)),
+      branch: cfg.branch
+    };
+    if (sha) body.sha = sha;
+    const putRes = await ghRequest(PENGATURAN_PATH, {
+      method: 'PUT',
+      body: JSON.stringify(body)
+    }, cfg);
+    if (!putRes.ok) {
+      const err = await putRes.json().catch(() => ({}));
+      throw new Error(err.message || 'Gagal simpan (status ' + putRes.status + ')');
+    }
+    if (st) {
+      st.className = 'status ok';
+      st.textContent = data.latihanAcak
+        ? '✓ Tersimpan. Tombol Latihan 5 Soal Acak akan tampil di situs siswa.'
+        : '✓ Tersimpan. Tombol Latihan 5 Soal Acak disembunyikan di situs siswa.';
+    }
+  } catch (e) {
+    if (st) { st.className = 'status err'; st.textContent = 'Gagal: ' + e.message; }
+  }
+}
+
+document.getElementById('btnSimpanPengaturan')?.addEventListener('click', simpanPengaturanSitus);
+document.getElementById('btnMuatPengaturan')?.addEventListener('click', muatPengaturanSitus);
+// Coba muat otomatis jika token sudah tersimpan
+setTimeout(() => {
+  const cfg = getCfg();
+  if (cfg.user && cfg.repo && cfg.token) muatPengaturanSitus();
+}, 400);
 
 function getJenjang() {
   const checked = document.querySelector('input[name="jenjangS"]:checked');

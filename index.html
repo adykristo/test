@@ -1528,7 +1528,24 @@ if (['home','sd','smp','sma','tryout','download','kontak'].includes(startPage)) 
 
 loadSoal();
 loadDownloadFiles();
+loadPengaturanSitus();
 loadPengumuman();
+
+/** Pengaturan situs dari data/pengaturan-situs.json (opsional) */
+async function loadPengaturanSitus() {
+  try {
+    const res = await fetch('data/pengaturan-situs.json?_=' + Date.now());
+    if (!res.ok) return; // default: fitur tampil
+    const data = await res.json();
+    const show = data.latihanAcak !== false;
+    ['sd', 'smp', 'sma'].forEach(j => {
+      const tb = document.getElementById('toolbar-' + j);
+      if (tb) tb.style.display = show ? '' : 'none';
+    });
+  } catch (e) {
+    // file belum ada → biarkan toolbar tampil
+  }
+}
 
 /** Banner pengumuman dari data/pengumuman.json (opsional) — hanya tampil jika ada tryout aktif */
 async function loadPengumuman() {
