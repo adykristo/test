@@ -687,6 +687,23 @@ window.MathJax = {
     justify-content:center;
   }
   .pilihan-item .teks{ flex:1; font-size:14.5px; padding-top:3px; }
+  .pilihan-item .teks .opsi-teks{ display:block; }
+  .pilihan-item .teks .opsi-img{
+    max-width:100%;
+    max-height:200px;
+    border-radius:10px;
+    display:block;
+    margin-top:8px;
+    object-fit:contain;
+  }
+  .review-card .opsi-review .opsi-img{
+    max-width:min(100%, 280px);
+    max-height:160px;
+    border-radius:8px;
+    display:block;
+    margin-top:6px;
+    object-fit:contain;
+  }
   .tipe-badge{
     display:inline-block; font-size:11px; font-weight:700; padding:3px 10px;
     border-radius:999px; background:var(--pink-muda); color:var(--ungu-tua); margin-bottom:10px;
@@ -2031,6 +2048,15 @@ function getMetodeEsai(obj) {
   return 'teks';
 }
 
+function renderIsiPilihan(teks, gambarUrl) {
+  const t = (teks == null ? '' : String(teks)).trim();
+  const g = (gambarUrl == null ? '' : String(gambarUrl)).trim();
+  let html = '';
+  if (t) html += `<span class="opsi-teks">${t}</span>`;
+  if (g) html += `<img class="opsi-img" src="${g.replace(/"/g, '&quot;')}" alt="Gambar opsi" loading="lazy">`;
+  return html || '<span class="opsi-teks">-</span>';
+}
+
 function renderCurrentSoal() {
   const soalList = tryoutState.paket.soal;
   const i = tryoutState.index;
@@ -2096,12 +2122,17 @@ function renderCurrentSoal() {
         ${inputMetodeHtml}
       </div>`;
   } else {
+    const pgGambar = s.pilihan_gambar || {};
     bodyHtml = `
       <div class="pilihan-list">
-        ${huruf.filter(h => s.pilihan && s.pilihan[h] !== undefined && s.pilihan[h] !== '').map(h => `
+        ${huruf.filter(h => {
+          const t = s.pilihan && s.pilihan[h] !== undefined ? String(s.pilihan[h]).trim() : '';
+          const g = pgGambar[h] ? String(pgGambar[h]).trim() : '';
+          return t || g;
+        }).map(h => `
           <div class="pilihan-item ${dipilih === h ? 'selected' : ''}" onclick="pilihJawaban('${s.id}','${h}')">
             <span class="huruf">${h}</span>
-            <span class="teks">${s.pilihan[h]}</span>
+            <span class="teks">${renderIsiPilihan(s.pilihan[h], pgGambar[h])}</span>
           </div>
         `).join('')}
       </div>`;
@@ -2279,7 +2310,8 @@ async function submitTryout(autoSubmit) {
     tipe: getTipeSoal(s),
     pertanyaan: s.pertanyaan || '',
     gambar: s.gambar || '',
-    pilihan: s.pilihan || {}
+    pilihan: s.pilihan || {},
+    pilihan_gambar: s.pilihan_gambar || {}
   }));
 
   // Jawaban esai (untuk upload PDF ke Drive)
@@ -2375,14 +2407,18 @@ function renderReviewDariServer(review, mode) {
     } else {
       const o = r.opsi || {};
       const pilihan = o.pilihan || {};
-      const huruf = Object.keys(pilihan).sort();
-      opsiHtml = huruf.map(h => {
+      const pilihanGambar = o.pilihan_gambar || r.pilihan_gambar || {};
+      const allH = [...new Set([...Object.keys(pilihan), ...Object.keys(pilihanGambar)])].sort();
+      opsiHtml = allH.filter(h => {
+        const t = pilihan[h] != null ? String(pilihan[h]).trim() : '';
+        const g = pilihanGambar[h] ? String(pilihanGambar[h]).trim() : '';
+        return t || g;
+      }).map(h => {
         let cls = 'opsi-review';
         if (tampilKunci && h === o.kunci) cls += ' jawaban-benar';
         else if (h === o.user) cls += tampilKunci ? ' jawaban-user-salah' : ' selected';
-        // Mode jawaban: tandai pilihan peserta tanpa menandai kunci
         if (!tampilKunci && h === o.user) cls += ' jawaban-benar';
-        return `<div class="${cls}">${h}. ${pilihan[h]}</div>`;
+        return `<div class="${cls}">${h}. ${renderIsiPilihan(pilihan[h], pilihanGambar[h])}</div>`;
       }).join('');
     }
 
@@ -2460,7 +2496,20 @@ function kirimHasilKeSheet(hasil) {
       )) || 'lengkap';
 
       const reviewBox = document.getElementById('hasilReview');
-      reviewBox.innerHTML = renderReviewDariServer(resData.review || [], modeHasil);
+      // Lengkapi pilihan_gambar dari paket lokal jika server belum mengirimkannya
+      const reviewEnriched = (resData.review || []).map(r => {
+        const lokal = (tryoutState.paket && tryoutState.paket.soal || []).find(
+          s => s.id === r.soalId || (s.pertanyaan && r.pertanyaan && s.pertanyaan === r.pertanyaan)
+        );
+        if (!lokal || !lokal.pilihan_gambar) return r;
+        const o = r.opsi || {};
+        return {
+          ...r,
+          opsi: { ...o, pilihan_gambar: { ...(o.pilihan_gambar || {}), ...lokal.pilihan_gambar } },
+          pilihan_gambar: { ...(r.pilihan_gambar || {}), ...lokal.pilihan_gambar }
+        };
+      });
+      reviewBox.innerHTML = renderReviewDariServer(reviewEnriched, modeHasil);
       renderKatexIn(reviewBox);
 
       statusEl.textContent = '✓ Hasil berhasil dikirim ke guru. Nilai dihitung di server.';
