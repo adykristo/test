@@ -2050,10 +2050,13 @@ function getMetodeEsai(obj) {
 
 function renderIsiPilihan(teks, gambarUrl) {
   const t = (teks == null ? '' : String(teks)).trim();
-  const g = (gambarUrl == null ? '' : String(gambarUrl)).trim();
+  const raw = gambarUrl == null ? '' : gambarUrl;
+  const gambarList = Array.isArray(raw) ? raw : (raw ? [String(raw)] : []);
   let html = '';
   if (t) html += `<span class="opsi-teks">${t}</span>`;
-  if (g) html += `<img class="opsi-img" src="${g.replace(/"/g, '&quot;')}" alt="Gambar opsi" loading="lazy">`;
+  gambarList.filter(Boolean).forEach(g => {
+    html += `<img class="opsi-img" src="${String(g).replace(/"/g, '&quot;')}" alt="Gambar opsi" loading="lazy">`;
+  });
   return html || '<span class="opsi-teks">-</span>';
 }
 
