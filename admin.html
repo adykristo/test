@@ -1256,7 +1256,7 @@ PEMBAHASAN: Gunakan $v = v_0 + at$.
 TIPE: ESAI
 PEMBAHASAN: (opsional, untuk pegangan koreksi manual)</pre>
       <a id="downloadTemplateSoalBtn" class="btn btn-outline" style="display:inline-block; text-decoration:none; margin-bottom:14px;" href="#" download="Template-Soal-Tryout-KlinikFisikapku.docx">⬇️ Download Contoh Template Soal (.docx)</a>
-      <p class="help" style="margin-top:-8px; margin-bottom:14px;">Unduh template → ganti isinya di Word (PG 4/5 opsi, isian, esai) → upload di bawah. Tidak perlu ketik ulang di form.</p>
+      <p class="help" style="margin-top:-8px; margin-bottom:14px;">Unduh template 100 soal → edit langsung di Word → upload di bawah. Bisa PG 4/5 opsi, isian, esai, gambar soal, gambar opsi, dan rumus LaTeX.</p>
       <ul class="help" style="padding-left:18px; margin-bottom:6px;">
         <li>Nomor di awal paragraf (<code>1.</code>, <code>2.</code>, dst) selalu menandai <b>mulainya soal baru</b>.</li>
         <li>Pilihan jawaban ditulis <code>A.</code> s/d <code>D.</code> (4 opsi) atau s/d <code>E.</code> (5 opsi) — masing‑masing di paragraf/baris sendiri. Boleh teks, gambar, atau keduanya: tulis <code>A.</code> lalu tempel gambar di baris/paragraf opsi itu.</li>
@@ -1265,7 +1265,8 @@ PEMBAHASAN: (opsional, untuk pegangan koreksi manual)</pre>
         <li><code>TIPE:</code> bersifat opsional. Isi <code>ISIAN</code> atau <code>ESAI</code> jika bukan pilihan ganda. Kalau tidak ditulis dan ada opsi A–D/E, otomatis dianggap pilihan ganda.</li>
         <li><code>PEMBAHASAN:</code> opsional, boleh lebih dari satu baris/paragraf setelahnya.</li>
         <li>Rumus fisika/matematika tetap ditulis manual pakai LaTeX diapit tanda dolar seperti biasa, contoh <code>$F = ma$</code> — <b>jangan</b> pakai fitur Equation bawaan Word karena tidak dapat dibaca otomatis.</li>
-        <li>Gambar cukup ditempel (paste/insert image) langsung di paragraf soal di Word — sistem otomatis mengunggahnya, admin tidak perlu upload manual lagi.</li>
+        <li>Gambar bisa ditempel di paragraf soal <b>atau tepat setelah label A.–E.</b> — sistem otomatis memasukkan gambar tersebut ke soal/opsi dan mengunggahnya ke GitHub.</li>
+        <li>Maksimal <b>100 soal per paket</b>. Rumus fisika/matematika ditulis LaTeX seperti <code>$F=ma$</code>, <code>$v=\frac{\Delta x}{\Delta t}$</code>, atau <code>$$E=mc^2$$</code>.</li>
       </ul>
       <label>Pilih File Word (.docx)</label>
       <input type="file" id="wordSoalFile" accept=".docx">
@@ -1273,7 +1274,7 @@ PEMBAHASAN: (opsional, untuk pegangan koreksi manual)</pre>
       <div id="statusWordSoal" class="status-bar" style="margin-top:10px;"></div>
     </div>
 
-    <h3 style="margin-top:22px;">Daftar Soal</h3>
+    <h3 style="margin-top:22px;">Daftar Soal <span id="jumlahSoalBadge" style="float:right; font-size:11px; background:#ffd9ec; color:#3d1a63; padding:4px 9px; border-radius:999px;">0 / 100</span></h3>
     <div style="display:flex; gap:10px; margin-bottom:10px;">
       <button type="button" class="btn btn-outline" style="font-size:12.5px; padding:6px 12px;" onclick="ciutkanSemuaSoal(true)">▸ Ciutkan Semua</button>
       <button type="button" class="btn btn-outline" style="font-size:12.5px; padding:6px 12px;" onclick="ciutkanSemuaSoal(false)">▾ Buka Semua</button>
@@ -2406,7 +2407,10 @@ const TEMPLATE_SOAL_TRYOUT_DOCX_BASE64 = "UEsDBBQABgAIAAAAIQAAe542iAEAAFsGAAATAA
 (function initDownloadTemplateSoal() {
   const a = document.getElementById('downloadTemplateSoalBtn');
   if (!a) return;
-  a.href = 'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,' + TEMPLATE_SOAL_TRYOUT_DOCX_BASE64;
+  // Template disimpan sebagai file nyata di repository agar mudah diedit,
+  // mudah diganti versinya, dan tidak membuat admin.html menjadi sangat besar.
+  a.href = 'Template-Soal-Tryout-KlinikFisikapku.docx';
+  a.download = 'Template-Soal-Tryout-KlinikFisikapku.docx';
 })();
 
 // ---------- Impor Soal Otomatis dari Word (.docx) ----------
@@ -2425,12 +2429,19 @@ function parseWordSoalHtml(html) {
     clone.querySelectorAll('br').forEach(br => br.replaceWith(document.createTextNode('\n')));
     const lines = (clone.textContent || '').split(/\n+/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
     const imgs = el.querySelectorAll ? [...el.querySelectorAll('img')] : [];
+    // Gambar Word dipertahankan sebagai bagian dari blok. Jika paragraf
+    // hanya berisi gambar, teks kosong tetapi gambar tetap diteruskan.
     if (lines.length <= 1) {
       blocks.push({ teks: lines[0] || '', imgs });
     } else {
       lines.forEach((line, i) => {
         blocks.push({ teks: line, imgs: i === 0 ? imgs : [] });
       });
+      // Bila Word menaruh gambar setelah soft-break pada paragraf yang sama,
+      // buat blok gambar tambahan agar gambar tidak hilang.
+      if (imgs.length && lines.length > 1) {
+        blocks.push({ teks: '', imgs });
+      }
     }
   }
 
@@ -2665,6 +2676,10 @@ async function prosesWordKeForm() {
     });
 
     const soalMentah = parseWordSoalHtml(result.value);
+    if (soalMentah.length > 100) {
+      setStatus('statusWordSoal', `File Word berisi ${soalMentah.length} soal. Maksimal 100 soal per paket. Kurangi jumlah soal lalu upload kembali.`, 'err');
+      return;
+    }
     if (!soalMentah.length) {
       setStatus('statusWordSoal', 'Tidak ada soal yang terdeteksi.\n\nPastikan di Word:\n• Nomor soal diawali 1. / 2. / No 1 (ketik manual, jangan numbering otomatis Word saja)\n• Opsi di baris sendiri: A. … B. …\n• File berformat .docx (bukan .doc)\n• Unduh ulang template contoh, ganti isinya, lalu upload lagi.', 'err');
       return;
@@ -3139,6 +3154,11 @@ function tipeSoalDariExisting(existing) {
 }
 
 function tambahSoal(existing) {
+  const jumlahSekarang = document.querySelectorAll('#soalContainer .soal-block').length;
+  if (jumlahSekarang >= 100) {
+    alert('Maksimal 100 soal per paket. Hapus salah satu soal terlebih dahulu jika ingin menambah soal baru.');
+    return;
+  }
   soalIdCounter++;
   const uid = 'sblock-' + soalIdCounter;
   const container = document.getElementById('soalContainer');
@@ -3337,9 +3357,15 @@ function pindahSoal(uid, dir) {
 }
 
 function renumberSoal() {
-  document.querySelectorAll('#soalContainer .soal-block').forEach((block, i) => {
+  const blocks = document.querySelectorAll('#soalContainer .soal-block');
+  blocks.forEach((block, i) => {
     block.querySelector('.nomor-tampil').textContent = i + 1;
   });
+  const badge = document.getElementById('jumlahSoalBadge');
+  if (badge) {
+    badge.textContent = `${blocks.length} / 100`;
+    badge.style.background = blocks.length >= 100 ? '#e8f8ee' : '#ffd9ec';
+  }
 }
 
 // ---------- Save/Publish ----------
