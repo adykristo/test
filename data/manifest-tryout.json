@@ -7,7 +7,7 @@
     "durasi_menit": 60,
     "jumlah_soal": 50,
     "file": "data/tryout/12-msrriup5.json",
-    "aktif": true,
+    "aktif": false,
     "kode_akses": "",
     "mode_hasil": "lengkap"
   },
