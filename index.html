@@ -2129,9 +2129,12 @@ function renderCurrentSoal() {
     bodyHtml = `
       <div class="pilihan-list">
         ${huruf.filter(h => {
-          const t = s.pilihan && s.pilihan[h] !== undefined ? String(s.pilihan[h]).trim() : '';
+          // Opsi ditampilkan jika key-nya memang didefinisikan di data soal
+          // (termasuk opsi "otomatis" berupa huruf saja tanpa teks/gambar,
+          // misalnya untuk soal yang seluruhnya berupa gambar) ATAU ada gambar opsi.
+          const adaKey = !!(s.pilihan && Object.prototype.hasOwnProperty.call(s.pilihan, h));
           const g = pgGambar[h] ? String(pgGambar[h]).trim() : '';
-          return t || g;
+          return adaKey || g;
         }).map(h => `
           <div class="pilihan-item ${dipilih === h ? 'selected' : ''}" onclick="pilihJawaban('${s.id}','${h}')">
             <span class="huruf">${h}</span>
@@ -2411,12 +2414,10 @@ function renderReviewDariServer(review, mode) {
       const o = r.opsi || {};
       const pilihan = o.pilihan || {};
       const pilihanGambar = o.pilihan_gambar || r.pilihan_gambar || {};
+      // Opsi diikutkan jika key-nya ada di data pilihan (termasuk opsi "otomatis"
+      // berupa huruf saja tanpa teks/gambar) ATAU punya gambar opsi.
       const allH = [...new Set([...Object.keys(pilihan), ...Object.keys(pilihanGambar)])].sort();
-      opsiHtml = allH.filter(h => {
-        const t = pilihan[h] != null ? String(pilihan[h]).trim() : '';
-        const g = pilihanGambar[h] ? String(pilihanGambar[h]).trim() : '';
-        return t || g;
-      }).map(h => {
+      opsiHtml = allH.map(h => {
         let cls = 'opsi-review';
         if (tampilKunci && h === o.kunci) cls += ' jawaban-benar';
         else if (h === o.user) cls += tampilKunci ? ' jawaban-user-salah' : ' selected';
