@@ -1,14 +1,1 @@
-[
-  {
-    "id": "111111-mssc7ujs",
-    "title": "111111",
-    "jenjang": "sma",
-    "topik": "TRY OUT",
-    "durasi_menit": 60,
-    "jumlah_soal": 25,
-    "file": "data/tryout/111111-mssc7ujs.json",
-    "aktif": true,
-    "kode_akses": "",
-    "mode_hasil": "lengkap"
-  }
-]
+[]
