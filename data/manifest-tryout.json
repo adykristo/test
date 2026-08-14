@@ -1,17 +1,5 @@
 [
   {
-    "id": "fsfsf-msrrk9si",
-    "title": "fsfsf",
-    "jenjang": "sma",
-    "topik": "sfs",
-    "durasi_menit": 60,
-    "jumlah_soal": 50,
-    "file": "data/tryout/fsfsf-msrrk9si.json",
-    "aktif": true,
-    "kode_akses": "",
-    "mode_hasil": "lengkap"
-  },
-  {
     "id": "111111-mssc7ujs",
     "title": "111111",
     "jenjang": "sma",
