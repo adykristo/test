@@ -1,0 +1,50 @@
+{
+  "id": "test-mssch31o",
+  "title": "TEST",
+  "jenjang": "sd",
+  "topik": "TEST",
+  "durasi_menit": 1,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "soal": [
+    {
+      "id": "q1786675415961-2",
+      "tipe": "pg4",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1786675412185-0-WhatsApp_Image_2026-08-07_at_12.47.27__1_.jpeg",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": ""
+      },
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1786675447847-3",
+      "tipe": "pg4",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1786675444806-0-WhatsApp_Image_2026-08-07_at_12.47.27__2_.jpeg",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": ""
+      },
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1786675451311-4",
+      "tipe": "pg4",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1786675467640-WhatsApp_Image_2026-08-07_at_12.47.27__1_.jpeg",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": ""
+      },
+      "pilihan_gambar": {}
+    }
+  ]
+}
