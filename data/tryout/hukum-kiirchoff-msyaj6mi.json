@@ -1,0 +1,33 @@
+{
+  "id": "hukum-kiirchoff-msyaj6mi",
+  "title": "HUKUM KIIRCHOFF",
+  "jenjang": "sma",
+  "topik": "LISTRIK DINAMIS",
+  "durasi_menit": 1,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "soal": [
+    {
+      "id": "q1787034887291-2",
+      "tipe": "esai",
+      "pertanyaan": "SOAL TRYOUT — PG5 (Pilihan A–E)",
+      "gambar": "",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787034887294-3",
+      "tipe": "pg5",
+      "pertanyaan": "[Perhatikan gambar!\nSaat saklar terbuka, besar tegangan VDC adalah ....]",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-1787034884681-soal-2.png",
+      "pilihan": {
+        "A": "[1]",
+        "B": "[2]",
+        "C": "[2]",
+        "D": "[2]",
+        "E": "[2]"
+      },
+      "pilihan_gambar": {}
+    }
+  ]
+}
