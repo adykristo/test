@@ -51,89 +51,236 @@ window.MathJax = {
   a{color:var(--pink); text-decoration:none;}
   a:hover{text-decoration:underline;}
 
-  /* ===== HEADER ===== */
-  .admin-header{
-    background:linear-gradient(125deg, var(--ungu-tua) 0%, var(--ungu) 55%, var(--pink) 100%);
+  /* ===== LAYOUT: SIDEBAR KIRI ===== */
+  .admin-layout{
+    display:flex;
+    min-height:100vh;
+    background:var(--bg);
+  }
+  .admin-sidebar{
+    width:248px;
+    flex-shrink:0;
+    background:#fff;
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    position:fixed;
+    top:0;
+    left:0;
+    bottom:0;
+    z-index:40;
+    overflow-y:auto;
+    box-shadow:1px 0 0 rgba(61,26,99,0.03);
+  }
+  .sidebar-brand{
+    padding:20px 18px 18px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .sidebar-brand .logo-mark{
+    width:38px;
+    height:38px;
+    border-radius:11px;
+    background:linear-gradient(135deg, var(--ungu) 0%, var(--pink) 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
     color:#fff;
-    padding:28px 20px 22px;
-    text-align:center;
+    font-weight:800;
+    font-size:15px;
+    flex-shrink:0;
+    box-shadow:0 4px 12px rgba(123,47,247,0.28);
   }
-  .admin-header .brand{
-    display:inline-block;
+  .sidebar-brand .brand-text{
+    font-weight:800;
+    font-size:14.5px;
+    color:var(--ungu-tua);
+    line-height:1.25;
+    letter-spacing:-0.01em;
+  }
+  .sidebar-brand .brand-sub{
     font-size:11px;
-    letter-spacing:2.5px;
-    text-transform:uppercase;
-    background:rgba(255,255,255,0.15);
-    padding:5px 14px;
-    border-radius:999px;
-    margin-bottom:10px;
+    color:var(--abu);
+    font-weight:500;
+    margin-top:1px;
   }
-  .admin-header h1{
-    font-size:clamp(20px, 4vw, 26px);
+  .sidebar-section{
+    padding:16px 12px 8px;
+  }
+  .sidebar-section-title{
+    font-size:10px;
     font-weight:700;
-    margin-bottom:4px;
+    letter-spacing:1.4px;
+    text-transform:uppercase;
+    color:var(--abu-muda);
+    padding:0 12px 10px;
   }
-  .admin-header p{
-    font-size:13px;
-    color:var(--pink-muda);
-    opacity:0.95;
-  }
-
-  /* ===== TABS ===== */
   .admin-tabs{
     display:flex;
-    max-width:880px;
-    margin:0 auto;
-    gap:0;
-    padding:0 16px;
+    flex-direction:column;
+    gap:3px;
+    padding:0 8px 12px;
+  }
+  .admin-tabs button.tab-btn{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    width:100%;
+    margin:0;
+    padding:11px 14px;
+    font-size:13.5px;
+    font-weight:600;
+    border:none;
+    border-radius:10px;
+    background:transparent;
+    color:#5c5568;
+    cursor:pointer;
+    text-align:left;
+    transition:background .14s, color .14s, box-shadow .14s;
+    position:relative;
+  }
+  .admin-tabs button.tab-btn .tab-icon{
+    width:22px;
+    text-align:center;
+    font-size:15px;
+    flex-shrink:0;
+    opacity:0.92;
+  }
+  .admin-tabs button.tab-btn:hover{
+    background:#f6f2fb;
+    color:var(--ungu-tua);
+  }
+  .admin-tabs button.tab-btn.active{
+    background:linear-gradient(135deg, rgba(123,47,247,0.11), rgba(248,87,166,0.08));
+    color:var(--ungu);
+    font-weight:700;
+    box-shadow:inset 3px 0 0 var(--ungu);
+  }
+  .sidebar-footer{
+    margin-top:auto;
+    padding:14px 16px 18px;
+    border-top:1px solid var(--border);
+    font-size:11px;
+    color:var(--abu-muda);
+    text-align:center;
+    line-height:1.4;
+  }
+  .admin-main{
+    flex:1;
+    margin-left:248px;
+    min-width:0;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .admin-topbar{
+    background:linear-gradient(125deg, var(--ungu-tua) 0%, var(--ungu) 50%, var(--pink) 100%);
+    color:#fff;
+    padding:16px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
     position:sticky;
     top:0;
-    z-index:30;
-    background:var(--bg);
-    border-bottom:1px solid var(--border);
+    z-index:25;
+    box-shadow:0 2px 12px rgba(61,26,99,0.15);
   }
-  .admin-tabs button{
-    flex:1;
-    margin:0;
-    padding:14px 12px;
-    font-size:13.5px;
+  .admin-topbar h1{
+    font-size:17px;
     font-weight:700;
-    border:none;
-    border-bottom:3px solid transparent;
-    background:transparent;
-    color:var(--abu);
-    cursor:pointer;
-    transition:color .15s, border-color .15s;
+    margin:0;
+    letter-spacing:-0.01em;
   }
-  .admin-tabs button:hover{ color:var(--ungu-tua); }
-  .admin-tabs button.active{
-    color:var(--ungu);
-    border-bottom-color:var(--pink);
-    background:transparent;
+  .admin-topbar p{
+    font-size:12.5px;
+    opacity:0.88;
+    margin:3px 0 0;
   }
+  .admin-content{ flex:1; }
+  .admin-header{ display:none; }
 
   .tab-panel{ display:none; }
   .tab-panel.active{ display:block; }
 
+  /* Visitor dashboard terintegrasi di layout */
+  #cbtVisitorDashboard{
+    margin:0 !important;
+    padding:18px 24px 6px !important;
+    max-width:1100px;
+  }
+  #cbtVisitorDashboard .cbt-vd-head{
+    border-radius:14px !important;
+    padding:14px 16px !important;
+  }
+  #cbtVisitorDashboard .cbt-vd-title{ font-size:15px !important; }
+  #cbtVisitorDashboard .cbt-vd-number{ font-size:22px !important; }
+  #cbtVisitorDashboard .cbt-vd-card{ border-radius:12px !important; padding:13px !important; }
+  #cbtVisitorDashboard .cbt-vd-panel{ border-radius:12px !important; }
+  #cbtVisitorChart{ height:180px !important; }
+
+  /* Mobile sidebar toggle */
+  .sidebar-toggle{
+    display:none;
+    position:fixed;
+    top:12px;
+    left:12px;
+    z-index:50;
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(135deg, var(--ungu), var(--pink));
+    color:#fff;
+    font-size:17px;
+    cursor:pointer;
+    box-shadow:0 4px 14px rgba(61,26,99,0.28);
+  }
+  .sidebar-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(20,10,40,0.42);
+    z-index:35;
+  }
+  @media (max-width:900px){
+    .admin-sidebar{
+      transform:translateX(-100%);
+      transition:transform .22s ease;
+      width:260px;
+    }
+    .admin-sidebar.open{ transform:translateX(0); }
+    .admin-main{ margin-left:0; }
+    .sidebar-toggle{ display:flex; align-items:center; justify-content:center; }
+    .sidebar-overlay.show{ display:block; }
+    .admin-topbar{ padding-left:58px; }
+    #cbtVisitorDashboard{ padding:14px 12px 4px !important; }
+  }
+
   /* ===== SHARED CARD & FORM ===== */
   .wrap{
-    max-width:560px;
+    max-width:720px;
     margin:0 auto;
-    padding:28px 16px 60px;
+    padding:24px 24px 64px;
+  }
+  @media (max-width:600px){
+    .wrap{ padding:18px 14px 48px; }
   }
   .page-title{
-    margin-bottom:22px;
-    text-align:center;
+    margin-bottom:20px;
+    text-align:left;
   }
   .page-title h1{
     color:var(--ungu-tua);
-    font-size:22px;
+    font-size:20px;
     font-weight:700;
     margin-bottom:4px;
   }
   .page-title .sub{
     color:var(--abu);
-    font-size:13.5px;
+    font-size:13px;
   }
 
   .card{
@@ -427,9 +574,12 @@ window.MathJax = {
 
   /* ===== PANEL TRYOUT ===== */
   #panelTryout main, #panelEsai main{
-    max-width:880px;
+    max-width:960px;
     margin:0 auto;
-    padding:28px 16px 60px;
+    padding:24px 24px 64px;
+  }
+  @media (max-width:600px){
+    #panelTryout main, #panelEsai main{ padding:18px 14px 48px; }
   }
   #panelTryout .box, #panelEsai .box{
     background:var(--card);
@@ -1188,6 +1338,7 @@ window.MathJax = {
 
   /* ===== PANEL JAWABAN ESAI (folder koreksi) ===== */
   #panelEsai main{ padding-top:22px; }
+  #panelEsai > header{ display:none; }
   #panelEsai header{
     padding:22px 24px 16px;
     text-align:center;
@@ -1384,17 +1535,40 @@ window.MathJax = {
 </head>
 <body>
 
-<header class="admin-header">
-  <div class="brand">KlinikFisikapku</div>
-  <h1>Panel Admin</h1>
-  <p>Kelola soal latihan, file OSN, dan paket tryout</p>
-</header>
+<button type="button" class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-<div class="admin-tabs">
-  <button type="button" class="tab-btn active" id="tabBtnSoal" onclick="switchAdminTab('panelSoal')">📤 Upload Soal</button>
-  <button type="button" class="tab-btn" id="tabBtnTryout" onclick="switchAdminTab('panelTryout')">⚙️ Admin Tryout</button>
-  <button type="button" class="tab-btn" id="tabBtnEsai" onclick="switchAdminTab('panelEsai')">📝 Jawaban Esai</button>
-</div>
+<div class="admin-layout">
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <div class="logo-mark">K</div>
+      <div>
+        <div class="brand-text">KlinikFisikapku</div>
+        <div class="brand-sub">Panel Admin</div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Main Menu</div>
+      <div class="admin-tabs">
+        <button type="button" class="tab-btn active" id="tabBtnSoal" onclick="switchAdminTab('panelSoal')"><span class="tab-icon">📤</span> Upload Soal</button>
+        <button type="button" class="tab-btn" id="tabBtnTryout" onclick="switchAdminTab('panelTryout')"><span class="tab-icon">⚙️</span> Admin Tryout</button>
+        <button type="button" class="tab-btn" id="tabBtnEsai" onclick="switchAdminTab('panelEsai')"><span class="tab-icon">📝</span> Jawaban Esai</button>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      © KlinikFisikapku · CBT Admin
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1 id="topbarTitle">Upload Soal</h1>
+        <p id="topbarSub">Kelola soal latihan, file OSN, dan paket tryout</p>
+      </div>
+    </div>
+
+    <div class="admin-content">
 
 <div id="panelSoal" class="tab-panel active">
 <div class="wrap">
@@ -1922,15 +2096,52 @@ Pembahasan: ...</pre>
 </main>
 </div>
 
+    </div><!-- /.admin-content -->
+  </div><!-- /.admin-main -->
+</div><!-- /.admin-layout -->
+
 <script>
 const ADMIN_TAB_BTN = { panelSoal: 'tabBtnSoal', panelTryout: 'tabBtnTryout', panelEsai: 'tabBtnEsai' };
+const ADMIN_TAB_META = {
+  panelSoal: { title: 'Upload Soal', sub: 'Kelola soal latihan, file OSN, dan paket tryout' },
+  panelTryout: { title: 'Admin Tryout', sub: 'Buat & kelola paket soal tryout: PG, isian, esai' },
+  panelEsai: { title: 'Jawaban Esai', sub: 'Koreksi jawaban esai per paket dan peserta' }
+};
 function switchAdminTab(id) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.admin-tabs .tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.getElementById(ADMIN_TAB_BTN[id] || 'tabBtnSoal').classList.add('active');
+  const meta = ADMIN_TAB_META[id];
+  if (meta) {
+    const t = document.getElementById('topbarTitle');
+    const s = document.getElementById('topbarSub');
+    if (t) t.textContent = meta.title;
+    if (s) s.textContent = meta.sub;
+  }
   if (id === 'panelEsai') populateEsaiPaketSelect();
+  // statistik pengunjung hanya di tab Upload Soal
+  const vd = document.getElementById('cbtVisitorDashboard');
+  if (vd) vd.style.display = (id === 'panelSoal') ? '' : 'none';
+  // tutup sidebar di mobile setelah pilih menu
+  const sb = document.getElementById('adminSidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  if (sb) sb.classList.remove('open');
+  if (ov) ov.classList.remove('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+function toggleSidebar() {
+  document.getElementById('adminSidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+// Pindahkan statistik ke dalam area konten (di atas panel)
+document.addEventListener('DOMContentLoaded', function() {
+  const vd = document.getElementById('cbtVisitorDashboard');
+  const content = document.querySelector('.admin-content');
+  if (vd && content) {
+    content.insertBefore(vd, content.firstChild);
+  }
+});
 </script>
 
 <script>
