@@ -1839,6 +1839,21 @@ Pembahasan: ...</pre>
       Aktif (boleh mengerjakan tryout)
     </label>
     <p class="help" style="margin-top:4px;">Centang setelah peserta bayar / disetujui. Jika tidak dicentang, nomor ujian terdaftar tapi belum bisa mulai tryout.</p>
+
+    <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-weight:400; font-size:13px; color:var(--abu);">
+      <input type="checkbox" id="pUjiCoba" style="width:auto;">
+      Nomor uji coba admin (boleh submit tryout berkali-kali)
+    </label>
+    <p class="help" style="margin-top:4px;">Khusus admin untuk tes paket. Centang agar nomor tidak diblokir “sudah pernah mengumpulkan”. Pilih nomor cepat di bawah atau ketik sendiri.</p>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center;">
+      <span class="help" style="margin:0;">Pilih nomor:</span>
+      <button type="button" class="btn btn-outline btn-xs" onclick="pilihNomorUjiCoba('ADMIN')">ADMIN</button>
+      <button type="button" class="btn btn-outline btn-xs" onclick="pilihNomorUjiCoba('TEST')">TEST</button>
+      <button type="button" class="btn btn-outline btn-xs" onclick="pilihNomorUjiCoba('UJI01')">UJI01</button>
+      <button type="button" class="btn btn-outline btn-xs" onclick="pilihNomorUjiCoba('DEMO')">DEMO</button>
+      <button type="button" class="btn btn-outline btn-xs" onclick="pilihNomorUjiCoba('COBA')">COBA</button>
+    </div>
+
     <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
       <button class="btn btn-hijau" onclick="simpanSatuPeserta()">💾 Simpan Peserta</button>
       <button class="btn btn-outline" onclick="batalEditPeserta()">Batal Edit</button>
@@ -4557,7 +4572,7 @@ function renderPesertaAdminList() {
     <div class="paket-item">
       <div class="info">
         <b>${p.nama}</b>
-        <span>No. Ujian: ${p.noUjian} · Paket: ${paketLabel} · ${statusBadge}</span>
+        <span>No. Ujian: ${p.noUjian} · Paket: ${paketLabel} · ${statusBadge}${p.ujiCoba ? ' · <span style="color:#b5650a; font-weight:700;">🔁 Uji coba</span>' : ''}</span>
       </div>
       <div class="aksi">
         <button class="btn btn-outline" onclick="toggleAktifPeserta('${noUjianSafe}')">${aktif ? 'Nonaktifkan' : 'Aktifkan'}</button>
@@ -4622,6 +4637,8 @@ function editPesertaSatu(noUjian) {
   document.getElementById('pPaketPilihanWrap').style.display = isTertentu ? 'block' : 'none';
   if (isTertentu) isiPilihanPaketCheckbox(data.paket);
   document.getElementById('pAktif').checked = data.aktif !== false;
+  const elUji = document.getElementById('pUjiCoba');
+  if (elUji) elUji.checked = !!data.ujiCoba;
   document.getElementById('pNoUjian').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -4632,6 +4649,20 @@ function batalEditPeserta() {
   document.getElementById('pPaketMode').value = 'semua';
   document.getElementById('pPaketPilihanWrap').style.display = 'none';
   document.getElementById('pAktif').checked = true;
+  const elUji = document.getElementById('pUjiCoba');
+  if (elUji) elUji.checked = false;
+}
+
+function pilihNomorUjiCoba(no) {
+  document.getElementById('pNoUjian').value = no;
+  if (!document.getElementById('pNama').value.trim()) {
+    document.getElementById('pNama').value = 'Admin Uji Coba (' + no + ')';
+  }
+  document.getElementById('pAktif').checked = true;
+  const elUji = document.getElementById('pUjiCoba');
+  if (elUji) elUji.checked = true;
+  document.getElementById('pPaketMode').value = 'semua';
+  document.getElementById('pPaketPilihanWrap').style.display = 'none';
 }
 
 async function simpanSatuPeserta() {
@@ -4647,6 +4678,7 @@ async function simpanSatuPeserta() {
     if (!paket.length) { setStatus('statusPeserta', 'Pilih minimal 1 paket, atau ganti ke "Semua paket".', 'err'); return; }
   }
   const aktif = document.getElementById('pAktif').checked;
+  const ujiCoba = !!(document.getElementById('pUjiCoba') && document.getElementById('pUjiCoba').checked);
 
   const dup = pesertaCache.content.find(p =>
     String(p.noUjian).toLowerCase() === noUjian.toLowerCase() && String(p.noUjian) !== editingNoUjianAsli
@@ -4654,7 +4686,7 @@ async function simpanSatuPeserta() {
   if (dup) { setStatus('statusPeserta', `Nomor Ujian "${noUjian}" sudah dipakai peserta lain.`, 'err'); return; }
 
   let newContent = pesertaCache.content.filter(p => String(p.noUjian) !== editingNoUjianAsli);
-  newContent.push({ noUjian, nama, paket, aktif });
+  newContent.push({ noUjian, nama, paket, aktif, ujiCoba });
 
   setStatus('statusPeserta', 'Menyimpan…', 'loading');
   try {

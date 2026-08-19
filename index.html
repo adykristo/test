@@ -1232,7 +1232,7 @@ window.MathJax = {
     <div class="hero-home">
       <div class="hero-badge">Persiapan OSN Fisika</div>
       <h2>Latihan soal &amp; tryout siap pakai untuk SD, SMP, dan SMA</h2>
-      <p>Kumpulan soal latihan lengkap dengan pembahasan dan paket tryout. Pilih jenjang, kerjakan, dan pantau progres belajar kamu.</p>
+      <p>Kumpulan soal latihan lengkap pembahasan dan paket tryout resmi. Pilih jenjang, kerjakan, dan pantau progres belajar kamu.</p>
       <div class="hero-cta">
         <button type="button" class="btn-cta-primary" onclick="gotoPage('tryout')">Mulai Tryout</button>
       </div>
@@ -1952,7 +1952,9 @@ function cekNomorUjian() {
     return;
   }
 
-  document.getElementById('pesertaNamaTerverifikasi').textContent = data.nama;
+  let namaTampil = data.nama;
+  if (data.ujiCoba) namaTampil += ' (Uji coba — boleh berkali-kali)';
+  document.getElementById('pesertaNamaTerverifikasi').textContent = namaTampil;
   boxTerverifikasi.style.display = 'block';
   btnMulai.disabled = false;
 }
@@ -1993,15 +1995,24 @@ async function mulaiUjianSetelahData() {
   }
 
   // Syarat singkat sebelum mulai
-  const setuju = await appConfirm(
-    'Dengan memulai tryout, kamu menyetujui:\n\n' +
-    '• Pengerjaan hanya 1 kali per nomor ujian\n' +
-    '• Timer berjalan dan tidak bisa diulang jika waktu habis\n' +
-    '• Jawaban dikirim ke server; nilai dihitung otomatis\n' +
-    '• Dilarang bekerja sama / menyebarkan soal\n\n' +
-    'Lanjutkan?',
-    { okText: 'Setuju, Mulai', cancelText: 'Batal', icon: '📋' }
-  );
+  const isUjiCoba = !!data.ujiCoba;
+  const syaratTeks = isUjiCoba
+    ? ('Mode UJI COBA admin\n\n' +
+       '• Nomor ini boleh mengerjakan & mengumpulkan berkali-kali\n' +
+       '• Timer tetap berjalan seperti tryout sungguhan\n' +
+       '• Hasil tetap dihitung di server\n\n' +
+       'Lanjutkan tes?')
+    : ('Dengan memulai tryout, kamu menyetujui:\n\n' +
+       '• Pengerjaan hanya 1 kali per nomor ujian\n' +
+       '• Timer berjalan dan tidak bisa diulang jika waktu habis\n' +
+       '• Jawaban dikirim ke server; nilai dihitung otomatis\n' +
+       '• Dilarang bekerja sama / menyebarkan soal\n\n' +
+       'Lanjutkan?');
+  const setuju = await appConfirm(syaratTeks, {
+    okText: isUjiCoba ? 'Mulai Uji Coba' : 'Setuju, Mulai',
+    cancelText: 'Batal',
+    icon: isUjiCoba ? '🔁' : '📋'
+  });
   if (!setuju) return;
 
   errEl.classList.remove('show');
@@ -2032,7 +2043,7 @@ async function mulaiUjianSetelahData() {
   tryoutState = {
     paket,
     meta,
-    peserta: { nama: data.nama, noUjian },
+    peserta: { nama: data.nama, noUjian, ujiCoba: !!data.ujiCoba },
     jawaban: jawabanAwal,
     ragu: raguAwal,
     fontScale: (draft && draft.fontScale) || 'md',
@@ -2577,6 +2588,7 @@ async function submitTryout(autoSubmit) {
   lastHasil = {
     nama: peserta.nama,
     noUjian: peserta.noUjian,
+    ujiCoba: !!peserta.ujiCoba,
     paket: tryoutState.paket.title,
     paketId: (tryoutState.meta && tryoutState.meta.id) || tryoutState.paket.id || '',
     jenjang: tryoutState.paket.jenjang,
@@ -2702,11 +2714,19 @@ function kirimHasilKeSheet(hasil) {
     body: JSON.stringify(hasil)
   }).then(res => res.json()).then(resData => {
     if (resData && resData.status === 'sudah_pernah') {
-      statusEl.textContent = 'Nomor ujian ini sudah pernah mengumpulkan tryout ini sebelumnya, jadi hasil kali ini tidak disimpan ulang.';
-      statusEl.className = 'kirim-status failed';
-      document.getElementById('hasilNilai').textContent = '-';
-      document.getElementById('hasilReview').innerHTML =
-        '<div class="empty">Hasil tidak disimpan karena nomor ujian sudah pernah submit paket ini.</div>';
+      const isUji = !!(lastHasil && lastHasil.ujiCoba);
+      if (isUji) {
+        statusEl.textContent = 'Server masih menolak submit ulang. Pastikan Apps Script mengizinkan field ujiCoba=true (lihat panduan admin). Nomor uji coba tetap bisa mulai tryout lagi dari daftar paket.';
+        statusEl.className = 'kirim-status failed';
+        document.getElementById('hasilReview').innerHTML =
+          '<div class="empty">Mode uji coba: agar submit berkali-kali berhasil, update Google Apps Script agar jika <code>ujiCoba === true</code> maka data tetap disimpan (boleh menimpa hasil lama).</div>';
+      } else {
+        statusEl.textContent = 'Nomor ujian ini sudah pernah mengumpulkan tryout ini sebelumnya, jadi hasil kali ini tidak disimpan ulang.';
+        statusEl.className = 'kirim-status failed';
+        document.getElementById('hasilNilai').textContent = '-';
+        document.getElementById('hasilReview').innerHTML =
+          '<div class="empty">Hasil tidak disimpan karena nomor ujian sudah pernah submit paket ini.</div>';
+      }
     } else if (resData && resData.status === 'error') {
       statusEl.textContent = 'Gagal menyimpan: ' + (resData.message || 'error dari server') + '. Coba kirim ulang.';
       statusEl.className = 'kirim-status failed';
@@ -2754,6 +2774,12 @@ function kirimHasilKeSheet(hasil) {
 
       statusEl.textContent = '✓ Hasil berhasil dikirim ke guru. Nilai dihitung di server.';
       statusEl.className = 'kirim-status sent';
+      // Nomor uji coba: hapus draft agar sesi berikutnya mulai bersih
+      try {
+        if (lastHasil && lastHasil.ujiCoba && lastHasil.paketId && lastHasil.noUjian) {
+          hapusAutosave(lastHasil.paketId, lastHasil.noUjian);
+        }
+      } catch (e) {}
     } else {
       statusEl.textContent = 'Respons server tidak dikenali. Coba kirim ulang.';
       statusEl.className = 'kirim-status failed';
