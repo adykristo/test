@@ -24,6 +24,7 @@ window.MathJax = {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root{
     --ungu-tua:#3d1a63;
@@ -975,6 +976,84 @@ window.MathJax = {
     background:var(--pink-muda);
     border-color:var(--pink);
   }
+  /* ===== PDF crop tool (blok/kotakin soal dari PDF) ===== */
+  #panelTryout .pdf-toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    margin-bottom:10px;
+    padding:10px 12px;
+    background:#f8f4ff;
+    border-radius:12px;
+    border:1px dashed #d4b8f5;
+  }
+  #panelTryout .pdf-toolbar > div{ display:flex; align-items:center; gap:6px; }
+  #panelTryout .pdf-toolbar label{ margin:0; font-size:12.5px; font-weight:700; color:var(--ungu-tua); white-space:nowrap; }
+  #panelTryout .pdf-toolbar select{ width:auto !important; padding:6px 8px !important; font-size:13px !important; }
+  #panelTryout .pdf-toolbar .btn-xs{ background:#fff; border:1.5px solid #d4b8f5; color:var(--ungu-tua); font-weight:800; }
+  #panelTryout .pdf-toolbar .btn-xs:hover{ background:var(--pink-muda); border-color:var(--pink); }
+  #panelTryout .pdf-toolbar .pdf-page-indicator{ font-size:13px; font-weight:800; color:var(--ungu-tua); min-width:80px; text-align:center; }
+  #panelTryout .pdf-canvas-scroll{
+    max-width:100%;
+    overflow:auto;
+    background:#e9e2f5;
+    border-radius:12px;
+    border:1px solid #e2d6f7;
+    padding:10px;
+    text-align:center;
+  }
+  #panelTryout .pdf-canvas-wrap{
+    position:relative;
+    display:inline-block;
+    line-height:0;
+    touch-action:none;
+    cursor:crosshair;
+  }
+  #panelTryout .pdf-canvas-wrap canvas{
+    max-width:100%;
+    height:auto;
+    display:block;
+    box-shadow:0 2px 12px rgba(61,26,99,.18);
+    border-radius:4px;
+    background:#fff;
+  }
+  #panelTryout .pdf-sel-box{
+    position:absolute;
+    border:2px dashed var(--pink);
+    background:rgba(248,87,166,.16);
+    display:none;
+    pointer-events:none;
+    border-radius:2px;
+  }
+  #panelTryout .pdf-crop-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:12px;
+    align-items:center;
+  }
+  #panelTryout .pdf-crop-history{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:12px;
+  }
+  #panelTryout .pdf-crop-history img{
+    width:64px;
+    height:64px;
+    object-fit:cover;
+    border-radius:8px;
+    border:1.5px solid #d4b8f5;
+    background:#fff;
+  }
+  #panelTryout .pdf-empty-hint{
+    font-size:13px;
+    color:var(--abu);
+    padding:18px 10px;
+    text-align:center;
+  }
+
   #panelTryout .format-pre{
     background:#fff;
     border:1px solid #eee;
@@ -1887,7 +1966,73 @@ Pembahasan: ...</pre>
             </div>
           </div>
 
-          <!-- CARA B: Foto soal -->
+          <!-- CARA B: Dari PDF (blok/kotakin soal) -->
+          <div class="upload-card upload-card-primary" id="cardPdf" style="grid-column:1 / -1;">
+            <div class="upload-card-head">
+              <span class="upload-badge">Baru</span>
+              <h4>📕 Dari file PDF (blok &amp; pilih)</h4>
+              <p>Unggah berkas soal PDF, halaman tampil persis seperti aslinya sebagai gambar. Kotakin (blok) area soal yang mau diambil, lalu klik <b>"Pilih &amp; Tambah sebagai Soal"</b>. Bisa berkali-kali per halaman untuk soal yang berdempetan.</p>
+            </div>
+            <div class="upload-card-body">
+              <div class="row" style="display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end;">
+                <div>
+                  <label style="margin-top:0;">Pilih file PDF</label>
+                  <input type="file" id="pdfSoalFile" accept="application/pdf">
+                </div>
+                <button type="button" class="btn btn-primary" style="white-space:nowrap;" onclick="muatPdfSoal()">📂 Muat PDF</button>
+              </div>
+              <div id="statusPdfSoal" class="status-bar" style="margin-top:8px;"></div>
+
+              <div id="pdfCropTool" style="display:none; margin-top:14px;">
+                <div class="pdf-toolbar">
+                  <div>
+                    <button type="button" class="btn-xs" onclick="pdfGantiHalaman(-1)">◀ Sebelumnya</button>
+                    <span class="pdf-page-indicator" id="pdfPageIndicator">Hal. 1/1</span>
+                    <button type="button" class="btn-xs" onclick="pdfGantiHalaman(1)">Berikutnya ▶</button>
+                  </div>
+                  <div>
+                    <label>Zoom</label>
+                    <select id="pdfZoomLevel" onchange="renderPdfHalaman()">
+                      <option value="0.75">75%</option>
+                      <option value="1" selected>100%</option>
+                      <option value="1.5">150%</option>
+                      <option value="2">200%</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Tipe soal berikutnya</label>
+                    <select id="pdfTipeSoalBerikutnya">
+                      <option value="pg5" selected>PG 5 opsi</option>
+                      <option value="pg4">PG 4 opsi</option>
+                      <option value="isian">Isian singkat</option>
+                      <option value="esai">Esai</option>
+                    </select>
+                  </div>
+                </div>
+
+                <p class="help" style="margin:0 0 8px;">🖱️ Klik &amp; seret (atau sentuh &amp; geser di HP) pada halaman untuk mengotakkan bagian soal yang ingin diambil.</p>
+
+                <div class="pdf-canvas-scroll">
+                  <div class="pdf-canvas-wrap" id="pdfCanvasWrap">
+                    <canvas id="pdfCanvas"></canvas>
+                    <div class="pdf-sel-box" id="pdfSelBox"></div>
+                  </div>
+                </div>
+
+                <div class="pdf-crop-actions">
+                  <button type="button" class="btn btn-hijau" onclick="pdfTambahSoalDariSeleksi()">✅ Pilih &amp; Tambah sebagai Soal</button>
+                  <button type="button" class="btn btn-outline" onclick="pdfBatalSeleksi()">✕ Batal blok</button>
+                  <button type="button" class="btn btn-outline" onclick="pdfUndoTerakhir()">↩ Urungkan soal terakhir</button>
+                  <span class="help" id="pdfCropCounter" style="margin:0;">0 soal ditambahkan dari PDF ini.</span>
+                </div>
+
+                <div class="pdf-crop-history" id="pdfCropHistory"></div>
+              </div>
+              <p class="help" style="margin-top:8px; margin-bottom:0;">Setelah masuk daftar, buka tiap soal untuk isi/cek <b>kunci jawaban</b> (radio "Kunci" di sebelah kanan tiap opsi) sebelum publish.</p>
+            </div>
+          </div>
+
+          <!-- CARA C: Foto soal -->
           <div class="upload-card" id="cardGambar">
             <div class="upload-card-head">
               <h4>🖼️ Dari foto / gambar soal</h4>
@@ -3627,6 +3772,234 @@ async function prosesGambarSoalMassal() {
     inputEl.value = '';
   }
 }
+
+// ---------- PDF crop tool (unggah PDF, blok/kotakin soal, pilih & tambah) ----------
+if (window['pdfjsLib']) {
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  } catch (e) { /* diamkan, muatPdfSoal() akan menampilkan error kalau memang gagal */ }
+}
+
+let pdfDocAktif = null;      // dokumen PDF.js yang sedang dibuka
+let pdfHalamanAktif = 1;     // nomor halaman yang sedang ditampilkan
+let pdfSeleksi = null;       // {x0,y0,x1,y1} dalam koordinat piksel asli canvas
+let pdfSedangBlok = false;   // true saat mouse/jari sedang menyeret
+let pdfJumlahDitambah = 0;   // penghitung berapa soal sudah ditambah dari PDF ini
+let pdfUidTerakhir = null;   // uid soal-block terakhir yang ditambah lewat PDF (untuk undo)
+let pdfIdSoalCounter = 0;    // penomor id unik untuk soal yang dibuat dari PDF
+
+async function muatPdfSoal() {
+  const inputEl = document.getElementById('pdfSoalFile');
+  const file = inputEl.files && inputEl.files[0];
+  if (!file) { setStatus('statusPdfSoal', 'Pilih file PDF dulu.', 'err'); return; }
+  if (!window['pdfjsLib']) { setStatus('statusPdfSoal', 'Gagal memuat pustaka pembaca PDF (pdf.js). Cek koneksi internet lalu refresh halaman ini.', 'err'); return; }
+  if (!document.getElementById('soalContainer')) {
+    setStatus('statusPdfSoal', 'Buka/buat paket tryout dulu sebelum mengambil soal dari PDF.', 'err');
+    return;
+  }
+
+  setStatus('statusPdfSoal', 'Membaca PDF…', 'loading');
+  try {
+    const buf = await file.arrayBuffer();
+    const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+    pdfDocAktif = doc;
+    pdfHalamanAktif = 1;
+    pdfJumlahDitambah = 0;
+    pdfUidTerakhir = null;
+    document.getElementById('pdfCropHistory').innerHTML = '';
+    updatePdfCropCounter();
+    document.getElementById('pdfCropTool').style.display = '';
+    await renderPdfHalaman();
+    setStatus('statusPdfSoal', `✓ PDF dimuat, ${doc.numPages} halaman. Kotakin bagian soal di halaman lalu klik "Pilih & Tambah sebagai Soal".`, 'ok');
+  } catch (e) {
+    console.warn('Gagal membuka PDF:', e);
+    setStatus('statusPdfSoal', 'Gagal membuka PDF: ' + (e && e.message ? e.message : 'file mungkin rusak/terkunci.'), 'err');
+  }
+}
+
+async function renderPdfHalaman() {
+  if (!pdfDocAktif) return;
+  const page = await pdfDocAktif.getPage(pdfHalamanAktif);
+  const zoom = parseFloat((document.getElementById('pdfZoomLevel') || {}).value || '1');
+  // Skala dasar supaya halaman nyaman dilihat, dikalikan pilihan zoom admin.
+  const viewport = page.getViewport({ scale: 1.6 * zoom });
+  const canvas = document.getElementById('pdfCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  pdfBatalSeleksi();
+  const totalHal = pdfDocAktif.numPages;
+  document.getElementById('pdfPageIndicator').textContent = `Hal. ${pdfHalamanAktif}/${totalHal}`;
+}
+
+function pdfGantiHalaman(delta) {
+  if (!pdfDocAktif) return;
+  const target = pdfHalamanAktif + delta;
+  if (target < 1 || target > pdfDocAktif.numPages) return;
+  pdfHalamanAktif = target;
+  renderPdfHalaman();
+}
+
+// Ambil titik (x,y) dalam koordinat piksel ASLI canvas dari event mouse/sentuh,
+// supaya tetap akurat walau canvas ditampilkan mengecil (CSS max-width:100%) di HP.
+function pdfTitikDariEvent(evt) {
+  const canvas = document.getElementById('pdfCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const src = (evt.touches && evt.touches[0]) || (evt.changedTouches && evt.changedTouches[0]) || evt;
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  let x = (src.clientX - rect.left) * scaleX;
+  let y = (src.clientY - rect.top) * scaleY;
+  x = Math.max(0, Math.min(canvas.width, x));
+  y = Math.max(0, Math.min(canvas.height, y));
+  return { x, y };
+}
+
+function pdfMulaiBlok(evt) {
+  if (!pdfDocAktif) return;
+  evt.preventDefault();
+  const p = pdfTitikDariEvent(evt);
+  pdfSedangBlok = true;
+  pdfSeleksi = { x0: p.x, y0: p.y, x1: p.x, y1: p.y };
+  pdfGambarKotakSeleksi();
+}
+
+function pdfLanjutBlok(evt) {
+  if (!pdfSedangBlok || !pdfSeleksi) return;
+  evt.preventDefault();
+  const p = pdfTitikDariEvent(evt);
+  pdfSeleksi.x1 = p.x;
+  pdfSeleksi.y1 = p.y;
+  pdfGambarKotakSeleksi();
+}
+
+function pdfSelesaiBlok(evt) {
+  if (!pdfSedangBlok) return;
+  pdfSedangBlok = false;
+}
+
+function pdfGambarKotakSeleksi() {
+  const box = document.getElementById('pdfSelBox');
+  const canvas = document.getElementById('pdfCanvas');
+  if (!box || !canvas || !pdfSeleksi) return;
+  const rect = canvas.getBoundingClientRect();
+  const cssPerPxX = rect.width / canvas.width;
+  const cssPerPxY = rect.height / canvas.height;
+  const x0 = Math.min(pdfSeleksi.x0, pdfSeleksi.x1) * cssPerPxX;
+  const y0 = Math.min(pdfSeleksi.y0, pdfSeleksi.y1) * cssPerPxY;
+  const w = Math.abs(pdfSeleksi.x1 - pdfSeleksi.x0) * cssPerPxX;
+  const h = Math.abs(pdfSeleksi.y1 - pdfSeleksi.y0) * cssPerPxY;
+  box.style.left = x0 + 'px';
+  box.style.top = y0 + 'px';
+  box.style.width = w + 'px';
+  box.style.height = h + 'px';
+  box.style.display = (w > 3 && h > 3) ? 'block' : 'none';
+}
+
+function pdfBatalSeleksi() {
+  pdfSedangBlok = false;
+  pdfSeleksi = null;
+  const box = document.getElementById('pdfSelBox');
+  if (box) box.style.display = 'none';
+}
+
+function updatePdfCropCounter() {
+  const el = document.getElementById('pdfCropCounter');
+  if (el) el.textContent = `${pdfJumlahDitambah} soal ditambahkan dari PDF ini.`;
+}
+
+async function pdfTambahSoalDariSeleksi() {
+  if (!pdfSeleksi) { setStatus('statusPdfSoal', 'Kotakin dulu bagian soal di halaman (klik & seret / sentuh & geser).', 'err'); return; }
+  const sx = Math.round(Math.min(pdfSeleksi.x0, pdfSeleksi.x1));
+  const sy = Math.round(Math.min(pdfSeleksi.y0, pdfSeleksi.y1));
+  const sw = Math.round(Math.abs(pdfSeleksi.x1 - pdfSeleksi.x0));
+  const sh = Math.round(Math.abs(pdfSeleksi.y1 - pdfSeleksi.y0));
+  if (sw < 8 || sh < 8) { setStatus('statusPdfSoal', 'Area yang diblok terlalu kecil, kotakin ulang area soalnya.', 'err'); return; }
+  if (!ghToken) { setStatus('statusPdfSoal', 'Masukkan & simpan token GitHub dulu (di tab Upload Soal) sebelum menambah soal dari PDF.', 'err'); return; }
+
+  const tipe = (document.getElementById('pdfTipeSoalBerikutnya') || {}).value || 'pg5';
+  setStatus('statusPdfSoal', 'Memotong & mengunggah area terpilih…', 'loading');
+  sedangUploadGambar++;
+  try {
+    const sumberCanvas = document.getElementById('pdfCanvas');
+    const potong = document.createElement('canvas');
+    potong.width = sw;
+    potong.height = sh;
+    potong.getContext('2d').drawImage(sumberCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
+    const dataUrl = potong.toDataURL('image/png');
+    const base64 = dataUrl.split(',')[1];
+
+    const path = `${GAMBAR_SOAL_FOLDER}/pdf-${Date.now()}-h${pdfHalamanAktif}.png`;
+    const res = await ghPutBinaryFile(path, base64, `Upload soal dari PDF (hal. ${pdfHalamanAktif})`);
+
+    const isPg = (tipe === 'pg4' || tipe === 'pg5');
+    pdfIdSoalCounter = (pdfIdSoalCounter || 0) + 1;
+    const soalBaru = {
+      id: 'q' + Date.now() + '-pdf' + pdfIdSoalCounter,
+      tipe,
+      pertanyaan: '',
+      gambar: res.content.download_url,
+      pilihan: {},
+      pilihan_gambar: {},
+      opsi_otomatis: isPg
+    };
+    const jumlahSebelum = document.querySelectorAll('#soalContainer .soal-block').length;
+    tambahSoal(soalBaru);
+    bersihkanSoalKosong();
+    updateSoalCountBadge();
+    const semuaBlock = document.querySelectorAll('#soalContainer .soal-block');
+    pdfUidTerakhir = semuaBlock.length ? semuaBlock[semuaBlock.length - 1].id : null;
+
+    pdfJumlahDitambah++;
+    updatePdfCropCounter();
+    const hist = document.getElementById('pdfCropHistory');
+    if (hist) {
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.title = `Soal dari halaman ${pdfHalamanAktif}`;
+      hist.appendChild(img);
+    }
+
+    const ket = isPg ? ' Buka soal ini di daftar di bawah untuk pilih kunci jawaban.' : '';
+    setStatus('statusPdfSoal', `✓ 1 soal baru ditambahkan dari halaman ${pdfHalamanAktif}.${ket}`, 'ok');
+    pdfBatalSeleksi();
+  } catch (e) {
+    console.warn('Gagal menambah soal dari PDF:', e);
+    setStatus('statusPdfSoal', 'Gagal menambah soal dari area terpilih: ' + (e && e.message ? e.message : ''), 'err');
+  } finally {
+    sedangUploadGambar--;
+  }
+}
+
+function pdfUndoTerakhir() {
+  if (!pdfUidTerakhir) { setStatus('statusPdfSoal', 'Belum ada soal dari PDF yang bisa diurungkan.', 'err'); return; }
+  const el = document.getElementById(pdfUidTerakhir);
+  if (el) {
+    el.remove();
+    renumberSoal();
+    if (pdfJumlahDitambah > 0) pdfJumlahDitambah--;
+    updatePdfCropCounter();
+    const hist = document.getElementById('pdfCropHistory');
+    if (hist && hist.lastElementChild) hist.removeChild(hist.lastElementChild);
+    setStatus('statusPdfSoal', 'Soal terakhir dari PDF sudah diurungkan.', 'ok');
+  }
+  pdfUidTerakhir = null;
+}
+
+// Pasang event drag (mouse) & sentuh (touch) untuk area kotak canvas PDF.
+// Dipasang sekali saat script dimuat; elemen wrap selalu ada di DOM (hanya
+// disembunyikan lewat display:none sebelum PDF dimuat), jadi aman dipasang di awal.
+(function pasangEventBlokPdf() {
+  const wrap = document.getElementById('pdfCanvasWrap');
+  if (!wrap) return;
+  wrap.addEventListener('mousedown', pdfMulaiBlok);
+  window.addEventListener('mousemove', pdfLanjutBlok);
+  window.addEventListener('mouseup', pdfSelesaiBlok);
+  wrap.addEventListener('touchstart', pdfMulaiBlok, { passive: false });
+  wrap.addEventListener('touchmove', pdfLanjutBlok, { passive: false });
+  wrap.addEventListener('touchend', pdfSelesaiBlok);
+})();
 
 // ---------- Manifest & list ----------
 let manifestCache = { content: [], sha: null };
