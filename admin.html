@@ -523,6 +523,111 @@ window.MathJax = {
   #panelTryout .soal-block[data-tipe="isian"]{ border-left-color:#2aa876; }
   #panelTryout .soal-block[data-tipe="esai"]{ border-left-color:var(--pink); }
 
+  /* Kartu soal — rapi profesional */
+  #panelTryout .soal-field-group{ margin-bottom:14px; }
+  #panelTryout .soal-field-label{
+    display:block;
+    font-size:12.5px;
+    font-weight:800;
+    color:var(--ungu-tua);
+    margin-bottom:6px;
+  }
+  #panelTryout .muted-hint{
+    font-weight:500;
+    color:var(--abu);
+    font-size:11.5px;
+  }
+  #panelTryout .gambar-soal-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+  }
+  #panelTryout .gambar-soal-row input[type=file]{ flex:1; min-width:140px; }
+  #panelTryout .gambar-soal-row .input-gambar-url{ flex:2; min-width:160px; }
+  #panelTryout .opsi-header-row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:2px;
+  }
+  #panelTryout .opsi-otomatis-label{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--abu);
+    margin:0;
+    cursor:pointer;
+  }
+  #panelTryout .opsi-otomatis-label input{ width:auto; }
+  #panelTryout .pilihan-row{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:10px;
+    padding:12px;
+    background:#faf8ff;
+    border:1.5px solid #eee0fa;
+    border-radius:12px;
+  }
+  #panelTryout .pilihan-row:hover{
+    border-color:#d4b8f5;
+    background:#f6f0ff;
+  }
+  #panelTryout .pilihan-row .huruf-badge{
+    flex-shrink:0;
+    width:32px;
+    height:32px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#7b2ff7,#f857a6);
+    color:#fff;
+    font-weight:800;
+    font-size:13px;
+    border-radius:10px;
+    margin-top:4px;
+  }
+  #panelTryout .pilihan-row .radio-benar{
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    min-width:52px;
+    padding:8px 6px;
+    border-radius:10px;
+    background:#fff;
+    border:1.5px solid #e0d0f0;
+    cursor:pointer;
+    font-size:11px;
+    font-weight:800;
+    color:var(--abu);
+    margin-top:2px;
+  }
+  #panelTryout .pilihan-row .radio-benar:has(input:checked),
+  #panelTryout .pilihan-row .radio-benar:has(input:checked){
+    background:#e8f8ef;
+    border-color:#2e9e5b;
+    color:#1f7a41;
+  }
+  #panelTryout .pilihan-row .radio-benar input{
+    width:18px;
+    height:18px;
+    accent-color:#2e9e5b;
+    cursor:pointer;
+  }
+  #panelTryout .soal-block-actions button{
+    border-radius:8px !important;
+    padding:5px 8px !important;
+  }
+
+
   /* ===== Form paket — tampilan rapi & profesional ===== */
   #panelTryout #formBox{
     border:1.5px solid #e8d9f8;
@@ -745,6 +850,53 @@ window.MathJax = {
   }
 
   /* Action bar — tombol besar, rapi, tidak memanjang aneh */
+
+  #panelTryout .bank-picker-list{
+    max-height:280px;
+    overflow:auto;
+    border:1.5px solid #eee0fa;
+    border-radius:12px;
+    background:#fafbff;
+    padding:8px;
+  }
+  #panelTryout .bank-picker-item{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid transparent;
+    margin-bottom:6px;
+    background:#fff;
+    cursor:pointer;
+  }
+  #panelTryout .bank-picker-item:hover{
+    border-color:#d4b8f5;
+    background:#faf5ff;
+  }
+  #panelTryout .bank-picker-item input{ width:auto; margin-top:3px; flex-shrink:0; }
+  #panelTryout .bank-picker-item .bank-meta{
+    font-size:11.5px;
+    color:var(--abu);
+    margin-top:4px;
+  }
+  #panelTryout .bank-picker-item .bank-teks{
+    font-size:13.5px;
+    color:var(--ungu-tua);
+    font-weight:600;
+    line-height:1.4;
+  }
+  #panelTryout .bank-tipe-tag{
+    display:inline-block;
+    font-size:10.5px;
+    font-weight:800;
+    padding:2px 8px;
+    border-radius:999px;
+    background:#f0e2fa;
+    color:var(--ungu-tua);
+    margin-right:6px;
+  }
+
   #panelTryout .form-actions-bar{
     display:flex;
     flex-wrap:wrap;
@@ -851,6 +1003,7 @@ window.MathJax = {
   #panelTryout .soal-block .soal-block-actions .naik,
   #panelTryout .soal-block .soal-block-actions .turun{ color:var(--abu); }
 
+  /* pilihan-row base overridden below */
   #panelTryout .pilihan-row{
     display:flex;
     align-items:flex-start;
@@ -1594,6 +1747,34 @@ Pembahasan: ...</pre>
             </div>
             <div class="upload-card-body">
               <button type="button" class="btn btn-outline" style="width:100%;" onclick="tambahSoal(); document.getElementById('soalContainer').scrollIntoView({behavior:'smooth',block:'end'});">+ Tambah 1 soal kosong</button>
+            </div>
+          </div>
+
+          <!-- CARA D: Bank Soal -->
+          <div class="upload-card" id="cardBank" style="grid-column:1 / -1;">
+            <div class="upload-card-head">
+              <h4>📚 Dari Bank Soal</h4>
+              <p>Pakai ulang soal yang pernah disimpan. Centang soal, lalu tambahkan ke paket ini.</p>
+            </div>
+            <div class="upload-card-body">
+              <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px;">
+                <input type="text" id="bankSearchInput" placeholder="Cari teks soal / topik…" style="flex:1; min-width:180px;" oninput="renderBankPickerList()">
+                <select id="bankFilterTipe" onchange="renderBankPickerList()" style="width:auto; min-width:120px;">
+                  <option value="">Semua tipe</option>
+                  <option value="pg4">PG4</option>
+                  <option value="pg5">PG5</option>
+                  <option value="isian">Isian</option>
+                  <option value="esai">Esai</option>
+                </select>
+                <button type="button" class="btn btn-outline btn-xs" onclick="muatBankSoal(true)">🔄 Muat ulang</button>
+              </div>
+              <div id="bankPickerList" class="bank-picker-list">
+                <p class="help" style="margin:8px 0;">Klik "Muat ulang" atau buka form ini — bank akan dimuat otomatis.</p>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; align-items:center;">
+                <button type="button" class="btn btn-primary" onclick="tambahSoalDariBankTerpilih()">➕ Tambah yang dicentang ke paket</button>
+                <span id="bankPickerStatus" class="help" style="margin:0;"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -2550,6 +2731,7 @@ async function hapusFileOsn(btn) {
 // ================== KONFIGURASI ==================
 const MANIFEST_PATH = "data/manifest-tryout.json";
 const TRYOUT_FOLDER = "data/tryout";
+const BANK_SOAL_PATH = "data/bank-soal.json";
 // ===================================================
 
 // Koneksi GitHub sekarang memakai SATU form yang sama dengan tab "Upload Soal"
@@ -3321,6 +3503,7 @@ function mulaiPaketBaru() {
   updateSoalCountBadge();
   document.getElementById('formBox').style.display = 'block';
   document.getElementById('formBox').scrollIntoView({ behavior: 'smooth' });
+  muatBankSoal(false);
   // Highlight kartu Word sebentar
   const card = document.getElementById('cardWord');
   if (card) {
@@ -3354,6 +3537,7 @@ async function editPaket(id) {
     updateSoalCountBadge();
     document.getElementById('statusForm').className = 'status-bar';
     document.getElementById('formBox').scrollIntoView({ behavior: 'smooth' });
+    muatBankSoal(false);
   } catch (e) {
     setStatus('statusForm', 'Gagal memuat paket: ' + e.message, 'err');
   }
@@ -3634,6 +3818,168 @@ function tipeSoalDariExisting(existing) {
   return 'pg5';
 }
 
+
+/* ===== BANK SOAL (simpan & reuse) ===== */
+let bankSoalCache = { content: [], sha: null };
+
+async function muatBankSoal(force) {
+  const statusEl = document.getElementById('bankPickerStatus');
+  if (!force && bankSoalCache.content && bankSoalCache.content.length) {
+    renderBankPickerList();
+    return bankSoalCache.content;
+  }
+  if (statusEl) statusEl.textContent = 'Memuat bank soal…';
+  try {
+    const result = await ghGetFile(BANK_SOAL_PATH);
+    if (result && Array.isArray(result.content)) {
+      bankSoalCache = { content: result.content, sha: result.sha };
+    } else {
+      bankSoalCache = { content: [], sha: null };
+    }
+  } catch (e) {
+    bankSoalCache = { content: [], sha: null };
+  }
+  renderBankPickerList();
+  if (statusEl) {
+    statusEl.textContent = bankSoalCache.content.length
+      ? (bankSoalCache.content.length + ' soal di bank')
+      : 'Bank masih kosong — simpan soal lewat tombol 📚 Bank di kartu soal.';
+  }
+  return bankSoalCache.content;
+}
+
+function renderBankPickerList() {
+  const box = document.getElementById('bankPickerList');
+  if (!box) return;
+  const q = ((document.getElementById('bankSearchInput') || {}).value || '').trim().toLowerCase();
+  const tipeF = ((document.getElementById('bankFilterTipe') || {}).value || '');
+  let list = Array.isArray(bankSoalCache.content) ? bankSoalCache.content.slice() : [];
+  if (tipeF) list = list.filter(x => (x.soal && x.soal.tipe) === tipeF);
+  if (q) {
+    list = list.filter(x => {
+      const s = x.soal || {};
+      const blob = [x.topik, x.jenjang, s.pertanyaan, s.pembahasan, JSON.stringify(s.pilihan || {})].join(' ').toLowerCase();
+      return blob.indexOf(q) !== -1;
+    });
+  }
+  // terbaru di atas
+  list.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+
+  if (!list.length) {
+    box.innerHTML = '<p class="help" style="margin:10px;">Tidak ada soal yang cocok. Simpan soal dulu lewat tombol <b>📚 Bank</b> di kartu soal.</p>';
+    return;
+  }
+  box.innerHTML = list.map(item => {
+    const s = item.soal || {};
+    const tipe = s.tipe || '?';
+    const teks = (s.pertanyaan || '').trim() || (s.gambar ? '(soal bergambar)' : '(tanpa teks)');
+    const ringkas = teks.length > 120 ? teks.slice(0, 120) + '…' : teks;
+    const meta = [item.jenjang ? String(item.jenjang).toUpperCase() : '', item.topik || '', item.createdAt ? item.createdAt.slice(0, 10) : ''].filter(Boolean).join(' · ');
+    return '<label class="bank-picker-item">'
+      + '<input type="checkbox" class="bank-check" value="' + escAttr(item.id) + '">'
+      + '<div style="min-width:0;flex:1;">'
+      + '<div class="bank-teks"><span class="bank-tipe-tag">' + escAttr(tipe.toUpperCase()) + '</span>' + escAttr(ringkas) + '</div>'
+      + (meta ? '<div class="bank-meta">' + escAttr(meta) + '</div>' : '')
+      + '</div>'
+      + '<button type="button" class="btn btn-outline btn-xs" style="flex-shrink:0;" onclick="event.preventDefault();hapusDariBank(\'' + escAttr(item.id) + '\')">Hapus</button>'
+      + '</label>';
+  }).join('');
+}
+
+async function simpanSoalKeBank(uid) {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
+  const el = document.getElementById(uid);
+  if (!el) return;
+  let data;
+  try {
+    data = bacaSatuSoalDariBlock(el);
+  } catch (e) {
+    alert('Gagal membaca soal: ' + (e.message || e));
+    return;
+  }
+  if (!data || (!(data.pertanyaan || '').trim() && !(data.gambar || '').trim())) {
+    alert('Soal masih kosong. Isi pertanyaan atau gambar dulu.');
+    return;
+  }
+  const jenjang = (document.getElementById('fJenjang') || {}).value || '';
+  const topik = ((document.getElementById('fTopik') || {}).value || '').trim();
+  const entry = {
+    id: 'bank-' + Date.now() + '-' + Math.floor(Math.random() * 10000),
+    createdAt: new Date().toISOString(),
+    jenjang,
+    topik,
+    soal: {
+      // id baru saat dipakai di paket nanti
+      tipe: data.tipe,
+      pertanyaan: data.pertanyaan || '',
+      gambar: data.gambar || '',
+      pilihan: data.pilihan || {},
+      pilihan_gambar: data.pilihan_gambar || {},
+      jawaban_benar: data.jawaban_benar || '',
+      kunci_isian: data.kunci_isian || '',
+      pembahasan: data.pembahasan || '',
+      opsi_otomatis: !!data.opsi_otomatis
+    }
+  };
+
+  await muatBankSoal(true);
+  const newContent = (bankSoalCache.content || []).concat([entry]);
+  try {
+    const putRes = await ghPutFile(
+      BANK_SOAL_PATH,
+      newContent,
+      bankSoalCache.sha,
+      'Tambah soal ke bank: ' + (data.pertanyaan || '').slice(0, 40)
+    );
+    bankSoalCache = { content: newContent, sha: putRes.content.sha };
+    renderBankPickerList();
+    alert('✓ Soal disimpan ke Bank Soal.\n\nNanti bisa dipakai ulang lewat kartu "Dari Bank Soal".');
+  } catch (e) {
+    alert('Gagal menyimpan ke bank: ' + (e.message || e));
+  }
+}
+
+function tambahSoalDariBankTerpilih() {
+  const checks = document.querySelectorAll('#bankPickerList .bank-check:checked');
+  if (!checks.length) {
+    alert('Centang minimal 1 soal di bank.');
+    return;
+  }
+  let n = 0;
+  checks.forEach(ch => {
+    const id = ch.value;
+    const item = (bankSoalCache.content || []).find(x => x.id === id);
+    if (!item || !item.soal) return;
+    const clone = JSON.parse(JSON.stringify(item.soal));
+    clone.id = 'q' + Date.now() + '-' + Math.floor(Math.random() * 10000) + '-' + n;
+    tambahSoal(clone);
+    n++;
+  });
+  renumberSoal();
+  updateSoalCountBadge();
+  // uncheck
+  checks.forEach(ch => { ch.checked = false; });
+  const statusEl = document.getElementById('bankPickerStatus');
+  if (statusEl) statusEl.textContent = '✓ ' + n + ' soal ditambahkan ke paket.';
+  const sc = document.getElementById('soalContainer');
+  if (sc) sc.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+async function hapusDariBank(id) {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
+  if (!confirm('Hapus soal ini dari bank? (Tidak menghapus dari paket yang sudah memakai soal ini.)')) return;
+  await muatBankSoal(true);
+  const newContent = (bankSoalCache.content || []).filter(x => x.id !== id);
+  try {
+    const putRes = await ghPutFile(BANK_SOAL_PATH, newContent, bankSoalCache.sha, 'Hapus soal dari bank');
+    bankSoalCache = { content: newContent, sha: putRes.content.sha };
+    renderBankPickerList();
+  } catch (e) {
+    alert('Gagal hapus: ' + (e.message || e));
+  }
+}
+
+
 function tambahSoal(existing) {
   soalIdCounter++;
   const uid = 'sblock-' + soalIdCounter;
@@ -3682,76 +4028,91 @@ function tambahSoal(existing) {
         <span class="soal-ringkasan">${escAttr((existing && existing.pertanyaan) || (existing && existing.gambar ? '(gambar)' : ''))}</span>
       </div>
       <div class="soal-block-actions" onclick="event.stopPropagation()">
-        <button class="naik" onclick="pindahSoal('${uid}',-1)" title="Naikkan">↑</button>
-        <button class="turun" onclick="pindahSoal('${uid}',1)" title="Turunkan">↓</button>
-        <button class="naik" onclick="duplikatSoalBlock('${uid}')" title="Duplikat soal ini">⧉ Duplikat</button>
-        <button class="hapus" onclick="hapusSoalBlock('${uid}')">✕ Hapus</button>
+        <button type="button" class="naik" onclick="pindahSoal('${uid}',-1)" title="Naikkan">↑</button>
+        <button type="button" class="turun" onclick="pindahSoal('${uid}',1)" title="Turunkan">↓</button>
+        <button type="button" class="naik" onclick="duplikatSoalBlock('${uid}')" title="Duplikat">⧉</button>
+        <button type="button" class="naik" onclick="simpanSoalKeBank('${uid}')" title="Simpan ke Bank">📚</button>
+        <button type="button" class="hapus" onclick="hapusSoalBlock('${uid}')" title="Hapus">✕</button>
       </div>
     </div>
     <div class="soal-block-body">
 
-    <label>Tipe Soal</label>
-    <select class="input-tipe-soal" onchange="onGantiTipeSoal('${uid}')">
-      <option value="pg5" ${tipe0==='pg5'?'selected':''}>Pilihan Ganda — 5 opsi (A–E)</option>
-      <option value="pg4" ${tipe0==='pg4'?'selected':''}>Pilihan Ganda — 4 opsi (A–D)</option>
-      <option value="isian" ${tipe0==='isian'?'selected':''}>Isian Singkat</option>
-      <option value="esai" ${tipe0==='esai'?'selected':''}>Esai (jawaban teks + upload)</option>
-    </select>
+    <div class="soal-field-group">
+      <label class="soal-field-label">Tipe soal</label>
+      <select class="input-tipe-soal" onchange="onGantiTipeSoal('${uid}')">
+        <option value="pg5" ${tipe0==='pg5'?'selected':''}>Pilihan Ganda — 5 opsi (A–E)</option>
+        <option value="pg4" ${tipe0==='pg4'?'selected':''}>Pilihan Ganda — 4 opsi (A–D)</option>
+        <option value="isian" ${tipe0==='isian'?'selected':''}>Isian Singkat</option>
+        <option value="esai" ${tipe0==='esai'?'selected':''}>Esai</option>
+      </select>
+    </div>
 
-    <label style="margin-top:14px;">Pertanyaan (boleh LaTeX, mis. $F=ma$; boleh kosong jika hanya gambar)</label>
-    <textarea class="input-pertanyaan" oninput="updatePreview(this)">${(existing && existing.pertanyaan) || ''}</textarea>
-    <div class="preview preview-pertanyaan"></div>
+    <div class="soal-field-group">
+      <label class="soal-field-label">Pertanyaan <span class="muted-hint">(LaTeX: $F=ma$ · boleh kosong jika hanya gambar)</span></label>
+      <textarea class="input-pertanyaan" oninput="updatePreview(this)">${(existing && existing.pertanyaan) || ''}</textarea>
+      <div class="preview preview-pertanyaan"></div>
+    </div>
 
-    <label style="margin-top:16px;">Gambar Soal (opsional — upload / tempel link)</label>
-    <input type="file" accept="image/*" class="input-gambar-file" onchange="uploadGambarSoal(this)">
-    <input type="text" class="input-gambar-url" placeholder="Atau tempel link gambar langsung (opsional)" value="${(existing && existing.gambar) || ''}" oninput="updatePreview(this)" style="margin-top:8px;">
-    <div class="preview preview-gambar"></div>
+    <div class="soal-field-group soal-gambar-group">
+      <label class="soal-field-label">Gambar soal <span class="muted-hint">(opsional)</span></label>
+      <div class="gambar-soal-row">
+        <input type="file" accept="image/*" class="input-gambar-file" onchange="uploadGambarSoal(this)">
+        <input type="text" class="input-gambar-url" placeholder="Atau tempel link gambar" value="${(existing && existing.gambar) || ''}" oninput="updatePreview(this)">
+      </div>
+      <div class="preview preview-gambar"></div>
+    </div>
 
-    <div class="area-pg" style="margin-top:16px;">
-      <label>Pilihan Jawaban</label>
-      <p class="help" style="margin:0 0 8px;">Setiap opsi boleh berisi teks, gambar, atau keduanya. Minimal 2 opsi terisi.</p>
-      <label style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:13px; margin:6px 0 12px; padding:8px 10px; background:#faf5ff; border:1px solid #ead8f7; border-radius:8px; cursor:pointer;">
-        <input type="checkbox" class="input-opsi-otomatis" onchange="onToggleOpsiOtomatis('${uid}')" ${opsiOtomatisAwal ? 'checked' : ''} style="width:16px;height:16px;">
-        🖼️ Opsi otomatis (tanpa teks/gambar per opsi — cukup huruf A/B/C/D${tipe0==='pg5'?'/E':''}), cocok untuk soal berupa foto/gambar utuh
-      </label>
+    <div class="area-pg" style="margin-top:4px;">
+      <div class="opsi-header-row">
+        <label class="soal-field-label" style="margin:0;">Opsi jawaban</label>
+        <label class="opsi-otomatis-label">
+          <input type="checkbox" class="input-opsi-otomatis" onchange="onToggleOpsiOtomatis('${uid}')" ${opsiOtomatisAwal ? 'checked' : ''}>
+          Opsi otomatis (A–E tanpa teks — untuk soal foto utuh)
+        </label>
+      </div>
+      <p class="help opsi-hint" style="margin:6px 0 10px;">Isi teks dan/atau gambar per opsi. Pilih <b>Kunci</b> di sebelah kanan opsi yang benar.</p>
       ${huruf.map(h => {
-        const pg = (existing && existing.pilihan_gambar && existing.pilihan_gambar[h]) || '';
+        const pgRaw = (existing && existing.pilihan_gambar && existing.pilihan_gambar[h]) || '';
+        const pg = Array.isArray(pgRaw) ? (pgRaw[0] || '') : pgRaw;
         return `
         <div class="pilihan-row" data-opsi="${h}">
-          <div class="huruf-badge">${h}</div>
+          <span class="huruf-badge">${h}</span>
           <div class="pilihan-fields">
-            <input type="text" class="input-pilihan" data-huruf="${h}" placeholder="Teks pilihan ${h} (opsional jika ada gambar)" value="${(pilihanExisting[h] || '').replace(/"/g,'&quot;')}" oninput="updatePreview(this)">
+            <input type="text" class="input-pilihan" data-huruf="${h}" placeholder="Teks opsi ${h}" value="${(pilihanExisting[h] || '').replace(/"/g,'&quot;')}" oninput="updatePreview(this)">
             <div class="pilihan-gambar-row">
               <input type="file" accept="image/*" class="input-pilihan-gambar-file" data-huruf="${h}" onchange="uploadGambarPilihan(this)">
-              <input type="text" class="input-pilihan-gambar-url" data-huruf="${h}" placeholder="Link gambar opsi ${h}" value="${String(pg).replace(/"/g,'&quot;')}" oninput="updatePreview(this)">
-              <button type="button" class="btn-hapus-gambar-opsi" onclick="hapusGambarPilihan(this)">Hapus gambar</button>
+              <input type="text" class="input-pilihan-gambar-url" data-huruf="${h}" placeholder="Link gambar ${h}" value="${String(pg).replace(/"/g,'&quot;')}" oninput="updatePreview(this)">
+              <button type="button" class="btn-hapus-gambar-opsi" onclick="hapusGambarPilihan(this)">Hapus</button>
             </div>
             <div class="preview preview-pilihan-gambar preview-pilihan-gambar-${h}"></div>
+            <div class="preview preview-pilihan-${h}"></div>
           </div>
-          <div class="radio-benar">
+          <label class="radio-benar" title="Jadikan kunci jawaban">
             <input type="radio" name="jawabanBenar-${uid}" value="${h}" ${jawabanBenarExisting === h ? 'checked' : ''}>
-            <span>Benar</span>
-          </div>
-        </div>
-        <div class="preview preview-pilihan-${h}" style="margin-left:44px; margin-bottom:10px;"></div>`;
+            <span>Kunci</span>
+          </label>
+        </div>`;
       }).join('')}
     </div>
 
     <div class="area-isian" style="margin-top:16px; display:none;">
-      <label>Kunci Jawaban Isian</label>
-      <input type="text" class="input-kunci-isian" placeholder="Contoh: 10 N  |  10N  (pisahkan alternatif dengan | )" value="${String(kunciIsian).replace(/"/g,'&quot;')}">
-      <p class="help" style="margin-top:4px;">Boleh beberapa alternatif dipisah tanda |. Penilaian mengabaikan huruf besar/kecil dan spasi berlebih. Support LaTeX di pertanyaan.</p>
+      <label class="soal-field-label">Kunci jawaban isian</label>
+      <input type="text" class="input-kunci-isian" placeholder="Contoh: 10 N  |  10N  (alternatif dipisah |)" value="${String(kunciIsian).replace(/"/g,'&quot;')}">
+      <p class="help" style="margin-top:4px;">Huruf besar/kecil dan spasi diabaikan saat penilaian.</p>
     </div>
 
     <div class="area-esai" style="margin-top:16px; display:none;">
-      <p class="help">Soal esai: peserta mengetik jawaban dan/atau mengunggah foto/file jawaban. Tidak dinilai otomatis (status: menunggu koreksi).</p>
+      <p class="help" style="margin:0;">Esai: peserta mengetik dan/atau unggah PDF. Dinilai manual di tab Jawaban Esai.</p>
     </div>
 
-    <label style="margin-top:16px;">Pembahasan (opsional, boleh LaTeX)</label>
-    <textarea class="input-pembahasan" oninput="updatePreview(this)">${(existing && existing.pembahasan) || ''}</textarea>
-    <div class="preview preview-pembahasan"></div>
+    <div class="soal-field-group" style="margin-top:16px;">
+      <label class="soal-field-label">Pembahasan <span class="muted-hint">(opsional, boleh LaTeX)</span></label>
+      <textarea class="input-pembahasan" oninput="updatePreview(this)">${(existing && existing.pembahasan) || ''}</textarea>
+      <div class="preview preview-pembahasan"></div>
+    </div>
     </div>
   `;
+
   container.appendChild(wrap);
   renumberSoal();
   onGantiTipeSoal(uid);
