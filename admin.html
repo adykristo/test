@@ -1308,6 +1308,7 @@ PEMBAHASAN: (opsional, untuk pegangan koreksi manual)</pre>
 
     <div style="display:flex; gap:12px; margin-top:22px; flex-wrap:wrap;">
       <button class="btn btn-hijau" onclick="simpanPaket()">💾 Simpan &amp; Publish ke GitHub</button>
+      <button class="btn btn-outline" onclick="previewPaketSebagaiSiswa()" title="Lihat bagaimana paket ini tampil di sisi peserta">👁 Preview sebagai Siswa</button>
       <button class="btn btn-outline" onclick="batalForm()">Batal</button>
     </div>
     <p class="help">Rumus matematika/fisika ditulis pakai LaTeX, diapit tanda dolar. Contoh: <code>$v = \frac{1}{2}at^2$</code> untuk inline, atau <code>$$F = ma$$</code> untuk rumus besar.</p>
@@ -3344,8 +3345,9 @@ function tambahSoal(existing) {
         <span class="soal-ringkasan">${escAttr((existing && existing.pertanyaan) || (existing && existing.gambar ? '(gambar)' : ''))}</span>
       </div>
       <div class="soal-block-actions" onclick="event.stopPropagation()">
-        <button class="naik" onclick="pindahSoal('${uid}',-1)">↑</button>
-        <button class="turun" onclick="pindahSoal('${uid}',1)">↓</button>
+        <button class="naik" onclick="pindahSoal('${uid}',-1)" title="Naikkan">↑</button>
+        <button class="turun" onclick="pindahSoal('${uid}',1)" title="Turunkan">↓</button>
+        <button class="naik" onclick="duplikatSoalBlock('${uid}')" title="Duplikat soal ini">⧉ Duplikat</button>
         <button class="hapus" onclick="hapusSoalBlock('${uid}')">✕ Hapus</button>
       </div>
     </div>
@@ -3524,6 +3526,28 @@ function hapusSoalBlock(uid) {
   renumberSoal();
 }
 
+function duplikatSoalBlock(uid) {
+  const el = document.getElementById(uid);
+  if (!el) return;
+  // Baca data dari form soal saat ini
+  const data = bacaSatuSoalDariBlock(el);
+  if (!data) {
+    alert('Gagal membaca data soal.');
+    return;
+  }
+  // Buat id baru supaya tidak bentrok
+  data.id = 'q' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+  tambahSoal(data);
+  renumberSoal();
+  // Scroll ke soal baru (terakhir)
+  const container = document.getElementById('soalContainer');
+  const last = container && container.lastElementChild;
+  if (last) {
+    last.classList.remove('collapsed');
+    last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 function pindahSoal(uid, dir) {
   const el = document.getElementById(uid);
   const container = document.getElementById('soalContainer');
@@ -3546,6 +3570,47 @@ function slugify(text) {
   return text.toLowerCase().trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '') || ('paket-' + Date.now());
+}
+
+
+function bacaSatuSoalDariBlock(block) {
+  if (!block) return null;
+  const pertanyaan = (block.querySelector('.input-pertanyaan') || {}).value || '';
+  const gambar = (block.querySelector('.input-gambar-url') || {}).value || '';
+  const tipe = (block.querySelector('.input-tipe-soal') || {}).value || 'pg5';
+  const pembahasan = (block.querySelector('.input-pembahasan') || {}).value || '';
+  const base = {
+    id: block.dataset.soalId,
+    tipe,
+    pertanyaan: pertanyaan.trim(),
+    gambar: gambar.trim(),
+    pembahasan: pembahasan.trim()
+  };
+  if (tipe === 'isian') {
+    const kunci = ((block.querySelector('.input-kunci-isian') || {}).value || '').trim();
+    return { ...base, kunci_isian: kunci, jawaban_benar: kunci, pilihan: {}, pilihan_gambar: {} };
+  }
+  if (tipe === 'esai') {
+    return { ...base, pilihan: {}, pilihan_gambar: {}, jawaban_benar: '' };
+  }
+  const maxHuruf = tipe === 'pg4' ? ['A','B','C','D'] : ['A','B','C','D','E'];
+  const cbOtomatis = block.querySelector('.input-opsi-otomatis');
+  const opsiOtomatis = !!(cbOtomatis && cbOtomatis.checked);
+  const pilihan = {};
+  const pilihan_gambar = {};
+  maxHuruf.forEach(h => {
+    const teksInp = block.querySelector('.input-pilihan[data-huruf="' + h + '"]');
+    const imgInp = block.querySelector('.input-pilihan-gambar-url[data-huruf="' + h + '"]');
+    const t = teksInp ? teksInp.value.trim() : '';
+    const g = imgInp ? imgInp.value.trim() : '';
+    if (opsiOtomatis || t || g) {
+      pilihan[h] = t;
+      if (g) pilihan_gambar[h] = g;
+    }
+  });
+  const radioChecked = block.querySelector('input[type=radio]:checked');
+  const jawaban_benar = radioChecked ? radioChecked.value : 'A';
+  return { ...base, pilihan, pilihan_gambar, jawaban_benar, opsi_otomatis: opsiOtomatis };
 }
 
 function kumpulkanDataForm() {
@@ -5008,6 +5073,360 @@ function unduhRekapKoreksiEsai() {
 loadManifest();
 loadDaftarPesertaAdmin();
 </script>
+
+  <script src="visitor-counter.js"></script>
+
+<!-- CBT VISITOR DASHBOARD START -->
+<style id="cbt-visitor-dashboard-style">
+#cbtVisitorDashboard{
+  margin:24px 0;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+#cbtVisitorDashboard *{box-sizing:border-box}
+.cbt-vd-head{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  padding:20px 22px;border-radius:18px;
+  background:linear-gradient(135deg,#6d28d9,#db2777);
+  color:#fff;box-shadow:0 10px 28px rgba(109,40,217,.20);
+}
+.cbt-vd-title{font-size:20px;font-weight:800;margin:0}
+.cbt-vd-sub{font-size:12px;opacity:.9;margin-top:4px}
+.cbt-vd-actions{display:flex;gap:8px;flex-wrap:wrap}
+.cbt-vd-btn{
+  border:0;border-radius:10px;padding:9px 13px;cursor:pointer;
+  background:#fff;color:#6d28d9;font-weight:700;
+}
+.cbt-vd-btn:hover{filter:brightness(.96)}
+.cbt-vd-grid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;margin-top:14px;
+}
+.cbt-vd-card{
+  background:var(--card-bg,#fff);border:1px solid rgba(109,40,217,.12);
+  border-radius:16px;padding:17px;box-shadow:0 5px 18px rgba(0,0,0,.06);
+}
+.cbt-vd-label{font-size:12px;opacity:.7;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.cbt-vd-number{font-size:28px;font-weight:850;margin-top:7px}
+.cbt-vd-note{font-size:11px;opacity:.62;margin-top:4px}
+.cbt-vd-main{
+  display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);
+  gap:14px;margin-top:14px;
+}
+.cbt-vd-panel{
+  background:var(--card-bg,#fff);border:1px solid rgba(109,40,217,.12);
+  border-radius:16px;padding:18px;box-shadow:0 5px 18px rgba(0,0,0,.06);
+}
+.cbt-vd-panel h3{margin:0 0 14px;font-size:15px}
+#cbtVisitorChart{width:100%;height:260px;display:block}
+.cbt-vd-list{display:flex;flex-direction:column;gap:9px}
+.cbt-vd-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 11px;border-radius:10px;background:rgba(109,40,217,.055);
+  font-size:12px;
+}
+.cbt-vd-badge{font-weight:800}
+.cbt-vd-footer{margin-top:10px;font-size:11px;opacity:.6}
+.cbt-vd-status{display:inline-flex;align-items:center;gap:6px}
+.cbt-vd-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block}
+@media(max-width:900px){
+ .cbt-vd-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .cbt-vd-main{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+ .cbt-vd-grid{grid-template-columns:1fr}
+ .cbt-vd-head{align-items:flex-start;flex-direction:column}
+}
+</style>
+
+<section id="cbtVisitorDashboard" aria-label="Statistik Pengunjung">
+  <div class="cbt-vd-head">
+    <div>
+      <div class="cbt-vd-title">📊 Statistik Pengunjung</div>
+      <div class="cbt-vd-sub">Ringkasan kunjungan website CBT pada perangkat ini</div>
+    </div>
+    <div class="cbt-vd-actions">
+      <button class="cbt-vd-btn" type="button" onclick="CBTVisitorDashboard.refresh()">↻ Refresh</button>
+      <button class="cbt-vd-btn" type="button" onclick="CBTVisitorDashboard.resetLocal()">Reset Lokal</button>
+    </div>
+  </div>
+
+  <div class="cbt-vd-grid">
+    <div class="cbt-vd-card">
+      <div class="cbt-vd-label">Total Kunjungan</div>
+      <div class="cbt-vd-number" id="cbtTotalVisits">0</div>
+      <div class="cbt-vd-note">tersimpan pada browser ini</div>
+    </div>
+    <div class="cbt-vd-card">
+      <div class="cbt-vd-label">Hari Ini</div>
+      <div class="cbt-vd-number" id="cbtTodayVisits">0</div>
+      <div class="cbt-vd-note" id="cbtTodayLabel">-</div>
+    </div>
+    <div class="cbt-vd-card">
+      <div class="cbt-vd-label">7 Hari</div>
+      <div class="cbt-vd-number" id="cbt7DayVisits">0</div>
+      <div class="cbt-vd-note">7 hari terakhir</div>
+    </div>
+    <div class="cbt-vd-card">
+      <div class="cbt-vd-label">30 Hari</div>
+      <div class="cbt-vd-number" id="cbt30DayVisits">0</div>
+      <div class="cbt-vd-note">30 hari terakhir</div>
+    </div>
+  </div>
+
+  <div class="cbt-vd-main">
+    <div class="cbt-vd-panel">
+      <h3>📈 Kunjungan 7 Hari Terakhir</h3>
+      <canvas id="cbtVisitorChart" width="900" height="260"></canvas>
+    </div>
+    <div class="cbt-vd-panel">
+      <h3>🕒 Ringkasan</h3>
+      <div class="cbt-vd-list">
+        <div class="cbt-vd-row"><span>Status pencatatan</span><span class="cbt-vd-badge cbt-vd-status"><i class="cbt-vd-dot"></i>Aktif</span></div>
+        <div class="cbt-vd-row"><span>Halaman admin dibuka</span><span class="cbt-vd-badge" id="cbtAdminVisits">0</span></div>
+        <div class="cbt-vd-row"><span>Hari dengan kunjungan</span><span class="cbt-vd-badge" id="cbtActiveDays">0</span></div>
+        <div class="cbt-vd-row"><span>Kunjungan tertinggi/hari</span><span class="cbt-vd-badge" id="cbtPeakVisits">0</span></div>
+      </div>
+      <div class="cbt-vd-footer">Catatan: angka lokal berbeda dari statistik global bila pengunjung membuka dari perangkat/browser berbeda.</div>
+    </div>
+  </div>
+</section>
+<!-- CBT VISITOR DASHBOARD END -->
+
+
+<script id="cbt-visitor-dashboard-script">
+(function(){
+  "use strict";
+  const PREFIX = "cbt_visitor_";
+  const ADMIN_KEY = "cbt_admin_dashboard_visits";
+  const pad = n => String(n).padStart(2,"0");
+  const dateKey = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+
+  function getStore(){
+    try { return JSON.parse(localStorage.getItem(PREFIX+"daily") || "{}"); }
+    catch(e){ return {}; }
+  }
+  function saveStore(x){
+    try { localStorage.setItem(PREFIX+"daily", JSON.stringify(x)); } catch(e){}
+  }
+  function addToday(){
+    const x=getStore(), k=dateKey(new Date());
+    x[k]=(Number(x[k])||0)+1;
+    saveStore(x);
+    try {
+      localStorage.setItem(ADMIN_KEY, String((Number(localStorage.getItem(ADMIN_KEY))||0)+1));
+    } catch(e){}
+  }
+  function range(n){
+    const out=[];
+    for(let i=n-1;i>=0;i--){
+      const d=new Date();
+      d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
+      out.push({key:dateKey(d), label:pad(d.getDate())+"/"+pad(d.getMonth()+1)});
+    }
+    return out;
+  }
+  function sum(days, x){
+    return days.reduce((a,d)=>a+(Number(x[d.key])||0),0);
+  }
+  function fmt(n){ return Number(n||0).toLocaleString("id-ID"); }
+
+  function drawChart(data){
+    const c=document.getElementById("cbtVisitorChart");
+    if(!c) return;
+    const ctx=c.getContext("2d");
+    const w=c.width=c.clientWidth*2, h=c.height=260*2;
+    ctx.clearRect(0,0,w,h);
+    const vals=data.map(d=>d.value), max=Math.max(1,...vals);
+    const left=48, right=18, top=18, bottom=42;
+    const cw=w-left-right, ch=h-top-bottom;
+    ctx.font="22px system-ui";
+    ctx.strokeStyle="rgba(109,40,217,.14)";
+    ctx.fillStyle="rgba(0,0,0,.55)";
+    ctx.lineWidth=2;
+    for(let i=0;i<=4;i++){
+      const y=top+ch-(ch*i/4);
+      ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(left+cw,y);ctx.stroke();
+      ctx.fillText(fmt(Math.round(max*i/4)),4,y+7);
+    }
+    const step=data.length>1?cw/(data.length-1):cw;
+    ctx.beginPath();
+    data.forEach((d,i)=>{
+      const x=left+i*step, y=top+ch-(d.value/max)*ch;
+      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle="#7c3aed";ctx.lineWidth=6;ctx.stroke();
+    data.forEach((d,i)=>{
+      const x=left+i*step, y=top+ch-(d.value/max)*ch;
+      ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);
+      ctx.fillStyle="#db2777";ctx.fill();
+      ctx.fillStyle="rgba(0,0,0,.65)";
+      ctx.fillText(d.label,x-20,h-12);
+    });
+  }
+
+  function refresh(){
+    const x=getStore();
+    const d7=range(7), d30=range(30);
+    const vals7=d7.map(d=>({label:d.label,value:Number(x[d.key])||0}));
+    const total=Object.values(x).reduce((a,b)=>a+(Number(b)||0),0);
+    const today=dateKey(new Date());
+    document.getElementById("cbtTotalVisits").textContent=fmt(total);
+    document.getElementById("cbtTodayVisits").textContent=fmt(x[today]||0);
+    document.getElementById("cbtTodayLabel").textContent=new Date().toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+    document.getElementById("cbt7DayVisits").textContent=fmt(sum(d7,x));
+    document.getElementById("cbt30DayVisits").textContent=fmt(sum(d30,x));
+    document.getElementById("cbtAdminVisits").textContent=fmt(Number(localStorage.getItem(ADMIN_KEY))||0);
+    document.getElementById("cbtActiveDays").textContent=fmt(Object.values(x).filter(v=>Number(v)>0).length);
+    document.getElementById("cbtPeakVisits").textContent=fmt(Math.max(0,...Object.values(x).map(v=>Number(v)||0)));
+    drawChart(vals7);
+  }
+
+  window.CBTVisitorDashboard={
+    refresh:refresh,
+    resetLocal:function(){
+      if(confirm("Hapus statistik lokal pada browser ini?")){
+        try {
+          localStorage.removeItem(PREFIX+"daily");
+          localStorage.removeItem(ADMIN_KEY);
+        } catch(e){}
+        refresh();
+      }
+    }
+  };
+
+  // Count the admin page opening in the local dashboard.
+  addToday();
+  refresh();
+  window.addEventListener("resize",refresh);
+})();
+
+
+/* ===== Preview paket sebagai siswa ===== */
+let previewState = { soal: [], index: 0, title: '' };
+
+function previewPaketSebagaiSiswa() {
+  let data;
+  try {
+    data = kumpulkanDataForm();
+  } catch (e) {
+    alert('❌ Tidak bisa preview:\n\n' + e.message + '\n\nPerbaiki dulu form soal, lalu coba lagi.');
+    return;
+  }
+  if (!data.soal || !data.soal.length) {
+    alert('Belum ada soal di paket ini.');
+    return;
+  }
+  previewState = { soal: data.soal, index: 0, title: data.title || 'Paket' };
+  document.getElementById('previewModalSub').textContent = data.title + ' · ' + data.soal.length + ' soal · ' + (data.jenjang || '').toUpperCase();
+  document.getElementById('previewModal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  renderPreviewSoal();
+}
+
+function tutupPreviewPaket() {
+  document.getElementById('previewModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function previewPrevSoal() {
+  if (previewState.index > 0) {
+    previewState.index--;
+    renderPreviewSoal();
+  }
+}
+function previewNextSoal() {
+  if (previewState.index < previewState.soal.length - 1) {
+    previewState.index++;
+    renderPreviewSoal();
+  }
+}
+
+function renderPreviewSoal() {
+  const s = previewState.soal[previewState.index];
+  const i = previewState.index;
+  document.getElementById('previewNavInfo').textContent = 'Soal ' + (i + 1) + ' / ' + previewState.soal.length;
+  const tipe = s.tipe || 'pg5';
+  const label = { pg4: 'PG 4 opsi', pg5: 'PG 5 opsi', isian: 'Isian singkat', esai: 'Esai' }[tipe] || tipe;
+  document.getElementById('previewTipeBadge').textContent = label;
+
+  let body = '';
+  const pertanyaan = (s.pertanyaan || '').replace(/</g, '&lt;');
+  let gambar = '';
+  if (s.gambar) {
+    gambar = '<div style="margin:12px 0;"><img src="' + String(s.gambar).replace(/"/g, '&quot;') + '" alt="gambar soal" style="max-width:100%; border-radius:12px; border:1px solid #eee;"></div>';
+  }
+
+  if (tipe === 'isian') {
+    body = '<input type="text" disabled placeholder="Kolom isian peserta…" style="width:100%; padding:12px; border:1.5px solid #e0d0f0; border-radius:10px; margin-top:8px;">';
+  } else if (tipe === 'esai') {
+    body = '<textarea disabled placeholder="Area jawaban esai peserta…" style="width:100%; min-height:100px; padding:12px; border:1.5px solid #e0d0f0; border-radius:10px; margin-top:8px;"></textarea>'
+      + '<div style="margin-top:8px; font-size:12px; color:#888;">Peserta juga bisa upload PDF.</div>';
+  } else {
+    const pgGambar = s.pilihan_gambar || {};
+    const huruf = tipe === 'pg4' ? ['A','B','C','D'] : ['A','B','C','D','E'];
+    body = '<div style="display:grid; gap:10px; margin-top:12px;">' + huruf.filter(h => {
+      const adaKey = !!(s.pilihan && Object.prototype.hasOwnProperty.call(s.pilihan, h));
+      const g = pgGambar[h] ? String(pgGambar[h]).trim() : '';
+      return adaKey || g;
+    }).map(h => {
+      const teks = (s.pilihan && s.pilihan[h]) ? String(s.pilihan[h]).replace(/</g, '&lt;') : '';
+      let ghtml = '';
+      const g = pgGambar[h];
+      if (g) {
+        const src = Array.isArray(g) ? g[0] : g;
+        if (src) ghtml = '<div style="margin-top:6px;"><img src="' + String(src).replace(/"/g, '&quot;') + '" style="max-width:220px; border-radius:8px;"></div>';
+      }
+      return '<div style="display:flex; gap:12px; padding:12px 14px; border:1.5px solid #e8d9f8; border-radius:12px; background:#faf7ff;">'
+        + '<span style="width:28px; height:28px; border-radius:50%; background:#7b2ff7; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; flex-shrink:0;">' + h + '</span>'
+        + '<div style="flex:1; font-size:14.5px;">' + teks + ghtml + '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  const box = document.getElementById('previewModalBody');
+  box.innerHTML = '<div style="font-size:15.5px; line-height:1.55; color:#222; white-space:pre-wrap;">' + pertanyaan + '</div>' + gambar + body;
+
+  if (window.MathJax && MathJax.typesetPromise) {
+    try {
+      if (MathJax.typesetClear) MathJax.typesetClear([box]);
+      MathJax.typesetPromise([box]).catch(function(){});
+    } catch (e) {}
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  const modal = document.getElementById('previewModal');
+  if (!modal || modal.style.display === 'none') return;
+  if (e.key === 'Escape') tutupPreviewPaket();
+  if (e.key === 'ArrowLeft') previewPrevSoal();
+  if (e.key === 'ArrowRight') previewNextSoal();
+});
+
+</script>
+
+
+<!-- Modal Preview Paket sebagai Siswa -->
+<div id="previewModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(20,10,40,.55); overflow:auto; padding:24px 12px;">
+  <div style="max-width:720px; margin:0 auto; background:#fff; border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.25); overflow:hidden;">
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; background:linear-gradient(90deg,#7b2ff7,#f857a6); color:#fff;">
+      <div>
+        <div style="font-weight:800; font-size:15px;">Preview sebagai Siswa</div>
+        <div id="previewModalSub" style="font-size:12px; opacity:.9;">—</div>
+      </div>
+      <button type="button" onclick="tutupPreviewPaket()" style="border:none; background:rgba(255,255,255,.2); color:#fff; border-radius:10px; padding:8px 14px; font-weight:700; cursor:pointer;">Tutup ✕</button>
+    </div>
+    <div style="padding:12px 16px; border-bottom:1px solid #f0e2fa; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      <button type="button" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;" onclick="previewPrevSoal()">‹ Prev</button>
+      <span id="previewNavInfo" style="font-size:13px; font-weight:700; color:#5b2d8e;">Soal 1 / 1</span>
+      <button type="button" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;" onclick="previewNextSoal()">Next ›</button>
+      <span style="flex:1"></span>
+      <span id="previewTipeBadge" style="font-size:11.5px; background:#f0e2fa; color:#5b2d8e; padding:4px 10px; border-radius:999px; font-weight:700;"></span>
+    </div>
+    <div id="previewModalBody" style="padding:22px 20px; min-height:200px;"></div>
+    <div style="padding:12px 16px; background:#faf7ff; border-top:1px solid #f0e2fa; font-size:12px; color:#777;">
+      Ini hanya pratinjau tampilan. Kunci jawaban &amp; pembahasan tidak ditampilkan ke siswa saat ujian. Timer, autosave, dan navigator aktif di halaman peserta.
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
