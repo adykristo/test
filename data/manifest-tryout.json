@@ -1,14 +1,1 @@
-[
-  {
-    "id": "hukum-kiirchoff-msyaj6mi",
-    "title": "HUKUM KIIRCHOFF",
-    "jenjang": "sma",
-    "topik": "LISTRIK DINAMIS",
-    "durasi_menit": 1,
-    "jumlah_soal": 2,
-    "file": "data/tryout/hukum-kiirchoff-msyaj6mi.json",
-    "aktif": true,
-    "kode_akses": "",
-    "mode_hasil": "lengkap"
-  }
-]
+[]
