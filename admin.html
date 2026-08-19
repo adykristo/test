@@ -522,6 +522,148 @@ window.MathJax = {
   }
   #panelTryout .soal-block[data-tipe="isian"]{ border-left-color:#2aa876; }
   #panelTryout .soal-block[data-tipe="esai"]{ border-left-color:var(--pink); }
+
+  /* ===== Form paket sederhana ===== */
+  #panelTryout .form-step{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+  }
+  #panelTryout .form-step-num{
+    flex-shrink:0;
+    width:28px; height:28px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#7b2ff7,#f857a6);
+    color:#fff;
+    font-weight:800;
+    font-size:13px;
+    display:flex; align-items:center; justify-content:center;
+    margin-top:2px;
+  }
+  #panelTryout .form-step-body{ flex:1; min-width:0; }
+  #panelTryout .form-step-title{
+    margin:0 0 12px;
+    font-size:15px;
+    color:var(--ungu-tua);
+  }
+  #panelTryout .form-advanced{
+    background:#faf7ff;
+    border:1px solid #eee0fa;
+    border-radius:10px;
+    padding:8px 12px;
+  }
+  #panelTryout .form-advanced summary{
+    cursor:pointer;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ungu-tua);
+    list-style:none;
+  }
+  #panelTryout .form-advanced summary::-webkit-details-marker{ display:none; }
+  #panelTryout .upload-methods{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+  @media (min-width:900px){
+    #panelTryout .upload-methods{
+      grid-template-columns:1.2fr 1fr 0.8fr;
+    }
+  }
+  #panelTryout .upload-card{
+    border:1.5px solid #e8d9f8;
+    border-radius:14px;
+    background:#fff;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  #panelTryout .upload-card-primary{
+    border-color:#7b2ff7;
+    box-shadow:0 4px 14px rgba(123,47,247,.12);
+  }
+  #panelTryout .upload-card-head{
+    padding:14px 14px 10px;
+    background:#faf7ff;
+    border-bottom:1px solid #f0e2fa;
+  }
+  #panelTryout .upload-card-primary .upload-card-head{
+    background:linear-gradient(135deg,#faf5ff,#fff0f8);
+  }
+  #panelTryout .upload-card-head h4{
+    margin:0 0 4px;
+    font-size:14.5px;
+    color:var(--ungu-tua);
+  }
+  #panelTryout .upload-card-head p{
+    margin:0;
+    font-size:12.5px;
+    color:var(--abu);
+    line-height:1.45;
+  }
+  #panelTryout .upload-badge{
+    display:inline-block;
+    font-size:10.5px;
+    font-weight:700;
+    background:#7b2ff7;
+    color:#fff;
+    padding:2px 8px;
+    border-radius:999px;
+    margin-bottom:6px;
+  }
+  #panelTryout .upload-card-body{
+    padding:12px 14px 14px;
+    flex:1;
+  }
+  #panelTryout .btn-xs{
+    font-size:11.5px !important;
+    padding:4px 8px !important;
+    width:auto !important;
+  }
+  #panelTryout .template-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    align-items:center;
+  }
+  #panelTryout .format-pre{
+    background:#fff;
+    border:1px solid #eee;
+    border-radius:8px;
+    padding:10px 12px;
+    font-family:Consolas,monospace;
+    font-size:11.5px;
+    white-space:pre-wrap;
+    margin:8px 0 0;
+    color:#333;
+    line-height:1.5;
+  }
+  #panelTryout .soal-count-badge{
+    display:inline-block;
+    background:var(--ungu);
+    color:#fff;
+    font-size:12px;
+    font-weight:700;
+    padding:2px 9px;
+    border-radius:999px;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+  #panelTryout .form-actions-bar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:22px;
+    padding:14px 16px;
+    background:#faf7ff;
+    border:1.5px solid #e8d9f8;
+    border-radius:14px;
+    position:sticky;
+    bottom:12px;
+    z-index:20;
+    box-shadow:0 8px 24px rgba(123,47,247,.1);
+  }
+
   #panelTryout .soal-block.collapsed{ padding-bottom:16px; }
   #panelTryout .soal-block .soal-block-head{
     display:flex;
@@ -1184,137 +1326,174 @@ window.MathJax = {
   </div>
 
   <div class="box" id="formBox" style="display:none;">
-    <h2 id="formTitle">3. Detail Paket Tryout</h2>
+    <h2 id="formTitle">3. Buat Paket Tryout Baru</h2>
     <div id="statusForm" class="status-bar"></div>
 
-    <div class="row3">
-      <div>
-        <label>Jenjang</label>
-        <select id="fJenjang">
-          <option value="sd">SD</option>
-          <option value="smp">SMP</option>
-          <option value="sma" selected>SMA</option>
-        </select>
-      </div>
-      <div>
-        <label>Durasi (menit)</label>
-        <input type="number" id="fDurasi" value="60" min="1">
-      </div>
-      <div>
-        <label>Topik</label>
-        <input type="text" id="fTopik" placeholder="mis. Kinematika &amp; Dinamika">
-      </div>
-    </div>
-    <label>Judul Paket Tryout</label>
-    <input type="text" id="fTitle" placeholder="mis. Tryout OSN Fisika SMA Paket 1">
+    <!-- ===== LANGKAH 1: Info paket (ringkas) ===== -->
+    <div class="form-step">
+      <div class="form-step-num">1</div>
+      <div class="form-step-body">
+        <h3 class="form-step-title">Info paket</h3>
+        <label>Judul paket <span style="color:#c0392b;">*</span></label>
+        <input type="text" id="fTitle" placeholder="Contoh: Tryout OSN Fisika SMA — Gaya">
 
-    <label>Kode Akses (opsional)</label>
-    <input type="text" id="fKodeAkses" placeholder="mis. OSN2026 — kosongkan jika tidak perlu kode">
-    <p class="help" style="margin-top:4px;">Jika diisi, peserta wajib memasukkan kode ini bersama Nomor Ujian sebelum mulai tryout. Bagikan kode hanya ke peserta yang diizinkan.</p>
-
-    <label style="display:flex; align-items:center; gap:8px; margin-top:16px; font-weight:400; font-size:13px; color:var(--abu);">
-      <input type="checkbox" id="fAktif" style="width:auto;" checked>
-      Tampilkan paket ini ke peserta di halaman Tryout (Aktif)
-    </label>
-    <p class="help" style="margin-top:4px;">Kalau dicentang: paket langsung terlihat &amp; bisa dikerjakan peserta. Kalau tidak: tersimpan tapi disembunyikan (draft).</p>
-
-    <label style="margin-top:16px;">Tampilan hasil setelah tryout selesai</label>
-    <select id="fModeHasil">
-      <option value="lengkap">Skor + soal, jawaban peserta, kunci &amp; pembahasan</option>
-      <option value="jawaban">Skor + soal &amp; jawaban peserta saja (tanpa kunci)</option>
-      <option value="nilai">Hanya skor (nilai, benar/salah/kosong)</option>
-    </select>
-    <p class="help" style="margin-top:4px;">Mengatur apa yang dilihat peserta di halaman hasil. Opsi "Hanya skor" cocok untuk ujian resmi. Kunci tetap aman di server.</p>
-
-    <div style="margin-top:26px; padding:16px; border:1.5px dashed var(--ungu, #7b2ff7); border-radius:12px; background:#faf5ff;">
-      <h3 style="margin-bottom:6px;">📄 Isi Soal Otomatis dari File Word (.docx)</h3>
-      <p class="help">Tulis semua soal dalam <b>satu file Word</b> (boleh berisi rumus LaTeX &amp; gambar yang ditempel langsung), lalu upload di sini. Form "Daftar Soal" di bawah akan otomatis terisi — gambar di dalam Word ikut otomatis terunggah. Ikuti format penulisan berikut persis (boleh dicontek/di-copy ke Word):</p>
-      <pre style="background:#fff; border:1px solid #eee; border-radius:8px; padding:12px 14px; font-family:'Consolas',monospace; font-size:12.5px; white-space:pre-wrap; margin:10px 0; color:#333; line-height:1.55;">1. Sebuah benda bermassa 2 kg didorong gaya $F = 10$ N. Berapa percepatannya?
-(tempel gambar soal di sini kalau ada, langsung di dalam Word)
-A. 2 m/s²
-B. 5 m/s²
-C. 10 m/s²
-D. 20 m/s²
-KUNCI: B
-PEMBAHASAN: Gunakan $a = F/m$, sehingga $a = 10/2 = 5$ m/s².
-
-2. Satuan gaya dalam SI adalah ...
-A. joule
-B. newton
-C. watt
-D. pascal
-E. kelvin
-KUNCI: B
-PEMBAHASAN: Gaya dalam SI memiliki satuan newton (N).
-
-3. Kecepatan benda setelah 4 sekon adalah ... m/s
-TIPE: ISIAN
-KUNCI: 10 | 10 m/s
-PEMBAHASAN: Gunakan $v = v_0 + at$.
-
-4. Jelaskan bunyi Hukum II Newton dan berikan contohnya.
-TIPE: ESAI
-PEMBAHASAN: (opsional, untuk pegangan koreksi manual)</pre>
-      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0 14px;">
-        <button type="button" class="btn btn-outline" style="text-align:center;border-color:#7b2ff7;" onclick="unduhTemplateSoal('pg4', this)">🟣 PG4 · 50 Soal</button>
-        <button type="button" class="btn btn-outline" style="text-align:center;border-color:#f857a6;" onclick="unduhTemplateSoal('pg5', this)">🩷 PG5 · 50 Soal</button>
-        <button type="button" class="btn btn-outline" style="text-align:center;border-color:#7b2ff7;" onclick="unduhTemplateSoal('isian', this)">🟣 Isian · 50 Soal</button>
-        <button type="button" class="btn btn-outline" style="text-align:center;border-color:#f857a6;" onclick="unduhTemplateSoal('esai', this)">🩷 Esai · 50 Soal</button>
-      </div>
-      <div style="padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,#faf5ff,#fff0f7);border:1px solid #ead8f7;">
-        <b style="color:#3d1a63;">Format yang didukung</b>
-        <ul class="help" style="padding-left:18px;margin:7px 0 0;">
-          <li><b>PG4:</b> A–D · <b>PG5:</b> A–E · <b>ISIAN:</b> tanpa opsi · <b>ESAI:</b> tanpa opsi.</li>
-          <li>Rumus LaTeX boleh di pertanyaan, pilihan, dan pembahasan: <code>$F=ma$</code>, <code>$\frac{1}{2}mv^2$</code>.</li>
-          <li>Gambar boleh ditempel di paragraf soal atau tepat setelah label A–E. Gambar dapat berupa gambar saja atau teks + gambar.</li>
-          <li>Untuk gambar opsi: tulis <code>A.</code>, tekan Enter, lalu tempel gambar pada paragraf berikutnya.</li>
-          <li><code>TIPE:</code> boleh PG4, PG5, ISIAN, atau ESAI. Untuk PG4/PG5, jika TIPE tidak ditulis sistem mengenali dari jumlah opsi.</li>
-          <li><code>KUNCI:</code> wajib untuk PG4/PG5/ISIAN. Esai tidak membutuhkan kunci otomatis.</li>
-          <li>Setiap jenis maksimal <b>50 soal</b>; satu paket tryout maksimal <b>100 soal</b>.</li>
-        </ul>
-      </div>
-      <input type="file" id="wordSoalFile" accept=".docx">
-      <button type="button" class="btn btn-outline" style="margin-top:10px;" onclick="prosesWordKeForm()">⬆️ Proses Word &amp; Isi Otomatis ke Form di Bawah</button>
-      <div id="statusWordSoal" class="status-bar" style="margin-top:10px;"></div>
-    </div>
-
-    <div style="margin-top:18px; padding:16px; border:1.5px dashed #f857a6; border-radius:12px; background:#fff0f7;">
-      <h3 style="margin-bottom:6px;">🖼️ Tambah Banyak Soal dari Gambar (Opsi Otomatis A–D/E)</h3>
-      <p class="help">Untuk soal yang seluruhnya berupa <b>foto/gambar utuh</b> (misalnya hasil foto soal cetak) — tidak perlu ketik pertanyaan atau opsi. Pilih beberapa gambar sekaligus (1 gambar = 1 soal baru), sistem otomatis membuatkan opsi huruf A/B/C/D (atau A–E) tanpa teks — peserta tinggal pilih huruf. Setelah soal-soal ini muncul di "Daftar Soal" di bawah, jangan lupa pilih <b>jawaban benar</b> untuk tiap soal, lalu klik "Simpan &amp; Publish".</p>
-      <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0;">
-        <div>
-          <label style="margin-top:0;">Jumlah opsi</label>
-          <select id="gambarMassalTipe">
-            <option value="pg4">4 opsi (A–D)</option>
-            <option value="pg5">5 opsi (A–E)</option>
-          </select>
+        <div class="row3" style="margin-top:12px;">
+          <div>
+            <label>Jenjang</label>
+            <select id="fJenjang">
+              <option value="sd">SD</option>
+              <option value="smp">SMP</option>
+              <option value="sma" selected>SMA</option>
+            </select>
+          </div>
+          <div>
+            <label>Durasi (menit)</label>
+            <input type="number" id="fDurasi" value="60" min="1">
+          </div>
+          <div>
+            <label>Topik</label>
+            <input type="text" id="fTopik" placeholder="mis. Gaya, Listrik">
+          </div>
         </div>
-        <div>
-          <label style="margin-top:0;">Pilih gambar (boleh banyak sekaligus)</label>
-          <input type="file" id="gambarMassalFile" accept="image/*" multiple>
+
+        <details class="form-advanced" style="margin-top:14px;">
+          <summary>⚙️ Pengaturan lanjutan (kode akses, mode hasil, draft)</summary>
+          <div style="padding-top:12px;">
+            <label>Kode akses (opsional)</label>
+            <input type="text" id="fKodeAkses" placeholder="Kosongkan jika tidak perlu — mis. OSN2026">
+            <p class="help" style="margin-top:4px;">Jika diisi, peserta wajib masukkan kode ini sebelum mulai.</p>
+
+            <label style="margin-top:12px;">Tampilan hasil setelah selesai</label>
+            <select id="fModeHasil">
+              <option value="lengkap">Lengkap (skor + kunci + pembahasan)</option>
+              <option value="jawaban">Skor + jawaban peserta (tanpa kunci)</option>
+              <option value="nilai">Hanya skor</option>
+            </select>
+
+            <label style="display:flex; align-items:center; gap:8px; margin-top:14px; font-weight:400; font-size:13px; color:var(--abu);">
+              <input type="checkbox" id="fAktif" style="width:auto;" checked>
+              Tampilkan ke peserta (aktif). Nonaktifkan = draft.
+            </label>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- ===== LANGKAH 2: Isi soal — 3 cara sederhana ===== -->
+    <div class="form-step" style="margin-top:22px;">
+      <div class="form-step-num">2</div>
+      <div class="form-step-body">
+        <h3 class="form-step-title">Isi soal <span class="help" style="font-weight:400;">— pilih salah satu cara, atau gabungkan</span></h3>
+
+        <div class="upload-methods">
+          <!-- CARA A: Word (paling direkomendasikan) -->
+          <div class="upload-card upload-card-primary" id="cardWord">
+            <div class="upload-card-head">
+              <span class="upload-badge">Direkomendasikan</span>
+              <h4>📄 Dari file Word</h4>
+              <p>Satu file .docx berisi semua soal + LaTeX + gambar. Paling cepat untuk banyak soal.</p>
+            </div>
+            <div class="upload-card-body">
+              <div class="template-row">
+                <span class="help" style="margin:0;">Template siap pakai:</span>
+                <button type="button" class="btn btn-outline btn-xs" onclick="unduhTemplateSoal('pg4', this)">PG4</button>
+                <button type="button" class="btn btn-outline btn-xs" onclick="unduhTemplateSoal('pg5', this)">PG5</button>
+                <button type="button" class="btn btn-outline btn-xs" onclick="unduhTemplateSoal('isian', this)">Isian</button>
+                <button type="button" class="btn btn-outline btn-xs" onclick="unduhTemplateSoal('esai', this)">Esai</button>
+              </div>
+              <label style="margin-top:10px;">Pilih file .docx</label>
+              <input type="file" id="wordSoalFile" accept=".docx">
+              <button type="button" class="btn btn-primary" style="margin-top:10px; width:100%;" onclick="prosesWordKeForm()">⬆️ Import ke daftar soal</button>
+              <div id="statusWordSoal" class="status-bar" style="margin-top:8px;"></div>
+              <details style="margin-top:10px;">
+                <summary class="help" style="cursor:pointer;">Lihat format penulisan Word</summary>
+                <pre class="format-pre">1. Pertanyaan soal di sini. Boleh $LaTeX$ dan gambar.
+A. Opsi A
+B. Opsi B
+C. Opsi C
+D. Opsi D
+E. Opsi E
+Jawaban: B
+Pembahasan: ...
+
+2. Soal isian singkat ...
+Jawaban: 10 N
+Pembahasan: ...
+
+[ESAI] 3. Soal esai ...
+Pembahasan: ...</pre>
+              </details>
+            </div>
+          </div>
+
+          <!-- CARA B: Foto soal -->
+          <div class="upload-card" id="cardGambar">
+            <div class="upload-card-head">
+              <h4>🖼️ Dari foto / gambar soal</h4>
+              <p>1 gambar = 1 soal. Opsi A–D/E otomatis. Cocok untuk soal yang difoto dari kertas.</p>
+            </div>
+            <div class="upload-card-body">
+              <div class="row" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                  <label style="margin-top:0;">Jumlah opsi</label>
+                  <select id="gambarMassalTipe">
+                    <option value="pg4">4 opsi (A–D)</option>
+                    <option value="pg5">5 opsi (A–E)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="margin-top:0;">Pilih gambar</label>
+                  <input type="file" id="gambarMassalFile" accept="image/*" multiple>
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline" style="margin-top:10px; width:100%; border-color:#f857a6;" onclick="prosesGambarSoalMassal()">⬆️ Tambah sebagai soal</button>
+              <div id="statusGambarMassal" class="status-bar" style="margin-top:8px;"></div>
+              <p class="help" style="margin-top:8px; margin-bottom:0;">Setelah masuk daftar, buka tiap soal dan pilih <b>jawaban benar</b>.</p>
+            </div>
+          </div>
+
+          <!-- CARA C: Manual -->
+          <div class="upload-card" id="cardManual">
+            <div class="upload-card-head">
+              <h4>✏️ Ketik manual</h4>
+              <p>Tambah satu per satu. Cocok untuk sedikit soal atau koreksi.</p>
+            </div>
+            <div class="upload-card-body">
+              <button type="button" class="btn btn-outline" style="width:100%;" onclick="tambahSoal(); document.getElementById('soalContainer').scrollIntoView({behavior:'smooth',block:'end'});">+ Tambah 1 soal kosong</button>
+            </div>
+          </div>
         </div>
       </div>
-      <button type="button" class="btn btn-outline" style="border-color:#f857a6;" onclick="prosesGambarSoalMassal()">⬆️ Tambahkan sebagai Soal-Soal Baru</button>
-      <div id="statusGambarMassal" class="status-bar" style="margin-top:10px;"></div>
     </div>
 
-    <h3 style="margin-top:22px;">Daftar Soal</h3>
-    <div style="display:flex; gap:10px; margin-bottom:10px;">
-      <button type="button" class="btn btn-outline" style="font-size:12.5px; padding:6px 12px;" onclick="ciutkanSemuaSoal(true)">▸ Ciutkan Semua</button>
-      <button type="button" class="btn btn-outline" style="font-size:12.5px; padding:6px 12px;" onclick="ciutkanSemuaSoal(false)">▾ Buka Semua</button>
-    </div>
-    <div id="soalContainer"></div>
-    <button class="btn btn-outline btn-block" onclick="tambahSoal()">+ Tambah Soal</button>
+    <!-- ===== LANGKAH 3: Daftar & simpan ===== -->
+    <div class="form-step" style="margin-top:22px;">
+      <div class="form-step-num">3</div>
+      <div class="form-step-body">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <h3 class="form-step-title" style="margin:0;">Daftar soal <span id="soalCountBadge" class="soal-count-badge">0</span></h3>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-outline" style="font-size:12px; padding:5px 10px;" onclick="ciutkanSemuaSoal(true)">▸ Ciutkan</button>
+            <button type="button" class="btn btn-outline" style="font-size:12px; padding:5px 10px;" onclick="ciutkanSemuaSoal(false)">▾ Buka</button>
+          </div>
+        </div>
+        <p class="help" style="margin-top:6px;">Periksa kunci jawaban tiap soal PG/isian sebelum publish. Bisa duplikat, urutkan, atau hapus.</p>
 
-    <div style="display:flex; gap:12px; margin-top:22px; flex-wrap:wrap;">
-      <button class="btn btn-hijau" onclick="simpanPaket()">💾 Simpan &amp; Publish ke GitHub</button>
-      <button class="btn btn-outline" onclick="previewPaketSebagaiSiswa()" title="Lihat bagaimana paket ini tampil di sisi peserta">👁 Preview sebagai Siswa</button>
+        <div id="soalContainer"></div>
+        <button class="btn btn-outline btn-block" onclick="tambahSoal()">+ Tambah soal manual</button>
+      </div>
+    </div>
+
+    <!-- Sticky actions -->
+    <div class="form-actions-bar">
+      <button class="btn btn-hijau" onclick="simpanPaket()">💾 Simpan &amp; Publish</button>
+      <button class="btn btn-outline" onclick="previewPaketSebagaiSiswa()" title="Lihat tampilan di sisi peserta">👁 Preview</button>
       <button class="btn btn-outline" onclick="batalForm()">Batal</button>
     </div>
-    <p class="help">Rumus matematika/fisika ditulis pakai LaTeX, diapit tanda dolar. Contoh: <code>$v = \frac{1}{2}at^2$</code> untuk inline, atau <code>$$F = ma$$</code> untuk rumus besar.</p>
+    <p class="help" style="margin-top:10px;">LaTeX: tulis <code>$F=ma$</code> (inline) atau <code>$$F=ma$$</code> (besar). Preview dulu sebelum publish.</p>
   </div>
 
-  <div class="box">
+<div class="box">
     <h2>4. Kelola Nomor Ujian &amp; Nama Peserta (Whitelist)</h2>
     <p class="help">Nama &amp; Nomor Ujian yang boleh mengikuti tryout harus didaftarkan di sini dulu. Di website utama, peserta hanya bisa mengetik Nomor Ujian — nama otomatis diambil dari daftar ini.</p>
     <div id="statusPeserta" class="status-bar loading show">Memuat daftar peserta…</div>
@@ -2825,7 +3004,10 @@ async function prosesWordKeForm() {
 
     const keteranganBersih = jumlahDibersihkan ? ` (${jumlahDibersihkan} kartu soal kosong yang belum diisi otomatis dibuang supaya tidak bentrok.)` : '';
     const ringkasTipe = `PG4 ${hitungTipeWord.pg4} · PG5 ${hitungTipeWord.pg5} · Isian ${hitungTipeWord.isian} · Esai ${hitungTipeWord.esai}`;
-    setStatus('statusWordSoal', `✓ Berhasil membaca ${soalMentah.length} soal dari Word (${ringkasTipe}) dan mengisinya ke "Daftar Soal" di bawah.${keteranganBersih} Periksa dulu, lalu SCROLL KE BAWAH dan klik "Simpan & Publish ke GitHub" — soal ini masih di formulir saja dan BELUM tersimpan ke GitHub sebelum tombol itu diklik.`, 'ok');
+    setStatus('statusWordSoal', `✓ ${soalMentah.length} soal dari Word masuk ke daftar (${ringkasTipe}).${keteranganBersih} Cek kunci jawaban di langkah 3, lalu klik Simpan & Publish.`, 'ok');
+    updateSoalCountBadge();
+    const sc = document.getElementById('soalContainer');
+    if (sc) sc.scrollIntoView({ behavior: 'smooth', block: 'start' });
     document.getElementById('statusWordSoal').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } catch (e) {
     setStatus('statusWordSoal', 'Gagal memproses file Word: ' + e.message, 'err');
@@ -2885,6 +3067,7 @@ async function prosesGambarSoalMassal() {
     bersihkanSoalKosong();
     const ket = gagal ? ` (${gagal} gambar gagal diunggah, coba ulangi khusus untuk itu.)` : '';
     setStatus('statusGambarMassal', `✓ ${berhasil} soal baru (bergambar, opsi otomatis) ditambahkan ke "Daftar Soal" di bawah.${ket} Jangan lupa pilih jawaban benar tiap soal, lalu SCROLL KE BAWAH dan klik "Simpan & Publish ke GitHub".`, berhasil ? 'ok' : 'err');
+    updateSoalCountBadge();
     document.getElementById('statusGambarMassal').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } finally {
     sedangUploadGambar--;
@@ -2989,9 +3172,17 @@ function mulaiPaketBaru() {
   document.getElementById('soalContainer').innerHTML = '';
   document.getElementById('statusForm').className = 'status-bar';
   soalIdCounter = 0;
-  tambahSoal();
+  // Tidak auto-tambah soal kosong — admin pilih cara: Word / foto / manual
+  updateSoalCountBadge();
   document.getElementById('formBox').style.display = 'block';
   document.getElementById('formBox').scrollIntoView({ behavior: 'smooth' });
+  // Highlight kartu Word sebentar
+  const card = document.getElementById('cardWord');
+  if (card) {
+    card.style.transition = 'box-shadow .3s';
+    card.style.boxShadow = '0 0 0 3px rgba(123,47,247,.35)';
+    setTimeout(function(){ card.style.boxShadow = ''; }, 1800);
+  }
 }
 
 async function editPaket(id) {
@@ -3015,6 +3206,7 @@ async function editPaket(id) {
     document.getElementById('soalContainer').innerHTML = '';
     soalIdCounter = 0;
     paket.soal.forEach(s => tambahSoal(s));
+    updateSoalCountBadge();
     document.getElementById('statusForm').className = 'status-bar';
     document.getElementById('formBox').scrollIntoView({ behavior: 'smooth' });
   } catch (e) {
@@ -3559,10 +3751,18 @@ function pindahSoal(uid, dir) {
   renumberSoal();
 }
 
+function updateSoalCountBadge() {
+  const n = document.querySelectorAll('#soalContainer .soal-block').length;
+  const badge = document.getElementById('soalCountBadge');
+  if (badge) badge.textContent = String(n);
+}
+
 function renumberSoal() {
   document.querySelectorAll('#soalContainer .soal-block').forEach((block, i) => {
-    block.querySelector('.nomor-tampil').textContent = i + 1;
+    const el = block.querySelector('.nomor-tampil');
+    if (el) el.textContent = i + 1;
   });
+  updateSoalCountBadge();
 }
 
 // ---------- Save/Publish ----------
