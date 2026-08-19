@@ -1,0 +1,67 @@
+{
+  "id": "a-mt0b8dye",
+  "title": "A",
+  "jenjang": "sma",
+  "topik": "A",
+  "durasi_menit": 60,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "soal": [
+    {
+      "id": "q1787157082977-pdf3",
+      "tipe": "pg5",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/pdf-1787157080765-h4.png",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": ""
+      },
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787157094964-pdf4",
+      "tipe": "pg5",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/pdf-1787157093529-h4.png",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": ""
+      },
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787157136522-pdf5",
+      "tipe": "pg5",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/pdf-1787157134685-h2.png",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": ""
+      },
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787157153326-pdf6",
+      "tipe": "pg5",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/pdf-1787157151191-h2.png",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": ""
+      },
+      "pilihan_gambar": {}
+    }
+  ]
+}
