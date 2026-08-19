@@ -19,7 +19,7 @@
     "durasi_menit": 15,
     "jumlah_soal": 2,
     "file": "data/tryout/soal-mt0b13rx.json",
-    "aktif": false,
+    "aktif": true,
     "kode_akses": "",
     "mode_hasil": "lengkap"
   }
