@@ -22,17 +22,5 @@
     "aktif": true,
     "kode_akses": "",
     "mode_hasil": "lengkap"
-  },
-  {
-    "id": "gaya-msyakl6i",
-    "title": "GAYA",
-    "jenjang": "sma",
-    "topik": "GAYA",
-    "durasi_menit": 60,
-    "jumlah_soal": 51,
-    "file": "data/tryout/gaya-msyakl6i.json",
-    "aktif": true,
-    "kode_akses": "",
-    "mode_hasil": "lengkap"
   }
 ]
