@@ -62,6 +62,62 @@
         "E": ""
       },
       "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787157392019-pdf7",
+      "tipe": "pg5",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/pdf-1787157389727-h3.png",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": ""
+      },
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787157399611-pdf8",
+      "tipe": "pg5",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/pdf-1787157397932-h3.png",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": ""
+      },
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787157406659-pdf9",
+      "tipe": "pg5",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/pdf-1787157405180-h3.png",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": ""
+      },
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787157414484-pdf10",
+      "tipe": "pg5",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/pdf-1787157413192-h3.png",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": ""
+      },
+      "pilihan_gambar": {}
     }
   ]
 }
