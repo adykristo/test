@@ -1,0 +1,39 @@
+{
+  "id": "soal-mt0b13rx",
+  "title": "SOAL",
+  "jenjang": "sma",
+  "topik": "1",
+  "durasi_menit": 15,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "soal": [
+    {
+      "id": "q1787156739723-pdf1",
+      "tipe": "pg5",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/pdf-1787156737737-h4.png",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": ""
+      },
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787156795382-pdf2",
+      "tipe": "pg5",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/pdf-1787156793762-h4.png",
+      "pilihan": {
+        "A": "",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": ""
+      },
+      "pilihan_gambar": {}
+    }
+  ]
+}
