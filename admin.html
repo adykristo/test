@@ -1039,6 +1039,39 @@ window.MathJax = {
     gap:8px;
     margin-top:12px;
   }
+  #panelTryout .pdf-opsi-status-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin:2px 0 10px;
+  }
+  #panelTryout .pdf-opsi-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-size:12px;
+    font-weight:800;
+    padding:4px 9px;
+    border-radius:999px;
+    border:1.5px solid var(--border);
+    background:#fff;
+    color:var(--abu-muda);
+  }
+  #panelTryout .pdf-opsi-chip.terisi{
+    border-color:var(--hijau);
+    color:var(--hijau);
+    background:#eafaf1;
+  }
+  #panelTryout .pdf-opsi-chip.aktif{
+    outline:2px solid var(--pink);
+    outline-offset:1px;
+  }
+  #panelTryout .pdf-opsi-chip img{
+    width:18px;
+    height:18px;
+    object-fit:cover;
+    border-radius:4px;
+  }
   #panelTryout .pdf-crop-history img{
     width:64px;
     height:64px;
@@ -1971,7 +2004,7 @@ Pembahasan: ...</pre>
             <div class="upload-card-head">
               <span class="upload-badge">Baru</span>
               <h4>📕 Dari file PDF (blok &amp; pilih)</h4>
-              <p>Unggah berkas soal PDF, halaman tampil persis seperti aslinya. Kotakin <b>gambar soal</b>, lalu opsi A–E, dan set <b>kunci jawaban</b> — semuanya lewat Target crop. Bisa berkali-kali per halaman untuk soal yang berdempetan.</p>
+              <p>Unggah berkas soal PDF, halaman tampil persis seperti aslinya sebagai gambar. Kotakin (blok) area soal yang mau diambil, lalu klik <b>"Pilih &amp; Tambah sebagai Soal"</b>. Bisa berkali-kali per halaman untuk soal yang berdempetan.</p>
             </div>
             <div class="upload-card-body">
               <div class="row" style="display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end;">
@@ -2001,40 +2034,16 @@ Pembahasan: ...</pre>
                   </div>
                   <div>
                     <label>Tipe soal berikutnya</label>
-                    <select id="pdfTipeSoalBerikutnya" onchange="updatePdfCropTargetUi()">
+                    <select id="pdfTipeSoalBerikutnya">
                       <option value="pg5" selected>PG 5 opsi</option>
                       <option value="pg4">PG 4 opsi</option>
                       <option value="isian">Isian singkat</option>
                       <option value="esai">Esai</option>
                     </select>
                   </div>
-                  <div>
-                    <label>Target crop</label>
-                    <select id="pdfCropTarget" onchange="updatePdfCropTargetUi()">
-                      <option value="soal" selected>📷 Gambar soal (soal baru)</option>
-                      <option value="opsiA">🅰️ Opsi A</option>
-                      <option value="opsiB">🅱️ Opsi B</option>
-                      <option value="opsiC">©️ Opsi C</option>
-                      <option value="opsiD">🅳 Opsi D</option>
-                      <option value="opsiE">🅴 Opsi E</option>
-                      <option value="kunci">🔑 Set kunci jawaban saja</option>
-                    </select>
-                  </div>
                 </div>
 
-                <div id="pdfAutoFlowBar" style="display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; margin:8px 0 10px; padding:10px 12px; background:#faf7ff; border:1px solid #eee0fa; border-radius:12px;">
-                  <label style="display:inline-flex; align-items:center; gap:6px; margin:0; font-size:12.5px; font-weight:700; color:var(--ungu-tua); cursor:pointer;">
-                    <input type="checkbox" id="pdfAutoAdvance" checked style="width:auto;" onchange="updatePdfCropTargetUi()">
-                    Auto-advance target
-                  </label>
-                  <label style="display:inline-flex; align-items:center; gap:6px; margin:0; font-size:12.5px; font-weight:600; color:var(--abu); cursor:pointer;" title="Lewati crop opsi A–E; setelah gambar soal langsung ke set kunci (cocok jika opsi sudah ikut di gambar soal)">
-                    <input type="checkbox" id="pdfSkipOpsi" style="width:auto;" onchange="updatePdfCropTargetUi()">
-                    Lewati crop opsi (langsung kunci)
-                  </label>
-                  <span id="pdfFlowStep" class="help" style="margin:0; font-weight:700; color:var(--ungu);">Langkah: 📷 Soal</span>
-                </div>
-
-                <p class="help" id="pdfCropHint" style="margin:0 0 8px;">🖱️ Klik &amp; seret (atau sentuh &amp; geser di HP) pada halaman untuk mengotakkan <b>gambar soal</b>. Setelah soal masuk, target otomatis lanjut ke Opsi A → … → kunci.</p>
+                <p class="help" style="margin:0 0 8px;">🖱️ Klik &amp; seret (atau sentuh &amp; geser di HP) pada halaman untuk mengotakkan bagian soal yang ingin diambil.</p>
 
                 <div class="pdf-canvas-scroll">
                   <div class="pdf-canvas-wrap" id="pdfCanvasWrap">
@@ -2044,33 +2053,36 @@ Pembahasan: ...</pre>
                 </div>
 
                 <div class="pdf-crop-actions">
-                  <button type="button" class="btn btn-hijau" id="pdfCropActionBtn" onclick="pdfTambahSoalDariSeleksi()">✅ Pilih &amp; Tambah sebagai Soal</button>
+                  <button type="button" class="btn btn-hijau" onclick="pdfTambahSoalDariSeleksi()">✅ Pilih &amp; Tambah sebagai Soal</button>
                   <button type="button" class="btn btn-outline" onclick="pdfBatalSeleksi()">✕ Batal blok</button>
                   <button type="button" class="btn btn-outline" onclick="pdfUndoTerakhir()">↩ Urungkan soal terakhir</button>
-                  <button type="button" class="btn btn-outline" id="pdfSkipStepBtn" onclick="pdfLewatiLangkahTarget()" title="Lewati langkah target saat ini tanpa crop">⏭ Lewati langkah</button>
                   <span class="help" id="pdfCropCounter" style="margin:0;">0 soal ditambahkan dari PDF ini.</span>
                 </div>
 
-                <div id="pdfKunciQuickBar" style="display:none; margin-top:12px; padding:12px 14px; background:#f8f4ff; border:1px dashed #d4b8f5; border-radius:12px;">
-                  <div style="font-size:13px; font-weight:700; color:var(--ungu-tua); margin-bottom:8px;">🔑 Set kunci jawaban soal terakhir dari PDF</div>
-                  <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-                    <button type="button" class="btn btn-outline btn-xs pdf-kunci-btn" data-huruf="A" onclick="pdfSetKunciSoalTerakhir('A')">A</button>
-                    <button type="button" class="btn btn-outline btn-xs pdf-kunci-btn" data-huruf="B" onclick="pdfSetKunciSoalTerakhir('B')">B</button>
-                    <button type="button" class="btn btn-outline btn-xs pdf-kunci-btn" data-huruf="C" onclick="pdfSetKunciSoalTerakhir('C')">C</button>
-                    <button type="button" class="btn btn-outline btn-xs pdf-kunci-btn" data-huruf="D" onclick="pdfSetKunciSoalTerakhir('D')">D</button>
-                    <button type="button" class="btn btn-outline btn-xs pdf-kunci-btn" data-huruf="E" id="pdfKunciBtnE" onclick="pdfSetKunciSoalTerakhir('E')">E</button>
-                    <span class="help" id="pdfKunciStatus" style="margin:0;">Pilih huruf kunci yang benar.</span>
+                <div class="pdf-opsi-crop-box" style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border);">
+                  <p class="help" style="margin:0 0 8px; font-weight:700; color:var(--ungu-tua);">🔤 Atau kotakin salah satu PILIHAN JAWABAN (opsi A–E) saja, lalu tempelkan langsung ke soal yang dituju — jadi tidak perlu simpan gambar &amp; upload manual satu-satu.</p>
+                  <div class="pdf-toolbar" style="margin-bottom:8px;">
+                    <div>
+                      <label>Ke Soal</label>
+                      <select id="pdfSoalTujuan" style="width:210px;" onchange="pdfOnGantiSoalTujuan()"></select>
+                      <button type="button" class="btn-xs" onclick="pdfRefreshDaftarSoalTujuan()" title="Muat ulang daftar soal">🔄</button>
+                    </div>
+                    <div>
+                      <label>Sebagai opsi</label>
+                      <select id="pdfHurufOpsiTujuan"></select>
+                    </div>
                   </div>
+                  <div class="pdf-opsi-status-row" id="pdfOpsiStatusRow"></div>
+                  <div class="pdf-crop-actions">
+                    <button type="button" class="btn btn-primary" onclick="pdfTambahOpsiDariSeleksi()">🔤 Jadikan Gambar Opsi Terpilih</button>
+                    <span class="help" id="pdfOpsiCropCounter" style="margin:0;">0 opsi ditambahkan dari PDF ini.</span>
+                  </div>
+                  <p class="help" style="margin:6px 0 0;">Tips: kotakin satu pilihan jawaban saja (misal hanya baris "B. ..."), lalu klik tombol ini. Setelah berhasil, huruf opsi otomatis lanjut ke berikutnya (A→B→C→…) supaya tinggal kotak-tempel-kotak-tempel sampai semua opsi selesai.</p>
                 </div>
 
                 <div class="pdf-crop-history" id="pdfCropHistory"></div>
               </div>
-              <p class="help" style="margin-top:8px; margin-bottom:0;">
-                <b>Alur otomatis (centang Auto-advance):</b>
-                📷 Gambar soal → 🅰️ Opsi A → … → 🔑 Kunci → 📷 Soal berikutnya.
-                Centang <b>Lewati crop opsi</b> jika gambar soal sudah berisi pilihan A–E.
-                Tombol <b>Lewati langkah</b> memajukan target tanpa crop.
-              </p>
+              <p class="help" style="margin-top:8px; margin-bottom:0;">Setelah masuk daftar, buka tiap soal untuk isi/cek <b>kunci jawaban</b> (radio "Kunci" di sebelah kanan tiap opsi) sebelum publish.</p>
             </div>
           </div>
 
@@ -3829,6 +3841,7 @@ let pdfSedangBlok = false;   // true saat mouse/jari sedang menyeret
 let pdfJumlahDitambah = 0;   // penghitung berapa soal sudah ditambah dari PDF ini
 let pdfUidTerakhir = null;   // uid soal-block terakhir yang ditambah lewat PDF (untuk undo)
 let pdfIdSoalCounter = 0;    // penomor id unik untuk soal yang dibuat dari PDF
+let pdfJumlahOpsiDitambah = 0; // penghitung berapa gambar OPSI JAWABAN sudah ditempel dari PDF ini
 
 async function muatPdfSoal() {
   const inputEl = document.getElementById('pdfSoalFile');
@@ -3847,15 +3860,15 @@ async function muatPdfSoal() {
     pdfDocAktif = doc;
     pdfHalamanAktif = 1;
     pdfJumlahDitambah = 0;
+    pdfJumlahOpsiDitambah = 0;
     pdfUidTerakhir = null;
     document.getElementById('pdfCropHistory').innerHTML = '';
     updatePdfCropCounter();
+    updatePdfOpsiCropCounter();
+    pdfRefreshDaftarSoalTujuan();
     document.getElementById('pdfCropTool').style.display = '';
-    const targetSel = document.getElementById('pdfCropTarget');
-    if (targetSel) targetSel.value = 'soal';
-    updatePdfCropTargetUi();
     await renderPdfHalaman();
-    setStatus('statusPdfSoal', `✓ PDF dimuat, ${doc.numPages} halaman. Kotakin gambar soal, lalu ganti Target crop ke Opsi A–E & set kunci.`, 'ok');
+    setStatus('statusPdfSoal', `✓ PDF dimuat, ${doc.numPages} halaman. Kotakin bagian soal di halaman lalu klik "Pilih & Tambah sebagai Soal".`, 'ok');
   } catch (e) {
     console.warn('Gagal membuka PDF:', e);
     setStatus('statusPdfSoal', 'Gagal membuka PDF: ' + (e && e.message ? e.message : 'file mungkin rusak/terkunci.'), 'err');
@@ -3954,370 +3967,65 @@ function updatePdfCropCounter() {
   if (el) el.textContent = `${pdfJumlahDitambah} soal ditambahkan dari PDF ini.`;
 }
 
-/* ========== OTOMATISASI TARGET CROP ==========
- * Alur standar (PG):
- *   soal → opsiA → opsiB → … → opsiE/D → kunci → soal (soal berikutnya)
- * Isian/Esai: soal → soal (langsung siap soal berikutnya)
- * Centang "Lewati crop opsi" → soal → kunci → soal
- * Centang "Auto-advance" (default ON) memajukan target setelah aksi sukses.
- */
-function pdfTipeSaatIni() {
-  return ((document.getElementById('pdfTipeSoalBerikutnya') || {}).value || 'pg5');
-}
+// Skala minimum saat MEMOTONG gambar (baik soal maupun opsi) dari PDF —
+// sengaja dipisah dari skala TAMPILAN (dropdown "Zoom" di atas kotak PDF).
+// Kalau admin pilih Zoom 75% supaya halaman muat di layar HP, tanpa ini hasil
+// potongannya ikut buram; dengan helper ini halaman dirender ulang di
+// belakang layar pada resolusi tinggi khusus untuk dipotong, jadi tampilan
+// tetap ringan tapi gambar soal/opsi yang dihasilkan tetap tajam.
+const PDF_CROP_MIN_SCALE = 3;
 
-function pdfIsAutoAdvance() {
-  const cb = document.getElementById('pdfAutoAdvance');
-  return !cb || cb.checked;
-}
+async function pdfPotongAreaHiRes(sx, sy, sw, sh) {
+  const page = await pdfDocAktif.getPage(pdfHalamanAktif);
+  const zoomTampilan = parseFloat((document.getElementById('pdfZoomLevel') || {}).value || '1');
+  const skalaTampilan = 1.6 * zoomTampilan;
+  const skalaPotong = Math.max(skalaTampilan, PDF_CROP_MIN_SCALE);
+  const faktor = skalaPotong / skalaTampilan;
 
-function pdfIsSkipOpsi() {
-  const cb = document.getElementById('pdfSkipOpsi');
-  return !!(cb && cb.checked);
-}
-
-/** Urutan target crop sesuai tipe soal & preferensi "lewati opsi". */
-function pdfUrutanTarget() {
-  const tipe = pdfTipeSaatIni();
-  if (tipe === 'isian' || tipe === 'esai') {
-    return ['soal'];
-  }
-  if (pdfIsSkipOpsi()) {
-    return ['soal', 'kunci'];
-  }
-  const opsi = (tipe === 'pg4')
-    ? ['opsiA', 'opsiB', 'opsiC', 'opsiD']
-    : ['opsiA', 'opsiB', 'opsiC', 'opsiD', 'opsiE'];
-  return ['soal', ...opsi, 'kunci'];
-}
-
-function pdfGetTarget() {
-  return ((document.getElementById('pdfCropTarget') || {}).value || 'soal');
-}
-
-function pdfSetTarget(value) {
-  const sel = document.getElementById('pdfCropTarget');
-  if (!sel) return;
-  // Pastikan opsi E tersedia/disembunyikan sesuai tipe
-  pdfSinkronOpsiTargetSelect();
-  if ([...sel.options].some(o => o.value === value)) {
-    sel.value = value;
-  } else {
-    sel.value = 'soal';
-  }
-  updatePdfCropTargetUi();
-}
-
-/** Sembunyikan opsi E di dropdown target jika PG4 / isian / esai. */
-function pdfSinkronOpsiTargetSelect() {
-  const sel = document.getElementById('pdfCropTarget');
-  if (!sel) return;
-  const tipe = pdfTipeSaatIni();
-  const showE = (tipe === 'pg5');
-  const showOpsi = (tipe === 'pg4' || tipe === 'pg5');
-  [...sel.options].forEach(opt => {
-    if (opt.value === 'opsiE') {
-      opt.hidden = !showE;
-      opt.disabled = !showE;
-    } else if (/^opsi[A-D]$/.test(opt.value)) {
-      opt.hidden = !showOpsi;
-      opt.disabled = !showOpsi;
-    } else if (opt.value === 'kunci') {
-      opt.hidden = !showOpsi;
-      opt.disabled = !showOpsi;
-    }
-  });
-  // Jika target saat ini jadi invalid (mis. opsiE di PG4), reset
-  const cur = sel.value;
-  const curOpt = [...sel.options].find(o => o.value === cur);
-  if (curOpt && (curOpt.hidden || curOpt.disabled)) {
-    sel.value = 'soal';
-  }
-}
-
-/**
- * Hitung target berikutnya setelah aksi sukses di `current`.
- * Setelah "kunci" → kembali ke "soal" (siap soal berikutnya).
- * Jika current tidak ada di urutan, kembalikan langkah pertama.
- */
-function pdfNextTarget(current) {
-  const urutan = pdfUrutanTarget();
-  const idx = urutan.indexOf(current);
-  if (idx < 0) return urutan[0] || 'soal';
-  if (idx >= urutan.length - 1) return 'soal'; // selesai 1 siklus → soal baru
-  return urutan[idx + 1];
-}
-
-/** Majukan target otomatis (jika Auto-advance aktif). */
-function pdfAutoAdvanceSetelah(aksiSelesai) {
-  if (!pdfIsAutoAdvance()) {
-    updatePdfCropTargetUi();
-    return;
-  }
-  const next = pdfNextTarget(aksiSelesai);
-  pdfSetTarget(next);
-}
-
-/** Tombol "Lewati langkah": majukan target tanpa crop/upload. */
-function pdfLewatiLangkahTarget() {
-  const cur = pdfGetTarget();
-  if (cur === 'kunci') {
-    // Lewati set kunci → langsung siap soal berikutnya
-    pdfSetTarget('soal');
-    setStatus('statusPdfSoal', 'Langkah kunci dilewati. Siap crop soal berikutnya.', 'ok');
-    return;
-  }
-  if (cur === 'soal' && !pdfUidTerakhir) {
-    setStatus('statusPdfSoal', 'Belum ada soal. Crop gambar soal dulu, atau lewati tidak berlaku di awal.', 'err');
-    return;
-  }
-  const next = pdfNextTarget(cur);
-  pdfSetTarget(next);
-  setStatus('statusPdfSoal', `Langkah "${cur}" dilewati → lanjut ke "${labelTargetPdf(next)}".`, 'ok');
-}
-
-function labelTargetPdf(t) {
-  if (t === 'soal') return '📷 Gambar soal';
-  if (t === 'kunci') return '🔑 Kunci';
-  const m = String(t).match(/^opsi([A-E])$/i);
-  if (m) return 'Opsi ' + m[1].toUpperCase();
-  return t;
-}
-
-function labelLangkahFlow(t) {
-  const urutan = pdfUrutanTarget();
-  const idx = urutan.indexOf(t);
-  const total = urutan.length;
-  const nama = labelTargetPdf(t);
-  if (idx >= 0) return `Langkah ${idx + 1}/${total}: ${nama}`;
-  return `Langkah: ${nama}`;
-}
-
-/** Perbarui label tombol, hint, bar kunci, progress, & opsi E. */
-function updatePdfCropTargetUi() {
-  pdfSinkronOpsiTargetSelect();
-  const target = pdfGetTarget();
-  const tipe = pdfTipeSaatIni();
-  const btn = document.getElementById('pdfCropActionBtn');
-  const hint = document.getElementById('pdfCropHint');
-  const kunciBar = document.getElementById('pdfKunciQuickBar');
-  const btnE = document.getElementById('pdfKunciBtnE');
-  const stepEl = document.getElementById('pdfFlowStep');
-  const skipBtn = document.getElementById('pdfSkipStepBtn');
-
-  if (btnE) btnE.style.display = (tipe === 'pg4' || tipe === 'isian' || tipe === 'esai') ? 'none' : '';
-  if (stepEl) stepEl.textContent = labelLangkahFlow(target);
-
-  // Highlight tombol kunci yang sudah dipilih di soal terakhir
-  const block = pdfAmbilBlokTerakhir();
-  const kunciAktif = block
-    ? ((block.querySelector(`input[type="radio"][name="jawabanBenar-${block.id}"]:checked`) || {}).value || '')
-    : '';
-  document.querySelectorAll('.pdf-kunci-btn').forEach(b => {
-    const h = b.getAttribute('data-huruf');
-    if (h && h === kunciAktif) {
-      b.style.background = 'linear-gradient(90deg, #7b2ff7, #f857a6)';
-      b.style.color = '#fff';
-      b.style.borderColor = 'transparent';
-    } else {
-      b.style.background = '';
-      b.style.color = '';
-      b.style.borderColor = '';
-    }
-  });
-
-  const opsiMatch = target.match(/^opsi([A-E])$/i);
-  if (target === 'kunci') {
-    if (btn) {
-      btn.textContent = '🔑 Set kunci (klik A–E di bawah)';
-      btn.disabled = false;
-    }
-    if (hint) {
-      hint.innerHTML = pdfIsAutoAdvance()
-        ? '🔑 Mode kunci: klik huruf <b>A–E</b> di bar bawah. Setelah diset, target <b>otomatis</b> kembali ke Gambar soal (siap soal berikutnya).'
-        : '🔑 Mode kunci: klik huruf <b>A–E</b> di bar bawah untuk menandai kunci soal terakhir dari PDF.';
-    }
-    if (kunciBar) kunciBar.style.display = '';
-    if (skipBtn) skipBtn.style.display = '';
-  } else if (opsiMatch) {
-    const h = opsiMatch[1].toUpperCase();
-    if (btn) {
-      btn.textContent = `✅ Pilih & Tempel ke Opsi ${h}`;
-      btn.disabled = false;
-    }
-    if (hint) {
-      const next = pdfNextTarget(target);
-      hint.innerHTML = `🖱️ Kotakin area <b>opsi ${h}</b>, lalu klik tombol hijau.`
-        + (pdfIsAutoAdvance()
-          ? ` Setelah sukses, target lanjut ke <b>${labelTargetPdf(next)}</b>.`
-          : ' Gambar ditempel ke soal terakhir dari PDF.');
-    }
-    if (kunciBar) kunciBar.style.display = pdfUidTerakhir ? '' : 'none';
-    if (skipBtn) skipBtn.style.display = '';
-  } else {
-    if (btn) {
-      btn.textContent = '✅ Pilih & Tambah sebagai Soal';
-      btn.disabled = false;
-    }
-    if (hint) {
-      const isPg = (tipe === 'pg4' || tipe === 'pg5');
-      if (pdfIsAutoAdvance() && isPg) {
-        hint.innerHTML = pdfIsSkipOpsi()
-          ? '🖱️ Kotakin <b>gambar soal</b>. Setelah masuk, target otomatis ke <b>🔑 Kunci</b> (crop opsi dilewati).'
-          : '🖱️ Kotakin <b>gambar soal</b>. Setelah masuk, target otomatis ke <b>Opsi A</b> → … → kunci.';
-      } else if (pdfIsAutoAdvance()) {
-        hint.innerHTML = '🖱️ Kotakin <b>gambar soal</b>. Setelah masuk, siap crop soal berikutnya (isian/esai tidak punya opsi).';
-      } else {
-        hint.innerHTML = '🖱️ Kotakin <b>gambar soal</b>. Auto-advance nonaktif — ganti Target crop manual ke Opsi/Kunci.';
-      }
-    }
-    if (kunciBar) kunciBar.style.display = pdfUidTerakhir ? '' : 'none';
-    if (skipBtn) skipBtn.style.display = pdfUidTerakhir ? '' : 'none';
-  }
-}
-
-function pdfAmbilBlokTerakhir() {
-  if (!pdfUidTerakhir) return null;
-  return document.getElementById(pdfUidTerakhir);
-}
-
-/** Set radio kunci jawaban pada soal terakhir yang ditambah dari PDF. */
-function pdfSetKunciSoalTerakhir(huruf) {
-  const block = pdfAmbilBlokTerakhir();
-  if (!block) {
-    setStatus('statusPdfSoal', 'Belum ada soal dari PDF. Crop gambar soal dulu, baru set kunci.', 'err');
-    return;
-  }
-  const tipe = (block.querySelector('.input-tipe-soal') || {}).value || 'pg5';
-  if (tipe !== 'pg4' && tipe !== 'pg5') {
-    setStatus('statusPdfSoal', 'Soal terakhir bukan pilihan ganda — kunci A–E hanya untuk PG.', 'err');
-    return;
-  }
-  if (tipe === 'pg4' && huruf === 'E') {
-    setStatus('statusPdfSoal', 'Soal ini mode 4 opsi (A–D). Pilih A, B, C, atau D.', 'err');
-    return;
-  }
-  const radio = block.querySelector(`input[type="radio"][name="jawabanBenar-${block.id}"][value="${huruf}"]`);
-  if (!radio) {
-    setStatus('statusPdfSoal', `Tidak menemukan radio kunci ${huruf} di soal terakhir.`, 'err');
-    return;
-  }
-  radio.checked = true;
-  block.classList.remove('collapsed');
-  const st = document.getElementById('pdfKunciStatus');
-  if (st) st.textContent = `✓ Kunci diset: ${huruf}`;
-  setStatus('statusPdfSoal',
-    pdfIsAutoAdvance()
-      ? `✓ Kunci ${huruf} diset. Siap crop soal berikutnya.`
-      : `✓ Kunci jawaban soal terakhir diset ke ${huruf}.`,
-    'ok');
-  // Otomatis: setelah kunci → kembali ke "soal" untuk siklus berikutnya
-  pdfAutoAdvanceSetelah('kunci');
-}
-
-/** Crop area seleksi → tempel sebagai gambar opsi pada soal terakhir dari PDF. */
-async function pdfTempelOpsiKeSoalTerakhir(huruf, dataUrl, base64) {
-  const block = pdfAmbilBlokTerakhir();
-  if (!block) {
-    throw new Error('Belum ada soal dari PDF. Crop "Gambar soal" dulu, baru crop opsi.');
-  }
-  const tipe = (block.querySelector('.input-tipe-soal') || {}).value || 'pg5';
-  if (tipe !== 'pg4' && tipe !== 'pg5') {
-    throw new Error('Soal terakhir bukan pilihan ganda. Ubah tipe ke PG atau buat soal PG baru.');
-  }
-  if (tipe === 'pg4' && huruf === 'E') {
-    throw new Error('Soal mode 4 opsi tidak punya opsi E. Ganti tipe ke PG 5 opsi atau pilih opsi A–D.');
+  let sumberCanvas = document.getElementById('pdfCanvas');
+  if (faktor > 1.001) {
+    const viewportTinggi = page.getViewport({ scale: skalaPotong });
+    const canvasTinggi = document.createElement('canvas');
+    canvasTinggi.width = viewportTinggi.width;
+    canvasTinggi.height = viewportTinggi.height;
+    await page.render({ canvasContext: canvasTinggi.getContext('2d'), viewport: viewportTinggi }).promise;
+    sumberCanvas = canvasTinggi;
   }
 
-  const path = `${GAMBAR_SOAL_FOLDER}/pdf-opsi${huruf}-${Date.now()}-h${pdfHalamanAktif}.png`;
-  const res = await ghPutBinaryFile(path, base64, `Upload opsi ${huruf} dari PDF (hal. ${pdfHalamanAktif})`);
-  const url = res.content.download_url;
-
-  const urlInput = block.querySelector(`.input-pilihan-gambar-url[data-huruf="${huruf}"]`);
-  if (urlInput) {
-    urlInput.value = url;
-    updatePreview(urlInput);
-  }
-  const cbOtomatis = block.querySelector('.input-opsi-otomatis');
-  if (cbOtomatis && cbOtomatis.checked) {
-    cbOtomatis.checked = false;
-    onToggleOpsiOtomatis(block.id);
-  }
-  block.classList.remove('collapsed');
-  return url;
+  const lebar = Math.max(1, Math.round(sw * faktor));
+  const tinggi = Math.max(1, Math.round(sh * faktor));
+  const potong = document.createElement('canvas');
+  potong.width = lebar;
+  potong.height = tinggi;
+  potong.getContext('2d').drawImage(
+    sumberCanvas,
+    Math.round(sx * faktor), Math.round(sy * faktor), lebar, tinggi,
+    0, 0, lebar, tinggi
+  );
+  const dataUrl = potong.toDataURL('image/png');
+  return { dataUrl, base64: dataUrl.split(',')[1] };
 }
 
 async function pdfTambahSoalDariSeleksi() {
-  const target = pdfGetTarget();
-
-  // Mode set kunci saja — tidak butuh crop
-  if (target === 'kunci') {
-    setStatus('statusPdfSoal', 'Mode kunci: klik tombol A–E di bar "Set kunci jawaban" di bawah, bukan tombol hijau.', 'err');
-    const kunciBar = document.getElementById('pdfKunciQuickBar');
-    if (kunciBar) {
-      kunciBar.style.display = '';
-      kunciBar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-    return;
-  }
-
-  if (!pdfSeleksi) {
-    setStatus('statusPdfSoal', 'Kotakin dulu area di halaman (klik & seret / sentuh & geser).', 'err');
-    return;
-  }
+  if (!pdfSeleksi) { setStatus('statusPdfSoal', 'Kotakin dulu bagian soal di halaman (klik & seret / sentuh & geser).', 'err'); return; }
   const sx = Math.round(Math.min(pdfSeleksi.x0, pdfSeleksi.x1));
   const sy = Math.round(Math.min(pdfSeleksi.y0, pdfSeleksi.y1));
   const sw = Math.round(Math.abs(pdfSeleksi.x1 - pdfSeleksi.x0));
   const sh = Math.round(Math.abs(pdfSeleksi.y1 - pdfSeleksi.y0));
-  if (sw < 8 || sh < 8) {
-    setStatus('statusPdfSoal', 'Area yang diblok terlalu kecil, kotakin ulang.', 'err');
-    return;
-  }
-  if (!ghToken) {
-    setStatus('statusPdfSoal', 'Masukkan & simpan token GitHub dulu (di tab Upload Soal) sebelum menambah dari PDF.', 'err');
-    return;
-  }
+  if (sw < 8 || sh < 8) { setStatus('statusPdfSoal', 'Area yang diblok terlalu kecil, kotakin ulang area soalnya.', 'err'); return; }
+  if (!ghToken) { setStatus('statusPdfSoal', 'Masukkan & simpan token GitHub dulu (di tab Upload Soal) sebelum menambah soal dari PDF.', 'err'); return; }
 
-  const opsiMatch = target.match(/^opsi([A-E])$/i);
-  const tipe = pdfTipeSaatIni();
+  const tipe = (document.getElementById('pdfTipeSoalBerikutnya') || {}).value || 'pg5';
   setStatus('statusPdfSoal', 'Memotong & mengunggah area terpilih…', 'loading');
   sedangUploadGambar++;
   try {
-    const sumberCanvas = document.getElementById('pdfCanvas');
-    const potong = document.createElement('canvas');
-    potong.width = sw;
-    potong.height = sh;
-    potong.getContext('2d').drawImage(sumberCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
-    const dataUrl = potong.toDataURL('image/png');
-    const base64 = dataUrl.split(',')[1];
+    const { dataUrl, base64 } = await pdfPotongAreaHiRes(sx, sy, sw, sh);
 
-    // --- Target: opsi A–E → tempel ke soal terakhir ---
-    if (opsiMatch) {
-      const huruf = opsiMatch[1].toUpperCase();
-      await pdfTempelOpsiKeSoalTerakhir(huruf, dataUrl, base64);
-      const hist = document.getElementById('pdfCropHistory');
-      if (hist) {
-        const img = document.createElement('img');
-        img.src = dataUrl;
-        img.title = `Opsi ${huruf} · hal. ${pdfHalamanAktif}`;
-        hist.appendChild(img);
-      }
-      const next = pdfNextTarget('opsi' + huruf);
-      setStatus('statusPdfSoal',
-        `✓ Opsi ${huruf} ditempel (hal. ${pdfHalamanAktif}).`
-        + (pdfIsAutoAdvance() ? ` Lanjut: ${labelTargetPdf(next)}.` : ''),
-        'ok');
-      pdfBatalSeleksi();
-      pdfAutoAdvanceSetelah('opsi' + huruf);
-      return;
-    }
-
-    // --- Target: gambar soal (soal baru) ---
     const path = `${GAMBAR_SOAL_FOLDER}/pdf-${Date.now()}-h${pdfHalamanAktif}.png`;
     const res = await ghPutBinaryFile(path, base64, `Upload soal dari PDF (hal. ${pdfHalamanAktif})`);
 
     const isPg = (tipe === 'pg4' || tipe === 'pg5');
     pdfIdSoalCounter = (pdfIdSoalCounter || 0) + 1;
-    // Jika skip opsi ATAU non-PG: opsi otomatis (huruf saja) untuk PG
     const soalBaru = {
       id: 'q' + Date.now() + '-pdf' + pdfIdSoalCounter,
       tipe,
@@ -4327,6 +4035,7 @@ async function pdfTambahSoalDariSeleksi() {
       pilihan_gambar: {},
       opsi_otomatis: isPg
     };
+    const jumlahSebelum = document.querySelectorAll('#soalContainer .soal-block').length;
     tambahSoal(soalBaru);
     bersihkanSoalKosong();
     updateSoalCountBadge();
@@ -4343,16 +4052,17 @@ async function pdfTambahSoalDariSeleksi() {
       hist.appendChild(img);
     }
 
-    const next = pdfNextTarget('soal');
-    setStatus('statusPdfSoal',
-      `✓ 1 soal baru ditambahkan (hal. ${pdfHalamanAktif}).`
-      + (pdfIsAutoAdvance() ? ` Lanjut: ${labelTargetPdf(next)}.` : ''),
-      'ok');
+    const ket = isPg ? ' Buka soal ini di daftar di bawah untuk pilih kunci jawaban.' : '';
+    setStatus('statusPdfSoal', `✓ 1 soal baru ditambahkan dari halaman ${pdfHalamanAktif}.${ket}`, 'ok');
     pdfBatalSeleksi();
-    pdfAutoAdvanceSetelah('soal');
+    // Otomatis arahkan dropdown "Ke Soal" (di kotak crop opsi jawaban) ke soal
+    // yang baru saja dibuat ini, supaya alurnya: kotakin pertanyaan -> tambah
+    // sebagai soal -> kotakin tiap opsi A/B/C/... -> langsung tempel ke soal
+    // yang sama tanpa perlu pilih ulang dropdownnya satu-satu.
+    pdfRefreshDaftarSoalTujuan(pdfUidTerakhir);
   } catch (e) {
-    console.warn('Gagal menambah dari PDF:', e);
-    setStatus('statusPdfSoal', 'Gagal: ' + (e && e.message ? e.message : ''), 'err');
+    console.warn('Gagal menambah soal dari PDF:', e);
+    setStatus('statusPdfSoal', 'Gagal menambah soal dari area terpilih: ' + (e && e.message ? e.message : ''), 'err');
   } finally {
     sedangUploadGambar--;
   }
@@ -4371,8 +4081,187 @@ function pdfUndoTerakhir() {
     setStatus('statusPdfSoal', 'Soal terakhir dari PDF sudah diurungkan.', 'ok');
   }
   pdfUidTerakhir = null;
-  // Kembali ke langkah awal siklus
-  pdfSetTarget('soal');
+}
+
+function updatePdfOpsiCropCounter() {
+  const el = document.getElementById('pdfOpsiCropCounter');
+  if (el) el.textContent = `${pdfJumlahOpsiDitambah} opsi ditambahkan dari PDF ini.`;
+}
+
+// Daftar huruf opsi yang berlaku untuk sebuah soal-block: A–D untuk PG 4 opsi,
+// A–E untuk PG 5 opsi (atau tipe lain yang belum diketahui — default paling longgar).
+function pdfHurufListUntukSoal(block) {
+  if (!block) return ['A', 'B', 'C', 'D', 'E'];
+  const tipeSel = block.querySelector('.input-tipe-soal');
+  const tipe = tipeSel ? tipeSel.value : (block.dataset.tipe || 'pg5');
+  return tipe === 'pg4' ? ['A', 'B', 'C', 'D'] : ['A', 'B', 'C', 'D', 'E'];
+}
+
+// Isi ulang dropdown "Ke Soal" (kotak crop opsi jawaban) dari semua soal yang
+// SAAT INI ada di form (baik yang datang dari PDF, Word, bank soal, maupun
+// diketik manual) supaya potongan gambar opsi bisa ditempel ke soal manapun.
+// preferUid: kalau diisi (mis. uid soal yang baru dibuat), dropdown akan
+// otomatis diarahkan ke situ; kalau tidak, coba pertahankan pilihan
+// sebelumnya, atau jatuh ke soal paling akhir dalam daftar.
+function pdfRefreshDaftarSoalTujuan(preferUid) {
+  const sel = document.getElementById('pdfSoalTujuan');
+  if (!sel) return;
+  const blocks = Array.from(document.querySelectorAll('#soalContainer .soal-block'));
+  const prevValue = sel.value;
+  sel.innerHTML = '';
+  if (!blocks.length) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = '(belum ada soal — tambah soal dulu)';
+    sel.appendChild(opt);
+    pdfOnGantiSoalTujuan();
+    return;
+  }
+  blocks.forEach(b => {
+    const nomor = (b.querySelector('.nomor-tampil') || {}).textContent || '?';
+    const pertanyaanEl = b.querySelector('.input-pertanyaan');
+    let cuplikan = (pertanyaanEl && pertanyaanEl.value.trim()) || '';
+    if (!cuplikan) {
+      const gambarEl = b.querySelector('.input-gambar-url');
+      cuplikan = (gambarEl && gambarEl.value) ? '(gambar)' : '(kosong)';
+    }
+    cuplikan = cuplikan.length > 28 ? cuplikan.slice(0, 28) + '…' : cuplikan;
+    const opt = document.createElement('option');
+    opt.value = b.id;
+    opt.textContent = `Soal #${nomor} — ${cuplikan}`;
+    sel.appendChild(opt);
+  });
+  const idTersedia = blocks.map(b => b.id);
+  const mauDipilih = (preferUid && idTersedia.includes(preferUid)) ? preferUid
+    : (idTersedia.includes(prevValue) ? prevValue : blocks[blocks.length - 1].id);
+  sel.value = mauDipilih;
+  pdfOnGantiSoalTujuan();
+}
+
+// Dipanggil setiap kali dropdown "Ke Soal" berganti (manual oleh admin, atau
+// otomatis dari pdfRefreshDaftarSoalTujuan). Menyesuaikan pilihan huruf opsi
+// yang tersedia (A–D vs A–E) dengan tipe soal yang dipilih, lalu menggambar
+// ulang baris indikator status opsi.
+function pdfOnGantiSoalTujuan() {
+  const selSoal = document.getElementById('pdfSoalTujuan');
+  const selHuruf = document.getElementById('pdfHurufOpsiTujuan');
+  if (!selSoal || !selHuruf) return;
+  const block = selSoal.value ? document.getElementById(selSoal.value) : null;
+  const daftarHuruf = pdfHurufListUntukSoal(block);
+  const hurufSebelumnya = selHuruf.value;
+  selHuruf.innerHTML = daftarHuruf.map(h => `<option value="${h}">${h}</option>`).join('');
+  selHuruf.value = daftarHuruf.includes(hurufSebelumnya) ? hurufSebelumnya : daftarHuruf[0];
+  pdfRenderOpsiStatusRow();
+}
+
+// Menggambar chip A/B/C/(D/E) di bawah dropdown supaya admin langsung lihat
+// opsi mana yang sudah punya gambar (hijau + thumbnail) dan mana yang masih
+// kosong, tanpa perlu buka/scroll ke kartu soalnya. Klik chip = pilih huruf itu.
+function pdfRenderOpsiStatusRow() {
+  const row = document.getElementById('pdfOpsiStatusRow');
+  const selSoal = document.getElementById('pdfSoalTujuan');
+  const selHuruf = document.getElementById('pdfHurufOpsiTujuan');
+  if (!row || !selSoal) return;
+  const block = selSoal.value ? document.getElementById(selSoal.value) : null;
+  if (!block) { row.innerHTML = ''; return; }
+  const daftarHuruf = pdfHurufListUntukSoal(block);
+  const hurufAktif = selHuruf ? selHuruf.value : '';
+  row.innerHTML = daftarHuruf.map(h => {
+    const urlInput = block.querySelector('.input-pilihan-gambar-url[data-huruf="' + h + '"]');
+    const url = urlInput ? urlInput.value.trim() : '';
+    const terisi = url ? 'terisi' : '';
+    const aktif = h === hurufAktif ? 'aktif' : '';
+    const thumb = url ? `<img src="${url.replace(/"/g,'&quot;')}" alt="">` : '';
+    return `<span class="pdf-opsi-chip ${terisi} ${aktif}" onclick="pdfPilihHurufOpsi('${h}')" title="${url ? 'Sudah ada gambar — klik untuk pilih & timpa' : 'Masih kosong — klik untuk pilih'}">${thumb}${h}${url ? ' ✓' : ''}</span>`;
+  }).join('');
+}
+
+function pdfPilihHurufOpsi(h) {
+  const selHuruf = document.getElementById('pdfHurufOpsiTujuan');
+  if (selHuruf) selHuruf.value = h;
+  pdfRenderOpsiStatusRow();
+}
+
+// Ambil area yang dikotakkan (biasanya cuma 1 pilihan jawaban, mis. "B. ...")
+// dan tempelkan sebagai GAMBAR OPSI (pilihan_gambar) pada soal yang dipilih
+// di dropdown "Ke Soal", di huruf opsi yang dipilih (A/B/C/D/E). Ini yang
+// membuat proses edit soal PG hasil upload PDF jauh lebih cepat: tidak perlu
+// simpan gambar ke device lalu upload manual satu-satu per opsi.
+async function pdfTambahOpsiDariSeleksi() {
+  if (!pdfSeleksi) { setStatus('statusPdfSoal', 'Kotakin dulu bagian PILIHAN JAWABAN di halaman (klik & seret / sentuh & geser).', 'err'); return; }
+  const sx = Math.round(Math.min(pdfSeleksi.x0, pdfSeleksi.x1));
+  const sy = Math.round(Math.min(pdfSeleksi.y0, pdfSeleksi.y1));
+  const sw = Math.round(Math.abs(pdfSeleksi.x1 - pdfSeleksi.x0));
+  const sh = Math.round(Math.abs(pdfSeleksi.y1 - pdfSeleksi.y0));
+  if (sw < 8 || sh < 8) { setStatus('statusPdfSoal', 'Area yang diblok terlalu kecil, kotakin ulang area opsi jawabannya.', 'err'); return; }
+  if (!ghToken) { setStatus('statusPdfSoal', 'Masukkan & simpan token GitHub dulu (di tab Upload Soal) sebelum menambah opsi dari PDF.', 'err'); return; }
+
+  pdfRefreshDaftarSoalTujuan();
+  const selSoal = document.getElementById('pdfSoalTujuan');
+  const uidTarget = selSoal ? selSoal.value : '';
+  const blockTarget = uidTarget ? document.getElementById(uidTarget) : null;
+  if (!blockTarget) {
+    setStatus('statusPdfSoal', 'Belum ada soal untuk dijadikan tujuan. Tambah soal dulu (dari PDF atau manual), lalu pilih di dropdown "Ke Soal".', 'err');
+    return;
+  }
+  const daftarHuruf = pdfHurufListUntukSoal(blockTarget);
+  const selHuruf = document.getElementById('pdfHurufOpsiTujuan');
+  const huruf = (selHuruf && daftarHuruf.includes(selHuruf.value)) ? selHuruf.value : daftarHuruf[0];
+
+  const urlInput = blockTarget.querySelector('.input-pilihan-gambar-url[data-huruf="' + huruf + '"]');
+  const nomorTarget = (blockTarget.querySelector('.nomor-tampil') || {}).textContent || '?';
+  if (urlInput && urlInput.value.trim()) {
+    const lanjut = confirm(`Opsi ${huruf} pada Soal #${nomorTarget} sudah punya gambar.\n\nTimpa dengan potongan yang baru dikotakkan?`);
+    if (!lanjut) { setStatus('statusPdfSoal', 'Dibatalkan — opsi lama tidak ditimpa.', 'err'); return; }
+  }
+
+  setStatus('statusPdfSoal', `Memotong & mengunggah opsi ${huruf}…`, 'loading');
+  sedangUploadGambar++;
+  try {
+    const { dataUrl, base64 } = await pdfPotongAreaHiRes(sx, sy, sw, sh);
+
+    const path = `${GAMBAR_SOAL_FOLDER}/pdf-${Date.now()}-h${pdfHalamanAktif}-opsi${huruf}.png`;
+    const res = await ghPutBinaryFile(path, base64, `Upload gambar opsi ${huruf} dari PDF (hal. ${pdfHalamanAktif})`);
+
+    if (urlInput) {
+      urlInput.value = res.content.download_url;
+      updatePreview(urlInput);
+    }
+
+    // Buka soal tujuan & beri sorotan singkat supaya kelihatan opsi mana yang barusan ditempel.
+    blockTarget.classList.remove('collapsed');
+    blockTarget.style.outline = '3px solid var(--pink)';
+    blockTarget.style.outlineOffset = '2px';
+    setTimeout(() => { blockTarget.style.outline = ''; blockTarget.style.outlineOffset = ''; }, 1200);
+    blockTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    pdfJumlahOpsiDitambah++;
+    updatePdfOpsiCropCounter();
+    const hist = document.getElementById('pdfCropHistory');
+    if (hist) {
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.title = `Opsi ${huruf} untuk Soal #${nomorTarget} (halaman ${pdfHalamanAktif})`;
+      hist.appendChild(img);
+    }
+
+    // Otomatis lanjut ke huruf berikutnya (A→B→C→…) biar admin tinggal
+    // kotak-tempel-kotak-tempel tanpa gonta-ganti dropdown huruf tiap kali.
+    const idxSekarang = daftarHuruf.indexOf(huruf);
+    if (selHuruf && idxSekarang > -1 && idxSekarang < daftarHuruf.length - 1) {
+      selHuruf.value = daftarHuruf[idxSekarang + 1];
+    }
+    pdfRenderOpsiStatusRow();
+
+    setStatus('statusPdfSoal', `✓ Opsi ${huruf} untuk Soal #${nomorTarget} berhasil ditempel dari halaman ${pdfHalamanAktif}.`, 'ok');
+    pdfBatalSeleksi();
+    pdfRefreshDaftarSoalTujuan(uidTarget);
+  } catch (e) {
+    console.warn('Gagal menambah opsi dari PDF:', e);
+    setStatus('statusPdfSoal', 'Gagal menambah opsi dari area terpilih: ' + (e && e.message ? e.message : ''), 'err');
+  } finally {
+    sedangUploadGambar--;
+  }
 }
 
 // Pasang event drag (mouse) & sentuh (touch) untuk area kotak canvas PDF.
@@ -5172,6 +5061,12 @@ function onGantiTipeSoal(uid) {
     el.style.display = tipe === 'pg4' ? 'none' : '';
   });
   updateRingkasanSoal(uid);
+  // Kalau soal ini sedang jadi target di kotak "crop opsi jawaban dari PDF",
+  // sesuaikan lagi pilihan huruf (A–D vs A–E) sesuai tipe soal yang baru.
+  const selSoalPdf = document.getElementById('pdfSoalTujuan');
+  if (selSoalPdf && selSoalPdf.value === uid && typeof pdfOnGantiSoalTujuan === 'function') {
+    pdfOnGantiSoalTujuan();
+  }
 }
 
 function updatePreview(inputEl) {
@@ -5193,6 +5088,12 @@ function updatePreview(inputEl) {
     const prev = block.querySelector('.preview-pilihan-gambar-' + h);
     const val = inputEl.value.trim();
     if (prev) prev.innerHTML = val ? `<img src="${val}" alt="Opsi ${h}">` : '';
+    // Kalau soal ini sedang jadi target di kotak "crop opsi jawaban dari PDF",
+    // segarkan chip status A–E-nya biar tidak ketinggalan info.
+    const selSoalPdf = document.getElementById('pdfSoalTujuan');
+    if (selSoalPdf && selSoalPdf.value === block.id && typeof pdfRenderOpsiStatusRow === 'function') {
+      pdfRenderOpsiStatusRow();
+    }
   } else if (inputEl.classList.contains('input-pembahasan')) {
     const prev = block.querySelector('.preview-pembahasan');
     prev.innerHTML = inputEl.value;
