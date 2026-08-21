@@ -22,12 +22,5 @@
     "nama": "rere",
     "paket": "semua",
     "aktif": true
-  },
-  {
-    "noUjian": "ADMIN",
-    "nama": "Admin Uji Coba (ADMIN)",
-    "paket": "semua",
-    "aktif": true,
-    "ujiCoba": true
   }
 ]
