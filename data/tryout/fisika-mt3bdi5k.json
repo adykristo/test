@@ -1,0 +1,27 @@
+{
+  "id": "fisika-mt3bdi5k",
+  "title": "fisika",
+  "jenjang": "sma",
+  "topik": "1",
+  "durasi_menit": 60,
+  "kode_akses": "",
+  "mode_hasil": "nilai",
+  "soal": [
+    {
+      "id": "q1787338529541-1",
+      "tipe": "isian",
+      "pertanyaan": "a",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787338761700-paste-1787338761695.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787338617900-2",
+      "tipe": "isian",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787338799492-paste-1787338799486.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    }
+  ]
+}
