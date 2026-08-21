@@ -1,0 +1,19 @@
+{
+  "id": "test-mt3c1flv",
+  "title": "test",
+  "jenjang": "sma",
+  "topik": "gaya",
+  "durasi_menit": 60,
+  "kode_akses": "",
+  "mode_hasil": "nilai",
+  "soal": [
+    {
+      "id": "q1787339887471-esaipdf",
+      "tipe": "esai",
+      "pertanyaan": "Kerjakan soal pada PDF berikut. Unggah jawaban dalam format PDF.",
+      "gambar": "",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    }
+  ]
+}
