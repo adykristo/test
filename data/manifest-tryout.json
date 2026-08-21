@@ -7,7 +7,7 @@
     "durasi_menit": 60,
     "jumlah_soal": 1,
     "file": "data/tryout/test-mt3c1flv.json",
-    "aktif": false,
+    "aktif": true,
     "kode_akses": "",
     "mode_hasil": "nilai"
   }
