@@ -7,7 +7,7 @@
     "durasi_menit": 60,
     "jumlah_soal": 2,
     "file": "data/tryout/fisika-mt3bdi5k.json",
-    "aktif": true,
+    "aktif": false,
     "kode_akses": "",
     "mode_hasil": "nilai"
   }
