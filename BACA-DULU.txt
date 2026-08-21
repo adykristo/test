@@ -1,1 +1,6 @@
-BACA-DULU: Upload index.html admin.html data/* ke GitHub. Paste code.gs ke Apps Script lalu Deploy New version.
+BACA-DULU:
+1. Upload index.html, admin.html, dan folder data/ ke GitHub (repo yang sama).
+2. Paste isi code.gs ke Google Apps Script, lalu Deploy → New version.
+3. Perubahan utama:
+   - Soal ES AI di halaman peserta: tampilan seperti kertas formal, pengumpulan HANYA via upload (PDF atau foto JPG/PNG).
+   - Admin: saat buat soal esai, fokus di area gambar lalu Ctrl+V / ⌘+V untuk tempel hasil crop/screenshot langsung.
