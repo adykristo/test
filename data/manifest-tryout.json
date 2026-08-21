@@ -1,17 +1,5 @@
 [
   {
-    "id": "fisika-mt04j32m",
-    "title": "fisika",
-    "jenjang": "sma",
-    "topik": "gaya",
-    "durasi_menit": 5,
-    "jumlah_soal": 5,
-    "file": "data/tryout/fisika-mt04j32m.json",
-    "aktif": true,
-    "kode_akses": "",
-    "mode_hasil": "nilai"
-  },
-  {
     "id": "a-mt0b8dye",
     "title": "A",
     "jenjang": "sma",
