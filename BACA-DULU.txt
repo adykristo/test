@@ -1,0 +1,1 @@
+BACA-DULU: Upload index.html admin.html data/* ke GitHub. Paste code.gs ke Apps Script lalu Deploy New version.

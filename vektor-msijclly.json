@@ -1,0 +1,65 @@
+{
+  "id": "vektor-msijclly",
+  "title": "Vektor",
+  "jenjang": "sd",
+  "topik": "Kinematika",
+  "durasi_menit": 15,
+  "soal": [
+    {
+      "id": "q1786081987452-1",
+      "pertanyaan": "Dua vektor gaya masing-masing 6 N dan 8 N bekerja pada suatu titik dengan sudut 90° antara keduanya. Besar resultan kedua vektor tersebut adalah...",
+      "gambar": "",
+      "pilihan": {
+        "A": "2 N",
+        "B": "10 N",
+        "C": "12 N",
+        "D": "14 N",
+        "E": "48 N"
+      },
+      "jawaban_benar": "B",
+      "pembahasan": ""
+    },
+    {
+      "id": "q1786082122751-2",
+      "pertanyaan": "Dua buah vektor memiliki besar sama yaitu 10 satuan. Agar resultannya juga bernilai 10 satuan, maka sudut apit antara kedua vektor tersebut adalah...",
+      "gambar": "",
+      "pilihan": {
+        "A": "30°",
+        "B": "60°",
+        "C": "90°",
+        "D": "120°",
+        "E": "150°"
+      },
+      "jawaban_benar": "D",
+      "pembahasan": ""
+    },
+    {
+      "id": "q1786082207741-3",
+      "pertanyaan": "Tiga vektor gaya segaris kerja dengan besar 10 N, 15 N, dan 20 N. Nilai resultan maksimum dan minimum yang mungkin dari ketiga vektor tersebut berturut-turut adalah...",
+      "gambar": "",
+      "pilihan": {
+        "A": "45 N dan 5 N",
+        "B": "45 N dan -5 N",
+        "C": "45 N dan 0 N",
+        "D": "30 N dan 5 N",
+        "E": "35 N dan 5 N"
+      },
+      "jawaban_benar": "B",
+      "pembahasan": ""
+    },
+    {
+      "id": "q1786082272777-4",
+      "pertanyaan": "Sebuah perahu menyeberangi sungai dengan kecepatan 4 m/s tegak lurus arah arus. Jika kecepatan arus sungai 3 m/s, maka kecepatan resultan perahu terhadap pengamat di tepi sungai adalah...",
+      "gambar": "",
+      "pilihan": {
+        "A": "1 m/s",
+        "B": "5 m/s",
+        "C": "7 m/s",
+        "D": "12 m/s",
+        "E": "25 m/s"
+      },
+      "jawaban_benar": "C",
+      "pembahasan": ""
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "try-out-1-fisika-msijfznp",
+  "title": "TRY OUT 1 FISIKA",
+  "jenjang": "sma",
+  "topik": "PENGUKURAN",
+  "durasi_menit": 60,
+  "soal": [
+    {
+      "id": "q1786082485012-1",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1786082501920-WhatsApp_Image_2026-08-07_at_12.47.27__2_.jpeg",
+      "pilihan": {
+        "A": "A",
+        "B": "B",
+        "C": "C",
+        "D": "D",
+        "E": "E"
+      },
+      "jawaban_benar": "A",
+      "pembahasan": ""
+    }
+  ]
+}

@@ -659,6 +659,54 @@ window.MathJax = {
     color:#b8a9c9;
   }
 
+  /* Toolbar LaTeX — sisipkan rumus cepat */
+  #panelTryout .latex-toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    margin:0 0 8px;
+    align-items:center;
+  }
+  #panelTryout .latex-toolbar .ltx-label{
+    font-size:11px;
+    font-weight:800;
+    color:var(--ungu-tua);
+    margin-right:2px;
+  }
+  #panelTryout .latex-toolbar button{
+    font-size:11.5px;
+    font-weight:700;
+    padding:4px 8px;
+    border-radius:8px;
+    border:1.5px solid #e0d0f0;
+    background:#fff;
+    color:var(--ungu-tua);
+    cursor:pointer;
+    line-height:1.3;
+    font-family:inherit;
+  }
+  #panelTryout .latex-toolbar button:hover{
+    background:var(--pink-muda);
+    border-color:var(--pink);
+  }
+  #panelTryout .latex-toolbar button.ltx-more{
+    border-style:dashed;
+    color:var(--abu);
+  }
+  #panelTryout .paste-hint{
+    font-size:11.5px;
+    color:var(--abu);
+    margin:4px 0 0;
+  }
+  #panelTryout .paste-hint kbd{
+    font-size:10.5px;
+    background:#f0e8fa;
+    border:1px solid #e0d0f0;
+    border-radius:4px;
+    padding:1px 5px;
+    font-family:inherit;
+  }
+
   #panelTryout .soal-block{
     border:1.5px solid var(--border);
     border-left:4px solid var(--ungu);
@@ -1980,21 +2028,21 @@ window.MathJax = {
               <div id="statusWordSoal" class="status-bar" style="margin-top:10px;"></div>
               <details style="margin-top:10px;">
                 <summary class="help" style="cursor:pointer;">Lihat format penulisan Word</summary>
-                <pre class="format-pre">1. Pertanyaan soal di sini. Boleh $LaTeX$ dan gambar.
-A. Opsi A
-B. Opsi B
-C. Opsi C
-D. Opsi D
-E. Opsi E
+                <pre class="format-pre">1. Benda bermassa $m=2\,\mathrm{kg}$ ditarik gaya $F=10\,\mathrm{N}$. Percepatannya?
+A. $2\,\mathrm{m/s^2}$
+B. $5\,\mathrm{m/s^2}$
+C. $10\,\mathrm{m/s^2}$
+D. $20\,\mathrm{m/s^2}$
+E. $0{,}5\,\mathrm{m/s^2}$
 Jawaban: B
-Pembahasan: ...
+Pembahasan: $$a=\dfrac{F}{m}=\dfrac{10}{2}=5\,\mathrm{m/s^2}$$
 
-2. Soal isian singkat ...
-Jawaban: 10 N
-Pembahasan: ...
+2. Resultan gaya $3\,\mathrm{N}$ dan $4\,\mathrm{N}$ tegak lurus adalah ... N
+Jawaban: 5|5 N|5N
+Pembahasan: $R=\sqrt{3^2+4^2}=5$
 
-[ESAI] 3. Soal esai ...
-Pembahasan: ...</pre>
+[ESAI] 3. Jelaskan hukum II Newton!
+Pembahasan: $\sum F=ma$</pre>
               </details>
             </div>
           </div>
@@ -2032,15 +2080,31 @@ Pembahasan: ...</pre>
                       <option value="2">200%</option>
                     </select>
                   </div>
-                  <div>
-                    <label>Tipe soal berikutnya</label>
-                    <select id="pdfTipeSoalBerikutnya">
-                      <option value="pg5" selected>PG 5 opsi</option>
-                      <option value="pg4">PG 4 opsi</option>
-                      <option value="isian">Isian singkat</option>
-                      <option value="esai">Esai</option>
-                    </select>
+                </div>
+
+                <div style="margin:10px 0 8px; padding:10px 12px; background:#f8f4fc; border-radius:12px; border:1.5px solid #e0d0f0;">
+                  <label style="margin:0 0 8px; display:block; font-weight:800; color:var(--ungu-tua);">Tipe soal yang akan ditambahkan dari blok PDF</label>
+                  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    <label style="display:inline-flex; align-items:center; gap:6px; font-weight:600; font-size:13px; cursor:pointer; padding:6px 10px; background:#fff; border-radius:8px; border:1.5px solid #e0d0f0;">
+                      <input type="radio" name="pdfTipeSoalRadio" value="pg5" checked style="width:auto;" onchange="document.getElementById('pdfTipeSoalBerikutnya').value=this.value"> PG 5 opsi (A–E)
+                    </label>
+                    <label style="display:inline-flex; align-items:center; gap:6px; font-weight:600; font-size:13px; cursor:pointer; padding:6px 10px; background:#fff; border-radius:8px; border:1.5px solid #e0d0f0;">
+                      <input type="radio" name="pdfTipeSoalRadio" value="pg4" style="width:auto;" onchange="document.getElementById('pdfTipeSoalBerikutnya').value=this.value"> PG 4 opsi (A–D)
+                    </label>
+                    <label style="display:inline-flex; align-items:center; gap:6px; font-weight:600; font-size:13px; cursor:pointer; padding:6px 10px; background:#fff; border-radius:8px; border:1.5px solid #e0d0f0;">
+                      <input type="radio" name="pdfTipeSoalRadio" value="isian" style="width:auto;" onchange="document.getElementById('pdfTipeSoalBerikutnya').value=this.value"> Isian singkat
+                    </label>
+                    <label style="display:inline-flex; align-items:center; gap:6px; font-weight:600; font-size:13px; cursor:pointer; padding:6px 10px; background:#fff; border-radius:8px; border:1.5px solid #e0d0f0;">
+                      <input type="radio" name="pdfTipeSoalRadio" value="esai" style="width:auto;" onchange="document.getElementById('pdfTipeSoalBerikutnya').value=this.value"> Esai (crop gambar)
+                    </label>
                   </div>
+                  <select id="pdfTipeSoalBerikutnya" style="display:none;">
+                    <option value="pg5" selected>PG 5 opsi</option>
+                    <option value="pg4">PG 4 opsi</option>
+                    <option value="isian">Isian singkat</option>
+                    <option value="esai">Esai</option>
+                  </select>
+                  <p class="help" style="margin:8px 0 0;">Untuk <b>isian</b>: isi kunci di daftar soal. Untuk <b>PG</b>: pilih kunci / tempel gambar opsi. Untuk esai PDF utuh (bukan crop), pakai menu khusus di bawah.</p>
                 </div>
 
                 <p class="help" style="margin:0 0 8px;">🖱️ Klik &amp; seret (atau sentuh &amp; geser di HP) pada halaman untuk mengotakkan bagian soal yang ingin diambil.</p>
@@ -2083,6 +2147,30 @@ Pembahasan: ...</pre>
                 <div class="pdf-crop-history" id="pdfCropHistory"></div>
               </div>
               <p class="help" style="margin-top:8px; margin-bottom:0;">Setelah masuk daftar, buka tiap soal untuk isi/cek <b>kunci jawaban</b> (radio "Kunci" di sebelah kanan tiap opsi) sebelum publish.</p>
+            </div>
+          </div>
+
+          <!-- CARA: Soal Esai PDF utuh -->
+          <div class="upload-card upload-card-primary" id="cardEsaiPdf" style="grid-column:1 / -1;">
+            <div class="upload-card-head">
+              <span class="upload-badge">Esai PDF</span>
+              <h4>📝 Soal Esai — upload PDF utuh</h4>
+              <p>Satu file PDF = satu soal esai. Di sisi siswa, PDF tampil ukuran penuh &amp; bisa discroll; peserta mengunggah jawaban PDF. File jawaban disimpan privat di Google Drive (bukan link publik).</p>
+            </div>
+            <div class="upload-card-body">
+              <div class="row" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                  <label style="margin-top:0;">Judul / petunjuk singkat (opsional)</label>
+                  <input type="text" id="esaiPdfPetunjuk" placeholder="Contoh: Kerjakan soal 1–3 pada PDF, unggah jawaban">
+                </div>
+                <div>
+                  <label style="margin-top:0;">File PDF soal</label>
+                  <input type="file" id="esaiPdfFile" accept="application/pdf,.pdf">
+                </div>
+              </div>
+              <button type="button" class="btn btn-primary" style="margin-top:12px; width:100%;" onclick="tambahSoalEsaiDariPdfUtuh()">⬆️ Tambah sebagai Soal Esai (PDF)</button>
+              <div id="statusEsaiPdf" class="status-bar" style="margin-top:8px;"></div>
+              <p class="help" style="margin-top:8px; margin-bottom:0;">PDF soal diunggah ke repo (tampil ke peserta saat tryout). Jawaban peserta hanya tersimpan di Drive privat + Sheet, diakses admin dengan Kode Rahasia.</p>
             </div>
           </div>
 
@@ -2178,25 +2266,42 @@ Pembahasan: ...</pre>
       <button type="button" class="btn btn-outline" onclick="previewPaketSebagaiSiswa()" title="Lihat tampilan di sisi peserta">👁 Preview</button>
       <button type="button" class="btn btn-outline" onclick="batalForm()">Batal</button>
     </div>
-    <p class="help" style="margin-top:12px; margin-bottom:0;">LaTeX: <code>$F=ma$</code> (inline) · <code>$$F=ma$$</code> (besar). Disarankan Preview dulu sebelum publish.</p>
+    <p class="help" style="margin-top:12px; margin-bottom:0;">
+      <b>Tips input soal:</b> teks + angka bebas · rumus lewat toolbar <code>Rumus:</code> atau ketik <code>$F=ma$</code> / <code>$$E=mc^2$$</code> ·
+      gambar lewat upload, link, tempel <kbd>Ctrl+V</kbd>, Word, atau PDF ·
+      kunci isian multi-jawaban: <code>10|10N|10 n</code>.
+      Wajib <b>Preview</b> dulu sebelum publish.
+    </p>
   </div>
 
 <div class="box">
-    <h2>4. Kelola Nomor Ujian &amp; Nama Peserta (Whitelist)</h2>
-    <p class="help">Nama &amp; Nomor Ujian yang boleh mengikuti tryout harus didaftarkan di sini dulu. Di website utama, peserta hanya bisa mengetik Nomor Ujian — nama otomatis diambil dari daftar ini.</p>
+    <h2>4. Kelola Peserta (Token Nomor Ujian)</h2>
+    <p class="help">
+      Admin <b>cukup isi nama</b>. Token digenerate otomatis &amp; disimpan di <b>Google Sheet (server)</b> — bukan di JSON publik.
+      File <code>daftar-peserta.json</code> di GitHub Pages sengaja dikosongkan agar tidak bocor.
+      Wajib isi <b>URL Apps Script + Kode Rahasia Admin</b> di bagian hasil tryout. Bagikan token lewat Excel/PDF saja.
+    </p>
     <div id="statusPeserta" class="status-bar loading show">Memuat daftar peserta…</div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+      <button type="button" class="btn btn-hijau" onclick="unduhDaftarPesertaExcel()" title="Unduh daftar nama + token">📊 Unduh Excel (CSV)</button>
+      <button type="button" class="btn btn-outline" onclick="unduhDaftarPesertaPDF()" title="Unduh daftar nama + token PDF">📥 Unduh PDF</button>
+    </div>
 
     <div id="pesertaAdminList"></div>
 
     <h3 style="margin-top:20px;">Tambah / Edit Satu Peserta</h3>
     <div class="row">
       <div>
-        <label>Nomor Ujian</label>
-        <input type="text" id="pNoUjian" placeholder="mis. SD001">
+        <label>Nama Lengkap <span style="color:var(--merah);">*</span></label>
+        <input type="text" id="pNama" placeholder="mis. Ahmad Fauzan">
       </div>
       <div>
-        <label>Nama Lengkap</label>
-        <input type="text" id="pNama" placeholder="mis. Ahmad Fauzan">
+        <label>Token / Nomor Ujian <span class="help" style="font-weight:500;">(otomatis jika dikosongkan)</span></label>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="text" id="pNoUjian" placeholder="Kosongkan = generate token" style="flex:1;" autocomplete="off" spellcheck="false">
+          <button type="button" class="btn btn-outline btn-xs" onclick="isiTokenAcakKeForm()" title="Buat token baru">🎲 Token</button>
+        </div>
       </div>
     </div>
     <label>Boleh Ikut Paket Tryout</label>
@@ -2211,15 +2316,15 @@ Pembahasan: ...</pre>
       <input type="checkbox" id="pAktif" style="width:auto;" checked>
       Aktif (boleh mengerjakan tryout)
     </label>
-    <p class="help" style="margin-top:4px;">Centang setelah peserta bayar / disetujui. Jika tidak dicentang, nomor ujian terdaftar tapi belum bisa mulai tryout.</p>
+    <p class="help" style="margin-top:4px;">Centang setelah peserta bayar / disetujui. Jika tidak dicentang, token terdaftar tapi belum bisa mulai tryout.</p>
 
     <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-weight:400; font-size:13px; color:var(--abu);">
       <input type="checkbox" id="pUjiCoba" style="width:auto;">
       Nomor uji coba admin (boleh submit tryout berkali-kali)
     </label>
-    <p class="help" style="margin-top:4px;">Khusus admin untuk tes paket. Centang agar nomor tidak diblokir “sudah pernah mengumpulkan”. Pilih nomor cepat di bawah atau ketik sendiri.</p>
+    <p class="help" style="margin-top:4px;">Khusus admin untuk tes paket. Centang agar tidak diblokir “sudah pernah mengumpulkan”. Tombol cepat di bawah memakai token pendek (hanya untuk tes).</p>
     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center;">
-      <span class="help" style="margin:0;">Pilih nomor:</span>
+      <span class="help" style="margin:0;">Uji coba:</span>
       <button type="button" class="btn btn-outline btn-xs" onclick="pilihNomorUjiCoba('ADMIN')">ADMIN</button>
       <button type="button" class="btn btn-outline btn-xs" onclick="pilihNomorUjiCoba('TEST')">TEST</button>
       <button type="button" class="btn btn-outline btn-xs" onclick="pilihNomorUjiCoba('UJI01')">UJI01</button>
@@ -2232,10 +2337,17 @@ Pembahasan: ...</pre>
       <button class="btn btn-outline" onclick="batalEditPeserta()">Batal Edit</button>
     </div>
 
-    <h3 style="margin-top:26px;">Tambah Banyak Sekaligus (Bulk)</h3>
-    <p class="help">Satu baris = satu peserta, format: <code>NomorUjian, Nama Lengkap</code>. Semua yang ditambah lewat cara ini otomatis berlaku untuk <b>semua paket tryout</b>.</p>
-    <textarea id="pBulkText" placeholder="SD001, Ahmad Fauzan&#10;SD002, Siti Aminah"></textarea>
-    <button class="btn btn-outline" style="margin-top:10px;" onclick="simpanBulkPeserta()">+ Tambah dari Daftar di Atas</button>
+    <h3 style="margin-top:26px;">Tambah Banyak Sekaligus (Bulk — nama saja)</h3>
+    <p class="help">
+      Satu baris = <b>satu nama</b>. Token digenerate otomatis.<br>
+      Opsional format lama masih didukung: <code>Token, Nama Lengkap</code> (jika baris mengandung koma dan bagian kiri terlihat seperti token).
+    </p>
+    <textarea id="pBulkText" placeholder="Ahmad Fauzan&#10;Siti Aminah&#10;Budi Santoso"></textarea>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+      <button class="btn btn-primary" onclick="simpanBulkPeserta()">+ Generate Token &amp; Simpan</button>
+      <button class="btn btn-outline" onclick="unduhDaftarPesertaExcel()">📊 Unduh Excel</button>
+      <button class="btn btn-outline" onclick="unduhDaftarPesertaPDF()">📥 Unduh PDF</button>
+    </div>
   </div>
 
   <div class="box">
@@ -3633,7 +3745,8 @@ function parseWordSoalHtml(html) {
 function isSoalBlockKosong(block) {
   const pertanyaan = (block.querySelector('.input-pertanyaan') || {}).value || '';
   const gambar = (block.querySelector('.input-gambar-url') || {}).value || '';
-  if (pertanyaan.trim() || gambar.trim()) return false;
+  const pdfSoal = (block.querySelector('.input-pdf-soal-url') || {}).value || '';
+  if (pertanyaan.trim() || gambar.trim() || pdfSoal.trim()) return false;
   const adaPilihanTerisi = [...block.querySelectorAll('.input-pilihan')].some(i => i.value.trim())
     || [...block.querySelectorAll('.input-pilihan-gambar-url')].some(i => i.value.trim());
   if (adaPilihanTerisi) return false;
@@ -4004,6 +4117,66 @@ async function pdfPotongAreaHiRes(sx, sy, sw, sh) {
   );
   const dataUrl = potong.toDataURL('image/png');
   return { dataUrl, base64: dataUrl.split(',')[1] };
+}
+
+/**
+ * Upload PDF utuh sebagai 1 soal esai (field pdf_soal).
+ * Peserta melihat PDF scrollable + unggah jawaban.
+ */
+async function tambahSoalEsaiDariPdfUtuh() {
+  const inputEl = document.getElementById('esaiPdfFile');
+  const file = inputEl && inputEl.files && inputEl.files[0];
+  if (!file) { setStatus('statusEsaiPdf', 'Pilih file PDF soal dulu.', 'err'); return; }
+  if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') {
+    setStatus('statusEsaiPdf', 'File harus berformat PDF.', 'err'); return;
+  }
+  if (file.size > 12 * 1024 * 1024) {
+    setStatus('statusEsaiPdf', 'PDF terlalu besar (maks. 12 MB).', 'err'); return;
+  }
+  if (!ghToken) { setStatus('statusEsaiPdf', 'Masukkan & simpan token GitHub dulu.', 'err'); return; }
+  if (!document.getElementById('soalContainer')) {
+    setStatus('statusEsaiPdf', 'Buka/buat paket tryout dulu.', 'err'); return;
+  }
+
+  setStatus('statusEsaiPdf', 'Mengunggah PDF soal ke GitHub…', 'loading');
+  sedangUploadGambar++;
+  try {
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = '';
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    const base64 = btoa(binary);
+    const safeName = String(file.name || 'soal-esai.pdf').replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${GAMBAR_SOAL_FOLDER}/esai-pdf-${Date.now()}-${safeName}`;
+    const res = await ghPutBinaryFile(path, base64, 'Upload PDF soal esai: ' + safeName);
+
+    const petunjuk = ((document.getElementById('esaiPdfPetunjuk') || {}).value || '').trim();
+    const soalBaru = {
+      id: 'q' + Date.now() + '-esaipdf',
+      tipe: 'esai',
+      pertanyaan: petunjuk || 'Kerjakan soal pada PDF berikut. Unggah jawaban dalam format PDF.',
+      gambar: '',
+      pdf_soal: (res.content && res.content.download_url) || '',
+      pilihan: {},
+      pilihan_gambar: {},
+      jawaban_benar: ''
+    };
+    if (!soalBaru.pdf_soal) throw new Error('URL PDF tidak tersedia dari GitHub.');
+
+    tambahSoal(soalBaru);
+    bersihkanSoalKosong();
+    updateSoalCountBadge();
+    setStatus('statusEsaiPdf', '✓ Soal esai PDF ditambahkan. Jangan lupa Simpan & Publish.', 'ok');
+    if (inputEl) inputEl.value = '';
+  } catch (e) {
+    console.warn(e);
+    setStatus('statusEsaiPdf', 'Gagal upload PDF: ' + (e && e.message ? e.message : e), 'err');
+  } finally {
+    sedangUploadGambar--;
+  }
 }
 
 async function pdfTambahSoalDariSeleksi() {
@@ -4870,7 +5043,7 @@ function tambahSoal(existing) {
   // Soal hasil impor/edit (sudah ada isinya) diciutkan otomatis biar halaman
   // tidak penuh; soal baru yang benar-benar kosong dibiarkan terbuka supaya
   // langsung bisa diisi.
-  const kosongSaatDibuat = !existing || !(existing.pertanyaan || existing.gambar);
+  const kosongSaatDibuat = !existing || !(existing.pertanyaan || existing.gambar || existing.pdf_soal);
   if (!kosongSaatDibuat) wrap.classList.add('collapsed');
 
   const huruf = ['A', 'B', 'C', 'D', 'E'];
@@ -4924,18 +5097,26 @@ function tambahSoal(existing) {
     </div>
 
     <div class="soal-field-group">
-      <label class="soal-field-label">Pertanyaan <span class="muted-hint">(LaTeX: $F=ma$ · boleh kosong jika hanya gambar)</span></label>
-      <textarea class="input-pertanyaan" oninput="updatePreview(this)">${(existing && existing.pertanyaan) || ''}</textarea>
+      <label class="soal-field-label">Pertanyaan <span class="muted-hint">(teks + rumus LaTeX + angka · boleh kosong jika hanya gambar)</span></label>
+      <div class="latex-toolbar" data-target="pertanyaan"></div>
+      <textarea class="input-pertanyaan" rows="3" oninput="updatePreview(this)" placeholder="Contoh: Sebuah benda bermassa $m=2\\,\\mathrm{kg}$ ditarik gaya $F=10\\,\\mathrm{N}$. Percepatannya…">${(existing && existing.pertanyaan) || ''}</textarea>
       <div class="preview preview-pertanyaan"></div>
     </div>
 
     <div class="soal-field-group soal-gambar-group">
-      <label class="soal-field-label">Gambar soal <span class="muted-hint">(opsional)</span></label>
+      <label class="soal-field-label">Gambar soal <span class="muted-hint">(opsional · upload / link / tempel Ctrl+V)</span></label>
       <div class="gambar-soal-row">
         <input type="file" accept="image/*" class="input-gambar-file" onchange="uploadGambarSoal(this)">
         <input type="text" class="input-gambar-url" placeholder="Atau tempel link gambar" value="${(existing && existing.gambar) || ''}" oninput="updatePreview(this)">
       </div>
+      <p class="paste-hint">Tip: fokus di area ini lalu tekan <kbd>Ctrl</kbd>+<kbd>V</kbd> (atau <kbd>⌘</kbd>+<kbd>V</kbd>) untuk tempel screenshot langsung.</p>
       <div class="preview preview-gambar"></div>
+    </div>
+
+    <div class="soal-field-group soal-pdf-group">
+      <label class="soal-field-label">PDF soal esai <span class="muted-hint">(opsional · untuk soal esai dari PDF utuh)</span></label>
+      <input type="text" class="input-pdf-soal-url" placeholder="URL PDF soal (otomatis terisi jika upload lewat menu Esai PDF)" value="${(existing && existing.pdf_soal) || ''}">
+      ${(existing && existing.pdf_soal) ? `<p class="help" style="margin:4px 0 0;"><a href="${String(existing.pdf_soal).replace(/"/g,'&quot;')}" target="_blank" rel="noopener">Buka PDF soal ↗</a></p>` : ''}
     </div>
 
     <div class="area-pg" style="margin-top:4px;">
@@ -4954,7 +5135,8 @@ function tambahSoal(existing) {
         <div class="pilihan-row" data-opsi="${h}">
           <span class="huruf-badge">${h}</span>
           <div class="pilihan-fields">
-            <input type="text" class="input-pilihan" data-huruf="${h}" placeholder="Teks opsi ${h}" value="${(pilihanExisting[h] || '').replace(/"/g,'&quot;')}" oninput="updatePreview(this)">
+            <div class="latex-toolbar" data-target="pilihan-${h}"></div>
+            <input type="text" class="input-pilihan" data-huruf="${h}" placeholder="Teks opsi ${h} (boleh $LaTeX$)" value="${(pilihanExisting[h] || '').replace(/"/g,'&quot;')}" oninput="updatePreview(this)">
             <div class="pilihan-gambar-row">
               <input type="file" accept="image/*" class="input-pilihan-gambar-file" data-huruf="${h}" onchange="uploadGambarPilihan(this)">
               <input type="text" class="input-pilihan-gambar-url" data-huruf="${h}" placeholder="Link gambar ${h}" value="${String(pg).replace(/"/g,'&quot;')}" oninput="updatePreview(this)">
@@ -4973,8 +5155,8 @@ function tambahSoal(existing) {
 
     <div class="area-isian" style="margin-top:16px; display:none;">
       <label class="soal-field-label">Kunci jawaban isian</label>
-      <input type="text" class="input-kunci-isian" placeholder="Contoh: 10 N  |  10N  (alternatif dipisah |)" value="${String(kunciIsian).replace(/"/g,'&quot;')}">
-      <p class="help" style="margin-top:4px;">Huruf besar/kecil dan spasi diabaikan saat penilaian.</p>
+      <input type="text" class="input-kunci-isian" placeholder="Contoh: 10 | 10N | 10 n" value="${String(kunciIsian).replace(/"/g,'&quot;')}">
+      <p class="help" style="margin-top:4px;">Beberapa jawaban benar dipisah <b>|</b>. Huruf besar/kecil &amp; spasi diabaikan. Angka desimal: <code>0.5|0,5|1/2</code>.</p>
     </div>
 
     <div class="area-esai" style="margin-top:16px; display:none;">
@@ -4982,8 +5164,9 @@ function tambahSoal(existing) {
     </div>
 
     <div class="soal-field-group" style="margin-top:16px;">
-      <label class="soal-field-label">Pembahasan <span class="muted-hint">(opsional, boleh LaTeX)</span></label>
-      <textarea class="input-pembahasan" oninput="updatePreview(this)">${(existing && existing.pembahasan) || ''}</textarea>
+      <label class="soal-field-label">Pembahasan <span class="muted-hint">(opsional · teks + LaTeX + angka)</span></label>
+      <div class="latex-toolbar" data-target="pembahasan"></div>
+      <textarea class="input-pembahasan" rows="3" oninput="updatePreview(this)" placeholder="Contoh: $$a=F/m=10/2=5\\,\\mathrm{m/s^2}$$">${(existing && existing.pembahasan) || ''}</textarea>
       <div class="preview preview-pembahasan"></div>
     </div>
     </div>
@@ -4993,6 +5176,8 @@ function tambahSoal(existing) {
   renumberSoal();
   onGantiTipeSoal(uid);
   onToggleOpsiOtomatis(uid);
+  initLatexToolbars(wrap);
+  enablePasteGambarPadaBlok(wrap);
   wrap.querySelectorAll('.input-pertanyaan, .input-pilihan, .input-pembahasan, .input-gambar-url, .input-pilihan-gambar-url').forEach(updatePreview);
   updateRingkasanSoal(uid);
 }
@@ -5069,25 +5254,143 @@ function onGantiTipeSoal(uid) {
   }
 }
 
+/* ========== Helper: teks aman + LaTeX, toolbar rumus, tempel gambar ========== */
+function escHtmlTeks(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** Escape HTML, ubah baris baru jadi <br>, biarkan $...$ / $$...$$ untuk MathJax. */
+function formatTeksDenganLatex(teks) {
+  if (!teks) return '';
+  return escHtmlTeks(teks).replace(/\n/g, '<br>');
+}
+
+const LATEX_SNIPPETS = [
+  { label: 'F=ma', code: '$F=ma$' },
+  { label: '½mv²', code: '$\\tfrac{1}{2}mv^{2}$' },
+  { label: '√', code: '$\\sqrt{ }$' },
+  { label: 'frac', code: '$\\dfrac{a}{b}$' },
+  { label: '×10ⁿ', code: '$\\times 10^{n}$' },
+  { label: 'θ', code: '$\\theta$' },
+  { label: 'Δ', code: '$\\Delta$' },
+  { label: '→', code: '$\\vec{v}$' },
+  { label: '∑', code: '$\\sum$' },
+  { label: 'sin', code: '$\\sin\\theta$' },
+  { label: 'π', code: '$\\pi$' },
+  { label: '°C', code: '$^{\\circ}\\mathrm{C}$' },
+  { label: 'm/s²', code: '$\\mathrm{m/s^{2}}$' },
+  { label: 'blok', code: '$$  $$' }
+];
+
+function insertLatexAtCursor(inputEl, code) {
+  if (!inputEl) return;
+  inputEl.focus();
+  const start = inputEl.selectionStart != null ? inputEl.selectionStart : inputEl.value.length;
+  const end = inputEl.selectionEnd != null ? inputEl.selectionEnd : start;
+  const before = inputEl.value.slice(0, start);
+  const after = inputEl.value.slice(end);
+  inputEl.value = before + code + after;
+  const pos = start + code.length;
+  try { inputEl.setSelectionRange(pos, pos); } catch (e) { /* ignore */ }
+  inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+  updatePreview(inputEl);
+}
+
+function initLatexToolbars(root) {
+  if (!root) return;
+  root.querySelectorAll('.latex-toolbar').forEach(bar => {
+    if (bar.dataset.ready) return;
+    bar.dataset.ready = '1';
+    const target = bar.dataset.target || '';
+    let html = '<span class="ltx-label">Rumus:</span>';
+    LATEX_SNIPPETS.forEach(s => {
+      html += `<button type="button" title="${escHtmlTeks(s.code)}" data-ltx="${escHtmlTeks(s.code)}">${escHtmlTeks(s.label)}</button>`;
+    });
+    bar.innerHTML = html;
+    bar.addEventListener('click', function (ev) {
+      const btn = ev.target.closest('button[data-ltx]');
+      if (!btn) return;
+      ev.preventDefault();
+      const code = btn.getAttribute('data-ltx') || '';
+      let inputEl = null;
+      if (target === 'pertanyaan') {
+        inputEl = root.querySelector('.input-pertanyaan');
+      } else if (target === 'pembahasan') {
+        inputEl = root.querySelector('.input-pembahasan');
+      } else if (target.indexOf('pilihan-') === 0) {
+        const h = target.replace('pilihan-', '');
+        inputEl = root.querySelector('.input-pilihan[data-huruf="' + h + '"]');
+      }
+      if (inputEl) insertLatexAtCursor(inputEl, code);
+    });
+  });
+}
+
+/**
+ * Tempel screenshot (clipboard image) langsung ke gambar soal.
+ * Fokus di dalam kartu soal → Ctrl+V / ⌘+V.
+ */
+function enablePasteGambarPadaBlok(block) {
+  if (!block || block.dataset.pasteBound) return;
+  block.dataset.pasteBound = '1';
+  block.addEventListener('paste', async function (ev) {
+    const items = ev.clipboardData && ev.clipboardData.items;
+    if (!items) return;
+    let file = null;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type && items[i].type.indexOf('image') === 0) {
+        file = items[i].getAsFile();
+        break;
+      }
+    }
+    if (!file) return;
+    // Jangan ganggu paste teks di textarea/input teks
+    const tag = (ev.target && ev.target.tagName || '').toLowerCase();
+    if (tag === 'textarea' || (tag === 'input' && ev.target.type === 'text')) {
+      // tetap izinkan paste gambar jika clipboard murni image
+      // (banyak browser mengisi items image saja saat screenshot)
+    }
+    ev.preventDefault();
+    const fileInput = block.querySelector('.input-gambar-file');
+    if (!fileInput) return;
+    try {
+      const dt = new DataTransfer();
+      dt.items.add(new File([file], 'paste-' + Date.now() + '.png', { type: file.type || 'image/png' }));
+      fileInput.files = dt.files;
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch (err) {
+      console.warn('Gagal tempel gambar:', err);
+      alert('Gagal menempel gambar dari clipboard. Coba upload manual.');
+    }
+  });
+}
+
 function updatePreview(inputEl) {
   const block = inputEl.closest('.soal-block');
+  if (!block) return;
   if (inputEl.classList.contains('input-pertanyaan')) {
     const prev = block.querySelector('.preview-pertanyaan');
-    prev.innerHTML = inputEl.value;
-    renderKatexIn(prev);
+    if (prev) {
+      prev.innerHTML = formatTeksDenganLatex(inputEl.value);
+      renderKatexIn(prev);
+    }
     updateRingkasanSoal(block.id);
   } else if (inputEl.classList.contains('input-pilihan')) {
     const h = inputEl.dataset.huruf;
     const prev = block.querySelector('.preview-pilihan-' + h);
     if (prev) {
-      prev.innerHTML = inputEl.value;
+      prev.innerHTML = formatTeksDenganLatex(inputEl.value);
       renderKatexIn(prev);
     }
   } else if (inputEl.classList.contains('input-pilihan-gambar-url')) {
     const h = inputEl.dataset.huruf;
     const prev = block.querySelector('.preview-pilihan-gambar-' + h);
     const val = inputEl.value.trim();
-    if (prev) prev.innerHTML = val ? `<img src="${val}" alt="Opsi ${h}">` : '';
+    if (prev) prev.innerHTML = val ? `<img src="${escHtmlTeks(val)}" alt="Opsi ${h}">` : '';
     // Kalau soal ini sedang jadi target di kotak "crop opsi jawaban dari PDF",
     // segarkan chip status A–E-nya biar tidak ketinggalan info.
     const selSoalPdf = document.getElementById('pdfSoalTujuan');
@@ -5096,12 +5399,18 @@ function updatePreview(inputEl) {
     }
   } else if (inputEl.classList.contains('input-pembahasan')) {
     const prev = block.querySelector('.preview-pembahasan');
-    prev.innerHTML = inputEl.value;
-    renderKatexIn(prev);
+    if (prev) {
+      prev.innerHTML = formatTeksDenganLatex(inputEl.value);
+      renderKatexIn(prev);
+    }
   } else if (inputEl.classList.contains('input-gambar-url')) {
     const prev = block.querySelector('.preview-gambar');
     const val = inputEl.value.trim();
-    prev.innerHTML = val ? `<img src="${val}" alt="Preview gambar soal" style="max-width:220px;border-radius:8px;display:block;">` : '';
+    if (prev) {
+      prev.innerHTML = val
+        ? `<img src="${escHtmlTeks(val)}" alt="Preview gambar soal" style="max-width:220px;border-radius:8px;display:block;">`
+        : '';
+    }
     updateRingkasanSoal(block.id);
   }
 }
@@ -5171,6 +5480,7 @@ function bacaSatuSoalDariBlock(block) {
   if (!block) return null;
   const pertanyaan = (block.querySelector('.input-pertanyaan') || {}).value || '';
   const gambar = (block.querySelector('.input-gambar-url') || {}).value || '';
+  const pdf_soal = ((block.querySelector('.input-pdf-soal-url') || {}).value || '').trim();
   const tipe = (block.querySelector('.input-tipe-soal') || {}).value || 'pg5';
   const pembahasan = (block.querySelector('.input-pembahasan') || {}).value || '';
   const base = {
@@ -5180,6 +5490,7 @@ function bacaSatuSoalDariBlock(block) {
     gambar: gambar.trim(),
     pembahasan: pembahasan.trim()
   };
+  if (pdf_soal) base.pdf_soal = pdf_soal;
   if (tipe === 'isian') {
     const kunci = ((block.querySelector('.input-kunci-isian') || {}).value || '').trim();
     return { ...base, kunci_isian: kunci, jawaban_benar: kunci, pilihan: {}, pilihan_gambar: {} };
@@ -5229,11 +5540,13 @@ function kumpulkanDataForm() {
   const soal = blocks.map((block, i) => {
     const pertanyaan = block.querySelector('.input-pertanyaan').value.trim();
     const gambar = block.querySelector('.input-gambar-url').value.trim();
-    if (!pertanyaan && !gambar) throw new Error(`Soal #${i + 1}: isi pertanyaan teks, atau upload/isi gambar soal.`);
+    const pdf_soal = ((block.querySelector('.input-pdf-soal-url') || {}).value || '').trim();
+    if (!pertanyaan && !gambar && !pdf_soal) throw new Error(`Soal #${i + 1}: isi pertanyaan teks, gambar, atau PDF soal.`);
 
     const tipe = (block.querySelector('.input-tipe-soal') || {}).value || 'pg5';
     const pembahasan = block.querySelector('.input-pembahasan').value.trim();
     const base = { id: block.dataset.soalId, tipe, pertanyaan, gambar, pembahasan };
+    if (pdf_soal) base.pdf_soal = pdf_soal;
 
     if (tipe === 'isian') {
       const kunci = (block.querySelector('.input-kunci-isian') || {}).value.trim();
@@ -5408,19 +5721,141 @@ async function simpanPaket() {
   }
 }
 
-// ================== KELOLA PESERTA (WHITELIST NAMA & NOMOR UJIAN) ==================
+// ================== KELOLA PESERTA (TOKEN NOMOR UJIAN) ==================
 const DAFTAR_PESERTA_PATH = "data/daftar-peserta.json";
 let pesertaCache = { content: [], sha: null };
 let editingNoUjianAsli = null; // dipakai saat mode edit peserta
 
-async function loadDaftarPesertaAdmin() {
-  setStatus('statusPeserta', 'Memuat daftar peserta…', 'loading');
+/**
+ * Token nomor ujian: sulit ditebak, mudah dibaca.
+ * Format: KF-XXXXXXXXXXXX (12 karakter dari alfabet tanpa 0/O/1/I/L)
+ * Entropy ~ 60+ bit → brute-force lewat form login tidak praktis.
+ */
+const TOKEN_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // tanpa 0 O 1 I L
+const TOKEN_LEN = 12;
+
+function generateTokenPeserta() {
+  const arr = new Uint8Array(TOKEN_LEN);
+  if (window.crypto && crypto.getRandomValues) {
+    crypto.getRandomValues(arr);
+  } else {
+    for (let i = 0; i < TOKEN_LEN; i++) arr[i] = Math.floor(Math.random() * 256);
+  }
+  let body = '';
+  for (let i = 0; i < TOKEN_LEN; i++) {
+    body += TOKEN_ALPHABET[arr[i] % TOKEN_ALPHABET.length];
+  }
+  // sisipkan strip di tengah biar mudah dibaca: KF-XXXX-XXXX-XXXX
+  return 'KF-' + body.slice(0, 4) + '-' + body.slice(4, 8) + '-' + body.slice(8, 12);
+}
+
+function tokenSudahAda(token, kecualiNo) {
+  const t = String(token || '').toLowerCase();
+  return pesertaCache.content.some(p =>
+    String(p.noUjian).toLowerCase() === t &&
+    String(p.noUjian) !== String(kecualiNo || '')
+  );
+}
+
+function generateTokenUnik(kecualiNo) {
+  for (let i = 0; i < 30; i++) {
+    const t = generateTokenPeserta();
+    if (!tokenSudahAda(t, kecualiNo)) return t;
+  }
+  // fallback sangat jarang
+  return generateTokenPeserta() + '-' + Date.now().toString(36).toUpperCase().slice(-4);
+}
+
+function isiTokenAcakKeForm() {
+  document.getElementById('pNoUjian').value = generateTokenUnik(editingNoUjianAsli);
+}
+
+/**
+ * Simpan peserta ke Google Sheet (sumber kebenaran) + kosongkan JSON publik di GitHub
+ * agar token tidak bocor lewat Pages.
+ */
+async function persistPesertaKeServerDanTutupJSON(newContent, commitMsg) {
+  if (!hasilScriptUrl || !hasilAdminKey) {
+    throw new Error('Isi URL Apps Script & Kode Rahasia Admin di bagian "Unduh Hasil Tryout" (sama dengan ADMIN_KEY), lalu simpan konfigurasi.');
+  }
+  const syncRes = await fetch(hasilScriptUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      action: 'syncPeserta',
+      key: hasilAdminKey,
+      peserta: newContent
+    })
+  });
+  const syncData = await syncRes.json();
+  if (!syncData || syncData.status !== 'ok') {
+    throw new Error((syncData && syncData.message) || 'Gagal syncPeserta ke server');
+  }
+  let sha = pesertaCache.sha;
   try {
-    const result = await ghGetFile(DAFTAR_PESERTA_PATH);
-    pesertaCache = result ? { content: result.content, sha: result.sha } : { content: [], sha: null };
+    const putRes = await ghPutFile(
+      DAFTAR_PESERTA_PATH,
+      [],
+      sha,
+      (commitMsg || 'Update peserta') + ' — tutup kebocoran JSON publik'
+    );
+    sha = putRes.content && putRes.content.sha ? putRes.content.sha : sha;
+  } catch (e) {
+    console.warn('Gagal mengosongkan JSON publik:', e);
+  }
+  pesertaCache = { content: newContent, sha: sha };
+  return syncData;
+}
+
+async function loadDaftarPesertaAdmin() {
+  setStatus('statusPeserta', 'Memuat daftar peserta dari server…', 'loading');
+  try {
+    let sha = null;
+    try {
+      const gh = await ghGetFile(DAFTAR_PESERTA_PATH);
+      if (gh) sha = gh.sha;
+    } catch (e) { /* ignore */ }
+
+    if (!hasilScriptUrl || !hasilAdminKey) {
+      setStatus('statusPeserta', 'Isi URL Apps Script & Kode Rahasia Admin (bagian hasil tryout) agar daftar peserta aman di server.', 'err');
+      pesertaCache = { content: [], sha: sha };
+      renderPesertaAdminList();
+      return;
+    }
+
+    const res = await fetch(hasilScriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'listPeserta', key: hasilAdminKey })
+    });
+    const data = await res.json();
+    if (data && data.status === 'ok' && Array.isArray(data.peserta)) {
+      pesertaCache = { content: data.peserta, sha: sha };
+      if (!data.peserta.length && sha) {
+        try {
+          const gh = await ghGetFile(DAFTAR_PESERTA_PATH);
+          if (gh && Array.isArray(gh.content) && gh.content.length) {
+            setStatus('statusPeserta', 'Migrasi peserta dari JSON lama ke server…', 'loading');
+            await persistPesertaKeServerDanTutupJSON(gh.content, 'Migrasi peserta ke server');
+            setStatus('statusPeserta', '✓ Migrasi selesai. JSON publik dikosongkan.', 'ok');
+            renderPesertaAdminList();
+            updateAdminDashboard();
+            return;
+          }
+        } catch (e) { /* ignore */ }
+      }
+      renderPesertaAdminList();
+      updateAdminDashboard();
+      document.getElementById('statusPeserta').classList.remove('show');
+      return;
+    }
+    if (data && data.message === 'unauthorized') {
+      setStatus('statusPeserta', 'Kode Rahasia Admin salah. Samakan dengan ADMIN_KEY di Apps Script.', 'err');
+    } else {
+      setStatus('statusPeserta', 'Gagal memuat dari server. Deploy ulang code.gs (action listPeserta).', 'err');
+    }
+    pesertaCache = { content: [], sha: sha };
     renderPesertaAdminList();
-    updateAdminDashboard();
-    document.getElementById('statusPeserta').classList.remove('show');
   } catch (e) {
     setStatus('statusPeserta', 'Gagal memuat daftar peserta: ' + e.message, 'err');
   }
@@ -5429,10 +5864,12 @@ async function loadDaftarPesertaAdmin() {
 function renderPesertaAdminList() {
   const box = document.getElementById('pesertaAdminList');
   if (!pesertaCache.content.length) {
-    box.innerHTML = '<p class="help">Belum ada peserta terdaftar.</p>';
+    box.innerHTML = '<p class="help">Belum ada peserta. Tambah nama di bawah — token dibuat otomatis.</p>';
     return;
   }
-  box.innerHTML = pesertaCache.content.map(p => {
+  box.innerHTML = `
+    <p class="help" style="margin-bottom:10px;">${pesertaCache.content.length} peserta · unduh Excel/PDF untuk bagikan token (jangan share file JSON).</p>
+    ` + pesertaCache.content.map(p => {
     const paketLabel = (!p.paket || p.paket === 'semua' || (Array.isArray(p.paket) && !p.paket.length))
       ? 'Semua paket'
       : (Array.isArray(p.paket) ? p.paket.join(', ') : p.paket);
@@ -5440,20 +5877,130 @@ function renderPesertaAdminList() {
     const statusBadge = aktif
       ? '<span style="color:var(--hijau); font-weight:700;">● Aktif</span>'
       : '<span style="color:var(--merah); font-weight:700;">● Belum aktif</span>';
-    const noUjianSafe = String(p.noUjian).replace(/'/g, "\\'");
+    const noUjianSafe = String(p.noUjian).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const tokenTampil = String(p.noUjian || '');
     return `
     <div class="paket-item">
       <div class="info">
-        <b>${p.nama}</b>
-        <span>No. Ujian: ${p.noUjian} · Paket: ${paketLabel} · ${statusBadge}${p.ujiCoba ? ' · <span style="color:#b5650a; font-weight:700;">🔁 Uji coba</span>' : ''}</span>
+        <b>${escHtmlTeks ? escHtmlTeks(p.nama) : p.nama}</b>
+        <span style="font-family:ui-monospace,monospace; letter-spacing:0.03em;">Token: <b>${escHtmlTeks ? escHtmlTeks(tokenTampil) : tokenTampil}</b></span>
+        <span>Paket: ${paketLabel} · ${statusBadge}${p.ujiCoba ? ' · <span style="color:#b5650a; font-weight:700;">🔁 Uji coba</span>' : ''}</span>
       </div>
       <div class="aksi">
+        <button class="btn btn-outline" onclick="salinTokenPeserta('${noUjianSafe}')" title="Salin token">📋</button>
         <button class="btn btn-outline" onclick="toggleAktifPeserta('${noUjianSafe}')">${aktif ? 'Nonaktifkan' : 'Aktifkan'}</button>
         <button class="btn btn-outline" onclick="editPesertaSatu('${noUjianSafe}')">Edit</button>
         <button class="btn btn-outline" style="color:#c0392b;" onclick="hapusPesertaSatu('${noUjianSafe}')">Hapus</button>
       </div>
     </div>`;
   }).join('');
+}
+
+function salinTokenPeserta(token) {
+  const t = String(token || '');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(() => {
+      setStatus('statusPeserta', '✓ Token disalin: ' + t, 'ok');
+    }).catch(() => { prompt('Salin token ini:', t); });
+  } else {
+    prompt('Salin token ini:', t);
+  }
+}
+
+/** Unduh daftar peserta (Nama + Token) sebagai CSV Excel-friendly */
+function unduhDaftarPesertaExcel() {
+  const list = pesertaCache.content || [];
+  if (!list.length) { alert('Belum ada peserta untuk diunduh.'); return; }
+  const rows = [['No', 'Nama Lengkap', 'Token Nomor Ujian', 'Paket', 'Status', 'Uji Coba']];
+  list.forEach((p, i) => {
+    const paketLabel = (!p.paket || p.paket === 'semua' || (Array.isArray(p.paket) && !p.paket.length))
+      ? 'Semua paket'
+      : (Array.isArray(p.paket) ? p.paket.join('; ') : String(p.paket));
+    rows.push([
+      String(i + 1),
+      p.nama || '',
+      p.noUjian || '',
+      paketLabel,
+      p.aktif === false ? 'Nonaktif' : 'Aktif',
+      p.ujiCoba ? 'Ya' : 'Tidak'
+    ]);
+  });
+  const esc = (v) => {
+    const s = String(v == null ? '' : v);
+    if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  };
+  // BOM agar Excel Windows baca UTF-8
+  const csv = '\uFEFF' + rows.map(r => r.map(esc).join(',')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'daftar-token-peserta-' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  setStatus('statusPeserta', '✓ File Excel (CSV) diunduh. Bagikan token ke masing-masing peserta secara pribadi.', 'ok');
+}
+
+/** Unduh daftar peserta sebagai PDF rapi */
+function unduhDaftarPesertaPDF() {
+  const list = pesertaCache.content || [];
+  if (!list.length) { alert('Belum ada peserta untuk diunduh.'); return; }
+  if (typeof window.jspdf === 'undefined' && typeof window.jsPDF === 'undefined') {
+    // jspdf dimuat sebagai jspdf.umd
+  }
+  const JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if (!JsPDF) {
+    alert('Pustaka PDF belum termuat. Muat ulang halaman, lalu coba lagi.');
+    return;
+  }
+  const doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const margin = 14;
+  let y = 18;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Daftar Token Peserta Tryout', margin, y);
+  y += 7;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(80);
+  doc.text('KlinikFisikapku · ' + new Date().toLocaleString('id-ID') + ' · RAHASIA — jangan sebar publik', margin, y);
+  y += 8;
+  doc.setTextColor(0);
+
+  const useAutoTable = typeof doc.autoTable === 'function';
+  if (useAutoTable) {
+    doc.autoTable({
+      startY: y,
+      head: [['No', 'Nama Lengkap', 'Token Nomor Ujian', 'Status']],
+      body: list.map((p, i) => [
+        String(i + 1),
+        p.nama || '',
+        p.noUjian || '',
+        p.aktif === false ? 'Nonaktif' : (p.ujiCoba ? 'Aktif (uji coba)' : 'Aktif')
+      ]),
+      styles: { fontSize: 9, cellPadding: 2.5 },
+      headStyles: { fillColor: [123, 47, 247], textColor: 255 },
+      columnStyles: {
+        0: { cellWidth: 12 },
+        2: { fontStyle: 'bold', font: 'courier', cellWidth: 55 }
+      },
+      margin: { left: margin, right: margin }
+    });
+  } else {
+    list.forEach((p, i) => {
+      if (y > 280) { doc.addPage(); y = 18; }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text((i + 1) + '. ' + (p.nama || '-'), margin, y);
+      y += 5;
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(10);
+      doc.text('Token: ' + (p.noUjian || '-'), margin + 4, y);
+      y += 7;
+    });
+  }
+  doc.save('daftar-token-peserta-' + new Date().toISOString().slice(0, 10) + '.pdf');
+  setStatus('statusPeserta', '✓ PDF diunduh. Bagikan token ke peserta secara pribadi (WA/email pribadi).', 'ok');
 }
 
 async function toggleAktifPeserta(noUjian) {
@@ -5464,13 +6011,12 @@ async function toggleAktifPeserta(noUjian) {
   const newContent = pesertaCache.content.map(p =>
     String(p.noUjian) === noUjian ? { ...p, aktif: aktifBaru } : p
   );
-  setStatus('statusPeserta', 'Menyimpan status…', 'loading');
+  setStatus('statusPeserta', 'Menyimpan status ke server…', 'loading');
   try {
-    const putRes = await ghPutFile(DAFTAR_PESERTA_PATH, newContent, pesertaCache.sha, `${aktifBaru ? 'Aktifkan' : 'Nonaktifkan'} peserta: ${noUjian}`);
-    pesertaCache = { content: newContent, sha: putRes.content.sha };
+    await persistPesertaKeServerDanTutupJSON(newContent, (aktifBaru ? 'Aktifkan' : 'Nonaktifkan') + ' peserta: ' + noUjian);
     renderPesertaAdminList();
     updateAdminDashboard();
-    setStatus('statusPeserta', aktifBaru ? '✓ Peserta diaktifkan.' : '✓ Peserta dinonaktifkan.', 'ok');
+    setStatus('statusPeserta', aktifBaru ? '✓ Peserta diaktifkan (server).' : '✓ Peserta dinonaktifkan (server).', 'ok');
   } catch (e) {
     setStatus('statusPeserta', 'Gagal: ' + e.message, 'err');
   }
@@ -5540,9 +6086,15 @@ function pilihNomorUjiCoba(no) {
 
 async function simpanSatuPeserta() {
   if (!ghToken) { alert('Masukkan & simpan token GitHub dulu di bagian atas.'); return; }
-  const noUjian = document.getElementById('pNoUjian').value.trim();
   const nama = document.getElementById('pNama').value.trim();
-  if (!noUjian || !nama) { setStatus('statusPeserta', 'Nomor Ujian dan Nama wajib diisi.', 'err'); return; }
+  if (!nama) { setStatus('statusPeserta', 'Nama lengkap wajib diisi.', 'err'); return; }
+
+  let noUjian = document.getElementById('pNoUjian').value.trim();
+  // Mode tambah baru: kosong → generate token otomatis
+  if (!noUjian) {
+    noUjian = generateTokenUnik(editingNoUjianAsli);
+    document.getElementById('pNoUjian').value = noUjian;
+  }
 
   const mode = document.getElementById('pPaketMode').value;
   let paket = 'semua';
@@ -5556,16 +6108,15 @@ async function simpanSatuPeserta() {
   const dup = pesertaCache.content.find(p =>
     String(p.noUjian).toLowerCase() === noUjian.toLowerCase() && String(p.noUjian) !== editingNoUjianAsli
   );
-  if (dup) { setStatus('statusPeserta', `Nomor Ujian "${noUjian}" sudah dipakai peserta lain.`, 'err'); return; }
+  if (dup) { setStatus('statusPeserta', `Token "${noUjian}" sudah dipakai peserta lain. Klik 🎲 Token untuk yang baru.`, 'err'); return; }
 
   let newContent = pesertaCache.content.filter(p => String(p.noUjian) !== editingNoUjianAsli);
   newContent.push({ noUjian, nama, paket, aktif, ujiCoba });
 
-  setStatus('statusPeserta', 'Menyimpan…', 'loading');
+  setStatus('statusPeserta', 'Menyimpan ke server…', 'loading');
   try {
-    const putRes = await ghPutFile(DAFTAR_PESERTA_PATH, newContent, pesertaCache.sha, `${editingNoUjianAsli ? 'Update' : 'Tambah'} peserta: ${nama} (${noUjian})`);
-    pesertaCache = { content: newContent, sha: putRes.content.sha };
-    setStatus('statusPeserta', '✓ Peserta tersimpan.', 'ok');
+    await persistPesertaKeServerDanTutupJSON(newContent, (editingNoUjianAsli ? 'Update' : 'Tambah') + ' peserta: ' + nama);
+    setStatus('statusPeserta', '✓ Tersimpan di server. Token: ' + noUjian + ' — unduh Excel/PDF. JSON publik dikosongkan.', 'ok');
     renderPesertaAdminList();
     batalEditPeserta();
   } catch (e) {
@@ -5574,47 +6125,88 @@ async function simpanSatuPeserta() {
 }
 
 async function hapusPesertaSatu(noUjian) {
-  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
-  if (!confirm(`Hapus peserta dengan Nomor Ujian "${noUjian}"?`)) return;
+  if (!confirm('Hapus peserta dengan token "' + noUjian + '"?')) return;
   const newContent = pesertaCache.content.filter(p => String(p.noUjian) !== noUjian);
-  setStatus('statusPeserta', 'Menghapus…', 'loading');
+  setStatus('statusPeserta', 'Menghapus di server…', 'loading');
   try {
-    const putRes = await ghPutFile(DAFTAR_PESERTA_PATH, newContent, pesertaCache.sha, `Hapus peserta: ${noUjian}`);
-    pesertaCache = { content: newContent, sha: putRes.content.sha };
+    await persistPesertaKeServerDanTutupJSON(newContent, 'Hapus peserta: ' + noUjian);
     renderPesertaAdminList();
-    document.getElementById('statusPeserta').classList.remove('show');
+    setStatus('statusPeserta', '✓ Peserta dihapus dari server.', 'ok');
   } catch (e) {
     setStatus('statusPeserta', 'Gagal menghapus: ' + e.message, 'err');
   }
 }
 
+/**
+ * Deteksi baris bulk:
+ * - "Nama Lengkap" saja → generate token
+ * - "TOKEN, Nama" jika bagian kiri mirip token (KF-... atau tanpa spasi pendek)
+ */
+function parseBarisBulkPeserta(line) {
+  const raw = String(line || '').trim();
+  if (!raw) return null;
+  const comma = raw.indexOf(',');
+  if (comma > 0) {
+    const left = raw.slice(0, comma).trim();
+    const right = raw.slice(comma + 1).trim();
+    // Token manual: tidak ada spasi di kiri, panjang >= 4, dan ada nama di kanan
+    if (right && left && !/\s/.test(left) && left.length >= 4 && left.length <= 40) {
+      return { noUjian: left, nama: right, manualToken: true };
+    }
+  }
+  // Nama saja (boleh mengandung koma di nama keluarga → anggap seluruh baris nama)
+  return { noUjian: null, nama: raw, manualToken: false };
+}
+
 async function simpanBulkPeserta() {
   if (!ghToken) { alert('Masukkan & simpan token GitHub dulu di bagian atas.'); return; }
   const raw = document.getElementById('pBulkText').value.trim();
-  if (!raw) { setStatus('statusPeserta', 'Isi daftar peserta dulu di kotak bulk.', 'err'); return; }
+  if (!raw) { setStatus('statusPeserta', 'Isi daftar nama peserta dulu (satu nama per baris).', 'err'); return; }
 
   const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
   const tambahan = [];
+  const tokensDipakai = new Set(
+    pesertaCache.content.map(p => String(p.noUjian).toLowerCase())
+  );
+
   for (const line of lines) {
-    const parts = line.split(',');
-    if (parts.length < 2) { setStatus('statusPeserta', `Format salah di baris: "${line}". Gunakan: NomorUjian, Nama`, 'err'); return; }
-    const noUjian = parts[0].trim();
-    const nama = parts.slice(1).join(',').trim();
-    if (!noUjian || !nama) { setStatus('statusPeserta', `Format salah di baris: "${line}".`, 'err'); return; }
-    tambahan.push({ noUjian, nama, paket: 'semua', aktif: true });
+    const parsed = parseBarisBulkPeserta(line);
+    if (!parsed || !parsed.nama) {
+      setStatus('statusPeserta', 'Baris tidak valid: "' + line + '"', 'err');
+      return;
+    }
+    let noUjian = parsed.noUjian;
+    if (!noUjian) {
+      // generate unik vs cache + batch ini
+      for (let n = 0; n < 40; n++) {
+        const t = generateTokenPeserta();
+        if (!tokensDipakai.has(t.toLowerCase())) {
+          noUjian = t;
+          break;
+        }
+      }
+      if (!noUjian) noUjian = generateTokenPeserta() + '-' + Date.now().toString(36).toUpperCase().slice(-3);
+    }
+    if (tokensDipakai.has(String(noUjian).toLowerCase())) {
+      setStatus('statusPeserta', 'Token bentrok: ' + noUjian + ' (baris: ' + line + '). Hapus baris itu atau ganti token.', 'err');
+      return;
+    }
+    tokensDipakai.add(String(noUjian).toLowerCase());
+    tambahan.push({ noUjian, nama: parsed.nama, paket: 'semua', aktif: true, ujiCoba: false });
   }
 
   let newContent = [...pesertaCache.content];
+  // Bulk nama baru: selalu tambah (tidak replace berdasarkan nama, agar 2 orang se-nama OK)
+  // Jika token manual sama → replace entri token itu
   tambahan.forEach(t => {
-    newContent = newContent.filter(p => String(p.noUjian).toLowerCase() !== t.noUjian.toLowerCase());
+    newContent = newContent.filter(p => String(p.noUjian).toLowerCase() !== String(t.noUjian).toLowerCase());
     newContent.push(t);
   });
 
-  setStatus('statusPeserta', 'Menyimpan…', 'loading');
+  setStatus('statusPeserta', 'Menyimpan ' + tambahan.length + ' peserta ke server…', 'loading');
   try {
-    const putRes = await ghPutFile(DAFTAR_PESERTA_PATH, newContent, pesertaCache.sha, `Tambah ${tambahan.length} peserta (bulk)`);
-    pesertaCache = { content: newContent, sha: putRes.content.sha };
-    setStatus('statusPeserta', `✓ ${tambahan.length} peserta berhasil ditambahkan/diupdate.`, 'ok');
+    await persistPesertaKeServerDanTutupJSON(newContent, 'Tambah ' + tambahan.length + ' peserta (token)');
+    setStatus('statusPeserta', '✓ ' + tambahan.length + ' peserta di server. Unduh Excel/PDF. JSON publik dikosongkan.', 'ok');
     renderPesertaAdminList();
     document.getElementById('pBulkText').value = '';
   } catch (e) {
@@ -6411,6 +7003,39 @@ function parseJawabanEsaiDariBaris(row) {
 
 let esaiCache = { meta: null, peserta: [] };
 
+/** Unduh PDF jawaban esai privat (butuh ADMIN_KEY) — file tidak punya link publik */
+async function unduhEsaiFilePrivat(fileId) {
+  if (!hasilScriptUrl || !hasilAdminKey) {
+    alert('Isi URL Apps Script & Kode Rahasia Admin dulu.');
+    return;
+  }
+  try {
+    setStatus('statusEsai', 'Mengunduh file privat…', 'loading');
+    const res = await fetch(hasilScriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'unduhEsaiFile', key: hasilAdminKey, fileId: fileId })
+    });
+    const data = await res.json();
+    if (!data || data.status !== 'ok' || !data.base64) {
+      throw new Error((data && data.message) || 'Gagal unduh');
+    }
+    const byteChars = atob(data.base64);
+    const bytes = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+    const blob = new Blob([bytes], { type: data.mimeType || 'application/pdf' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = data.fileName || ('jawaban-esai-' + fileId + '.pdf');
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    setStatus('statusEsai', '✓ File diunduh (akses privat).', 'ok');
+  } catch (e) {
+    setStatus('statusEsai', 'Gagal unduh: ' + e.message, 'err');
+    alert('Gagal unduh file privat: ' + e.message);
+  }
+}
+
 async function ambilJawabanEsai() {
   if (!hasilScriptUrl || !hasilAdminKey) {
     setStatus('statusEsai', 'Isi & simpan dulu URL Apps Script dan Kode Rahasia Admin di tab "⚙️ Admin Tryout" bagian 5.', 'err');
@@ -6508,14 +7133,16 @@ function renderEsaiFolder(meta, pesertaList) {
         ? String(j.teks).replace(/</g, '&lt;')
         : '<span class="muted" style="font-style:italic;">(tidak ada jawaban teks)</span>';
 
-      // "link" biasanya URL Google Drive tempat file PDF disimpan Apps Script.
-      // Kalau Apps Script gagal simpan file, yang tersimpan di Sheet adalah TEKS
-      // PESAN ERROR, bukan URL — jadi divalidasi dulu sebelum dijadikan link klik.
+      // link: URL lama (publik) ATAU "drive:FILE_ID" (privat — unduh lewat ADMIN_KEY)
       let fileHtml;
-      if (j.link && /^https?:\/\//i.test(String(j.link).trim())) {
-        fileHtml = `<a class="btn btn-outline btn-sm" href="${j.link}" target="_blank" rel="noopener">📄 Buka</a>`;
-      } else if (j.link) {
-        fileHtml = `<span class="esai-warn" title="${String(j.link).replace(/"/g, '&quot;')}">⚠️ Gagal simpan</span>`;
+      const linkStr = String(j.link || '').trim();
+      if (linkStr.indexOf('drive:') === 0 || /^[a-zA-Z0-9_-]{20,}$/.test(linkStr)) {
+        const fid = linkStr.indexOf('drive:') === 0 ? linkStr.slice(6) : linkStr;
+        fileHtml = `<button type="button" class="btn btn-outline btn-sm" onclick="unduhEsaiFilePrivat('${fid.replace(/'/g, "\\'")}')">🔒 Unduh aman</button>`;
+      } else if (/^https?:\/\//i.test(linkStr)) {
+        fileHtml = `<a class="btn btn-outline btn-sm" href="${linkStr}" target="_blank" rel="noopener">📄 Buka</a>`;
+      } else if (linkStr) {
+        fileHtml = `<span class="esai-warn" title="${linkStr.replace(/"/g, '&quot;')}">⚠️ Gagal simpan</span>`;
       } else {
         fileHtml = `<span class="muted" style="font-size:12px;">-</span>`;
       }

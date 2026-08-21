@@ -1,0 +1,26 @@
+[
+  {
+    "id": "try-out-1-fisika-msijfznp",
+    "title": "TRY OUT 1 FISIKA",
+    "jenjang": "sma",
+    "topik": "PENGUKURAN",
+    "durasi_menit": 60,
+    "jumlah_soal": 1,
+    "file": "data/tryout/try-out-1-fisika-msijfznp.json",
+    "aktif": true,
+    "kode_akses": "",
+    "mode_hasil": "lengkap"
+  },
+  {
+    "id": "vektor-msijclly",
+    "title": "Vektor",
+    "jenjang": "sd",
+    "topik": "Kinematika",
+    "durasi_menit": 15,
+    "jumlah_soal": 4,
+    "file": "data/tryout/vektor-msijclly.json",
+    "aktif": true,
+    "kode_akses": "",
+    "mode_hasil": "lengkap"
+  }
+]

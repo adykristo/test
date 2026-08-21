@@ -24,6 +24,7 @@ window.MathJax = {
 </script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root{
     --ungu-tua:#3d1a63;
@@ -590,15 +591,20 @@ window.MathJax = {
     margin-bottom:12px;
   }
   .navigator button{
-    width:34px;
-    height:34px;
-    border-radius:8px;
+    width:36px;
+    height:36px;
+    border-radius:10px;
     border:1.5px solid #e0d0f0;
     background:#fff;
     color:var(--ungu-tua);
     font-size:12.5px;
     font-weight:700;
     cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
+  }
+  .navigator button:hover{
+    transform:translateY(-1px);
+    box-shadow:0 3px 10px rgba(123,47,247,0.12);
   }
   .navigator button.unanswered{
     background:#fff;
@@ -667,12 +673,14 @@ window.MathJax = {
   .soal-toolbar{
     display:flex;
     flex-wrap:wrap;
-    gap:8px;
+    gap:10px;
     align-items:center;
     justify-content:space-between;
-    margin-bottom:14px;
-    padding-bottom:12px;
-    border-bottom:1px solid #f0e2fa;
+    margin-bottom:18px;
+    padding:12px 14px;
+    background:linear-gradient(135deg, #faf7ff 0%, #fff5fb 100%);
+    border:1px solid #f0e2fa;
+    border-radius:14px;
   }
   .soal-toolbar .left, .soal-toolbar .right{
     display:flex;
@@ -681,72 +689,84 @@ window.MathJax = {
     align-items:center;
   }
   .btn-flag{
-    border:1.5px solid #e6a800;
-    background:#fff8e6;
-    color:#8a6d00;
-    border-radius:10px;
-    padding:7px 12px;
+    border:1.5px solid #f0d78c;
+    background:#fffbf0;
+    color:#9a7b00;
+    border-radius:12px;
+    padding:8px 14px;
     font-size:12.5px;
     font-weight:700;
     cursor:pointer;
     display:inline-flex;
     align-items:center;
     gap:6px;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
   }
   .btn-flag.active{
-    background:#e6a800;
+    background:linear-gradient(135deg, #f0b429, #e6a800);
     color:#fff;
+    border-color:transparent;
+    box-shadow:0 4px 12px rgba(230,168,0,.28);
   }
-  .btn-flag:hover{ opacity:.92; }
+  .btn-flag:hover{ transform:translateY(-1px); }
   .font-ctrl{
     display:inline-flex;
     align-items:center;
     gap:4px;
-    background:#f7f2ff;
-    border-radius:10px;
+    background:#fff;
+    border-radius:12px;
     padding:4px 6px;
-    border:1px solid #e8d9f8;
+    border:1.5px solid #ebe0f8;
+    box-shadow:0 1px 4px rgba(123,47,247,.06);
   }
   .font-ctrl button{
-    width:28px; height:28px;
-    border-radius:8px;
+    width:30px; height:30px;
+    border-radius:9px;
     border:none;
-    background:#fff;
+    background:#f7f2ff;
     color:var(--ungu-tua);
     font-weight:800;
     font-size:14px;
     cursor:pointer;
     line-height:1;
+    transition:background .12s ease;
   }
   .font-ctrl button:hover{ background:var(--pink-muda); }
   .font-ctrl span{
     font-size:11.5px;
     color:var(--abu);
-    min-width:36px;
+    min-width:40px;
     text-align:center;
-    font-weight:600;
+    font-weight:700;
   }
   .kbd-hint{
-    font-size:11px;
+    font-size:11.5px;
     color:var(--abu);
-    margin-top:10px;
-    line-height:1.45;
+    margin-top:16px;
+    padding:10px 14px;
+    line-height:1.5;
+    background:#faf8fc;
+    border-radius:12px;
+    border:1px dashed #e8dcf5;
   }
   .kbd-hint kbd{
     display:inline-block;
-    padding:1px 5px;
-    border:1px solid #ddd;
-    border-radius:4px;
-    background:#f5f5f5;
-    font-size:10.5px;
+    padding:2px 7px;
+    border:1px solid #e0d0f0;
+    border-radius:6px;
+    background:#fff;
+    font-size:11px;
     font-family:ui-monospace,monospace;
+    color:var(--ungu-tua);
+    font-weight:600;
+    box-shadow:0 1px 0 #e8dcf5;
   }
   .soal-player.font-sm .pertanyaan,
   .soal-player.font-sm .pilihan-item .teks,
   .soal-player.font-sm textarea,
   .soal-player.font-sm input[type=text]{ font-size:13.5px !important; }
   .soal-player.font-md .pertanyaan,
-  .soal-player.font-md .pilihan-item .teks{ font-size:15px !important; }
+  .soal-player.font-md .pilihan-item .teks{ font-size:15.5px !important; }
   .soal-player.font-lg .pertanyaan,
   .soal-player.font-lg .pilihan-item .teks,
   .soal-player.font-lg textarea,
@@ -756,63 +776,144 @@ window.MathJax = {
   .soal-player.font-xl textarea,
   .soal-player.font-xl input[type=text]{ font-size:20px !important; }
 
-
   .soal-player{
     background:#fff;
-    border:1px solid #f0e2fa;
-    border-radius:18px;
-    padding:26px 24px;
-    box-shadow:0 6px 16px rgba(123,47,247,0.06);
-    margin-bottom:18px;
+    border:1px solid #efe6f8;
+    border-radius:22px;
+    padding:22px 22px 20px;
+    box-shadow:
+      0 1px 2px rgba(123,47,247,0.04),
+      0 10px 28px rgba(123,47,247,0.07);
+    margin-bottom:20px;
+    position:relative;
+    overflow:hidden;
+  }
+  .soal-player::before{
+    content:'';
+    position:absolute;
+    top:0; left:0; right:0;
+    height:4px;
+    background:linear-gradient(90deg, var(--pink), var(--ungu));
   }
   .soal-player .nomor{
     font-size:12.5px;
-    font-weight:700;
-    color:var(--ungu);
-    background:var(--pink-muda);
-    display:inline-block;
-    padding:4px 12px;
+    font-weight:800;
+    color:#fff;
+    background:linear-gradient(135deg, var(--ungu) 0%, #9b5cf0 100%);
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 14px;
     border-radius:999px;
-    margin-bottom:14px;
+    margin:0;
+    letter-spacing:0.02em;
+    box-shadow:0 4px 12px rgba(123,47,247,0.25);
   }
-  .soal-player .pertanyaan{ font-size:16px; margin-bottom:20px; line-height:1.7; }
-  .soal-player .pertanyaan img{ max-width:100%; border-radius:10px; margin-top:10px; }
-  .pilihan-list{ display:grid; gap:10px; }
+  .soal-player .pertanyaan-card{
+    background:linear-gradient(180deg, #fdfbff 0%, #faf6ff 100%);
+    border:1.5px solid #f0e8fa;
+    border-radius:16px;
+    padding:18px 18px 16px;
+    margin-bottom:18px;
+  }
+  .soal-player .pertanyaan{
+    font-size:16px;
+    margin:0;
+    line-height:1.75;
+    color:#2b1a3d;
+    word-break:break-word;
+  }
+  .soal-player .pertanyaan img{
+    max-width:100%;
+    border-radius:12px;
+    margin-top:14px;
+    display:block;
+    box-shadow:0 4px 16px rgba(61,26,99,0.08);
+    border:1px solid #f0e8fa;
+  }
+  .pilihan-list{ display:grid; gap:11px; }
+  .pilihan-label-hint{
+    font-size:11.5px;
+    font-weight:800;
+    color:var(--abu);
+    margin:0 0 10px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+  }
   .pilihan-item{
     display:flex;
     align-items:flex-start;
-    gap:12px;
-    border:1.5px solid #f0e2fa;
-    border-radius:12px;
-    padding:12px 16px;
+    gap:14px;
+    border:1.5px solid #ebe3f5;
+    border-radius:14px;
+    padding:14px 16px;
     cursor:pointer;
-    transition:border-color .15s ease, background .15s ease;
+    background:#fff;
+    transition:
+      border-color .18s ease,
+      background .18s ease,
+      box-shadow .18s ease,
+      transform .12s ease;
   }
-  .pilihan-item:hover{ border-color:var(--pink); }
-  .pilihan-item.selected{ border-color:var(--ungu); background:var(--pink-muda); }
+  .pilihan-item:hover{
+    border-color:#d4b8f5;
+    background:#fdfbff;
+    box-shadow:0 4px 14px rgba(123,47,247,0.08);
+    transform:translateY(-1px);
+  }
+  .pilihan-item.selected{
+    border-color:var(--ungu);
+    background:linear-gradient(135deg, #faf5ff 0%, #fff0f8 100%);
+    box-shadow:
+      0 0 0 3px rgba(123,47,247,0.12),
+      0 6px 16px rgba(123,47,247,0.1);
+  }
   .pilihan-item .huruf{
     flex-shrink:0;
-    width:26px;
-    height:26px;
-    border-radius:50%;
-    background:var(--ungu-tua);
+    width:32px;
+    height:32px;
+    border-radius:10px;
+    background:linear-gradient(145deg, #4a2878, var(--ungu-tua));
     color:#fff;
-    font-size:12.5px;
-    font-weight:700;
+    font-size:13.5px;
+    font-weight:800;
     display:flex;
     align-items:center;
     justify-content:center;
+    box-shadow:0 3px 8px rgba(61,26,99,0.2);
+    transition:background .15s ease, transform .12s ease;
   }
-  .pilihan-item .teks{ flex:1; font-size:14.5px; padding-top:3px; }
+  .pilihan-item.selected .huruf{
+    background:linear-gradient(145deg, var(--pink), var(--ungu));
+    transform:scale(1.05);
+  }
+  .pilihan-item .teks{
+    flex:1;
+    font-size:14.5px;
+    padding-top:5px;
+    line-height:1.55;
+    color:#2b1a3d;
+  }
   .pilihan-item .teks .opsi-teks{ display:block; }
   .pilihan-item .teks .opsi-img{
     max-width:100%;
-    max-height:200px;
-    border-radius:10px;
+    max-height:220px;
+    border-radius:12px;
     display:block;
-    margin-top:8px;
+    margin-top:10px;
     object-fit:contain;
+    border:1px solid #f0e8fa;
+    background:#faf8fc;
+    padding:6px;
   }
+  @media (max-width:560px){
+    .soal-player{ padding:16px 14px 14px; border-radius:18px; }
+    .soal-player .pertanyaan-card{ padding:14px; border-radius:14px; }
+    .pilihan-item{ padding:12px 12px; gap:10px; }
+    .pilihan-item .huruf{ width:28px; height:28px; border-radius:8px; font-size:12.5px; }
+    .soal-toolbar{ padding:10px; gap:8px; }
+  }
+
   .review-card .opsi-review .opsi-img{
     max-width:min(100%, 280px);
     max-height:160px;
@@ -822,15 +923,30 @@ window.MathJax = {
     object-fit:contain;
   }
   .tipe-badge{
-    display:inline-block; font-size:11px; font-weight:700; padding:3px 10px;
-    border-radius:999px; background:var(--pink-muda); color:var(--ungu-tua); margin-bottom:10px;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    font-size:11.5px;
+    font-weight:800;
+    padding:5px 12px;
+    border-radius:999px;
+    background:linear-gradient(135deg, #ffe8f4, #f0e6ff);
+    color:var(--ungu-tua);
+    margin:0;
+    border:1px solid #f0d4ec;
+    letter-spacing:0.02em;
   }
-  .isian-box, .esai-box{ margin-top:14px; }
+  .isian-box, .esai-box{ margin-top:4px; }
   .isian-box textarea, .esai-box textarea{
-    width:100%; min-height:90px; border:1.5px solid var(--abu-muda); border-radius:12px;
-    padding:12px 14px; font-size:14.5px; font-family:inherit; resize:vertical;
+    width:100%; min-height:100px; border:1.5px solid #ebe3f5; border-radius:14px;
+    padding:14px 16px; font-size:14.5px; font-family:inherit; resize:vertical;
+    background:#fdfbff;
+    transition:border-color .15s ease, box-shadow .15s ease;
   }
-  .isian-box textarea:focus, .esai-box textarea:focus{ outline:none; border-color:var(--ungu); }
+  .isian-box textarea:focus, .esai-box textarea:focus{
+    outline:none; border-color:var(--ungu);
+    box-shadow:0 0 0 3px rgba(123,47,247,0.12);
+  }
   .esai-box input[type=file]{ margin-top:10px; font-size:13px; }
   .esai-preview{ margin-top:10px; max-width:100%; border-radius:10px; display:block; }
   .esai-file-name{ font-size:12.5px; color:var(--abu); margin-top:6px; }
@@ -838,10 +954,11 @@ window.MathJax = {
 
   /* ---- Pilihan metode jawaban esai (ketik / upload PDF) ---- */
   .esai-box{
-    background:#fbf8ff;
+    background:linear-gradient(180deg, #fdfbff 0%, #faf6ff 100%);
     border:1.5px solid #f0e2fa;
-    border-radius:14px;
-    padding:16px 18px;
+    border-radius:16px;
+    padding:18px 18px 16px;
+    box-shadow:0 2px 10px rgba(123,47,247,0.04);
   }
   .esai-label{
     font-size:13px; font-weight:700; color:var(--ungu-tua);
@@ -875,6 +992,40 @@ window.MathJax = {
     font-size:12.5px; font-weight:700; color:var(--ungu-tua);
     display:block; margin-bottom:6px;
   }
+
+  /* Viewer PDF soal esai — ukuran penuh, scroll vertikal */
+  .pdf-soal-viewer{
+    margin:12px 0 16px;
+    border:1.5px solid var(--abu-muda);
+    border-radius:14px;
+    background:#f4f0fa;
+    overflow:hidden;
+    max-height:min(78vh, 920px);
+    display:flex;
+    flex-direction:column;
+  }
+  .pdf-soal-viewer-head{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:8px 12px; background:#fff; border-bottom:1px solid var(--abu-muda);
+    font-size:12.5px; font-weight:700; color:var(--ungu-tua);
+  }
+  .pdf-soal-viewer-body{
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:10px;
+    text-align:center;
+    flex:1;
+  }
+  .pdf-soal-viewer-body canvas{
+    display:block;
+    margin:0 auto 12px;
+    max-width:100%;
+    height:auto;
+    box-shadow:0 2px 12px rgba(61,26,99,0.12);
+    border-radius:4px;
+    background:#fff;
+  }
+  .pdf-soal-viewer-loading{ padding:24px; color:var(--abu); font-size:13px; }
   .esai-wajib{ color:#c0392b; font-weight:700; }
   .esai-status-ok{
     margin-top:10px; padding:10px 12px; background:#dff5e6; border:1px solid #a8e0b8;
@@ -1312,9 +1463,9 @@ window.MathJax = {
     <div class="peserta-box">
       <h3>Verifikasi Data Peserta</h3>
       <div class="sub" id="pesertaSubJudul">-</div>
-      <div class="info-paket">Masukkan <b>Nomor Ujian</b> yang sudah didaftarkan admin. Jika diminta, isi juga <b>Kode Akses</b>. Nomor Ujian yang sama boleh dipakai lebih dari satu kali / oleh lebih dari satu peserta.</div>
-      <label>Nomor Ujian</label>
-      <input type="text" id="inputNoUjian" placeholder="Tulis nomor ujian yang diberikan admin" oninput="cekNomorUjian()">
+      <div class="info-paket">Masukkan <b>Token / Nomor Ujian</b> yang diberikan admin (contoh: <code>KF-XXXX-XXXX-XXXX</code>). Jika diminta, isi juga <b>Kode Akses</b>. Jangan bagikan token ke orang lain.</div>
+      <label>Token / Nomor Ujian</label>
+      <input type="text" id="inputNoUjian" placeholder="Contoh: KF-AB3D-K7MP-9X2Q" oninput="cekNomorUjian()" autocomplete="off" spellcheck="false" style="font-family:ui-monospace,monospace; letter-spacing:0.04em;">
       <label id="labelKodeAkses" style="display:none;">Kode Akses</label>
       <input type="text" id="inputKodeAkses" placeholder="Tulis kode akses dari admin" style="display:none;" autocomplete="off">
       <div class="err-msg" id="pesertaErr"></div>
@@ -1742,19 +1893,11 @@ const TRYOUT_MANIFEST_PATH = 'data/manifest-tryout.json';
 let tryoutManifest = [];
 let currentTryoutJenjang = 'sd';
 
-// ==== Daftar peserta resmi (diisi admin). Nama & Nomor Ujian TIDAK boleh diketik bebas oleh peserta,
-// harus sudah terdaftar admin di file data/daftar-peserta.json ====
-const DAFTAR_PESERTA_PATH = 'data/daftar-peserta.json';
-let daftarPeserta = [];
-
-async function loadDaftarPeserta() {
-  try {
-    const res = await fetch(DAFTAR_PESERTA_PATH + '?_=' + Date.now());
-    daftarPeserta = await res.json();
-  } catch (e) {
-    daftarPeserta = [];
-  }
-}
+// ==== Verifikasi peserta di SERVER (Apps Script) — daftar token TIDAK diunduh ke browser ====
+// File data/daftar-peserta.json sengaja dikosongkan di GitHub Pages agar tidak bocor.
+let pesertaTerverifikasiCache = null; // { noUjian, nama, ujiCoba, paketId } setelah lolos server
+let cekNomorUjianTimer = null;
+let cekNomorUjianSeq = 0;
 
 // state saat mengerjakan
 let tryoutState = null; // { paket, jawaban:{}, index, sisaDetik, timerHandle }
@@ -1819,6 +1962,17 @@ function renderKatexIn(el) {
     // MathJax belum siap — coba lagi sebentar
     setTimeout(function () { renderKatexIn(el); }, 120);
   }
+}
+
+/** Escape HTML + baris baru → <br>, biarkan $...$ / $$...$$ untuk MathJax. */
+function formatTeksDenganLatex(teks) {
+  if (teks == null || teks === '') return '';
+  return String(teks)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/\n/g, '<br>');
 }
 
 async function loadTryoutManifest() {
@@ -1905,19 +2059,23 @@ async function startTryout(paketId) {
 
 let pendingTryout = null;
 
-// cari data peserta terdaftar (dari data/daftar-peserta.json yang diisi admin)
-// dan cek apakah nomor ujian tsb boleh mengikuti paket tryout yang sedang dipilih
-function cariPesertaTerdaftar(noUjian, paketId) {
-  if (!noUjian) return null;
-  const data = daftarPeserta.find(p => String(p.noUjian || '').trim().toLowerCase() === noUjian.trim().toLowerCase());
-  if (!data) return null;
-  // Status aktif: default true jika field belum ada (peserta lama)
-  if (data.aktif === false) return { ...data, _belumAktif: true };
-  const paketAllow = data.paket;
-  const bolehSemuaPaket = !paketAllow || paketAllow === 'semua' ||
-    (Array.isArray(paketAllow) && paketAllow.length === 0);
-  const bolehPaketIni = bolehSemuaPaket || (Array.isArray(paketAllow) && paketAllow.includes(paketId));
-  if (!bolehPaketIni) return { ...data, _tidakBolehUntukPaketIni: true };
+/**
+ * Verifikasi token ke Apps Script (1 token saja). Tidak ada unduhan daftar peserta.
+ */
+async function verifikasiPesertaDiServer(noUjian, paketId) {
+  if (!GOOGLE_SCRIPT_URL) {
+    return { status: 'error', code: 'no_server', message: 'Server verifikasi belum dikonfigurasi admin.' };
+  }
+  const res = await fetch(GOOGLE_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      action: 'verifikasiPeserta',
+      noUjian: String(noUjian || '').trim(),
+      paketId: String(paketId || '').trim()
+    })
+  });
+  const data = await res.json();
   return data;
 }
 
@@ -1930,33 +2088,46 @@ function cekNomorUjian() {
   errEl.classList.remove('show');
   boxTerverifikasi.style.display = 'none';
   btnMulai.disabled = true;
+  pesertaTerverifikasiCache = null;
 
   if (!noUjian || !pendingTryout) return;
 
-  const { meta } = pendingTryout;
-  const data = cariPesertaTerdaftar(noUjian, meta.id);
+  // Debounce agar tidak spam server saat mengetik
+  if (cekNomorUjianTimer) clearTimeout(cekNomorUjianTimer);
+  const seq = ++cekNomorUjianSeq;
+  errEl.textContent = 'Memverifikasi token…';
+  errEl.classList.add('show');
+  errEl.style.color = '';
 
-  if (!data) {
-    errEl.textContent = 'Nomor Ujian tidak ditemukan. Hubungi admin (WhatsApp) jika sudah mendaftar/membayar.';
-    errEl.classList.add('show');
-    return;
-  }
-  if (data._belumAktif) {
-    errEl.textContent = 'Nomor Ujian belum diaktifkan. Jika sudah bayar, hubungi admin WhatsApp untuk aktivasi.';
-    errEl.classList.add('show');
-    return;
-  }
-  if (data._tidakBolehUntukPaketIni) {
-    errEl.textContent = 'Nomor Ujian ini belum diizinkan untuk paket tryout ini. Hubungi admin.';
-    errEl.classList.add('show');
-    return;
-  }
-
-  let namaTampil = data.nama;
-  if (data.ujiCoba) namaTampil += ' (Uji coba — boleh berkali-kali)';
-  document.getElementById('pesertaNamaTerverifikasi').textContent = namaTampil;
-  boxTerverifikasi.style.display = 'block';
-  btnMulai.disabled = false;
+  cekNomorUjianTimer = setTimeout(async function () {
+    const { meta } = pendingTryout || {};
+    if (!meta || seq !== cekNomorUjianSeq) return;
+    try {
+      const hasil = await verifikasiPesertaDiServer(noUjian, meta.id);
+      if (seq !== cekNomorUjianSeq) return;
+      if (!hasil || hasil.status !== 'ok') {
+        errEl.textContent = (hasil && hasil.message) || 'Token tidak valid. Hubungi admin jika sudah mendaftar.';
+        errEl.classList.add('show');
+        return;
+      }
+      errEl.classList.remove('show');
+      let namaTampil = hasil.nama || '';
+      if (hasil.ujiCoba) namaTampil += ' (Uji coba — boleh berkali-kali)';
+      document.getElementById('pesertaNamaTerverifikasi').textContent = namaTampil;
+      boxTerverifikasi.style.display = 'block';
+      btnMulai.disabled = false;
+      pesertaTerverifikasiCache = {
+        noUjian: noUjian,
+        nama: hasil.nama,
+        ujiCoba: !!hasil.ujiCoba,
+        paketId: meta.id
+      };
+    } catch (e) {
+      if (seq !== cekNomorUjianSeq) return;
+      errEl.textContent = 'Gagal menghubungi server verifikasi. Cek koneksi / hubungi admin.';
+      errEl.classList.add('show');
+    }
+  }, 450);
 }
 
 async function mulaiUjianSetelahData() {
@@ -1964,19 +2135,28 @@ async function mulaiUjianSetelahData() {
   const errEl = document.getElementById('pesertaErr');
   const btnMulai = document.getElementById('btnMulaiUjian');
   const { paket, meta } = pendingTryout;
-  const data = cariPesertaTerdaftar(noUjian, meta.id);
 
-  if (!data || data._belumAktif || data._tidakBolehUntukPaketIni) {
-    if (data && data._belumAktif) {
-      errEl.textContent = 'Nomor Ujian belum diaktifkan. Hubungi admin WhatsApp untuk aktivasi.';
-    } else if (data && data._tidakBolehUntukPaketIni) {
-      errEl.textContent = 'Nomor Ujian ini belum diizinkan untuk paket tryout ini. Hubungi admin.';
-    } else {
-      errEl.textContent = 'Nomor Ujian tidak terdaftar. Hubungi admin untuk didaftarkan terlebih dahulu.';
+  // Re-verifikasi ke server saat klik Mulai (anti-tamper cache lokal)
+  btnMulai.disabled = true;
+  errEl.textContent = 'Memverifikasi ulang…';
+  errEl.classList.add('show');
+  let data = null;
+  try {
+    const hasil = await verifikasiPesertaDiServer(noUjian, meta.id);
+    if (!hasil || hasil.status !== 'ok') {
+      errEl.textContent = (hasil && hasil.message) || 'Token tidak valid.';
+      errEl.classList.add('show');
+      return;
     }
+    data = { noUjian: noUjian, nama: hasil.nama, ujiCoba: !!hasil.ujiCoba };
+    pesertaTerverifikasiCache = { ...data, paketId: meta.id };
+  } catch (e) {
+    errEl.textContent = 'Gagal verifikasi server. Coba lagi.';
     errEl.classList.add('show');
     return;
   }
+  errEl.classList.remove('show');
+  btnMulai.disabled = false;
 
   // Validasi Kode Akses (jika paket memilikinya)
   const kodeWajib = String(paket.kode_akses || meta.kode_akses || '').trim();
@@ -2282,7 +2462,7 @@ function renderIsiPilihan(teks, gambarUrl) {
   const raw = gambarUrl == null ? '' : gambarUrl;
   const gambarList = Array.isArray(raw) ? raw : (raw ? [String(raw)] : []);
   let html = '';
-  if (t) html += `<span class="opsi-teks">${t}</span>`;
+  if (t) html += `<span class="opsi-teks">${formatTeksDenganLatex(t)}</span>`;
   gambarList.filter(Boolean).forEach(g => {
     html += `<img class="opsi-img" src="${String(g).replace(/"/g, '&quot;')}" alt="Gambar opsi" loading="lazy">`;
   });
@@ -2304,18 +2484,32 @@ function renderCurrentSoal() {
   const gambarSoalHtml = s.gambar
     ? `<img src="${s.gambar}" alt="Gambar Soal ${i + 1}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`
     : '';
+  const pdfSoalUrl = (s.pdf_soal || '').trim();
+  const pdfSoalViewerHtml = pdfSoalUrl
+    ? `<div class="pdf-soal-viewer" id="pdfSoalViewer">
+         <div class="pdf-soal-viewer-head">
+           <span>📄 Soal PDF — scroll ke bawah untuk halaman berikutnya</span>
+           <a href="${String(pdfSoalUrl).replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="font-size:12px;">Buka di tab baru ↗</a>
+         </div>
+         <div class="pdf-soal-viewer-body" id="pdfSoalViewerBody">
+           <div class="pdf-soal-viewer-loading">Memuat PDF soal…</div>
+         </div>
+       </div>`
+    : '';
 
   let bodyHtml = '';
   if (tipe === 'isian') {
     const val = (typeof dipilih === 'string' ? dipilih : '') || '';
     bodyHtml = `
       <div class="isian-box">
-        <label style="font-size:13px;font-weight:700;color:var(--ungu-tua);display:block;margin-bottom:6px;">Jawaban singkat</label>
-        <textarea id="inputIsianAktif" placeholder="Ketik jawabanmu di sini (boleh angka, teks, atau rumus)..." oninput="simpanIsian('${s.id}')">${val.replace(/</g,'&lt;')}</textarea>
+        <p class="pilihan-label-hint">Jawaban singkat</p>
+        <textarea id="inputIsianAktif" placeholder="Ketik jawabanmu di sini (boleh angka, teks, atau rumus)…" oninput="simpanIsian('${s.id}')">${val.replace(/</g,'&lt;')}</textarea>
       </div>`;
   } else if (tipe === 'esai') {
     const obj = (dipilih && typeof dipilih === 'object') ? dipilih : { teks: typeof dipilih === 'string' ? dipilih : '', fileName: '', fileData: '', fileSize: 0 };
-    const metode = getMetodeEsai(obj);
+    let metode = getMetodeEsai(obj);
+    if (pdfSoalUrl && !obj.teks && !obj.fileData) metode = 'file';
+    if (pdfSoalUrl && metode === 'teks' && !obj.teks) metode = 'file';
     const adaPdf = !!(obj.fileName && String(obj.fileName).toLowerCase().endsWith('.pdf') && obj.fileData);
     const sizeLabel = obj.fileSize
       ? (obj.fileSize < 1024 * 1024
@@ -2324,22 +2518,23 @@ function renderCurrentSoal() {
       : '';
     const statusFile = adaPdf
       ? `<div class="esai-status-ok">
-           ✓ PDF terunggah: <b>${String(obj.fileName).replace(/</g,'&lt;')}</b>${sizeLabel ? ' (' + sizeLabel + ')' : ''}
+           ✓ PDF jawaban terunggah: <b>${String(obj.fileName).replace(/</g,'&lt;')}</b>${sizeLabel ? ' (' + sizeLabel + ')' : ''}
            <button type="button" class="esai-hapus-btn" onclick="hapusEsaiFile('${s.id}')">Hapus</button>
          </div>`
-      : `<div class="esai-status-warn">⚠ Belum ada file PDF. Upload PDF wajib sebelum mengumpulkan.</div>`;
+      : `<div class="esai-status-warn">⚠ Belum ada file PDF jawaban. Upload PDF sebelum mengumpulkan.</div>`;
 
     const inputMetodeHtml = metode === 'teks'
-      ? `<label class="esai-input-label">Jawaban esai</label>
+      ? `<label class="esai-input-label">Jawaban esai (ketik)</label>
          <textarea id="inputEsaiAktif" placeholder="Tulis jawaban esai di sini..." oninput="simpanEsaiTeks('${s.id}')">${(obj.teks || '').replace(/</g,'&lt;')}</textarea>`
-      : `<label class="esai-input-label">Upload jawaban esai <span class="esai-wajib">(WAJIB PDF, maks. 8 MB)</span></label>
+      : `<label class="esai-input-label">Upload jawaban esai <span class="esai-wajib">(PDF, maks. 8 MB)</span></label>
          <input type="file" id="inputEsaiFile" accept="application/pdf,.pdf" onchange="simpanEsaiFile('${s.id}', this)">
-         <div class="esai-save-note">Hanya file PDF yang diterima. Setelah upload, status di bawah harus hijau.</div>
+         <div class="esai-save-note">File disimpan aman di server (bukan link publik). Status harus hijau sebelum mengumpulkan.</div>
          ${statusFile}`;
 
     bodyHtml = `
+      ${pdfSoalViewerHtml}
       <div class="esai-box">
-        <label class="esai-label">Pilih cara menjawab soal esai ini (pilih salah satu):</label>
+        <label class="esai-label">Jawaban kamu ${pdfSoalUrl ? '(unggah PDF setelah membaca soal di atas)' : '(pilih salah satu)'}:</label>
         <div class="esai-metode-pilihan">
           <label class="esai-metode-opt ${metode === 'teks' ? 'aktif' : ''}">
             <input type="radio" name="esaiMetode_${s.id}" value="teks" ${metode === 'teks' ? 'checked' : ''} onchange="ubahMetodeEsai('${s.id}','teks')">
@@ -2350,12 +2545,13 @@ function renderCurrentSoal() {
             <span>📎 Upload File PDF</span>
           </label>
         </div>
-        <div class="esai-metode-hint">Kamu hanya perlu memilih dan mengisi salah satu cara di atas.</div>
+        <div class="esai-metode-hint">${pdfSoalUrl ? 'Untuk soal PDF, disarankan unggah jawaban PDF.' : 'Pilih dan isi salah satu cara di atas.'}</div>
         ${inputMetodeHtml}
       </div>`;
   } else {
     const pgGambar = s.pilihan_gambar || {};
     bodyHtml = `
+      <p class="pilihan-label-hint">Pilih satu jawaban</p>
       <div class="pilihan-list">
         ${huruf.filter(h => {
           // Opsi ditampilkan jika key-nya memang didefinisikan di data soal
@@ -2381,7 +2577,7 @@ function renderCurrentSoal() {
     <div class="soal-toolbar">
       <div class="left">
         <div class="tipe-badge">${labelTipeSoal(tipe)}</div>
-        <div class="nomor" style="margin:0;">Soal Nomor ${i + 1}</div>
+        <div class="nomor">Soal ${i + 1}</div>
       </div>
       <div class="right">
         <div class="font-ctrl" title="Ukuran teks soal">
@@ -2394,11 +2590,56 @@ function renderCurrentSoal() {
         </button>
       </div>
     </div>
-    <div class="pertanyaan">${s.pertanyaan || ''}${gambarSoalHtml}</div>
+    <div class="pertanyaan-card">
+      <div class="pertanyaan">${formatTeksDenganLatex(s.pertanyaan || '')}${gambarSoalHtml}</div>
+    </div>
     ${bodyHtml}
     <div class="kbd-hint">Keyboard: <kbd>A</kbd>–<kbd>E</kbd> / <kbd>1</kbd>–<kbd>5</kbd> pilih opsi · <kbd>←</kbd> <kbd>→</kbd> pindah soal · <kbd>F</kbd> ragu · <kbd>Enter</kbd> lanjut</div>
   `;
   renderKatexIn(player);
+  if (pdfSoalUrl) {
+    muatPdfSoalViewer(pdfSoalUrl);
+  }
+}
+
+/**
+ * Tampilkan PDF soal esai halaman demi halaman, skala agar lebar penuh container, scroll vertikal.
+ */
+async function muatPdfSoalViewer(url) {
+  const body = document.getElementById('pdfSoalViewerBody');
+  if (!body || !url) return;
+  body.innerHTML = '<div class="pdf-soal-viewer-loading">Memuat PDF soal…</div>';
+  try {
+    if (typeof pdfjsLib === 'undefined') {
+      body.innerHTML = '<div class="pdf-soal-viewer-loading">Pustaka PDF gagal dimuat. <a href="' +
+        String(url).replace(/"/g, '&quot;') + '" target="_blank" rel="noopener">Buka PDF di tab baru</a></div>';
+      return;
+    }
+    if (pdfjsLib.GlobalWorkerOptions) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    const doc = await pdfjsLib.getDocument({ url: url, withCredentials: false }).promise;
+    body.innerHTML = '';
+    const containerWidth = Math.max(280, (body.clientWidth || 600) - 8);
+    for (let p = 1; p <= doc.numPages; p++) {
+      const page = await doc.getPage(p);
+      const base = page.getViewport({ scale: 1 });
+      // Skala agar mendekati ukuran asli di layar (lebar penuh viewer)
+      const scale = Math.min(2.5, containerWidth / base.width);
+      const viewport = page.getViewport({ scale: scale });
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      canvas.setAttribute('aria-label', 'Halaman ' + p);
+      body.appendChild(canvas);
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+    }
+  } catch (e) {
+    console.warn('Gagal memuat PDF soal:', e);
+    body.innerHTML = '<div class="pdf-soal-viewer-loading">Gagal menampilkan PDF di sini. ' +
+      '<a href="' + String(url).replace(/"/g, '&quot;') + '" target="_blank" rel="noopener">Buka di tab baru</a></div>';
+  }
 }
 
 function pilihJawaban(soalId, huruf) {
@@ -2675,9 +2916,9 @@ function renderReviewDariServer(review, mode) {
     }
 
     const pembahasanHtml = (tampilKunci && r.pembahasan)
-      ? `<div class="pembahasan"><b>Pembahasan:</b> ${r.pembahasan}</div>` : '';
+      ? `<div class="pembahasan"><b>Pembahasan:</b> ${formatTeksDenganLatex(r.pembahasan)}</div>` : '';
     const gambarSoalHtml = r.gambar
-      ? `<img src="${r.gambar}" alt="Gambar Soal ${r.nomor}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`
+      ? `<img src="${String(r.gambar).replace(/"/g,'&quot;')}" alt="Gambar Soal ${r.nomor}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`
       : '';
 
     // Status Benar/Salah hanya ditampilkan jika mode lengkap
@@ -2688,7 +2929,7 @@ function renderReviewDariServer(review, mode) {
     return `
       <div class="review-card">
         ${statusHtml}
-        <div class="pertanyaan"><b>${r.nomor}.</b> [${labelTipeSoal(tipe)}] ${r.pertanyaan || ''}${gambarSoalHtml}</div>
+        <div class="pertanyaan"><b>${r.nomor}.</b> [${labelTipeSoal(tipe)}] ${formatTeksDenganLatex(r.pertanyaan || '')}${gambarSoalHtml}</div>
         ${opsiHtml}
         ${pembahasanHtml}
       </div>`;
@@ -3013,7 +3254,6 @@ function unduhSertifikat() {
 })();
 
 loadTryoutManifest();
-loadDaftarPeserta();
 </script>
 
 <div class="app-modal-overlay" id="appModalOverlay">
