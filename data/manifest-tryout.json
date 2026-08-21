@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "fisika-mt3bdi5k",
+    "title": "fisika",
+    "jenjang": "sma",
+    "topik": "1",
+    "durasi_menit": 60,
+    "jumlah_soal": 2,
+    "file": "data/tryout/fisika-mt3bdi5k.json",
+    "aktif": true,
+    "kode_akses": "",
+    "mode_hasil": "nilai"
+  }
+]
