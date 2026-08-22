@@ -1,6 +1,6 @@
 {
   "id": "seleksi-calon-peserta-physics-club-mt3lv79v",
-  "title": "Seleksi Calon Peserta PHYSICS cLUB",
+  "title": "Seleksi Calon Peserta PHYSICS CLUB",
   "jenjang": "sma",
   "topik": "MEKANIKA",
   "durasi_menit": 120,
@@ -84,6 +84,86 @@
       "tipe": "isian",
       "pertanyaan": "",
       "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787356395595-paste-1787356395589.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787375775546-11",
+      "tipe": "isian",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787375814385-paste-1787375814372.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787375823636-12",
+      "tipe": "isian",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787375838479-paste-1787375838475.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787375845732-13",
+      "tipe": "isian",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787375867226-paste-1787375867221.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787375874572-14",
+      "tipe": "isian",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787375893289-paste-1787375893283.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787375899188-15",
+      "tipe": "esai",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787375917239-paste-1787375917233.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787375925372-16",
+      "tipe": "isian",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787375943294-paste-1787375943289.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787375952928-17",
+      "tipe": "isian",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787375970723-paste-1787375970718.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787375993848-18",
+      "tipe": "isian",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787376011020-paste-1787376011013.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787376019323-19",
+      "tipe": "isian",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787376035715-paste-1787376035709.png",
+      "pilihan": {},
+      "pilihan_gambar": {}
+    },
+    {
+      "id": "q1787376044179-20",
+      "tipe": "isian",
+      "pertanyaan": "",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1787376061292-paste-1787376061287.png",
       "pilihan": {},
       "pilihan_gambar": {}
     }
