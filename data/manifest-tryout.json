@@ -1,11 +1,11 @@
 [
   {
     "id": "seleksi-calon-peserta-physics-club-mt3lv79v",
-    "title": "Seleksi Calon Peserta PHYSICS cLUB",
+    "title": "Seleksi Calon Peserta PHYSICS CLUB",
     "jenjang": "sma",
     "topik": "MEKANIKA",
     "durasi_menit": 120,
-    "jumlah_soal": 10,
+    "jumlah_soal": 20,
     "file": "data/tryout/seleksi-calon-peserta-physics-club-mt3lv79v.json",
     "aktif": true,
     "kode_akses": "",
