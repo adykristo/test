@@ -2475,19 +2475,12 @@ Pembahasan: $\sum F=ma$</pre>
 </div><!-- /.admin-layout -->
 
 <script>
-/* ================== GERBANG LOGIN ADMIN ==================
-   Akun awal: admin / Admin@2026
-   Ganti ADMIN_USER dan ADMIN_PASS_SHA256 sebelum dipublikasikan. */
-const ADMIN_USER = 'admin';
-const ADMIN_PASS_SHA256 = 'a36aef5a11c4073fbe60314fc9df530a9d5f986533594d1f5190742ff9e0e408';
+/* ================== GERBANG LOGIN ADMIN (GOOGLE APPS SCRIPT) ==================
+   Tempel URL deployment Web App Google Apps Script Anda di bawah ini. */
+const ADMIN_AUTH_URL = 'https://script.google.com/macros/s/AKfycbzYnIAUlMxIOJDa7y_sJqWzXfB_6AsFZyhB1RLUnIoxqsPewch5GiooYK3xCZJORLWw/exec';
 const ADMIN_SESSION_KEY = 'kf_admin_authenticated';
+const ADMIN_TOKEN_KEY = 'kf_admin_session_token';
 let adminLoginAttempts = 0;
-
-async function sha256Text(value) {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
 function openAdminApp() {
   document.getElementById('loginScreen').hidden = true;
   document.getElementById('adminApp').hidden = false;
@@ -2495,6 +2488,7 @@ function openAdminApp() {
 }
 function logoutAdmin() {
   sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
   document.getElementById('adminApp').hidden = true;
   document.getElementById('loginScreen').hidden = false;
   document.body.classList.add('admin-locked');
@@ -2511,9 +2505,19 @@ document.getElementById('adminLoginForm').addEventListener('submit', async funct
   button.disabled = true;
   button.textContent = 'Memeriksa…';
   try {
-    const passwordHash = await sha256Text(password);
-    if (username === ADMIN_USER && passwordHash === ADMIN_PASS_SHA256) {
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(ADMIN_AUTH_URL)) {
+      throw new Error('URL Apps Script belum dipasang');
+    }
+    const response = await fetch(ADMIN_AUTH_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action:'login', username, password })
+    });
+    const result = await response.json();
+    if (result.ok && result.token) {
       sessionStorage.setItem(ADMIN_SESSION_KEY, '1');
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, result.token);
       adminLoginAttempts = 0;
       error.classList.remove('show');
       openAdminApp();
@@ -2521,7 +2525,7 @@ document.getElementById('adminLoginForm').addEventListener('submit', async funct
       adminLoginAttempts++;
       error.textContent = adminLoginAttempts >= 5
         ? 'Terlalu banyak percobaan. Tunggu 30 detik lalu coba lagi.'
-        : 'Username atau password salah. Silakan coba lagi.';
+        : (result.message || 'Username atau password salah. Silakan coba lagi.');
       error.classList.add('show');
       document.getElementById('adminPassword').value = '';
       if (adminLoginAttempts >= 5) {
@@ -2531,13 +2535,29 @@ document.getElementById('adminLoginForm').addEventListener('submit', async funct
       }
     }
   } catch (err) {
-    error.textContent = 'Browser tidak mendukung pemeriksaan login aman. Gunakan Chrome/Edge terbaru melalui HTTPS.';
+    error.textContent = String(err && err.message || '').includes('belum dipasang')
+      ? 'URL Google Apps Script belum dipasang di ADMIN_AUTH_URL.'
+      : 'Tidak dapat menghubungi server login. Periksa deployment dan koneksi internet.';
     error.classList.add('show');
   }
   button.disabled = false;
   button.textContent = 'Masuk ke Dashboard';
 });
-if (sessionStorage.getItem(ADMIN_SESSION_KEY) === '1') openAdminApp();
+async function pulihkanSesiAdmin() {
+  const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+  if (sessionStorage.getItem(ADMIN_SESSION_KEY) !== '1' || !token) return;
+  try {
+    const response = await fetch(ADMIN_AUTH_URL, {
+      method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action:'verify', token:token})
+    });
+    const result = await response.json();
+    if (result.ok) openAdminApp(); else logoutAdmin();
+  } catch (err) {
+    logoutAdmin();
+  }
+}
+pulihkanSesiAdmin();
 
 const ADMIN_TAB_BTN = { panelSoal: 'tabBtnSoal', panelTryout: 'tabBtnTryout', panelEsai: 'tabBtnEsai' };
 const ADMIN_TAB_META = {
