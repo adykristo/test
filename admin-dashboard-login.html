@@ -1814,6 +1814,12 @@ window.MathJax = {
         <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelTryout','tryoutPackages')"><span class="tab-icon">●</span> Kelola Paket</button>
         <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelTryout','tryoutParticipants')"><span class="tab-icon">●</span> Kelola Peserta</button>
         <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelTryout','tryoutResults')"><span class="tab-icon">●</span> Unduh Hasil</button>
+        <div class="nav-group-label">Bank Soal</div>
+        <button type="button" class="tab-btn" id="tabBtnBank" onclick="navigateAdmin('panelBank','bankDashboard')"><span class="tab-icon">📚</span> Bank Soal</button>
+        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelBank','bankDashboard')"><span class="tab-icon">●</span> Daftar &amp; Filter</button>
+        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelBank','bankEditorSection')"><span class="tab-icon">●</span> Editor Soal</button>
+        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelBank','bankImportSection')"><span class="tab-icon">●</span> Import Word / JSON</button>
+        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelBank','bankCbtSection')"><span class="tab-icon">●</span> Simulasi CBT</button>
         <div class="nav-group-label">Jawaban Esai</div>
         <button type="button" class="tab-btn" id="tabBtnEsai" onclick="switchAdminTab('panelEsai')"><span class="tab-icon">📝</span> Paket Tryout</button>
       </div>
@@ -2333,6 +2339,12 @@ Pembahasan: $\sum F=ma$</pre>
             <div class="upload-card-body">
               <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px;">
                 <input type="text" id="bankSearchInput" placeholder="Cari teks soal / topik…" style="flex:1; min-width:180px;" oninput="renderBankPickerList()">
+                <select id="bankFilterJenjang" onchange="renderBankPickerList()" style="width:auto; min-width:100px;">
+                  <option value="">Semua jenjang</option>
+                  <option value="sd">SD</option>
+                  <option value="smp">SMP</option>
+                  <option value="sma">SMA</option>
+                </select>
                 <select id="bankFilterTipe" onchange="renderBankPickerList()" style="width:auto; min-width:120px;">
                   <option value="">Semua tipe</option>
                   <option value="pg4">PG4</option>
@@ -2495,6 +2507,147 @@ Pembahasan: $\sum F=ma$</pre>
 </main>
 </div>
 
+
+<div id="panelBank" class="tab-panel">
+<header>
+  <h1>📚 Bank Soal Tryout</h1>
+  <p>Kelola bank soal privat ala GitHub v7: PG, PGK MCMA, PGK kategori, isian, esai — filter jenjang, import Word/JSON, dan simulasi CBT.</p>
+</header>
+<main>
+
+  <div class="box" id="bankDashboard">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <h2 style="margin:0;">Daftar Bank Soal</h2>
+        <p class="help" style="margin:4px 0 0;">Soal tersimpan di <code>data/bank-soal.json</code> (GitHub). Bisa dipakai ulang saat membuat paket tryout.</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button type="button" class="btn btn-primary" onclick="bankBukaEditorBaru()">+ Soal Baru</button>
+        <button type="button" class="btn btn-outline" onclick="muatBankSoal(true).then(renderBankAdminList)">🔄 Muat Ulang</button>
+        <button type="button" class="btn btn-outline" onclick="bankExportJson()">⬇ Export JSON</button>
+        <label class="btn btn-outline" style="cursor:pointer;margin:0;">⬆ Import JSON<input type="file" id="bankImportJsonFile" accept=".json,application/json" style="display:none;" onchange="bankImportJson(event)"></label>
+      </div>
+    </div>
+
+    <div class="row3" style="margin-bottom:12px;">
+      <div>
+        <label>Cari</label>
+        <input type="text" id="bankAdminSearch" placeholder="Teks soal / topik / materi…" oninput="renderBankAdminList()">
+      </div>
+      <div>
+        <label>Jenjang</label>
+        <select id="bankAdminJenjang" onchange="renderBankAdminList()">
+          <option value="">Semua</option>
+          <option value="sd">SD</option>
+          <option value="smp">SMP</option>
+          <option value="sma">SMA</option>
+        </select>
+      </div>
+      <div>
+        <label>Tipe Soal</label>
+        <select id="bankAdminTipe" onchange="renderBankAdminList()">
+          <option value="">Semua tipe</option>
+          <option value="pg4">PG 4 opsi</option>
+          <option value="pg5">PG 5 opsi</option>
+          <option value="pgk_mcma">PGK MCMA</option>
+          <option value="pgk_kategori">PGK Kategori</option>
+          <option value="isian">Isian Singkat</option>
+          <option value="esai">Esai</option>
+        </select>
+      </div>
+    </div>
+    <div id="bankAdminStats" class="help" style="margin-bottom:10px;"></div>
+    <div id="bankAdminList" class="bank-picker-list" style="max-height:none;"></div>
+  </div>
+
+  <div class="box" id="bankEditorSection" style="margin-top:18px;">
+    <h2>Editor Soal Bank</h2>
+    <p class="help">Buat atau edit satu soal dengan semua tipe v7 (termasuk skor PGK, pernyataan kategori, gambar opsi/kunci/pembahasan).</p>
+    <div class="row3">
+      <div>
+        <label>Jenjang</label>
+        <select id="bankEditJenjang">
+          <option value="sd">SD</option>
+          <option value="smp">SMP</option>
+          <option value="sma" selected>SMA</option>
+        </select>
+      </div>
+      <div>
+        <label>Topik / Materi</label>
+        <input type="text" id="bankEditTopik" placeholder="contoh: Dinamika Gerak">
+      </div>
+      <div>
+        <label>Tingkat</label>
+        <select id="bankEditTingkat">
+          <option value="Mudah">Mudah</option>
+          <option value="Sedang" selected>Sedang</option>
+          <option value="Sulit">Sulit</option>
+        </select>
+      </div>
+    </div>
+    <input type="hidden" id="bankEditId" value="">
+    <div id="bankEditorSoalContainer"></div>
+    <div class="form-actions-bar" style="position:static;margin-top:14px;">
+      <button type="button" class="btn btn-hijau" onclick="bankSimpanDariEditor()">💾 Simpan ke Bank</button>
+      <button type="button" class="btn btn-outline" onclick="bankBukaEditorBaru()">Bersihkan / Soal Baru</button>
+      <button type="button" class="btn btn-outline" onclick="bankKirimEditorKePaket()">➕ Kirim ke Paket Tryout aktif</button>
+    </div>
+    <div id="bankEditorStatus" class="status-bar" style="margin-top:10px;"></div>
+  </div>
+
+  <div class="box" id="bankImportSection" style="margin-top:18px;">
+    <h2>Import Word (.docx)</h2>
+    <p class="help">Format sama dengan Bank Soal Tryout v7 / template tryout: penanda <code>SOAL</code>, <code>TIPE</code>, <code>JENJANG</code>, <code>KUNCI</code>, Equation Word → PNG.</p>
+    <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <label>File Word</label>
+        <input type="file" id="bankWordFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+        <label style="margin-top:10px;">Jenjang default (jika tidak ada di file)</label>
+        <select id="bankWordJenjangDefault">
+          <option value="sd">SD</option>
+          <option value="smp">SMP</option>
+          <option value="sma" selected>SMA</option>
+        </select>
+      </div>
+      <div>
+        <label>Aksi setelah parse</label>
+        <select id="bankWordAction">
+          <option value="bank">Simpan langsung ke Bank Soal</option>
+          <option value="editor">Masukkan ke editor paket tryout</option>
+        </select>
+        <button type="button" class="btn btn-primary" style="margin-top:16px;" onclick="bankImportWord()">📥 Import Word ke Bank</button>
+      </div>
+    </div>
+    <div id="bankWordStatus" class="status-bar" style="margin-top:12px;"></div>
+  </div>
+
+  <div class="box" id="bankCbtSection" style="margin-top:18px;">
+    <h2>Simulasi CBT (Bank)</h2>
+    <p class="help">Uji soal bank tanpa publish paket. Penskoran objektif di browser (kunci dari bank lokal session).</p>
+    <div class="row3">
+      <div>
+        <label>Filter Jenjang</label>
+        <select id="bankCbtJenjang">
+          <option value="">Semua</option>
+          <option value="sd">SD</option>
+          <option value="smp">SMP</option>
+          <option value="sma">SMA</option>
+        </select>
+      </div>
+      <div>
+        <label>Jumlah soal (acak)</label>
+        <input type="number" id="bankCbtJumlah" min="1" max="100" value="10">
+      </div>
+      <div style="display:flex;align-items:flex-end;">
+        <button type="button" class="btn btn-primary" onclick="bankMulaiCbt()">▶ Mulai Simulasi</button>
+      </div>
+    </div>
+    <div id="bankCbtArea" style="margin-top:16px;"></div>
+  </div>
+
+</main>
+</div>
+
 <div id="panelEsai" class="tab-panel">
 <header>
   <h1>📝 Jawaban Esai</h1>
@@ -2611,10 +2764,11 @@ async function pulihkanSesiAdmin() {
 }
 pulihkanSesiAdmin();
 
-const ADMIN_TAB_BTN = { panelSoal: 'tabBtnSoal', panelTryout: 'tabBtnTryout', panelEsai: 'tabBtnEsai' };
+const ADMIN_TAB_BTN = { panelSoal:'tabBtnSoal', panelTryout:'tabBtnTryout', panelBank:'tabBtnBank', panelEsai:'tabBtnEsai' };
 const ADMIN_TAB_META = {
   panelSoal: { title: 'Upload Soal', sub: 'Kelola soal latihan, file OSN, dan paket tryout' },
-  panelTryout: { title: 'Admin Tryout', sub: 'Buat & kelola paket soal tryout: PG, isian, esai' },
+  panelTryout: { title: 'Admin Tryout', sub: 'Kelola paket soal tryout: PG, PGK, isian, esai' },
+  panelBank: { title: 'Bank Soal', sub: 'Bank soal privat v7: filter jenjang, import Word/JSON, simulasi CBT' },
   panelEsai: { title: 'Jawaban Esai', sub: 'Koreksi jawaban esai per paket dan peserta' }
 };
 function switchAdminTab(id) {
@@ -2630,6 +2784,9 @@ function switchAdminTab(id) {
     if (s) s.textContent = meta.sub;
   }
   if (id === 'panelEsai') populateEsaiPaketSelect();
+  if (id === 'panelBank') {
+    muatBankSoal(true).then(function(){ renderBankAdminList(); bankPastikanEditorSiap(); });
+  }
   // statistik pengunjung hanya di tab Upload Soal
   const vd = document.getElementById('cbtVisitorDashboard');
   if (vd) vd.style.display = (id === 'panelSoal') ? '' : 'none';
@@ -5468,12 +5625,14 @@ function renderBankPickerList() {
   if (!box) return;
   const q = ((document.getElementById('bankSearchInput') || {}).value || '').trim().toLowerCase();
   const tipeF = ((document.getElementById('bankFilterTipe') || {}).value || '');
+  const jenjangF = ((document.getElementById('bankFilterJenjang') || {}).value || '').toLowerCase();
   let list = Array.isArray(bankSoalCache.content) ? bankSoalCache.content.slice() : [];
   if (tipeF) list = list.filter(x => (x.soal && x.soal.tipe) === tipeF);
+  if (jenjangF) list = list.filter(x => String(x.jenjang || '').toLowerCase() === jenjangF);
   if (q) {
     list = list.filter(x => {
       const s = x.soal || {};
-      const blob = [x.topik, x.jenjang, s.pertanyaan, s.pembahasan, JSON.stringify(s.pilihan || {})].join(' ').toLowerCase();
+      const blob = [x.topik, x.jenjang, x.tingkat, s.pertanyaan, s.pembahasan, JSON.stringify(s.pilihan || {}), JSON.stringify(s.statements || [])].join(' ').toLowerCase();
       return blob.indexOf(q) !== -1;
     });
   }
@@ -5580,6 +5739,7 @@ function tambahSoalDariBankTerpilih() {
   if (sc) sc.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
+
 async function hapusDariBank(id) {
   if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
   if (!confirm('Hapus soal ini dari bank? (Tidak menghapus dari paket yang sudah memakai soal ini.)')) return;
@@ -5589,10 +5749,627 @@ async function hapusDariBank(id) {
     const putRes = await ghPutFile(BANK_SOAL_PATH, newContent, bankSoalCache.sha, 'Hapus soal dari bank');
     bankSoalCache = { content: newContent, sha: putRes.content.sha };
     renderBankPickerList();
+    if (typeof renderBankAdminList === 'function') renderBankAdminList();
   } catch (e) {
     alert('Gagal hapus: ' + (e.message || e));
   }
 }
+
+/* ===== BANK SOAL ADMIN (fitur penuh ala v7) ===== */
+function bankNormalizeSoalPayload(data) {
+  if (!data) data = {};
+  const out = {
+    tipe: data.tipe || 'pg5',
+    pertanyaan: data.pertanyaan || '',
+    gambar: data.gambar || '',
+    pilihan: data.pilihan || {},
+    pilihan_gambar: data.pilihan_gambar || {},
+    jawaban_benar: data.jawaban_benar || '',
+    jawaban_benar_multi: data.jawaban_benar_multi || data.correctIndexes || [],
+    kunci_isian: data.kunci_isian || data.shortAnswer || '',
+    pembahasan: data.pembahasan || data.explanation || '',
+    pembahasan_gambar: data.pembahasan_gambar || data.explanationImage || '',
+    kunci_gambar: data.kunci_gambar || data.answerImage || '',
+    opsi_otomatis: !!data.opsi_otomatis,
+    scoring_mode: data.scoring_mode || data.scoringMode || 'exact',
+    max_points: (data.max_points != null ? data.max_points : data.maxPoints) != null ? (data.max_points != null ? data.max_points : data.maxPoints) : 1,
+    partial_points: (data.partial_points != null ? data.partial_points : data.partialPoints) != null ? (data.partial_points != null ? data.partial_points : data.partialPoints) : 1,
+    partial_threshold: (data.partial_threshold != null ? data.partial_threshold : data.partialThreshold) != null ? (data.partial_threshold != null ? data.partial_threshold : data.partialThreshold) : 1,
+    category_labels: data.category_labels || data.categoryLabels || ['Benar', 'Salah'],
+    statements: data.statements || [],
+    pedoman_esai: data.pedoman_esai || data.essayGuide || ''
+  };
+  // normalisasi multi kunci dari string "A,C"
+  if ((!out.jawaban_benar_multi || !out.jawaban_benar_multi.length) && typeof out.jawaban_benar === 'string' && out.jawaban_benar.indexOf(',') !== -1) {
+    out.jawaban_benar_multi = out.jawaban_benar.split(/[,;]/).map(x => x.trim().toUpperCase()).filter(Boolean);
+  }
+  return out;
+}
+
+function bankLabelTipe(tipe) {
+  const map = { pg4:'PG4', pg5:'PG5', pgk_mcma:'PGK MCMA', pgk_kategori:'PGK Kategori', isian:'Isian', esai:'Esai' };
+  return map[tipe] || (tipe || '?');
+}
+
+function renderBankAdminList() {
+  const box = document.getElementById('bankAdminList');
+  const stats = document.getElementById('bankAdminStats');
+  if (!box) return;
+  const q = ((document.getElementById('bankAdminSearch') || {}).value || '').trim().toLowerCase();
+  const tipeF = ((document.getElementById('bankAdminTipe') || {}).value || '');
+  const jenjangF = ((document.getElementById('bankAdminJenjang') || {}).value || '').toLowerCase();
+  let list = Array.isArray(bankSoalCache.content) ? bankSoalCache.content.slice() : [];
+  if (tipeF) list = list.filter(x => (x.soal && x.soal.tipe) === tipeF);
+  if (jenjangF) list = list.filter(x => String(x.jenjang || '').toLowerCase() === jenjangF);
+  if (q) {
+    list = list.filter(x => {
+      const s = x.soal || {};
+      const blob = [x.topik, x.jenjang, x.tingkat, s.pertanyaan, s.pembahasan, JSON.stringify(s.pilihan || {}), JSON.stringify(s.statements || [])].join(' ').toLowerCase();
+      return blob.indexOf(q) !== -1;
+    });
+  }
+  list.sort((a, b) => String(b.updatedAt || b.createdAt || '').localeCompare(String(a.updatedAt || a.createdAt || '')));
+  if (stats) {
+    const total = (bankSoalCache.content || []).length;
+    stats.textContent = list.length === total
+      ? (total + ' soal di bank')
+      : (list.length + ' dari ' + total + ' soal ditampilkan');
+  }
+  if (!list.length) {
+    box.innerHTML = '<p class="help" style="margin:12px 0;">Bank kosong atau tidak ada yang cocok filter. Buat soal di Editor atau import Word/JSON.</p>';
+    return;
+  }
+  box.innerHTML = list.map(item => {
+    const s = item.soal || {};
+    const tipe = s.tipe || '?';
+    const teks = (s.pertanyaan || '').trim() || (s.gambar ? '(soal bergambar)' : '(tanpa teks)');
+    const ringkas = teks.length > 160 ? teks.slice(0, 160) + '…' : teks;
+    const meta = [
+      (item.jenjang || '-').toString().toUpperCase(),
+      bankLabelTipe(tipe),
+      item.tingkat || '',
+      item.topik || ''
+    ].filter(Boolean).join(' · ');
+    const idSafe = String(item.id || '').replace(/'/g, "\\'");
+    return `<div class="bank-picker-item" style="align-items:flex-start;">
+      <div style="flex:1;min-width:0;">
+        <div class="bank-meta"><span class="bank-tipe-tag">${escHtmlTeks(bankLabelTipe(tipe))}</span> ${escHtmlTeks(meta)}</div>
+        <div class="bank-teks">${escHtmlTeks(ringkas)}</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;flex-shrink:0;">
+        <button type="button" class="btn btn-outline btn-xs" onclick="bankEditItem('${idSafe}')">Edit</button>
+        <button type="button" class="btn btn-outline btn-xs" onclick="bankDuplikatItem('${idSafe}')">Duplikat</button>
+        <button type="button" class="btn btn-outline btn-xs" onclick="bankKirimItemKePaket('${idSafe}')">→ Paket</button>
+        <button type="button" class="btn btn-outline btn-xs" style="color:var(--merah);" onclick="hapusDariBank('${idSafe}')">Hapus</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let bankEditorUid = null;
+function bankPastikanEditorSiap() {
+  const box = document.getElementById('bankEditorSoalContainer');
+  if (!box) return;
+  if (!box.querySelector('.soal-block')) {
+    bankBukaEditorBaru();
+  }
+}
+
+function bankBukaEditorBaru(prefill) {
+  const box = document.getElementById('bankEditorSoalContainer');
+  if (!box) return;
+  box.innerHTML = '';
+  document.getElementById('bankEditId').value = '';
+  if (typeof tambahSoal === 'function') {
+    // reuse tryout soal block renderer into dedicated container
+    const prev = document.getElementById('soalContainer');
+    // temporarily point rendering by creating a block manually via tambahSoal then moving
+    const before = document.querySelectorAll('#soalContainer .soal-block').length;
+    if (prefill) tambahSoal(prefill);
+    else tambahSoal();
+    const blocks = document.querySelectorAll('#soalContainer .soal-block');
+    const last = blocks[blocks.length - 1];
+    if (last) {
+      bankEditorUid = last.id;
+      box.appendChild(last);
+      // if we added to tryout container accidentally, renumber remaining
+      if (typeof renumberSoal === 'function') renumberSoal();
+      if (typeof updateSoalCountBadge === 'function') updateSoalCountBadge();
+    }
+  } else {
+    box.innerHTML = '<p class="help">Editor tryout belum siap. Buka tab Kelola Paket sekali lalu kembali.</p>';
+  }
+  const st = document.getElementById('bankEditorStatus');
+  if (st) { st.textContent = ''; st.className = 'status-bar'; }
+}
+
+function bankEditItem(id) {
+  const item = (bankSoalCache.content || []).find(x => x.id === id);
+  if (!item || !item.soal) { alert('Soal tidak ditemukan di bank.'); return; }
+  document.getElementById('bankEditId').value = id;
+  if (document.getElementById('bankEditJenjang')) document.getElementById('bankEditJenjang').value = (item.jenjang || 'sma').toLowerCase();
+  if (document.getElementById('bankEditTopik')) document.getElementById('bankEditTopik').value = item.topik || '';
+  if (document.getElementById('bankEditTingkat')) document.getElementById('bankEditTingkat').value = item.tingkat || 'Sedang';
+  const clone = JSON.parse(JSON.stringify(item.soal));
+  bankBukaEditorBaru(clone);
+  navigateAdmin('panelBank', 'bankEditorSection');
+}
+
+async function bankDuplikatItem(id) {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
+  await muatBankSoal(true);
+  const item = (bankSoalCache.content || []).find(x => x.id === id);
+  if (!item) return;
+  const copy = JSON.parse(JSON.stringify(item));
+  copy.id = 'bank-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+  copy.createdAt = new Date().toISOString();
+  copy.updatedAt = copy.createdAt;
+  const newContent = (bankSoalCache.content || []).concat([copy]);
+  try {
+    const putRes = await ghPutFile(BANK_SOAL_PATH, newContent, bankSoalCache.sha, 'Duplikat soal bank');
+    bankSoalCache = { content: newContent, sha: putRes.content.sha };
+    renderBankAdminList();
+    renderBankPickerList();
+  } catch (e) {
+    alert('Gagal duplikat: ' + (e.message || e));
+  }
+}
+
+function bankKirimItemKePaket(id) {
+  const item = (bankSoalCache.content || []).find(x => x.id === id);
+  if (!item || !item.soal) return;
+  const clone = JSON.parse(JSON.stringify(item.soal));
+  clone.id = 'q' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+  if (typeof tambahSoal === 'function') {
+    navigateAdmin('panelTryout', 'tryoutPackages');
+    setTimeout(function() {
+      tambahSoal(clone);
+      if (typeof renumberSoal === 'function') renumberSoal();
+      if (typeof updateSoalCountBadge === 'function') updateSoalCountBadge();
+      alert('✓ Soal ditambahkan ke daftar paket tryout. Scroll ke daftar soal untuk memeriksa.');
+    }, 200);
+  }
+}
+
+function bankKirimEditorKePaket() {
+  const box = document.getElementById('bankEditorSoalContainer');
+  const el = box && box.querySelector('.soal-block');
+  if (!el) { alert('Editor kosong.'); return; }
+  let data;
+  try { data = bacaSatuSoalDariBlock(el); } catch (e) { alert(e.message || e); return; }
+  const clone = bankNormalizeSoalPayload(data);
+  clone.id = 'q' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+  navigateAdmin('panelTryout', 'tryoutPackages');
+  setTimeout(function() {
+    tambahSoal(clone);
+    if (typeof renumberSoal === 'function') renumberSoal();
+    if (typeof updateSoalCountBadge === 'function') updateSoalCountBadge();
+  }, 200);
+}
+
+async function bankSimpanDariEditor() {
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu di Koneksi GitHub.'); return; }
+  const box = document.getElementById('bankEditorSoalContainer');
+  const el = box && box.querySelector('.soal-block');
+  if (!el) { alert('Editor kosong.'); return; }
+  let data;
+  try { data = bacaSatuSoalDariBlock(el); } catch (e) { alert('Gagal baca soal: ' + (e.message || e)); return; }
+  if (!(data.pertanyaan || '').trim() && !(data.gambar || '').trim() && !(data.statements && data.statements.length)) {
+    alert('Isi pertanyaan, gambar, atau pernyataan dulu.');
+    return;
+  }
+  const jenjang = ((document.getElementById('bankEditJenjang') || {}).value || 'sma').toLowerCase();
+  const topik = ((document.getElementById('bankEditTopik') || {}).value || '').trim();
+  const tingkat = ((document.getElementById('bankEditTingkat') || {}).value || 'Sedang');
+  const editId = (document.getElementById('bankEditId') || {}).value || '';
+  await muatBankSoal(true);
+  let newContent = (bankSoalCache.content || []).slice();
+  const payload = {
+    id: editId || ('bank-' + Date.now() + '-' + Math.floor(Math.random() * 10000)),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    jenjang, topik, tingkat,
+    soal: bankNormalizeSoalPayload(data)
+  };
+  if (editId) {
+    const idx = newContent.findIndex(x => x.id === editId);
+    if (idx >= 0) {
+      payload.createdAt = newContent[idx].createdAt || payload.createdAt;
+      newContent[idx] = payload;
+    } else newContent.push(payload);
+  } else {
+    newContent.push(payload);
+  }
+  const st = document.getElementById('bankEditorStatus');
+  try {
+    if (st) { st.textContent = 'Menyimpan…'; st.className = 'status-bar show loading'; }
+    const putRes = await ghPutFile(BANK_SOAL_PATH, newContent, bankSoalCache.sha, (editId ? 'Update' : 'Tambah') + ' soal bank');
+    bankSoalCache = { content: newContent, sha: putRes.content.sha };
+    document.getElementById('bankEditId').value = payload.id;
+    renderBankAdminList();
+    renderBankPickerList();
+    if (st) { st.textContent = '✓ Tersimpan di bank soal.'; st.className = 'status-bar show ok'; }
+  } catch (e) {
+    if (st) { st.textContent = 'Gagal: ' + (e.message || e); st.className = 'status-bar show err'; }
+    alert('Gagal simpan bank: ' + (e.message || e));
+  }
+}
+
+function bankExportJson() {
+  const data = {
+    version: 7,
+    exportedAt: new Date().toISOString(),
+    source: 'KlinikFisikapku-BankSoal',
+    questions: bankSoalCache.content || []
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bank-soal-klinikfisika-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function bankImportJson(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    let items = [];
+    if (Array.isArray(parsed)) items = parsed;
+    else if (Array.isArray(parsed.questions)) items = parsed.questions;
+    else if (Array.isArray(parsed.content)) items = parsed.content;
+    else throw new Error('Format JSON tidak dikenali (harus array atau {questions:[]})');
+    // map format bank v7 React jika perlu
+    items = items.map(function(it) {
+      if (it.soal) return it;
+      // format React BankApp
+      if (it.type || it.prompt) {
+        const tipeMap = { multiple_choice: (it.options && it.options.length <= 4 ? 'pg4' : 'pg5'), multiple_select: 'pgk_mcma', category: 'pgk_kategori', short_answer: 'isian', essay: 'esai' };
+        const tipe = tipeMap[it.type] || 'pg5';
+        const pilihan = {};
+        const pilihan_gambar = {};
+        (it.options || []).forEach(function(opt, i) {
+          const h = String.fromCharCode(65 + i);
+          pilihan[h] = opt || '';
+          if (it.optionImages && it.optionImages[i]) pilihan_gambar[h] = it.optionImages[i];
+        });
+        let jawaban_benar = '';
+        let jawaban_benar_multi = [];
+        if (tipe === 'pgk_mcma') {
+          jawaban_benar_multi = (it.correctIndexes || []).map(function(i){ return String.fromCharCode(65 + i); });
+          jawaban_benar = jawaban_benar_multi.join(',');
+        } else if (tipe === 'pg4' || tipe === 'pg5') {
+          jawaban_benar = String.fromCharCode(65 + (it.correctIndex || 0));
+        }
+        return {
+          id: it.id || ('bank-' + Date.now() + '-' + Math.floor(Math.random()*10000)),
+          createdAt: it.createdAt || new Date().toISOString(),
+          updatedAt: it.updatedAt || new Date().toISOString(),
+          jenjang: (it.educationLevel || 'SMA').toLowerCase(),
+          topik: it.subject || '',
+          tingkat: it.difficulty || 'Sedang',
+          soal: bankNormalizeSoalPayload({
+            tipe, pertanyaan: it.prompt || '', gambar: it.image || '',
+            pilihan, pilihan_gambar, jawaban_benar, jawaban_benar_multi,
+            kunci_isian: it.shortAnswer || '', pembahasan: it.explanation || '',
+            pembahasan_gambar: it.explanationImage || '', kunci_gambar: it.answerImage || '',
+            scoring_mode: it.scoringMode || 'exact', max_points: it.maxPoints, partial_points: it.partialPoints,
+            partial_threshold: it.partialThreshold, category_labels: it.categoryLabels,
+            statements: (it.statements || []).map(function(st){ return { text: st.text || '', image: st.image || '', correctIndex: st.correctIndex || 0 }; }),
+            pedoman_esai: it.essayGuide || ''
+          })
+        };
+      }
+      return it;
+    });
+    await muatBankSoal(true);
+    const existingIds = new Set((bankSoalCache.content || []).map(x => x.id));
+    let added = 0;
+    const merged = (bankSoalCache.content || []).slice();
+    items.forEach(function(it) {
+      if (!it.id || existingIds.has(it.id)) {
+        it.id = 'bank-' + Date.now() + '-' + Math.floor(Math.random()*10000) + '-' + added;
+      }
+      it.updatedAt = new Date().toISOString();
+      if (!it.createdAt) it.createdAt = it.updatedAt;
+      if (it.soal) it.soal = bankNormalizeSoalPayload(it.soal);
+      merged.push(it);
+      existingIds.add(it.id);
+      added++;
+    });
+    const putRes = await ghPutFile(BANK_SOAL_PATH, merged, bankSoalCache.sha, 'Import JSON bank soal (' + added + ')');
+    bankSoalCache = { content: merged, sha: putRes.content.sha };
+    renderBankAdminList();
+    renderBankPickerList();
+    alert('✓ ' + added + ' soal diimpor ke bank.');
+  } catch (e) {
+    alert('Gagal import JSON: ' + (e.message || e));
+  }
+}
+
+async function bankImportWord() {
+  const fileInput = document.getElementById('bankWordFile');
+  const file = fileInput && fileInput.files && fileInput.files[0];
+  if (!file) { alert('Pilih file .docx dulu.'); return; }
+  const status = document.getElementById('bankWordStatus');
+  const jenjangDefault = ((document.getElementById('bankWordJenjangDefault') || {}).value || 'sma').toLowerCase();
+  const action = ((document.getElementById('bankWordAction') || {}).value || 'bank');
+  function setBankWordStatus(msg, cls) {
+    if (!status) return;
+    status.textContent = msg;
+    status.className = 'status-bar show ' + (cls || '');
+  }
+  if (typeof mammoth === 'undefined') {
+    setBankWordStatus('Pustaka mammoth.js belum termuat. Cek koneksi lalu muat ulang.', 'err');
+    return;
+  }
+  setBankWordStatus('Membaca isi file Word…', 'loading');
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    setBankWordStatus('Membaca gambar dan Equation Word…', 'loading');
+    const preparedWord = await siapkanEquationWord(arrayBuffer);
+    const result = await mammoth.convertToHtml({ arrayBuffer: preparedWord.arrayBuffer }, {
+      convertImage: mammoth.images.imgElement(async image => {
+        const b64 = await image.read('base64');
+        return { src: 'data:' + image.contentType + ';base64,' + b64 };
+      })
+    });
+    const soalMentah = parseWordSoalHtml(result.value);
+    await pasangEquationWordPadaSoal(soalMentah, preparedWord.equations);
+    if (!soalMentah.length) {
+      setBankWordStatus('Tidak ada soal terdeteksi. Ikuti format template (SOAL / nomor, TIPE, opsi A. B. …).', 'err');
+      return;
+    }
+    // optional upload images if token available
+    async function uploadDataUrlGambar(dataUrl, label) {
+      if (!ghToken) return dataUrl;
+      const m = String(dataUrl).match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+      if (!m) return dataUrl;
+      const ext = (m[1].split('/')[1] || 'png').replace('+xml','').split('+')[0];
+      const pathImg = `${GAMBAR_SOAL_FOLDER}/word-bank-${Date.now()}-${label}.${ext}`;
+      const res = await ghPutBinaryFile(pathImg, m[2], 'Upload gambar Word bank: ' + label);
+      return res.content.download_url;
+    }
+    if (ghToken) {
+      setBankWordStatus('Mengunggah gambar Word (jika ada)…', 'loading');
+      for (let i = 0; i < soalMentah.length; i++) {
+        const s = soalMentah[i];
+        if (s.gambar && s.gambar.startsWith('data:image')) {
+          try { s.gambar = await uploadDataUrlGambar(s.gambar, 's' + (i+1)); } catch (e) { s.gambar = ''; }
+        }
+        if (s.pilihan_gambar) {
+          for (const h of Object.keys(s.pilihan_gambar)) {
+            const raw = s.pilihan_gambar[h];
+            const u = Array.isArray(raw) ? raw[0] : raw;
+            if (u && u.startsWith('data:image')) {
+              try { s.pilihan_gambar[h] = await uploadDataUrlGambar(u, 's'+(i+1)+h); } catch (e) { delete s.pilihan_gambar[h]; }
+            }
+          }
+        }
+        if (s.answer_image && s.answer_image.startsWith('data:image')) {
+          try { s.answer_image = await uploadDataUrlGambar(s.answer_image, 's'+(i+1)+'ans'); } catch (e) { s.answer_image = ''; }
+        }
+        if (s.pembahasan_gambar && s.pembahasan_gambar.startsWith('data:image')) {
+          try { s.pembahasan_gambar = await uploadDataUrlGambar(s.pembahasan_gambar, 's'+(i+1)+'pb'); } catch (e) { s.pembahasan_gambar = ''; }
+        }
+        (s.statements || []).forEach(async (st, si) => {
+          if (st.image && st.image.startsWith('data:image')) {
+            try { st.image = await uploadDataUrlGambar(st.image, 's'+(i+1)+'st'+si); } catch (e) { st.image = ''; }
+          }
+        });
+        if (!s.jenjang) s.jenjang = jenjangDefault;
+      });
+    } else {
+      soalMentah.forEach(s => { if (!s.jenjang) s.jenjang = jenjangDefault; });
+    }
+
+    if (action === 'editor') {
+      navigateAdmin('panelTryout', 'tryoutPackages');
+      setTimeout(function() {
+        soalMentah.forEach(function(s) { tambahSoal(s); });
+        if (typeof renumberSoal === 'function') renumberSoal();
+        if (typeof updateSoalCountBadge === 'function') updateSoalCountBadge();
+      }, 200);
+      setBankWordStatus('✓ ' + soalMentah.length + ' soal dimasukkan ke editor paket tryout.', 'ok');
+      return;
+    }
+    if (!ghToken) throw new Error('Token GitHub belum diisi (perlu untuk simpan ke bank).');
+    await muatBankSoal(true);
+    const entries = soalMentah.map(function(s, i) {
+      return {
+        id: 'bank-' + Date.now() + '-' + i + '-' + Math.floor(Math.random()*1000),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        jenjang: String(s.jenjang || jenjangDefault || 'sma').toLowerCase(),
+        topik: s.topik || s.materi || '',
+        tingkat: s.tingkat || 'Sedang',
+        soal: bankNormalizeSoalPayload(s)
+      };
+    });
+    const merged = (bankSoalCache.content || []).concat(entries);
+    const putRes = await ghPutFile(BANK_SOAL_PATH, merged, bankSoalCache.sha, 'Import Word bank (' + entries.length + ')');
+    bankSoalCache = { content: merged, sha: putRes.content.sha };
+    renderBankAdminList();
+    renderBankPickerList();
+    setBankWordStatus('✓ ' + entries.length + ' soal dari Word masuk ke bank.', 'ok');
+  } catch (e) {
+    setBankWordStatus('Gagal: ' + (e.message || e), 'err');
+    alert('Import Word gagal: ' + (e.message || e));
+  }
+}
+
+function bankMulaiCbt() {
+  const area = document.getElementById('bankCbtArea');
+  if (!area) return;
+  const jenjangF = ((document.getElementById('bankCbtJenjang') || {}).value || '').toLowerCase();
+  let n = parseInt(((document.getElementById('bankCbtJumlah') || {}).value || '10'), 10) || 10;
+  let list = Array.isArray(bankSoalCache.content) ? bankSoalCache.content.slice() : [];
+  if (jenjangF) list = list.filter(x => String(x.jenjang || '').toLowerCase() === jenjangF);
+  if (!list.length) {
+    area.innerHTML = '<p class="help">Tidak ada soal di bank untuk filter ini.</p>';
+    return;
+  }
+  // shuffle
+  for (let i = list.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = list[i]; list[i] = list[j]; list[j] = t;
+  }
+  list = list.slice(0, Math.min(n, list.length));
+  window._bankCbtState = { items: list, answers: {}, index: 0 };
+  bankRenderCbt();
+}
+
+function bankRenderCbt() {
+  const area = document.getElementById('bankCbtArea');
+  const st = window._bankCbtState;
+  if (!area || !st) return;
+  const item = st.items[st.index];
+  if (!item) return;
+  const s = item.soal || {};
+  const tipe = s.tipe || 'pg5';
+  let body = '';
+  body += '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">';
+  body += '<strong>Soal ' + (st.index + 1) + ' / ' + st.items.length + '</strong>';
+  body += '<span class="bank-tipe-tag">' + escHtmlTeks(bankLabelTipe(tipe)) + '</span></div>';
+  body += '<div class="preview" style="margin-bottom:12px;">' + (s.pertanyaan ? escHtmlTeks(s.pertanyaan) : '') + '</div>';
+  if (s.gambar) body += '<img src="' + escHtmlTeks(s.gambar) + '" alt="soal" style="max-width:100%;border-radius:10px;margin-bottom:12px;">';
+
+  if (tipe === 'pg4' || tipe === 'pg5' || tipe === 'pgk_mcma') {
+    const keys = Object.keys(s.pilihan || {}).sort();
+    const multi = tipe === 'pgk_mcma';
+    body += '<div style="display:grid;gap:8px;">';
+    keys.forEach(function(h) {
+      if (tipe === 'pg4' && h === 'E') return;
+      const checked = multi
+        ? ((st.answers[item.id] || []).indexOf(h) >= 0)
+        : (st.answers[item.id] === h);
+      const inputType = multi ? 'checkbox' : 'radio';
+      body += '<label style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--border);border-radius:12px;cursor:pointer;background:#fff;">';
+      body += '<input type="' + inputType + '" name="bankCbtAns" value="' + h + '" ' + (checked ? 'checked' : '') + ' onchange="bankCbtSetAnswer(\'' + String(item.id).replace(/'/g, "\\'") + '\', this)">';
+      body += '<span><b>' + h + '.</b> ' + escHtmlTeks(s.pilihan[h] || '') + '</span></label>';
+    });
+    body += '</div>';
+  } else if (tipe === 'isian') {
+    body += '<textarea rows="2" style="width:100%;" placeholder="Jawaban singkat…" onchange="window._bankCbtState.answers[\'' + String(item.id).replace(/'/g, "\\'") + '\']=this.value">' + escHtmlTeks(st.answers[item.id] || '') + '</textarea>';
+  } else if (tipe === 'pgk_kategori') {
+    const labels = s.category_labels || ['Benar', 'Salah'];
+    (s.statements || []).forEach(function(stt, i) {
+      body += '<div style="margin:10px 0;padding:10px;border:1px solid var(--border);border-radius:12px;">';
+      body += '<div style="margin-bottom:8px;"><b>' + (i + 1) + '.</b> ' + escHtmlTeks(stt.text || '') + '</div>';
+      labels.forEach(function(lb, li) {
+        const key = item.id + '::' + i;
+        const cur = (st.answers[item.id] || {})[i];
+        body += '<label style="margin-right:12px;"><input type="radio" name="bankCat' + i + '" ' + (cur === li ? 'checked' : '') + ' onchange="bankCbtSetCat(\'' + String(item.id).replace(/'/g, "\\'") + '\',' + i + ',' + li + ')"> ' + escHtmlTeks(lb) + '</label>';
+      });
+      body += '</div>';
+    });
+  } else if (tipe === 'esai') {
+    body += '<p class="help">Esai dikoreksi manual — tulis jawaban di bawah untuk latihan.</p>';
+    body += '<textarea rows="4" style="width:100%;" onchange="window._bankCbtState.answers[\'' + String(item.id).replace(/'/g, "\\'") + '\']=this.value">' + escHtmlTeks(st.answers[item.id] || '') + '</textarea>';
+  }
+
+  body += '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">';
+  body += '<button type="button" class="btn btn-outline" ' + (st.index <= 0 ? 'disabled' : '') + ' onclick="bankCbtNav(-1)">← Sebelumnya</button>';
+  body += '<button type="button" class="btn btn-outline" ' + (st.index >= st.items.length - 1 ? 'disabled' : '') + ' onclick="bankCbtNav(1)">Berikutnya →</button>';
+  body += '<button type="button" class="btn btn-primary" onclick="bankCbtSelesai()">Selesai &amp; Skor</button>';
+  body += '</div>';
+  area.innerHTML = body;
+  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([area]).catch(function(){});
+}
+
+function bankCbtSetAnswer(id, el) {
+  const st = window._bankCbtState;
+  if (!st) return;
+  const item = st.items.find(x => x.id === id);
+  const multi = item && item.soal && item.soal.tipe === 'pgk_mcma';
+  if (multi) {
+    const boxes = document.querySelectorAll('input[name="bankCbtAns"]:checked');
+    st.answers[id] = Array.from(boxes).map(x => x.value);
+  } else {
+    st.answers[id] = el.value;
+  }
+}
+
+function bankCbtSetCat(id, stmtIndex, labelIndex) {
+  const st = window._bankCbtState;
+  if (!st) return;
+  if (!st.answers[id] || typeof st.answers[id] !== 'object') st.answers[id] = {};
+  st.answers[id][stmtIndex] = labelIndex;
+}
+
+function bankCbtNav(delta) {
+  const st = window._bankCbtState;
+  if (!st) return;
+  st.index = Math.max(0, Math.min(st.items.length - 1, st.index + delta));
+  bankRenderCbt();
+}
+
+function bankCbtSelesai() {
+  const st = window._bankCbtState;
+  const area = document.getElementById('bankCbtArea');
+  if (!st || !area) return;
+  let skor = 0, max = 0, detail = [];
+  st.items.forEach(function(item, idx) {
+    const s = item.soal || {};
+    const tipe = s.tipe || 'pg5';
+    const ans = st.answers[item.id];
+    const mp = Number(s.max_points != null ? s.max_points : 1) || 1;
+    max += mp;
+    let dapat = 0;
+    if (tipe === 'pg4' || tipe === 'pg5') {
+      if (String(ans || '').toUpperCase() === String(s.jawaban_benar || '').toUpperCase()) dapat = mp;
+    } else if (tipe === 'pgk_mcma') {
+      const kunci = (s.jawaban_benar_multi && s.jawaban_benar_multi.length)
+        ? s.jawaban_benar_multi.map(x => String(x).toUpperCase())
+        : String(s.jawaban_benar || '').split(/[,;]/).map(x => x.trim().toUpperCase()).filter(Boolean);
+      const pilih = (Array.isArray(ans) ? ans : []).map(x => String(x).toUpperCase());
+      const setK = new Set(kunci), setP = new Set(pilih);
+      const same = setK.size === setP.size && kunci.every(k => setP.has(k));
+      const mode = s.scoring_mode || 'exact';
+      if (same) dapat = mp;
+      else if (mode === 'partial') {
+        let benar = 0, salah = 0;
+        pilih.forEach(p => { if (setK.has(p)) benar++; else salah++; });
+        if (salah === 0 && benar > 0) {
+          const thr = Number(s.partial_threshold != null ? s.partial_threshold : 1) || 1;
+          if (benar >= thr) dapat = Number(s.partial_points != null ? s.partial_points : 1) || 0;
+        }
+      }
+    } else if (tipe === 'isian') {
+      const kunci = String(s.kunci_isian || '').trim().toLowerCase();
+      if (kunci && String(ans || '').trim().toLowerCase() === kunci) dapat = mp;
+    } else if (tipe === 'pgk_kategori') {
+      const stmts = s.statements || [];
+      let ok = 0;
+      stmts.forEach(function(stt, i) {
+        if (ans && ans[i] === (stt.correctIndex != null ? stt.correctIndex : 0)) ok++;
+      });
+      if (ok === stmts.length && stmts.length) dapat = mp;
+      else if ((s.scoring_mode || '') === 'partial' && ok > 0) {
+        const thr = Number(s.partial_threshold != null ? s.partial_threshold : 1) || 1;
+        if (ok >= thr) dapat = Number(s.partial_points != null ? s.partial_points : 1) || 0;
+      }
+    } else if (tipe === 'esai') {
+      // manual — tidak otomatis
+      max -= mp; // jangan hitung ke total objektif
+    }
+    skor += dapat;
+    detail.push({ no: idx + 1, tipe, dapat, mp, ok: dapat > 0 });
+  });
+  let html = '<div class="box" style="background:#f8f5fc;"><h3>Hasil simulasi</h3>';
+  html += '<p style="font-size:22px;font-weight:800;color:var(--ungu-tua);">' + skor + ' / ' + max + '</p>';
+  html += '<div style="display:grid;gap:6px;margin-top:10px;">';
+  detail.forEach(function(d) {
+    html += '<div style="display:flex;justify-content:space-between;padding:8px 10px;border-radius:10px;background:#fff;border:1px solid var(--border);"><span>Soal ' + d.no + ' · ' + escHtmlTeks(bankLabelTipe(d.tipe)) + '</span><b style="color:' + (d.ok ? 'var(--hijau)' : 'var(--merah)') + ';">' + d.dapat + '/' + d.mp + '</b></div>';
+  });
+  html += '</div><button type="button" class="btn btn-outline" style="margin-top:12px;" onclick="bankMulaiCbt()">Ulangi</button></div>';
+  area.innerHTML = html;
+}
+
 
 function parseCategoryLabelsValue(value) {
   const labels = String(value || '').split(/[|;,/]/).map(x => x.trim()).filter(Boolean).slice(0,4);
