@@ -6156,13 +6156,14 @@ async function bankImportWord() {
         if (s.pembahasan_gambar && s.pembahasan_gambar.startsWith('data:image')) {
           try { s.pembahasan_gambar = await uploadDataUrlGambar(s.pembahasan_gambar, 's'+(i+1)+'pb'); } catch (e) { s.pembahasan_gambar = ''; }
         }
-        (s.statements || []).forEach(async (st, si) => {
+        for (let si = 0; si < (s.statements || []).length; si++) {
+          const st = s.statements[si];
           if (st.image && st.image.startsWith('data:image')) {
             try { st.image = await uploadDataUrlGambar(st.image, 's'+(i+1)+'st'+si); } catch (e) { st.image = ''; }
           }
-        });
+        }
         if (!s.jenjang) s.jenjang = jenjangDefault;
-      });
+      }
     } else {
       soalMentah.forEach(s => { if (!s.jenjang) s.jenjang = jenjangDefault; });
     }
