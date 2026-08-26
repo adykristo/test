@@ -906,6 +906,21 @@ window.MathJax = {
     background:#faf8fc;
     padding:6px;
   }
+  .pilihan-item.multi .huruf{border-radius:8px;background:#eee6f6;color:var(--ungu-tua);box-shadow:none}
+  .pilihan-item.multi.selected .huruf{color:#fff;background:linear-gradient(145deg,var(--pink),var(--ungu))}
+  .pgk-instruction{margin:0 0 11px;padding:10px 12px;border-radius:11px;color:#5d267d;background:#f4eafd;font-size:12px;font-weight:750}
+  .category-answer{display:grid;gap:9px;margin-top:10px;overflow-x:auto}
+  .category-answer-head,.category-answer-row{display:grid;grid-template-columns:minmax(220px,1fr) repeat(var(--category-count,2),minmax(72px,auto));gap:8px;align-items:center;min-width:480px}
+  .category-answer-head{color:var(--abu);font-size:10px;font-weight:800;text-align:center}
+  .category-answer-head span:first-child{text-align:left}
+  .category-answer-row{padding:11px;border:1.5px solid #ebe3f5;border-radius:13px;background:#fff}
+  .category-statement-content{display:grid;grid-template-columns:auto 1fr;gap:7px;font-size:13.5px;line-height:1.55}
+  .category-statement-content img{grid-column:1/-1;max-width:100%;max-height:200px;object-fit:contain;border-radius:9px}
+  .category-answer-row button{width:34px;height:34px;display:grid;place-items:center;justify-self:center;border:1.5px solid #d8cce1;border-radius:50%;color:#fff;background:#fff;cursor:pointer}
+  .category-answer-row button.selected{border-color:var(--ungu);background:linear-gradient(145deg,var(--pink),var(--ungu));box-shadow:0 0 0 3px rgba(123,47,247,.1)}
+  .review-image-extra{display:block;max-width:100%;max-height:300px;object-fit:contain;margin-top:10px;border-radius:10px;border:1px solid #eee4f7}
+  .category-review-list{display:grid;gap:7px;margin-top:8px}
+  .category-review-list>div{padding:9px 11px;border-radius:9px;background:#f8f5fb;font-size:12.5px}
   @media (max-width:560px){
     .soal-player{ padding:16px 14px 14px; border-radius:18px; }
     .soal-player .pertanyaan-card{ padding:14px; border-radius:14px; }
@@ -2395,7 +2410,7 @@ document.addEventListener('keydown', function (e) {
     return;
   }
   // Pilih opsi PG
-  if (tipe === 'pg4' || tipe === 'pg5') {
+  if (tipe === 'pg4' || tipe === 'pg5' || tipe === 'pgk_mcma') {
     const map = { '1':'A', '2':'B', '3':'C', '4':'D', '5':'E',
                   'a':'A', 'b':'B', 'c':'C', 'd':'D', 'e':'E',
                   'A':'A', 'B':'B', 'C':'C', 'D':'D', 'E':'E' };
@@ -2407,7 +2422,8 @@ document.addEventListener('keydown', function (e) {
       const g = pgGambar[huruf] ? String(pgGambar[huruf]).trim() : '';
       if (adaKey || g) {
         e.preventDefault();
-        pilihJawaban(soal.id, huruf);
+        if (tipe === 'pgk_mcma') toggleJawabanMcma(soal.id, huruf);
+        else pilihJawaban(soal.id, huruf);
       }
     }
   }
@@ -2415,7 +2431,7 @@ document.addEventListener('keydown', function (e) {
 
 function getTipeSoal(s) {
   if (!s) return 'pg5';
-  if (s.tipe === 'isian' || s.tipe === 'esai' || s.tipe === 'pg4' || s.tipe === 'pg5') return s.tipe;
+  if (s.tipe === 'isian' || s.tipe === 'esai' || s.tipe === 'pg4' || s.tipe === 'pg5' || s.tipe === 'pgk_mcma' || s.tipe === 'pgk_kategori') return s.tipe;
   if (s.tipe === 'pg') return 'pg5';
   const keys = Object.keys(s.pilihan || {});
   if (keys.length && !keys.includes('E')) return 'pg4';
@@ -2425,6 +2441,8 @@ function getTipeSoal(s) {
 function labelTipeSoal(tipe) {
   if (tipe === 'pg4') return 'Pilihan Ganda (4 opsi)';
   if (tipe === 'pg5') return 'Pilihan Ganda (5 opsi)';
+  if (tipe === 'pgk_mcma') return 'PGK · MCMA';
+  if (tipe === 'pgk_kategori') return 'PGK · Kategori';
   if (tipe === 'isian') return 'Isian Singkat';
   if (tipe === 'esai') return 'Esai';
   return 'Pilihan Ganda';
@@ -2440,6 +2458,12 @@ function sudahDijawab(s, jawabanMap) {
       return !!(j.fileName && j.fileData);
     }
     return false;
+  }
+  if (Array.isArray(j)) {
+    return j.some(value =>
+      (value !== null && value !== undefined && Number(value) >= 0) ||
+      (typeof value === 'string' && value !== '')
+    );
   }
   return true;
 }
@@ -2522,10 +2546,36 @@ function renderCurrentSoal() {
         <div class="esai-save-note">File disimpan aman di server (bukan link publik). Status harus hijau sebelum mengumpulkan.</div>
         ${statusFile}
       </div>`;
+  } else if (tipe === 'pgk_kategori') {
+    const labels = Array.isArray(s.category_labels) && s.category_labels.length
+      ? s.category_labels
+      : ['Benar', 'Salah'];
+    const statements = Array.isArray(s.statements) ? s.statements : [];
+    const jawabanKategori = Array.isArray(dipilih) ? dipilih : [];
+    bodyHtml = `
+      <div class="pgk-instruction">Pilih tepat satu kategori untuk setiap pernyataan.</div>
+      <div class="category-answer" style="--category-count:${labels.length}">
+        <div class="category-answer-head">
+          <span>Pernyataan</span>
+          ${labels.map(label => `<span>${String(label).replace(/</g,'&lt;')}</span>`).join('')}
+        </div>
+        ${statements.map((st, stIndex) => {
+          const item = (st && typeof st === 'object') ? st : { text: String(st || ''), image: '' };
+          const imageHtml = item.image
+            ? `<img src="${String(item.image).replace(/"/g,'&quot;')}" alt="Gambar pernyataan ${stIndex + 1}">`
+            : '';
+          return `<div class="category-answer-row">
+            <div class="category-statement-content"><b>${stIndex + 1}.</b><span>${formatTeksDenganLatex(item.text || '')}</span>${imageHtml}</div>
+            ${labels.map((label, catIndex) => `<button type="button" class="${Number(jawabanKategori[stIndex]) === catIndex ? 'selected' : ''}" onclick="pilihKategori('${s.id}',${stIndex},${catIndex})" aria-label="Pernyataan ${stIndex + 1}: ${String(label).replace(/"/g,'&quot;')}">✓</button>`).join('')}
+          </div>`;
+        }).join('')}
+      </div>`;
   } else {
     const pgGambar = s.pilihan_gambar || {};
+    const isMcma = tipe === 'pgk_mcma';
+    const pilihanMcma = Array.isArray(dipilih) ? dipilih : [];
     bodyHtml = `
-      <p class="pilihan-label-hint">Pilih satu jawaban</p>
+      <p class="${isMcma ? 'pgk-instruction' : 'pilihan-label-hint'}">${isMcma ? 'Pilih semua opsi yang benar. Jawaban dapat lebih dari satu.' : 'Pilih satu jawaban'}</p>
       <div class="pilihan-list">
         ${huruf.filter(h => {
           // Opsi ditampilkan jika key-nya memang didefinisikan di data soal
@@ -2535,7 +2585,7 @@ function renderCurrentSoal() {
           const g = pgGambar[h] ? String(pgGambar[h]).trim() : '';
           return adaKey || g;
         }).map(h => `
-          <div class="pilihan-item ${dipilih === h ? 'selected' : ''}" onclick="pilihJawaban('${s.id}','${h}')">
+          <div class="pilihan-item ${isMcma ? 'multi' : ''} ${(isMcma ? pilihanMcma.includes(h) : dipilih === h) ? 'selected' : ''}" onclick="${isMcma ? `toggleJawabanMcma('${s.id}','${h}')` : `pilihJawaban('${s.id}','${h}')`}">
             <span class="huruf">${h}</span>
             <span class="teks">${renderIsiPilihan(s.pilihan[h], pgGambar[h])}</span>
           </div>
@@ -2618,6 +2668,28 @@ async function muatPdfSoalViewer(url) {
 
 function pilihJawaban(soalId, huruf) {
   tryoutState.jawaban[soalId] = huruf;
+  renderNavigator();
+  renderCurrentSoal();
+}
+
+function toggleJawabanMcma(soalId, huruf) {
+  const prev = Array.isArray(tryoutState.jawaban[soalId])
+    ? tryoutState.jawaban[soalId].slice()
+    : [];
+  const idx = prev.indexOf(huruf);
+  if (idx >= 0) prev.splice(idx, 1);
+  else prev.push(huruf);
+  tryoutState.jawaban[soalId] = prev.sort();
+  renderNavigator();
+  renderCurrentSoal();
+}
+
+function pilihKategori(soalId, statementIndex, categoryIndex) {
+  const prev = Array.isArray(tryoutState.jawaban[soalId])
+    ? tryoutState.jawaban[soalId].slice()
+    : [];
+  prev[statementIndex] = categoryIndex;
+  tryoutState.jawaban[soalId] = prev;
   renderNavigator();
   renderCurrentSoal();
 }
@@ -2776,7 +2848,14 @@ async function submitTryout(autoSubmit) {
     pertanyaan: s.pertanyaan || '',
     gambar: s.gambar || '',
     pilihan: s.pilihan || {},
-    pilihan_gambar: s.pilihan_gambar || {}
+    pilihan_gambar: s.pilihan_gambar || {},
+    category_labels: Array.isArray(s.category_labels) ? s.category_labels : [],
+    statements: Array.isArray(s.statements)
+      ? s.statements.map(st => ({
+          text: (st && typeof st === 'object') ? (st.text || '') : String(st || ''),
+          image: (st && typeof st === 'object') ? (st.image || '') : ''
+        }))
+      : []
   }));
 
   // Jawaban esai (untuk upload file ke Drive)
@@ -2871,24 +2950,61 @@ function renderReviewDariServer(review, mode) {
       if (tampilKunci) {
         opsiHtml += `<div class="opsi-review jawaban-benar">Kunci: ${String(o.kunci || '-').replace(/</g,'&lt;')}</div>`;
       }
+    } else if (tipe === 'pgk_kategori') {
+      const o = r.opsi || {};
+      const labels = Array.isArray(o.category_labels) && o.category_labels.length
+        ? o.category_labels
+        : ['Benar', 'Salah'];
+      const statements = Array.isArray(o.statements) ? o.statements : [];
+      const user = Array.isArray(o.user) ? o.user : [];
+      const kunci = Array.isArray(o.kunci) ? o.kunci : [];
+      opsiHtml = `<div class="category-review-list">${statements.map((st, idx) => {
+        const item = (st && typeof st === 'object') ? st : { text: String(st || ''), image: '' };
+        const userLabel = labels[Number(user[idx])] || 'Belum dijawab';
+        const keyLabel = labels[Number(kunci[idx])] || '-';
+        const cocok = Number(user[idx]) === Number(kunci[idx]) && user[idx] !== undefined;
+        const gambar = item.image
+          ? `<img class="review-image-extra" src="${String(item.image).replace(/"/g,'&quot;')}" alt="Gambar pernyataan ${idx + 1}">`
+          : '';
+        return `<div class="${tampilKunci ? (cocok ? 'jawaban-benar' : 'jawaban-user-salah') : ''}">
+          <b>${idx + 1}.</b> ${formatTeksDenganLatex(item.text || '')}${gambar}<br>
+          <small>Jawabanmu: <b>${String(userLabel).replace(/</g,'&lt;')}</b>${tampilKunci ? ` · Kunci: <b>${String(keyLabel).replace(/</g,'&lt;')}</b>` : ''}</small>
+        </div>`;
+      }).join('')}</div>`;
     } else {
       const o = r.opsi || {};
       const pilihan = o.pilihan || {};
       const pilihanGambar = o.pilihan_gambar || r.pilihan_gambar || {};
+      const isMcma = tipe === 'pgk_mcma';
+      const userMcma = Array.isArray(o.user) ? o.user : [];
+      const kunciMcma = Array.isArray(o.kunci) ? o.kunci : [];
       // Opsi diikutkan jika key-nya ada di data pilihan (termasuk opsi "otomatis"
       // berupa huruf saja tanpa teks/gambar) ATAU punya gambar opsi.
       const allH = [...new Set([...Object.keys(pilihan), ...Object.keys(pilihanGambar)])].sort();
       opsiHtml = allH.map(h => {
         let cls = 'opsi-review';
-        if (tampilKunci && h === o.kunci) cls += ' jawaban-benar';
-        else if (h === o.user) cls += tampilKunci ? ' jawaban-user-salah' : ' selected';
-        if (!tampilKunci && h === o.user) cls += ' jawaban-benar';
+        if (isMcma) {
+          const dipilih = userMcma.includes(h);
+          const benar = kunciMcma.includes(h);
+          if (tampilKunci && benar) cls += ' jawaban-benar';
+          else if (dipilih) cls += tampilKunci ? ' jawaban-user-salah' : ' selected jawaban-benar';
+        } else {
+          if (tampilKunci && h === o.kunci) cls += ' jawaban-benar';
+          else if (h === o.user) cls += tampilKunci ? ' jawaban-user-salah' : ' selected';
+          if (!tampilKunci && h === o.user) cls += ' jawaban-benar';
+        }
         return `<div class="${cls}">${h}. ${renderIsiPilihan(pilihan[h], pilihanGambar[h])}</div>`;
       }).join('');
     }
 
-    const pembahasanHtml = (tampilKunci && r.pembahasan)
-      ? `<div class="pembahasan"><b>Pembahasan:</b> ${formatTeksDenganLatex(r.pembahasan)}</div>` : '';
+    const answerImageHtml = (tampilKunci && r.answer_image)
+      ? `<div class="pembahasan"><b>Gambar kunci/pedoman:</b><img class="review-image-extra" src="${String(r.answer_image).replace(/"/g,'&quot;')}" alt="Gambar kunci jawaban"></div>`
+      : '';
+    const pembahasanImageHtml = (tampilKunci && r.pembahasan_gambar)
+      ? `<img class="review-image-extra" src="${String(r.pembahasan_gambar).replace(/"/g,'&quot;')}" alt="Gambar pembahasan">`
+      : '';
+    const pembahasanHtml = (tampilKunci && (r.pembahasan || pembahasanImageHtml))
+      ? `<div class="pembahasan"><b>Pembahasan:</b> ${formatTeksDenganLatex(r.pembahasan || '')}${pembahasanImageHtml}</div>` : '';
     const gambarSoalHtml = r.gambar
       ? `<img src="${String(r.gambar).replace(/"/g,'&quot;')}" alt="Gambar Soal ${r.nomor}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`
       : '';
@@ -2903,6 +3019,7 @@ function renderReviewDariServer(review, mode) {
         ${statusHtml}
         <div class="pertanyaan"><b>${r.nomor}.</b> [${labelTipeSoal(tipe)}] ${formatTeksDenganLatex(r.pertanyaan || '')}${gambarSoalHtml}</div>
         ${opsiHtml}
+        ${answerImageHtml}
         ${pembahasanHtml}
       </div>`;
   }).join('');
@@ -2974,12 +3091,17 @@ function kirimHasilKeSheet(hasil) {
         const lokal = (tryoutState.paket && tryoutState.paket.soal || []).find(
           s => s.id === r.soalId || (s.pertanyaan && r.pertanyaan && s.pertanyaan === r.pertanyaan)
         );
-        if (!lokal || !lokal.pilihan_gambar) return r;
+        if (!lokal) return r;
         const o = r.opsi || {};
         return {
           ...r,
-          opsi: { ...o, pilihan_gambar: { ...(o.pilihan_gambar || {}), ...lokal.pilihan_gambar } },
-          pilihan_gambar: { ...(r.pilihan_gambar || {}), ...lokal.pilihan_gambar }
+          opsi: {
+            ...o,
+            pilihan_gambar: { ...(o.pilihan_gambar || {}), ...(lokal.pilihan_gambar || {}) },
+            category_labels: (o.category_labels && o.category_labels.length) ? o.category_labels : (lokal.category_labels || []),
+            statements: (o.statements && o.statements.length) ? o.statements : (lokal.statements || [])
+          },
+          pilihan_gambar: { ...(r.pilihan_gambar || {}), ...(lokal.pilihan_gambar || {}) }
         };
       });
       reviewBox.innerHTML = renderReviewDariServer(reviewEnriched, modeHasil);

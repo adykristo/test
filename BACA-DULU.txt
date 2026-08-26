@@ -1,6 +1,29 @@
-BACA-DULU:
-1. Upload index.html, admin.html, dan folder data/ ke GitHub (repo yang sama).
-2. Paste isi code.gs ke Google Apps Script, lalu Deploy → New version.
-3. Perubahan utama:
-   - Soal ES AI di halaman peserta: tampilan seperti kertas formal, pengumpulan HANYA via upload (PDF atau foto JPG/PNG).
-   - Admin: saat buat soal esai, fokus di area gambar lalu Ctrl+V / ⌘+V untuk tempel hasil crop/screenshot langsung.
+KLINIKFISIKAPKU — PAKET ADMIN TRYOUT TERINTEGRASI
+
+1. Upload SEMUA isi folder test-main/ ke root repository GitHub Pages.
+   Jangan menghapus folder data/ atau file JSON paket yang sudah ada.
+
+2. Buka file code.gs yang berada satu tingkat di luar folder test-main/.
+   Salin seluruh isinya ke project Google Apps Script yang terhubung ke
+   Spreadsheet tryout, lalu Deploy > Manage deployments > Edit > New version.
+
+3. Buka admin melalui:
+   https://DOMAIN-ANDA/admin-dashboard-login.html
+
+4. Di konfigurasi admin, pastikan URL Web App Apps Script dan Kode Rahasia
+   Admin sama dengan ADMIN_KEY di Script Properties Apps Script.
+
+5. Buka satu paket lama lewat tombol Edit, periksa kuncinya, lalu klik
+   Simpan & Publish sekali. Langkah ini memigrasikan kunci lama ke kolom baru
+   tanpa mengubah data soal publik yang sudah ada.
+
+Fitur terintegrasi:
+- Jenjang SD, SMP, dan SMA.
+- PG 4/5 opsi, PGK MCMA, PGK kategori, isian singkat, dan esai.
+- Gambar/screenshot pada narasi soal, opsi, pernyataan PGK, kunci/pedoman,
+  dan pembahasan.
+- LaTeX dan import massal DOCX.
+- Equation Word otomatis dirender menjadi PNG dan diunggah ke GitHub.
+- Penskoran objektif dijalankan di Apps Script; kunci tidak masuk JSON publik.
+
+Panduan lengkap: PANDUAN-INTEGRASI-ADMIN-TRYOUT.md

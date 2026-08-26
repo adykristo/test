@@ -1,75 +1,16 @@
-CARA SETUP KLINIKFISIKAPKU - SOAL & PEMBAHASAN
-(versi Home / Latihan SD / Latihan SMP / Latihan SMA / Kontak)
-====================================================
+CARA SETUP KLINIKFISIKAPKU — VERSI TERINTEGRASI
+================================================
 
-ISI FOLDER INI:
-- index.html               -> halaman publik (Home, Latihan SD, Latihan SMP, Latihan SMA, Kontak)
-- admin.html                -> halaman khusus Sir Ady untuk upload soal (ada pilihan jenjang
-                                + tombol "Test Koneksi ke GitHub")
-- data/manifest-soal.json  -> "database" daftar soal (JANGAN diedit manual)
-- soal-osn/sd, soal-osn/smp, soal-osn/sma -> folder tempat gambar tersimpan per jenjang
+1. Baca BACA-DULU.txt.
+2. Upload semua isi folder test-main/ ke root repository GitHub Pages.
+3. Pasang code.gs sebagai versi baru Google Apps Script.
+4. Admin dibuka melalui:
+   https://klinikfisikapku.com/admin-dashboard-login.html
+5. Petunjuk rinci, format Word, migrasi paket lama, dan pemeriksaan setelah
+   deploy ada di PANDUAN-INTEGRASI-ADMIN-TRYOUT.md.
 
-CARA UPLOAD KE GITHUB (SEKALI DI AWAL)
-----------------------------------------
-1. Buka repo GitHub Sir Ady (yang sudah ada / yang baru dibuat).
-2. Klik "Add file" > "Upload files".
-3. Drag & drop SEMUA isi folder ini (termasuk folder data/ dan soal-osn/)
-   ke halaman upload GitHub. Pastikan strukturnya tetap sama persis.
-4. Scroll ke bawah, klik "Commit changes".
-
-AKTIFKAN GITHUB PAGES (KALAU BELUM)
-----------------------------------------
-1. Di repo, buka Settings > Pages
-2. Source: pilih branch "main", folder "/ (root)"
-3. Save. Tunggu 1-2 menit, nanti muncul link web-nya, contoh:
-   https://username.github.io/nama-repo/
-
-BUAT PERSONAL ACCESS TOKEN (KALAU BELUM PUNYA / SUDAH EXPIRED)
-----------------------------------------
-1. Buka github.com/settings/tokens?type=beta
-2. Generate new token
-3. Repository access: pilih "Only select repositories" > pilih repo ini
-4. Permissions > Contents: ubah dari "No access" jadi "Read and write"
-5. Generate token, COPY dan simpan baik-baik (hanya muncul sekali!)
-
-CARA PAKAI HALAMAN ADMIN
-----------------------------------------
-1. Buka: https://username.github.io/nama-repo/admin.html
-2. Isi Username GitHub, Nama Repo, Branch, Token (sekali saja, nanti
-   tersimpan otomatis di browser kalau centang "Ingat data ini")
-3. Klik tombol "Test Koneksi ke GitHub" -> pastikan hasilnya "Berhasil!"
-   sebelum lanjut upload soal. Kalau gagal, baca pesan errornya, biasanya
-   sudah jelas apa yang perlu diperbaiki (token/repo salah, atau
-   koneksi internet bermasalah).
-4. Pilih Jenjang: SD, SMP, atau SMA
-5. Isi judul soal, topik, tanggal
-6. Pilih file gambar SOAL (screenshot soal)
-7. Pilih file gambar PEMBAHASAN (screenshot solusi)
-8. Klik "Upload & Tampilkan di Web"
-9. Tunggu 30-60 detik, buka/refresh index.html -> soal otomatis muncul
-   di halaman jenjang yang dipilih, pembahasan tersembunyi sampai
-   tombol "Lihat Pembahasan" diklik.
-
-HALAMAN KONTAK
-----------------------------------------
-Halaman "Kontak" di index.html masih berisi CONTOH/PLACEHOLDER.
-Buka index.html, cari bagian <section id="page-kontak">, lalu ganti:
-  - nomor di href="https://wa.me/6281234567890" (format: 62 + nomor tanpa 0 di depan)
-  - alamat di href="mailto:halo@klinikfisikapku.id"
-  - username di href="https://instagram.com/klinikfisikapku"
-dengan kontak asli Sir Ady, lalu commit ulang file index.html ke GitHub.
-
-CATATAN PENTING
-----------------------------------------
-- Halaman admin.html JANGAN dibagikan link-nya ke murid/orang lain,
-  karena siapa saja yang tahu link + punya token bisa upload soal.
-- Token hanya tersimpan di browser Sir Ady sendiri, tidak pernah
-  ter-upload ke internet/repo.
-- Setiap upload soal baru, GitHub Pages butuh waktu build ulang
-  (biasanya di bawah 1 menit) sebelum soal kelihatan di web.
-- Kalau muncul pesan "Gagal membaca manifest-soal.json", cek apakah
-  file data/manifest-soal.json memang sudah ada di repo (isi awalnya
-  cukup tanda kurung siku kosong: [] ).
-- Kalau "Test Koneksi" gagal dengan pesan "Gagal terhubung ke GitHub"
-  (bukan token/repo salah), coba matikan sementara ad-blocker/VPN di
-  browser, atau coba di jaringan/browser lain.
+PENTING:
+- admin.html memang menampilkan 404; gunakan admin-dashboard-login.html.
+- Jangan unggah code.gs atau appscripts.json sebagai file publik website.
+- Jangan pernah memasukkan token GitHub atau ADMIN_KEY ke JSON publik.
+- Deploy Apps Script sebagai New version setelah mengganti code.gs.
