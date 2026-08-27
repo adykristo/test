@@ -1,1 +1,337 @@
-[]
+[
+  {
+    "id": "bank-1787809750712-0-739",
+    "createdAt": "2026-08-27T05:49:10.712Z",
+    "updatedAt": "2026-08-27T05:49:10.712Z",
+    "jenjang": "sma",
+    "topik": "",
+    "tingkat": "Sedang",
+    "soal": {
+      "tipe": "esai",
+      "pertanyaan": "Simpan dokumen dalam format .docx. Ulangi blok SOAL untuk memasukkan banyak soal sekaligus.",
+      "gambar": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "jawaban_benar": "",
+      "jawaban_benar_multi": [],
+      "kunci_isian": "",
+      "pembahasan": "",
+      "pembahasan_gambar": "",
+      "kunci_gambar": "",
+      "opsi_otomatis": false,
+      "scoring_mode": "exact",
+      "max_points": 1,
+      "partial_points": 1,
+      "partial_threshold": 1,
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [],
+      "pedoman_esai": ""
+    }
+  },
+  {
+    "id": "bank-1787809750713-1-42",
+    "createdAt": "2026-08-27T05:49:10.713Z",
+    "updatedAt": "2026-08-27T05:49:10.713Z",
+    "jenjang": "sma",
+    "topik": "",
+    "tingkat": "Sedang",
+    "soal": {
+      "tipe": "esai",
+      "pertanyaan": "Buat rumus melalui Insert > Equation di Microsoft Word. Equation boleh ditempatkan pada NARASI, opsi A–E, KUNCI/PEDOMAN, atau PEMBAHASAN.",
+      "gambar": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "jawaban_benar": "",
+      "jawaban_benar_multi": [],
+      "kunci_isian": "",
+      "pembahasan": "",
+      "pembahasan_gambar": "",
+      "kunci_gambar": "",
+      "opsi_otomatis": false,
+      "scoring_mode": "exact",
+      "max_points": 1,
+      "partial_points": 1,
+      "partial_threshold": 1,
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [],
+      "pedoman_esai": ""
+    }
+  },
+  {
+    "id": "bank-1787809750713-2-249",
+    "createdAt": "2026-08-27T05:49:10.713Z",
+    "updatedAt": "2026-08-27T05:49:10.713Z",
+    "jenjang": "sma",
+    "topik": "",
+    "tingkat": "Sedang",
+    "soal": {
+      "tipe": "esai",
+      "pertanyaan": "Gambar biasa juga boleh ditempel langsung pada bagian yang sesuai. Jangan mengubah nama penanda yang dicetak tebal.",
+      "gambar": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "jawaban_benar": "",
+      "jawaban_benar_multi": [],
+      "kunci_isian": "",
+      "pembahasan": "",
+      "pembahasan_gambar": "",
+      "kunci_gambar": "",
+      "opsi_otomatis": false,
+      "scoring_mode": "exact",
+      "max_points": 1,
+      "partial_points": 1,
+      "partial_threshold": 1,
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [],
+      "pedoman_esai": ""
+    }
+  },
+  {
+    "id": "bank-1787809750713-3-965",
+    "createdAt": "2026-08-27T05:49:10.713Z",
+    "updatedAt": "2026-08-27T05:49:10.713Z",
+    "jenjang": "sma",
+    "topik": "",
+    "tingkat": "Sedang",
+    "soal": {
+      "tipe": "esai",
+      "pertanyaan": "Isi JENJANG dengan SD, SMP, atau SMA. TIPE yang didukung: PG, PGK-MCMA, PGK-KATEGORI, ISIAN, dan ESAI. Untuk MCMA, pisahkan beberapa huruf kunci dengan koma.\nCONTOH PILIHAN GANDA",
+      "gambar": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "jawaban_benar": "",
+      "jawaban_benar_multi": [],
+      "kunci_isian": "",
+      "pembahasan": "",
+      "pembahasan_gambar": "",
+      "kunci_gambar": "",
+      "opsi_otomatis": false,
+      "scoring_mode": "exact",
+      "max_points": 1,
+      "partial_points": 1,
+      "partial_threshold": 1,
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [],
+      "pedoman_esai": ""
+    }
+  },
+  {
+    "id": "bank-1787809750713-4-238",
+    "createdAt": "2026-08-27T05:49:10.713Z",
+    "updatedAt": "2026-08-27T05:49:10.713Z",
+    "jenjang": "sma",
+    "topik": "",
+    "tingkat": "Sedang",
+    "soal": {
+      "tipe": "pg4",
+      "pertanyaan": "TIPE: PG\nJENJANG: SMA\nMATERI: Kinematika\nTINGKAT: Sedang\nSebuah benda bergerak dengan kecepatan awal ... Sisipkan Equation Word pada baris ini bila diperlukan.\nContoh Equation Word yang akan diubah menjadi gambar:",
+      "gambar": "",
+      "pilihan": {
+        "A": "Tulis teks opsi atau sisipkan Equation/gambar setelah penanda A.",
+        "B": "Tulis opsi B.",
+        "C": "Tulis opsi C.",
+        "D": "Tulis opsi D."
+      },
+      "pilihan_gambar": {},
+      "jawaban_benar": "B",
+      "jawaban_benar_multi": [],
+      "kunci_isian": "",
+      "pembahasan": "Tuliskan pembahasan dan sisipkan Equation Word atau gambar penyelesaian di bagian ini.\nCONTOH PGK MCMA",
+      "pembahasan_gambar": "",
+      "kunci_gambar": "",
+      "opsi_otomatis": false,
+      "scoring_mode": "exact",
+      "max_points": 1,
+      "partial_points": 1,
+      "partial_threshold": 1,
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [],
+      "pedoman_esai": ""
+    }
+  },
+  {
+    "id": "bank-1787809750713-5-387",
+    "createdAt": "2026-08-27T05:49:10.713Z",
+    "updatedAt": "2026-08-27T05:49:10.713Z",
+    "jenjang": "sma",
+    "topik": "",
+    "tingkat": "Sedang",
+    "soal": {
+      "tipe": "pgk_mcma",
+      "pertanyaan": "JENJANG: SMA\nMATERI: Dinamika Gerak\nTINGKAT: Sedang\nPilih semua pernyataan yang benar. Equation Word dan gambar dapat ditempel di bagian ini.",
+      "gambar": "",
+      "pilihan": {
+        "A": "Opsi pertama.",
+        "B": "Opsi kedua.",
+        "C": "Opsi ketiga.",
+        "D": "Opsi keempat."
+      },
+      "pilihan_gambar": {},
+      "jawaban_benar": "A,C,D,E,B",
+      "jawaban_benar_multi": [
+        "A",
+        "C",
+        "D",
+        "E",
+        "B"
+      ],
+      "kunci_isian": "",
+      "pembahasan": "Tuliskan pembahasan MCMA di sini.\nCONTOH PGK KATEGORI / BENAR-SALAH",
+      "pembahasan_gambar": "",
+      "kunci_gambar": "",
+      "opsi_otomatis": false,
+      "scoring_mode": "exact",
+      "max_points": 2,
+      "partial_points": 1,
+      "partial_threshold": 1,
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [],
+      "pedoman_esai": ""
+    }
+  },
+  {
+    "id": "bank-1787809750713-6-206",
+    "createdAt": "2026-08-27T05:49:10.713Z",
+    "updatedAt": "2026-08-27T05:49:10.713Z",
+    "jenjang": "sma",
+    "topik": "",
+    "tingkat": "Sedang",
+    "soal": {
+      "tipe": "pgk_kategori",
+      "pertanyaan": "JENJANG: SMA\nMATERI: Usaha dan Energi\nTINGKAT: Sedang\nTentukan benar atau salah untuk setiap pernyataan berikut.",
+      "gambar": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "jawaban_benar": "",
+      "jawaban_benar_multi": [],
+      "kunci_isian": "",
+      "pembahasan": "Tuliskan pembahasan kategori di sini.\nCONTOH ISIAN SINGKAT",
+      "pembahasan_gambar": "",
+      "kunci_gambar": "",
+      "opsi_otomatis": false,
+      "scoring_mode": "partial",
+      "max_points": 2,
+      "partial_points": 1,
+      "partial_threshold": 3,
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [
+        {
+          "id": "word-st-1787809750707-0",
+          "text": "Tuliskan pernyataan pertama; Equation Word/gambar boleh ditempel setelah penanda.",
+          "image": "",
+          "correctIndex": 0
+        },
+        {
+          "id": "word-st-1787809750707-1",
+          "text": "Tuliskan pernyataan kedua.",
+          "image": "",
+          "correctIndex": 1
+        },
+        {
+          "id": "word-st-1787809750707-2",
+          "text": "Tuliskan pernyataan ketiga.",
+          "image": "",
+          "correctIndex": 0
+        },
+        {
+          "id": "word-st-1787809750707-3",
+          "text": "Tuliskan pernyataan keempat.",
+          "image": "",
+          "correctIndex": 1
+        },
+        {
+          "id": "word-st-1787809750707-4",
+          "text": "Tuliskan pernyataan kelima.",
+          "image": "",
+          "correctIndex": 0
+        }
+      ],
+      "pedoman_esai": ""
+    }
+  },
+  {
+    "id": "bank-1787809750713-7-494",
+    "createdAt": "2026-08-27T05:49:10.713Z",
+    "updatedAt": "2026-08-27T05:49:10.713Z",
+    "jenjang": "sma",
+    "topik": "",
+    "tingkat": "Sedang",
+    "soal": {
+      "tipe": "isian",
+      "pertanyaan": "JENJANG: SMA\nMATERI: Gerak Melingkar\nTINGKAT: Mudah\nTuliskan narasi soal isian di sini.",
+      "gambar": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "jawaban_benar": "Tuliskan jawaban atau sisipkan Equation Word sebagai kunci.",
+      "jawaban_benar_multi": [],
+      "kunci_isian": "Tuliskan jawaban atau sisipkan Equation Word sebagai kunci.",
+      "pembahasan": "Tuliskan pembahasan di sini.\nCONTOH ESAI",
+      "pembahasan_gambar": "",
+      "kunci_gambar": "",
+      "opsi_otomatis": false,
+      "scoring_mode": "exact",
+      "max_points": 1,
+      "partial_points": 1,
+      "partial_threshold": 1,
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [],
+      "pedoman_esai": ""
+    }
+  },
+  {
+    "id": "bank-1787809750713-8-343",
+    "createdAt": "2026-08-27T05:49:10.713Z",
+    "updatedAt": "2026-08-27T05:49:10.713Z",
+    "jenjang": "sma",
+    "topik": "",
+    "tingkat": "Sedang",
+    "soal": {
+      "tipe": "esai",
+      "pertanyaan": "JENJANG: SMA\nMATERI: Gerak Parabola\nTINGKAT: Sulit\nTuliskan pertanyaan esai di sini.\nPEDOMAN:\nTuliskan pedoman atau sisipkan Equation/gambar jawaban.",
+      "gambar": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "jawaban_benar": "",
+      "jawaban_benar_multi": [],
+      "kunci_isian": "",
+      "pembahasan": "Tuliskan pembahasan lengkap di sini.",
+      "pembahasan_gambar": "",
+      "kunci_gambar": "",
+      "opsi_otomatis": false,
+      "scoring_mode": "exact",
+      "max_points": 1,
+      "partial_points": 1,
+      "partial_threshold": 1,
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [],
+      "pedoman_esai": ""
+    }
+  }
+]
