@@ -617,7 +617,7 @@ window.MathJax = {
 
   /* ===== PANEL TRYOUT ===== */
   #panelTryout main, #panelEsai main{
-    max-width:960px;
+    max-width:1180px;
     margin:0 auto;
     padding:24px 24px 64px;
   }
@@ -757,6 +757,22 @@ window.MathJax = {
     margin-bottom:14px;
     background:#fdfbff;
     transition:box-shadow .15s ease, border-color .15s ease;
+  }
+  /* Editor lebar untuk soal panjang, rumus, pilihan, dan pembahasan. */
+  #panelTryout #soalContainer{max-width:1120px;margin:0 auto;}
+  #panelTryout .input-pertanyaan{min-height:145px;line-height:1.7;font-size:14.5px;background:#fff;}
+  #panelTryout .input-pembahasan{min-height:125px;line-height:1.7;font-size:14.5px;background:#fff;}
+  #panelTryout .pilihan-row .input-pilihan{min-height:66px;line-height:1.55;font-size:14px;background:#fff;resize:vertical;}
+  #panelTryout .soal-field-group textarea{box-shadow:inset 0 1px 2px rgba(61,26,99,.03);}
+  #panelTryout .soal-field-group textarea:focus{box-shadow:0 0 0 3px rgba(123,47,247,.12);}
+  #panelTryout .pilihan-row{padding:14px;gap:12px;}
+  #panelTryout .pilihan-row .huruf-badge{width:34px;height:42px;font-size:14px;}
+  #panelTryout .pilihan-row .radio-benar{min-width:62px;}
+  @media(max-width:700px){
+    #panelTryout main{padding:16px 12px 48px;}
+    #panelTryout .soal-block{padding:12px;}
+    #panelTryout .pilihan-row{gap:8px;padding:10px;}
+    #panelTryout .pilihan-row .radio-benar{min-width:48px;font-size:10px;}
   }
   #panelTryout .soal-block:hover{
     box-shadow:0 4px 16px rgba(123,47,247,.10);
@@ -1766,7 +1782,35 @@ window.MathJax = {
   .admin-tabs button.tab-btn.sub-item .tab-icon{width:12px;font-size:9px;}
   .logout-btn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;padding:8px 13px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;}
   .logout-btn:hover{background:rgba(255,255,255,.22);}
+  .guide-btn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;padding:8px 13px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;}
+  .guide-btn:hover{background:rgba(255,255,255,.22);}
   .sidebar-footer .logout-side{width:100%;margin-bottom:10px;background:#f7f1fc;color:var(--ungu);border:1px solid var(--border);padding:9px;border-radius:9px;font-weight:700;cursor:pointer;}
+
+  /* Tampilan admin ringkas: fitur teknis tetap tersimpan, tetapi tidak
+     memenuhi dashboard harian. */
+  .editor-v2-banner,
+  #panelTryout > header,
+  #tryoutConnection,
+  #bankCbtSection,
+  #cbtVisitorDashboard,
+  #panelBank,
+  #cardBank{ display:none !important; }
+  .admin-tabs{gap:5px;}
+  .admin-tabs button.tab-btn{padding:12px 14px;}
+  .dashboard-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;padding-top:18px;border-top:1px solid var(--border);}
+  .dashboard-actions .btn{margin:0;}
+  .advanced-input-methods{grid-column:1 / -1;margin-top:4px;padding:0 14px 14px;border:1px dashed #d9c4eb;border-radius:14px;background:#fcfaff;}
+  .advanced-input-methods summary{padding:14px 2px;color:var(--ungu);font-size:13px;font-weight:800;cursor:pointer;}
+  .advanced-input-methods .upload-card{margin-top:0;margin-bottom:12px;}
+  .readiness-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:16px;}
+  .readiness-item{padding:10px 12px;border-radius:10px;background:#faf7ff;font-size:12px;font-weight:700;}
+  .readiness-item.ok{color:var(--hijau);background:#effaf3;}.readiness-item.wait{color:#9b6500;background:#fff8e9;}
+  @media(max-width:620px){.readiness-grid{grid-template-columns:1fr;}}
+  .admin-collapsible{margin-top:18px;border:1px solid var(--border);border-radius:14px;background:#fff;overflow:hidden;}
+  .admin-collapsible>summary{padding:15px 18px;color:var(--ungu-tua);font-size:13px;font-weight:800;cursor:pointer;background:#fdfaff;}
+  .admin-collapsible[open]>summary{border-bottom:1px solid var(--border);}
+  .admin-collapsible>.card{margin:0;border:0;border-radius:0;box-shadow:none;}
+  .admin-collapsible>.card+.card{border-top:1px solid var(--border);}
 </style>
 </head>
 <body class="admin-locked">
@@ -1801,27 +1845,16 @@ window.MathJax = {
     <div class="sidebar-section">
       <div class="sidebar-section-title">Menu Admin</div>
       <div class="admin-tabs">
-        <div class="nav-group-label">Upload Soal</div>
-        <button type="button" class="tab-btn active" id="tabBtnSoal" onclick="navigateAdmin('panelSoal','sectionUploadSoal')"><span class="tab-icon">📤</span> Upload Soal</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelSoal','cbtVisitorDashboard')"><span class="tab-icon">●</span> Statistik Pengunjung</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelSoal','sectionUploadSoal')"><span class="tab-icon">●</span> Soal &amp; Pembahasan</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelSoal','sectionPengaturan')"><span class="tab-icon">●</span> Pengaturan Situs</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelSoal','sectionHapusSoal')"><span class="tab-icon">●</span> Hapus Soal</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelSoal','sectionOsn')"><span class="tab-icon">●</span> Kumpulan Soal OSN</button>
-        <div class="nav-group-label">Admin Tryout</div>
-        <button type="button" class="tab-btn" id="tabBtnTryout" onclick="navigateAdmin('panelTryout','adminDashboardBox')"><span class="tab-icon">⚙️</span> Ringkasan Tryout</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelTryout','tryoutConnection')"><span class="tab-icon">●</span> Koneksi GitHub</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelTryout','tryoutPackages')"><span class="tab-icon">●</span> Kelola Paket</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelTryout','tryoutParticipants')"><span class="tab-icon">●</span> Kelola Peserta</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelTryout','tryoutResults')"><span class="tab-icon">●</span> Unduh Hasil</button>
-        <div class="nav-group-label">Bank Soal</div>
-        <button type="button" class="tab-btn" id="tabBtnBank" onclick="navigateAdmin('panelBank','bankDashboard')"><span class="tab-icon">📚</span> Bank Soal</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelBank','bankDashboard')"><span class="tab-icon">●</span> Daftar &amp; Filter</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelBank','bankEditorSection')"><span class="tab-icon">●</span> Editor Soal</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelBank','bankImportSection')"><span class="tab-icon">●</span> Import Word / JSON</button>
-        <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelBank','bankCbtSection')"><span class="tab-icon">●</span> Simulasi CBT</button>
-        <div class="nav-group-label">Jawaban Esai</div>
-        <button type="button" class="tab-btn" id="tabBtnEsai" onclick="switchAdminTab('panelEsai')"><span class="tab-icon">📝</span> Paket Tryout</button>
+        <div class="nav-group-label">Ujian</div>
+        <button type="button" class="tab-btn active" id="tabBtnTryout" onclick="navigateAdmin('panelTryout','adminDashboardBox')"><span class="tab-icon">⌂</span> Dashboard</button>
+        <button type="button" class="tab-btn" onclick="navigateAdmin('panelTryout','tryoutPackages')"><span class="tab-icon">▣</span> Paket Tryout</button>
+        <button type="button" class="tab-btn" onclick="navigateAdmin('panelTryout','tryoutParticipants')"><span class="tab-icon">♙</span> Peserta &amp; Kartu Ujian</button>
+        <button type="button" class="tab-btn" onclick="navigateAdmin('panelTryout','tryoutResults')"><span class="tab-icon">▤</span> Hasil &amp; Sertifikat</button>
+        <button type="button" class="tab-btn" id="tabBtnEsai" onclick="switchAdminTab('panelEsai')"><span class="tab-icon">✎</span> Koreksi Esai</button>
+        <div class="nav-group-label">Materi</div>
+        <button type="button" class="tab-btn" id="tabBtnSoal" onclick="navigateAdmin('panelSoal','sectionUploadSoal')"><span class="tab-icon">↑</span> Konten Situs &amp; OSN</button>
+        <div class="nav-group-label">Sistem</div>
+        <button type="button" class="tab-btn" onclick="navigateAdmin('panelSoal','sectionGithub')"><span class="tab-icon">⚙</span> Pengaturan Sistem</button>
       </div>
     </div>
     <div class="sidebar-footer">
@@ -1833,20 +1866,20 @@ window.MathJax = {
   <div class="admin-main">
     <div class="admin-topbar">
       <div>
-        <h1 id="topbarTitle">Upload Soal</h1>
-        <p id="topbarSub">Kelola soal latihan, file OSN, dan paket tryout</p>
+        <h1 id="topbarTitle">Dashboard</h1>
+        <p id="topbarSub">Ringkasan pengelolaan tryout KlinikFisikapku</p>
       </div>
-      <button type="button" class="logout-btn" onclick="logoutAdmin()">Keluar</button>
+      <div style="display:flex; gap:8px; align-items:center;"><button type="button" class="guide-btn" onclick="bukaPanduanAdmin()">? Panduan</button><button type="button" class="logout-btn" onclick="logoutAdmin()">Keluar</button></div>
     </div>
 
     <div class="admin-content">
 
-<div id="panelSoal" class="tab-panel active">
+<div id="panelSoal" class="tab-panel">
 <div class="wrap">
 
   <div class="page-title">
-    <h1>Upload Soal &amp; Pembahasan</h1>
-    <div class="sub">Halaman ini khusus untuk admin — jangan dibagikan link-nya.</div>
+    <h1>Konten Situs &amp; OSN</h1>
+    <div class="sub">Upload soal latihan, pembahasan, dan dokumen OSN untuk ditampilkan di website.</div>
   </div>
 
   <div class="card" id="sectionGithub">
@@ -1942,7 +1975,7 @@ window.MathJax = {
   </div>
 
   <div class="card" id="sectionHapusSoal">
-    <h2><span class="num">3</span> Hapus Soal</h2>
+    <h2>Hapus Soal</h2>
 
     <label>Filter Jenjang</label>
     <select id="filterJenjangHapus">
@@ -1964,7 +1997,7 @@ window.MathJax = {
   </div>
 
   <div class="card" id="sectionOsn">
-    <h2><span class="num">4</span> Kumpulan Soal OSN</h2>
+    <h2>Kumpulan Soal OSN</h2>
 
     <label>Jenjang</label>
     <div class="jenjang-row">
@@ -1999,7 +2032,7 @@ window.MathJax = {
 </div>
 </div>
 
-<div id="panelTryout" class="tab-panel">
+<div id="panelTryout" class="tab-panel active">
 <header>
   <h1>⚙️ Admin Tryout — KlinikFisikapku</h1>
   <p>Buat &amp; kelola paket SD/SMP/SMA: PG, PGK MCMA, PGK kategori, isian singkat, dan esai dengan LaTeX serta gambar lengkap.</p>
@@ -2033,6 +2066,13 @@ window.MathJax = {
       </div>
     </div>
     <p class="help" style="margin-top:10px; margin-bottom:0;">Data diambil dari manifest paket &amp; whitelist peserta. Untuk hasil submit real-time, gunakan bagian unduh hasil di bawah.</p>
+    <div class="dashboard-actions">
+      <button type="button" class="btn btn-primary" onclick="navigateAdmin('panelTryout','tryoutPackages'); mulaiPaketBaru();">+ Buat Paket Baru</button>
+      <button type="button" class="btn btn-outline" onclick="navigateAdmin('panelTryout','tryoutParticipants')">Kelola Peserta</button>
+      <button type="button" class="btn btn-outline" onclick="navigateAdmin('panelTryout','tryoutResults')">Lihat Hasil</button>
+    </div>
+    <div class="readiness-grid" id="dashboardReadiness" aria-label="Checklist kesiapan ujian"></div>
+    <p class="help" id="dashboardAktivitas" style="margin:12px 0 0;">Status pengerjaan akan muncul setelah Anda mengambil hasil paket.</p>
   </div>
 
   <div class="box" id="tryoutConnection">
@@ -2042,7 +2082,7 @@ window.MathJax = {
   </div>
 
   <div class="box" id="tryoutPackages">
-    <h2>2. Paket Tryout Tersimpan</h2>
+    <h2>Paket Tryout</h2>
     <div id="statusManifest" class="status-bar loading show">Memuat daftar paket…</div>
     <div id="paketAdminList"></div>
     <button class="btn btn-primary" style="margin-top:6px;" onclick="mulaiPaketBaru()">+ Buat Paket Tryout Baru</button>
@@ -2092,6 +2132,12 @@ window.MathJax = {
               <option value="jawaban">Skor + jawaban peserta (tanpa kunci)</option>
               <option value="nilai">Hanya skor</option>
             </select>
+
+            <div class="row" style="margin-top:12px;">
+              <div><label style="margin-top:0;">Mulai ujian (opsional)</label><input type="datetime-local" id="fMulai"></div>
+              <div><label style="margin-top:0;">Tutup ujian (opsional)</label><input type="datetime-local" id="fSelesai"></div>
+            </div>
+            <p class="help" style="margin-top:5px;">Jadwal tersimpan di paket. Halaman CBT siswa harus memakai versi yang mendukung jadwal agar penguncian otomatis berlaku.</p>
 
             <label style="display:flex; align-items:center; gap:8px; margin-top:14px; font-weight:400; font-size:13px; color:var(--abu);">
               <input type="checkbox" id="fAktif" style="width:auto;" checked>
@@ -2402,7 +2448,7 @@ Pembahasan: $\sum F=ma$</pre>
   </div>
 
 <div class="box" id="tryoutParticipants">
-    <h2>4. Kelola Peserta (Token Nomor Ujian)</h2>
+    <h2>Peserta &amp; Kartu Ujian</h2>
     <p class="help">
       Admin <b>cukup isi nama</b>. Token digenerate otomatis &amp; disimpan di <b>Google Sheet (server)</b> — bukan di JSON publik.
       File <code>daftar-peserta.json</code> di GitHub Pages sengaja dikosongkan agar tidak bocor.
@@ -2413,6 +2459,10 @@ Pembahasan: $\sum F=ma$</pre>
     <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
       <button type="button" class="btn btn-hijau" onclick="unduhDaftarPesertaExcel()" title="Unduh daftar nama + token">📊 Unduh Excel (CSV)</button>
       <button type="button" class="btn btn-outline" onclick="unduhDaftarPesertaPDF()" title="Unduh daftar nama + token PDF">📥 Unduh PDF</button>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin:0 0 16px; padding:12px; border:1px solid var(--border); border-radius:12px; background:#fcfaff;">
+      <div style="min-width:240px; flex:1;"><label style="margin-top:0;">Cetak kartu untuk paket</label><select id="kartuPaketSelect"></select></div>
+      <button type="button" class="btn btn-primary" onclick="unduhKartuPesertaPaket()">🪪 Unduh Kartu Peserta PDF</button>
     </div>
 
     <div id="pesertaAdminList"></div>
@@ -2478,7 +2528,7 @@ Pembahasan: $\sum F=ma$</pre>
   </div>
 
   <div class="box" id="tryoutResults">
-    <h2>5. Unduh Hasil Tryout Peserta (PDF / Excel)</h2>
+    <h2>Hasil Tryout Peserta</h2>
     <p class="help">
       Fitur ini mengambil data hasil tryout dari Google Sheet lewat Apps Script.
       Isi URL Apps Script &amp; Kode Rahasia Admin (harus sama dengan <code>ADMIN_KEY</code> di Apps Script).
@@ -2766,10 +2816,10 @@ pulihkanSesiAdmin();
 
 const ADMIN_TAB_BTN = { panelSoal:'tabBtnSoal', panelTryout:'tabBtnTryout', panelBank:'tabBtnBank', panelEsai:'tabBtnEsai' };
 const ADMIN_TAB_META = {
-  panelSoal: { title: 'Upload Soal', sub: 'Kelola soal latihan, file OSN, dan paket tryout' },
-  panelTryout: { title: 'Admin Tryout', sub: 'Kelola paket soal tryout: PG, PGK, isian, esai' },
-  panelBank: { title: 'Bank Soal', sub: 'Bank soal privat v7: filter jenjang, import Word/JSON, simulasi CBT' },
-  panelEsai: { title: 'Jawaban Esai', sub: 'Koreksi jawaban esai per paket dan peserta' }
+  panelSoal: { title: 'Konten Situs & OSN', sub: 'Upload soal latihan dan kelola kumpulan soal OSN' },
+  panelTryout: { title: 'Dashboard Tryout', sub: 'Kelola paket ujian, peserta, hasil, dan sertifikat' },
+  panelBank: { title: 'Bank Soal', sub: 'Simpan, cari, import, dan gunakan ulang soal' },
+  panelEsai: { title: 'Koreksi Esai', sub: 'Periksa jawaban esai per paket dan peserta' }
 };
 function switchAdminTab(id) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -2801,11 +2851,26 @@ function toggleSidebar() {
   document.getElementById('adminSidebar').classList.toggle('open');
   document.getElementById('sidebarOverlay').classList.toggle('show');
 }
+function bukaPanduanAdmin() {
+  const modal = document.getElementById('panduanAdminModal');
+  if (modal) modal.style.display = 'block';
+}
+function tutupPanduanAdmin() {
+  const modal = document.getElementById('panduanAdminModal');
+  if (modal) modal.style.display = 'none';
+}
 function navigateAdmin(panelId, sectionId) {
   switchAdminTab(panelId);
   window.setTimeout(function() {
     const target = document.getElementById(sectionId);
-    if (target) target.scrollIntoView({ behavior:'smooth', block:'start' });
+    if (target) {
+      let parent = target.parentElement;
+      while (parent) {
+        if (parent.tagName === 'DETAILS') parent.open = true;
+        parent = parent.parentElement;
+      }
+      target.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
   }, 80);
 }
 // Pindahkan statistik ke dalam area konten (di atas panel)
@@ -2815,6 +2880,48 @@ document.addEventListener('DOMContentLoaded', function() {
   if (vd && content) {
     content.insertBefore(vd, content.firstChild);
   }
+
+  // Metode upload yang tidak dipakai setiap hari disimpan dalam bagian
+  // terbuka-tutup. Word dan ketik manual tetap terlihat sebagai pilihan utama.
+  const methods = document.querySelector('.upload-methods');
+  const manual = document.getElementById('cardManual');
+  const advancedIds = ['cardPdf', 'cardEsaiPdf', 'cardGambar'];
+  if (methods && manual && !document.querySelector('.advanced-input-methods')) {
+    const advanced = document.createElement('details');
+    advanced.className = 'advanced-input-methods';
+    advanced.innerHTML = '<summary>Metode input lainnya: PDF atau gambar</summary>';
+    methods.insertBefore(advanced, manual);
+    advancedIds.forEach(function(id) {
+      const card = document.getElementById(id);
+      if (card) advanced.appendChild(card);
+    });
+  }
+
+  // Bagian yang hanya dipakai sesekali dibuat tertutup secara default.
+  // Tombol navigasi tetap dapat membukanya otomatis bila diperlukan.
+  function collapseAdminSection(sectionId, label) {
+    const section = document.getElementById(sectionId);
+    if (!section || section.parentElement.classList.contains('admin-collapsible')) return;
+    const details = document.createElement('details');
+    details.className = 'admin-collapsible';
+    details.innerHTML = '<summary>' + label + '</summary>';
+    section.parentElement.insertBefore(details, section);
+    details.appendChild(section);
+  }
+  function groupSystemSettings() {
+    const github = document.getElementById('sectionGithub');
+    const setting = document.getElementById('sectionPengaturan');
+    if (!github || !setting || github.parentElement.classList.contains('admin-collapsible')) return;
+    const details = document.createElement('details');
+    details.className = 'admin-collapsible';
+    details.innerHTML = '<summary>Pengaturan sistem: GitHub dan tampilan situs</summary>';
+    github.parentElement.insertBefore(details, github);
+    details.appendChild(github);
+    details.appendChild(setting);
+  }
+  groupSystemSettings();
+  collapseAdminSection('sectionHapusSoal', 'Area lanjutan: hapus soal');
+  collapseAdminSection('bankImportSection', 'Import Word atau JSON (opsional)');
 });
 </script>
 
@@ -5176,6 +5283,17 @@ function updateAdminDashboard() {
   el('dashTotalPaket', list.length);
   el('dashPeserta', peserta);
   el('dashSoal', totalSoal);
+  const ready = document.getElementById('dashboardReadiness');
+  if (ready) {
+    const cek = [
+      [!!ghToken, 'Koneksi GitHub'],
+      [list.some(p => p.aktif !== false && !p.arsip), 'Paket aktif'],
+      [peserta > 0, 'Peserta terdaftar'],
+      [!!(hasilScriptUrl && hasilAdminKey), 'Apps Script terhubung']
+    ];
+    ready.innerHTML = cek.map(([ok, label]) => `<div class="readiness-item ${ok ? 'ok' : 'wait'}">${ok ? '✓' : '○'} ${label}: ${ok ? 'siap' : 'perlu dilengkapi'}</div>`).join('');
+  }
+  if (typeof populateKartuPaketSelect === 'function') populateKartuPaketSelect();
 }
 
 function renderPaketAdminList() {
@@ -5186,23 +5304,29 @@ function renderPaketAdminList() {
     return;
   }
   box.innerHTML = manifestCache.content.map(p => {
-    const aktif = p.aktif !== false; // default true kalau field belum ada (paket lama)
-    const badge = aktif
+    const aktif = p.aktif !== false && !p.arsip; // default true kalau field belum ada (paket lama)
+    const badge = p.arsip
+      ? `<span style="display:inline-block; margin-top:4px; font-size:11px; font-weight:700; color:#8a5a00;">● Arsip — tidak tampil ke siswa</span>`
+      : aktif
       ? `<span style="display:inline-block; margin-top:4px; font-size:11px; font-weight:700; color:var(--hijau);">● Aktif — terlihat di web</span>`
       : `<span style="display:inline-block; margin-top:4px; font-size:11px; font-weight:700; color:var(--merah);">● Nonaktif — disembunyikan dari web</span>`;
     const kodeBadge = (p.kode_akses && String(p.kode_akses).trim())
       ? `<span style="display:inline-block; margin-top:4px; margin-left:8px; font-size:11px; font-weight:700; color:var(--ungu);">🔒 Kode akses aktif</span>`
       : '';
+    const jadwal = p.mulai_ujian || p.selesai_ujian ? `<span>Jadwal: ${p.mulai_ujian ? new Date(p.mulai_ujian).toLocaleString('id-ID') : '—'} s.d. ${p.selesai_ujian ? new Date(p.selesai_ujian).toLocaleString('id-ID') : '—'}</span>` : '';
     return `
     <div class="paket-item">
       <div class="info">
         <b>${p.title}</b>
         <span>${p.jenjang.toUpperCase()} · ${p.topik || '-'} · ${p.jumlah_soal} soal · ${p.durasi_menit} menit</span>
+        ${jadwal}
         ${badge}${kodeBadge}
       </div>
       <div class="aksi">
         <button class="btn btn-outline" onclick="toggleAktifPaket('${p.id}')">${aktif ? 'Sembunyikan' : 'Tampilkan'}</button>
         <button class="btn btn-outline" onclick="editPaket('${p.id}')">Edit</button>
+        <button class="btn btn-outline" onclick="duplikatPaket('${p.id}')">Duplikat</button>
+        <button class="btn btn-outline" onclick="arsipkanPaket('${p.id}')">${p.arsip ? 'Aktifkan Lagi' : 'Arsipkan'}</button>
         <button class="btn btn-outline" id="btnPdf-${p.id}" onclick="downloadPaketPDF('${p.id}')">📄 Unduh PDF Soal</button>
         <button class="btn btn-outline" style="color:#c0392b;" onclick="hapusPaket('${p.id}')">Hapus</button>
       </div>
@@ -5242,6 +5366,8 @@ function mulaiPaketBaru() {
   document.getElementById('fTopik').value = '';
   document.getElementById('fTitle').value = '';
   document.getElementById('fKodeAkses').value = '';
+  document.getElementById('fMulai').value = '';
+  document.getElementById('fSelesai').value = '';
   document.getElementById('fAktif').checked = true;
   document.getElementById('fModeHasil').value = 'lengkap';
   document.getElementById('soalContainer').innerHTML = '';
@@ -5251,7 +5377,6 @@ function mulaiPaketBaru() {
   updateSoalCountBadge();
   document.getElementById('formBox').style.display = 'block';
   document.getElementById('formBox').scrollIntoView({ behavior: 'smooth' });
-  muatBankSoal(false);
   // Highlight kartu Word sebentar
   const card = document.getElementById('cardWord');
   if (card) {
@@ -5277,6 +5402,8 @@ async function editPaket(id) {
     document.getElementById('fTopik').value = paket.topik || '';
     document.getElementById('fTitle').value = paket.title;
     document.getElementById('fKodeAkses').value = paket.kode_akses || meta.kode_akses || '';
+    document.getElementById('fMulai').value = toDateTimeLocal(paket.mulai_ujian || meta.mulai_ujian || '');
+    document.getElementById('fSelesai').value = toDateTimeLocal(paket.selesai_ujian || meta.selesai_ujian || '');
     document.getElementById('fAktif').checked = meta.aktif !== false;
     document.getElementById('fModeHasil').value = paket.mode_hasil || meta.mode_hasil || 'lengkap';
     document.getElementById('soalContainer').innerHTML = '';
@@ -5309,7 +5436,6 @@ async function editPaket(id) {
     updateSoalCountBadge();
     document.getElementById('statusForm').className = 'status-bar';
     document.getElementById('formBox').scrollIntoView({ behavior: 'smooth' });
-    muatBankSoal(false);
   } catch (e) {
     setStatus('statusForm', 'Gagal memuat paket: ' + e.message, 'err');
   }
@@ -5318,6 +5444,34 @@ async function editPaket(id) {
 function batalForm() {
   document.getElementById('formBox').style.display = 'none';
   currentPaketId = null;
+}
+
+function toDateTimeLocal(value) {
+  if (!value) return '';
+  const d = new Date(value); if (Number.isNaN(d.getTime())) return String(value).slice(0, 16);
+  const z = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`;
+}
+
+async function duplikatPaket(id) {
+  await editPaket(id);
+  if (!currentPaketId) return;
+  currentPaketId = null;
+  document.getElementById('formTitle').textContent = 'Buat Salinan Paket Tryout';
+  document.getElementById('fTitle').value = document.getElementById('fTitle').value + ' — Salinan';
+  document.getElementById('fAktif').checked = false;
+  setStatus('statusForm', 'Salinan siap. Periksa soal lalu Simpan & Publish.', 'ok');
+}
+
+async function arsipkanPaket(id) {
+  const meta = manifestCache.content.find(p => p.id === id); if (!meta) return;
+  if (!ghToken) { alert('Masukkan token GitHub dulu.'); return; }
+  const menjadiArsip = !meta.arsip;
+  const next = manifestCache.content.map(p => p.id === id ? { ...p, arsip: menjadiArsip, aktif: menjadiArsip ? false : true } : p);
+  try {
+    const putRes = await ghPutFile(MANIFEST_PATH, next, manifestCache.sha, `${menjadiArsip ? 'Arsipkan' : 'Aktifkan'} paket: ${meta.title}`);
+    manifestCache = { content: next, sha: putRes.content.sha }; renderPaketAdminList();
+  } catch (e) { setStatus('statusManifest', 'Gagal mengubah arsip: ' + e.message, 'err'); }
 }
 
 async function hapusPaket(id) {
@@ -6383,7 +6537,7 @@ function categoryStatementRowHtml(statement, index, labels) {
   return `<div class="category-statement-row">
     <span class="category-statement-number">${index + 1}</span>
     <div class="category-statement-main">
-      <textarea class="input-statement-text" rows="3" placeholder="Pernyataan ${index + 1}; teks dan LaTeX didukung">${escHtmlTeks(st.text || '')}</textarea>
+      <textarea class="input-statement-text" rows="4" placeholder="Pernyataan ${index + 1}; teks dan LaTeX didukung">${escHtmlTeks(st.text || '')}</textarea>
       <div class="category-statement-image">
         <input type="file" accept="image/*" data-label="gambar-pernyataan" data-url-selector=".input-statement-image-url" data-preview-selector=".statement-image-preview" onchange="uploadGambarTambahan(this)">
         <input type="text" class="input-statement-image-url" data-preview-selector=".statement-image-preview" placeholder="Atau link gambar pernyataan" value="${escHtmlTeks(st.image || '')}" oninput="previewGambarTambahan(this)">
@@ -6484,7 +6638,6 @@ function tambahSoal(existing) {
         <button type="button" class="naik" onclick="pindahSoal('${uid}',-1)" title="Naikkan">↑</button>
         <button type="button" class="turun" onclick="pindahSoal('${uid}',1)" title="Turunkan">↓</button>
         <button type="button" class="naik" onclick="duplikatSoalBlock('${uid}')" title="Duplikat">⧉</button>
-        <button type="button" class="naik" onclick="simpanSoalKeBank('${uid}')" title="Simpan ke Bank">📚</button>
         <button type="button" class="hapus" onclick="hapusSoalBlock('${uid}')" title="Hapus">✕</button>
       </div>
     </div>
@@ -6505,7 +6658,7 @@ function tambahSoal(existing) {
     <div class="soal-field-group">
       <label class="soal-field-label">Pertanyaan <span class="muted-hint">(teks + rumus LaTeX + angka · boleh kosong jika hanya gambar)</span></label>
       <div class="latex-toolbar" data-target="pertanyaan"></div>
-      <textarea class="input-pertanyaan" rows="3" oninput="updatePreview(this)" placeholder="Contoh: Sebuah benda bermassa $m=2\\,\\mathrm{kg}$ ditarik gaya $F=10\\,\\mathrm{N}$. Percepatannya…">${(existing && existing.pertanyaan) || ''}</textarea>
+      <textarea class="input-pertanyaan" rows="6" oninput="updatePreview(this)" placeholder="Contoh: Sebuah benda bermassa $m=2\\,\\mathrm{kg}$ ditarik gaya $F=10\\,\\mathrm{N}$. Percepatannya…">${escHtmlTeks((existing && existing.pertanyaan) || '')}</textarea>
       <div class="preview preview-pertanyaan"></div>
     </div>
 
@@ -6612,7 +6765,7 @@ function tambahSoal(existing) {
     <div class="soal-field-group" style="margin-top:16px;">
       <label class="soal-field-label">Pembahasan <span class="muted-hint">(opsional · teks + LaTeX + angka)</span></label>
       <div class="latex-toolbar" data-target="pembahasan"></div>
-      <textarea class="input-pembahasan" rows="3" oninput="updatePreview(this)" placeholder="Contoh: $$a=F/m=10/2=5\\,\\mathrm{m/s^2}$$">${(existing && existing.pembahasan) || ''}</textarea>
+      <textarea class="input-pembahasan" rows="5" oninput="updatePreview(this)" placeholder="Contoh: $$a=F/m=10/2=5\\,\\mathrm{m/s^2}$$">${escHtmlTeks((existing && existing.pembahasan) || '')}</textarea>
       <div class="preview preview-pembahasan"></div>
       <div class="explanation-image-card">
         <label class="soal-field-label">Screenshot pembahasan <span class="muted-hint">(opsional)</span></label>
@@ -6627,6 +6780,7 @@ function tambahSoal(existing) {
   `;
 
   container.appendChild(wrap);
+  ubahPilihanMenjadiTextarea(wrap);
   renumberSoal();
   onGantiTipeSoal(uid);
   onToggleOpsiOtomatis(uid);
@@ -6634,6 +6788,19 @@ function tambahSoal(existing) {
   enablePasteGambarPadaBlok(wrap);
   wrap.querySelectorAll('.input-pertanyaan, .input-pilihan, .input-pembahasan, .input-gambar-url, .input-pilihan-gambar-url').forEach(updatePreview);
   updateRingkasanSoal(uid);
+}
+
+function ubahPilihanMenjadiTextarea(root) {
+  root.querySelectorAll('input.input-pilihan').forEach(function(input) {
+    const area = document.createElement('textarea');
+    area.className = input.className;
+    area.dataset.huruf = input.dataset.huruf || '';
+    area.rows = 3;
+    area.placeholder = input.placeholder;
+    area.value = input.value;
+    area.addEventListener('input', function(){ updatePreview(area); });
+    input.replaceWith(area);
+  });
 }
 
 // Saat "Opsi otomatis" dicentang: field teks/gambar per opsi tidak wajib diisi
@@ -7018,12 +7185,17 @@ function kumpulkanDataForm() {
   const title = document.getElementById('fTitle').value.trim();
   const jenjang = document.getElementById('fJenjang').value;
   const topik = document.getElementById('fTopik').value.trim();
-  const durasi_menit = parseInt(document.getElementById('fDurasi').value, 10) || 60;
+  const rawDurasi = document.getElementById('fDurasi').value.trim();
+  const durasi_menit = parseInt(rawDurasi, 10);
   const kode_akses = document.getElementById('fKodeAkses').value.trim();
   const aktif = document.getElementById('fAktif').checked;
   const mode_hasil = document.getElementById('fModeHasil').value || 'lengkap';
+  const mulai_ujian = document.getElementById('fMulai').value ? new Date(document.getElementById('fMulai').value).toISOString() : '';
+  const selesai_ujian = document.getElementById('fSelesai').value ? new Date(document.getElementById('fSelesai').value).toISOString() : '';
 
   if (!title) throw new Error('Judul paket tidak boleh kosong.');
+  if (!rawDurasi || !Number.isFinite(durasi_menit) || durasi_menit < 1) throw new Error('Durasi ujian wajib diisi, minimal 1 menit.');
+  if (mulai_ujian && selesai_ujian && new Date(selesai_ujian) <= new Date(mulai_ujian)) throw new Error('Waktu tutup ujian harus setelah waktu mulai.');
 
   const blocks = [...document.querySelectorAll('#soalContainer .soal-block')];
   if (!blocks.length) throw new Error('Tambahkan minimal 1 soal.');
@@ -7125,7 +7297,7 @@ function kumpulkanDataForm() {
       throw new Error(`Maksimal 50 soal untuk jenis ${label} dalam satu paket.`);
     }
   }
-  return { title, jenjang, topik, durasi_menit, kode_akses, aktif, mode_hasil, soal };
+  return { title, jenjang, topik, durasi_menit, kode_akses, aktif, mode_hasil, mulai_ujian, selesai_ujian, soal };
 }
 
 async function simpanPaket() {
@@ -7195,6 +7367,7 @@ async function simpanPaket() {
     id, title: data.title, jenjang: data.jenjang, topik: data.topik,
     durasi_menit: data.durasi_menit, kode_akses: data.kode_akses || '',
     mode_hasil: data.mode_hasil || 'lengkap',
+    mulai_ujian: data.mulai_ujian || '', selesai_ujian: data.selesai_ujian || '',
     soal: soalPublik
   };
 
@@ -7214,7 +7387,9 @@ async function simpanPaket() {
       durasi_menit: data.durasi_menit, jumlah_soal: data.soal.length,
       file: filePath, aktif: data.aktif,
       kode_akses: data.kode_akses || '',
-      mode_hasil: data.mode_hasil || 'lengkap'
+      mode_hasil: data.mode_hasil || 'lengkap',
+      mulai_ujian: data.mulai_ujian || '', selesai_ujian: data.selesai_ujian || '',
+      arsip: !!((manifestCache.content.find(p => p.id === id) || {}).arsip)
     };
     let newManifest = manifestCache.content.filter(p => p.id !== id);
     newManifest.push(manifestEntry);
@@ -7535,6 +7710,36 @@ function unduhDaftarPesertaPDF() {
   }
   doc.save('daftar-token-peserta-' + new Date().toISOString().slice(0, 10) + '.pdf');
   setStatus('statusPeserta', '✓ PDF diunduh. Bagikan token ke peserta secara pribadi (WA/email pribadi).', 'ok');
+}
+
+function populateKartuPaketSelect() {
+  const sel = document.getElementById('kartuPaketSelect'); if (!sel) return;
+  const keep = sel.value;
+  sel.innerHTML = '<option value="">Pilih paket tryout…</option>' + manifestCache.content.filter(p => !p.arsip).map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+  if (keep && [...sel.options].some(o => o.value === keep)) sel.value = keep;
+}
+
+function unduhKartuPesertaPaket() {
+  const id = document.getElementById('kartuPaketSelect').value;
+  const paket = manifestCache.content.find(p => p.id === id);
+  if (!paket) { alert('Pilih paket tryout terlebih dahulu.'); return; }
+  const peserta = (pesertaCache.content || []).filter(p => p.aktif !== false && (!Array.isArray(p.paket) || !p.paket.length || p.paket.includes(id)));
+  if (!peserta.length) { alert('Belum ada peserta aktif untuk paket ini.'); return; }
+  const JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if (!JsPDF) { alert('Pustaka PDF belum siap. Muat ulang halaman lalu coba lagi.'); return; }
+  const doc = new JsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  peserta.forEach((p, i) => {
+    if (i) doc.addPage();
+    doc.setFillColor(61,26,99); doc.roundedRect(12, 12, 186, 273, 5, 5, 'F');
+    doc.setFillColor(255,255,255); doc.roundedRect(17, 17, 176, 263, 4, 4, 'F');
+    doc.setTextColor(61,26,99); doc.setFont('helvetica','bold'); doc.setFontSize(19); doc.text('KARTU PESERTA TRYOUT', 105, 38, {align:'center'});
+    doc.setFontSize(12); doc.setFont('helvetica','normal'); doc.text('KlinikFisikapku', 105, 47, {align:'center'});
+    const rows = [['Nama', p.nama || '-'], ['Nomor Ujian', p.noUjian || '-'], ['Paket', paket.title], ['Jenjang', String(paket.jenjang || '').toUpperCase()], ['Durasi', (paket.durasi_menit || '-') + ' menit'], ['Jadwal', paket.mulai_ujian ? new Date(paket.mulai_ujian).toLocaleString('id-ID') : 'Sesuai pengumuman']];
+    let y=68; rows.forEach(r=>{ doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text(r[0],30,y);doc.setFont('helvetica','normal');doc.text(String(r[1]).slice(0,78),70,y);y+=15; });
+    doc.setDrawColor(123,47,247); doc.line(30,165,180,165); doc.setFontSize(9); doc.setTextColor(70); doc.text('Simpan token ini dengan aman. Jangan bagikan kepada peserta lain.',105,185,{align:'center'}); doc.text('Gunakan token untuk masuk ke halaman tryout.',105,192,{align:'center'});
+  });
+  doc.save('kartu-peserta-' + paket.id + '.pdf');
+  setStatus('statusPeserta', '✓ Kartu peserta PDF berhasil dibuat.', 'ok');
 }
 
 async function toggleAktifPeserta(noUjian) {
@@ -7920,6 +8125,8 @@ async function ambilHasilPeserta() {
     data = data.slice().sort((a, b) => (Number(b.nilai) || 0) - (Number(a.nilai) || 0));
     hasilPesertaCache = { meta, data };
 
+    updateStatusPengerjaanDashboard(meta, data);
+
     tampilkanHasilPeserta(meta, data);
     btnPdf.style.display = 'inline-flex';
     if (btnExcel) btnExcel.style.display = 'inline-flex';
@@ -7928,6 +8135,15 @@ async function ambilHasilPeserta() {
   } catch (e) {
     setStatus('statusHasilPeserta', 'Gagal: ' + e.message, 'err');
   }
+}
+
+function updateStatusPengerjaanDashboard(meta, data) {
+  const el = document.getElementById('dashboardAktivitas'); if (!el) return;
+  const eligible = (pesertaCache.content || []).filter(p => p.aktif !== false && (!Array.isArray(p.paket) || !p.paket.length || p.paket.includes(meta.id)));
+  const submitted = new Set((data || []).map(r => String(r.noUjian || '').toLowerCase()));
+  const selesai = eligible.filter(p => submitted.has(String(p.noUjian || '').toLowerCase())).length;
+  const belum = Math.max(0, eligible.length - selesai);
+  el.innerHTML = `<b>Status paket terakhir:</b> ${String(meta.title).replace(/</g,'&lt;')} · <b>${selesai}</b> sudah mengirim · <b>${belum}</b> belum mengirim. Status “sedang mengerjakan” memerlukan fitur heartbeat pada halaman CBT siswa.`;
 }
 
 function tampilkanHasilPeserta(meta, data) {
@@ -9200,6 +9416,14 @@ document.addEventListener('keydown', function(e) {
 
 
 <!-- Modal Preview Paket sebagai Siswa -->
+<div id="panduanAdminModal" onclick="if(event.target===this)tutupPanduanAdmin()" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(20,10,40,.55); overflow:auto; padding:24px 12px;">
+  <div style="width:min(620px,100%); margin:5vh auto; background:#fff; border-radius:18px; overflow:hidden; box-shadow:0 24px 70px rgba(20,10,40,.3);">
+    <div style="padding:18px 20px; background:linear-gradient(125deg,var(--ungu-tua),var(--ungu),var(--pink)); color:#fff; display:flex; justify-content:space-between; gap:12px; align-items:center;"><div><b>Panduan Admin Singkat</b><div style="font-size:12px;opacity:.88;margin-top:2px;">Urutan aman menjalankan tryout</div></div><button type="button" onclick="tutupPanduanAdmin()" style="border:0;background:rgba(255,255,255,.18);color:#fff;border-radius:8px;padding:7px 10px;cursor:pointer;">Tutup ✕</button></div>
+    <ol style="padding:20px 28px 20px 42px; color:#3d1a63; line-height:1.7; font-size:14px;"><li><b>Buat Paket</b> di menu Paket Tryout.</li><li><b>Isi soal</b> melalui Word atau ketik manual, lalu klik Preview.</li><li><b>Simpan &amp; Publish</b>; sistem akan memeriksa judul, durasi, soal, dan kunci jawaban.</li><li><b>Tambah peserta</b> dan buat token.</li><li><b>Unduh Kartu Peserta PDF</b> untuk paket yang dipilih.</li><li><b>Aktifkan paket</b> saat siap digunakan; gunakan jadwal bila diperlukan.</li><li><b>Ambil hasil</b> setelah ujian selesai untuk PDF, Excel, dan sertifikat.</li></ol>
+    <p style="margin:0;padding:0 20px 20px;color:var(--abu);font-size:12px;">Paket lama sebaiknya diarsipkan, bukan dihapus, agar hasilnya tetap tersimpan.</p>
+  </div>
+</div>
+
 <div id="previewModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(20,10,40,.55); overflow:auto; padding:24px 12px;">
   <div style="max-width:720px; margin:0 auto; background:#fff; border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.25); overflow:hidden;">
     <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; background:linear-gradient(90deg,#7b2ff7,#f857a6); color:#fff;">
