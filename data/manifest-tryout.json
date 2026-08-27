@@ -7,9 +7,9 @@
     "durasi_menit": 120,
     "jumlah_soal": 20,
     "file": "data/tryout/seleksi-calon-peserta-physics-club-mt3lv79v.json",
-    "aktif": false,
+    "aktif": true,
     "kode_akses": "",
     "mode_hasil": "nilai",
-    "arsip": true
+    "arsip": false
   }
 ]
