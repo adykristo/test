@@ -6,6 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KlinikFisikapku — Soal &amp; Pembahasan OSN Fisika</title>
 <meta name="description" content="Kumpulan soal latihan dan tryout persiapan OSN Fisika untuk SD, SMP, dan SMA. Lengkap dengan pembahasan.">
+<meta name="keywords" content="soal OSN fisika, pembahasan fisika, tryout fisika, soal fisika SD SMP SMA, KlinikFisikapku">
+<meta name="robots" content="index, follow">
+<link rel="canonical" id="canonicalUrl" href="https://klinikfisikapku.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KlinikFisikapku">
+<meta property="og:title" id="ogTitle" content="KlinikFisikapku — Soal & Pembahasan OSN Fisika">
+<meta property="og:description" id="ogDescription" content="Kumpulan soal latihan dan tryout persiapan OSN Fisika untuk SD, SMP, dan SMA.">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"EducationalOrganization","name":"KlinikFisikapku","url":"https://klinikfisikapku.com/","description":"Kumpulan soal dan pembahasan OSN Fisika untuk SD, SMP, dan SMA."}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23f857a6'/%3E%3Cstop offset='100%25' stop-color='%237b2ff7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='28' font-family='system-ui,sans-serif' font-weight='700' fill='white'%3EK%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -345,6 +353,14 @@ window.MathJax = {
     border:1px dashed var(--pink);
     border-radius:16px;
   }
+  .catalog-toolbar{display:grid;grid-template-columns:minmax(210px,1fr) 170px 145px;gap:10px;padding:13px;margin:0 0 16px;background:#fff;border:1px solid #f0e2fa;border-radius:14px;box-shadow:0 4px 14px rgba(123,47,247,.05);}
+  .catalog-toolbar input,.catalog-toolbar select{width:100%;padding:10px 12px;border:1.5px solid #e8daf5;border-radius:10px;background:#fdfbff;color:#2b1a3d;font:inherit;font-size:13px;}
+  .catalog-toolbar input:focus,.catalog-toolbar select:focus{outline:none;border-color:var(--ungu);}
+  .catalog-summary{font-size:12.5px;color:var(--abu);margin:0 0 12px;}
+  .catalog-pages{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;}
+  .catalog-pages button{border:1.5px solid #e0d0f0;background:#fff;color:var(--ungu-tua);padding:8px 13px;border-radius:9px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;}
+  .catalog-pages button:disabled{opacity:.45;cursor:not-allowed;}
+  @media(max-width:620px){.catalog-toolbar{grid-template-columns:1fr;}}
 
   .browser-box{
     background:#fff;
@@ -1400,7 +1416,7 @@ window.MathJax = {
     <div class="hero-home">
       <div class="hero-badge">Persiapan OSN Fisika</div>
       <h2>Latihan soal &amp; tryout siap pakai untuk SD, SMP, dan SMA</h2>
-      <p>Kumpulan soal latihan lengkap pembahasan dan paket tryout resmi. Pilih jenjang, kerjakan, dan pantau progres belajar kamu.</p>
+      <p>Kumpulan soal latihan lengkap pembahasan dan paket tryout. Pilih jenjang, kerjakan, dan pantau progres belajar kamu.</p>
       <div class="hero-cta">
         <button type="button" class="btn-cta-primary" onclick="gotoPage('tryout')">Mulai Tryout</button>
       </div>
@@ -1638,19 +1654,42 @@ function escAttr(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
 
+const KATALOG_PER_HALAMAN = 12;
+const katalogState = { sd:{query:'',topik:'',sort:'baru',page:1}, smp:{query:'',topik:'',sort:'baru',page:1}, sma:{query:'',topik:'',sort:'baru',page:1} };
+
+function setKatalogFilter(jenjang, key, value) {
+  katalogState[jenjang][key] = value;
+  katalogState[jenjang].page = 1;
+  renderJenjang(jenjang);
+}
+function pindahHalamanKatalog(jenjang, arah) {
+  katalogState[jenjang].page += arah;
+  renderJenjang(jenjang);
+  document.getElementById('list' + jenjang.toUpperCase()).scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 function renderJenjang(jenjang) {
   const listEl = document.getElementById('list' + jenjang.toUpperCase());
-  const items = allSoal
-    .filter(s => s.jenjang === jenjang)
-    .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+  const state = katalogState[jenjang];
+  const semua = allSoal.filter(s => s.jenjang === jenjang);
+  const topikList = [...new Set(semua.map(s => String(s.topik || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b,'id'));
+  const query = String(state.query || '').toLowerCase().trim();
+  const items = semua.filter(s => {
+    const haystack = [s.title, s.topik, s.tanggal].join(' ').toLowerCase();
+    return (!query || haystack.includes(query)) && (!state.topik || String(s.topik || '') === state.topik);
+  }).sort((a, b) => state.sort === 'lama' ? new Date(a.tanggal) - new Date(b.tanggal) : new Date(b.tanggal) - new Date(a.tanggal));
 
+  const toolbar = `<div class="catalog-toolbar"><input type="search" value="${escAttr(state.query)}" placeholder="Cari judul atau topik…" oninput="setKatalogFilter('${jenjang}','query',this.value)"><select onchange="setKatalogFilter('${jenjang}','topik',this.value)"><option value="">Semua topik</option>${topikList.map(t=>`<option value="${escAttr(t)}" ${state.topik===t?'selected':''}>${t}</option>`).join('')}</select><select onchange="setKatalogFilter('${jenjang}','sort',this.value)"><option value="baru" ${state.sort==='baru'?'selected':''}>Terbaru</option><option value="lama" ${state.sort==='lama'?'selected':''}>Terlama</option></select></div>`;
   if (!items.length) {
-    listEl.innerHTML = '<div class="empty">Belum ada soal untuk jenjang ini. Cek lagi nanti ya!</div>';
+    listEl.innerHTML = toolbar + '<div class="empty">Soal tidak ditemukan. Coba kata kunci atau topik lain.</div>';
     return;
   }
-
-  listEl.innerHTML = items.map((item, i) => {
-    const uid = jenjang + '-' + i;
+  const totalHalaman = Math.ceil(items.length / KATALOG_PER_HALAMAN);
+  state.page = Math.min(Math.max(1, state.page), totalHalaman);
+  const mulai = (state.page - 1) * KATALOG_PER_HALAMAN;
+  const tampil = items.slice(mulai, mulai + KATALOG_PER_HALAMAN);
+  listEl.innerHTML = toolbar + `<p class="catalog-summary">Menampilkan ${mulai + 1}–${Math.min(mulai + KATALOG_PER_HALAMAN, items.length)} dari ${items.length} soal.</p>` + tampil.map((item, i) => {
+    const uid = jenjang + '-' + (mulai + i);
     const ytBtn = (item.showYoutube && item.youtubeLink)
       ? `<a class="yt-link" href="${escAttr(item.youtubeLink)}" target="_blank" rel="noopener noreferrer">▶ Tonton Video Pembahasan di YouTube</a>`
       : '';
@@ -1678,7 +1717,7 @@ function renderJenjang(jenjang) {
         </div>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + `<div class="catalog-pages"><span class="catalog-summary" style="margin:0;">Halaman ${state.page} dari ${totalHalaman}</span><div><button type="button" ${state.page<=1?'disabled':''} onclick="pindahHalamanKatalog('${jenjang}',-1)">← Sebelumnya</button> <button type="button" ${state.page>=totalHalaman?'disabled':''} onclick="pindahHalamanKatalog('${jenjang}',1)">Berikutnya →</button></div></div>`;
 }
 
 function toggleSolusi(uid) {
@@ -1818,6 +1857,23 @@ function gotoPage(page) {
   });
   window.scrollTo({ top: 0, behavior: 'smooth' });
   history.replaceState(null, '', '#' + page);
+  updateSeoHalaman(page);
+}
+
+function updateSeoHalaman(page) {
+  const map = {
+    home:['KlinikFisikapku — Soal & Pembahasan OSN Fisika','Kumpulan soal latihan dan tryout persiapan OSN Fisika untuk SD, SMP, dan SMA.'],
+    sd:['Soal OSN Fisika SD & Pembahasan | KlinikFisikapku','Katalog soal latihan OSN Fisika tingkat SD lengkap dengan pembahasan.'],
+    smp:['Soal OSN Fisika SMP & Pembahasan | KlinikFisikapku','Katalog soal latihan OSN Fisika tingkat SMP lengkap dengan pembahasan.'],
+    sma:['Soal OSN Fisika SMA & Pembahasan | KlinikFisikapku','Katalog soal latihan OSN Fisika SMA: kinematika, dinamika, listrik, dan topik lainnya.'],
+    tryout:['Tryout OSN Fisika | KlinikFisikapku','Pilih paket tryout OSN Fisika untuk SD, SMP, atau SMA.']
+  };
+  const meta = map[page] || map.home;
+  document.title = meta[0];
+  const desc = document.querySelector('meta[name="description"]'); if (desc) desc.content = meta[1];
+  const ogTitle = document.getElementById('ogTitle'); if (ogTitle) ogTitle.content = meta[0];
+  const ogDesc = document.getElementById('ogDescription'); if (ogDesc) ogDesc.content = meta[1];
+  const canonical = document.getElementById('canonicalUrl'); if (canonical) canonical.href = location.origin + location.pathname;
 }
 
 document.querySelectorAll('nav.jenjang-nav button').forEach(btn => {

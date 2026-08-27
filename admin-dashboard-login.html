@@ -1811,6 +1811,10 @@ window.MathJax = {
   .admin-collapsible[open]>summary{border-bottom:1px solid var(--border);}
   .admin-collapsible>.card{margin:0;border:0;border-radius:0;box-shadow:none;}
   .admin-collapsible>.card+.card{border-top:1px solid var(--border);}
+  .peserta-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) 160px auto;gap:9px;align-items:end;margin:14px 0 10px;padding:12px;border:1px solid var(--border);border-radius:12px;background:#fcfaff;}
+  .peserta-paging{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0;flex-wrap:wrap;}
+  .peserta-paging .btn{margin:0;padding:7px 11px;font-size:12px;}
+  @media(max-width:700px){.peserta-toolbar{grid-template-columns:1fr 1fr;}.peserta-toolbar .btn{grid-column:1/-1;}}
 </style>
 </head>
 <body class="admin-locked">
@@ -2465,6 +2469,11 @@ Pembahasan: $\sum F=ma$</pre>
       <button type="button" class="btn btn-primary" onclick="unduhKartuPesertaPaket()">🪪 Unduh Kartu Peserta PDF</button>
     </div>
 
+    <div class="peserta-toolbar">
+      <div><label style="margin-top:0;">Cari peserta</label><input id="pesertaCari" type="text" placeholder="Nama atau token…" oninput="filterPesertaAdmin()"></div>
+      <div><label style="margin-top:0;">Status</label><select id="pesertaFilterStatus" onchange="filterPesertaAdmin()"><option value="semua">Semua</option><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option><option value="uji">Uji coba</option></select></div>
+      <button type="button" class="btn btn-outline" onclick="loadDaftarPesertaAdmin()">↻ Muat Ulang</button>
+    </div>
     <div id="pesertaAdminList"></div>
 
     <h3 style="margin-top:20px;">Tambah / Edit Satu Peserta</h3>
@@ -4017,65 +4026,38 @@ function bangunDokumenXmlTemplate(tipe, jumlah) {
   const cfg = TEMPLATE_SOAL_CONFIG[tipe];
   const total = Math.max(1, Math.min(50, parseInt(jumlah, 10) || 10));
   let b = '';
-  b += wParagraf('TEMPLATE SOAL TRYOUT — KLINIKFISIKAPKU', {judul:true});
-  b += wParagraf('Tipe ' + cfg.deskripsi + ' • ' + total + ' soal • Gambar soal/opsi • LaTeX Fisika & Matematika', {tengah:true, tebal:true});
-  b += wKosong();
-  b += wParagraf('PETUNJUK PENGISIAN', {tebal:true});
-  b += wParagraf('Nomor soal harus ditulis manual seperti 1., 2., 3., dan seterusnya. Template ini menyediakan ' + total + ' nomor.');
-  b += wParagraf('Baris "TIPE: ' + cfg.label + '" di bawah tiap soal sudah disiapkan — jangan dihapus, supaya sistem mengenali jenis soal dengan pasti saat diimpor.');
-  if (cfg.opsi.length) {
-    b += wParagraf('Tulis pilihan ' + cfg.opsi[0] + '. sampai ' + cfg.opsi[cfg.opsi.length-1] + '. pada paragraf sendiri, masing-masing satu baris.');
-    b += wParagraf('Soal dan setiap opsi boleh berisi teks, gambar, atau gabungan teks + gambar. Untuk gambar opsi, tulis label opsinya lalu tempel gambar pada baris yang sama atau tepat setelahnya.');
-    if (tipe === 'pgk_mcma') b += wParagraf('Untuk PGK MCMA, pisahkan semua huruf kunci dengan koma, misalnya KUNCI: A, C, D. Mode skor dapat EKSAK atau SEBAGIAN.');
-  } else if (tipe === 'pgk_kategori') {
-    b += wParagraf('Gunakan KATEGORI: Benar | Salah, lalu tulis PERNYATAAN 1, KUNCI 1, dan seterusnya. Setiap pernyataan boleh berisi teks, Equation Word, atau gambar.');
-  } else if (tipe === 'isian') {
-    b += wParagraf('Isi baris KUNCI: dengan jawaban yang benar. Alternatif jawaban dapat dipisahkan dengan tanda |, misalnya KUNCI: 10 | 10 m/s.');
-  } else {
-    b += wParagraf('Esai tidak membutuhkan KUNCI otomatis. Baris PEMBAHASAN: bersifat opsional, dapat diisi rubrik/pedoman koreksi manual.');
-  }
-  b += wParagraf('Rumus Fisika/Matematika boleh ditulis dengan LaTeX atau dibuat melalui Insert > Equation. Equation Word akan otomatis diubah menjadi gambar PNG ketika diimpor.');
-  b += wParagraf('Simpan sebagai .docx sebelum diupload. Jangan mengubah label TIPE:, KUNCI:, dan PEMBAHASAN:.');
-  b += wKosong();
-  b += wParagraf('Catatan: mulai isi dari Soal 1 di bawah. Total di file ini ada ' + total + ' soal bertipe ' + cfg.label + '.');
-  b += wKosong();
-  b += wParagraf(total + ' SOAL TRYOUT — ' + cfg.deskripsi, {tebal:true});
+  b += wParagraf('TEMPLATE SOAL TRYOUT', {judul:true});
+  b += wParagraf(cfg.deskripsi + ' · ' + total + ' soal', {tengah:true, tebal:true});
+  b += wParagraf('Isi soal di bawah. Jangan hapus label TIPE dan KUNCI.', {tengah:true});
   b += wKosong();
 
   for (let n = 1; n <= total; n++) {
-    b += wParagrafDuaRun(n + '. ', '[Tulis pertanyaan nomor ' + n + ' di sini. Boleh sisipkan gambar. Rumus: $F=ma$.]');
+    b += wParagrafDuaRun(n + '. ', '[Tulis soal di sini]');
     b += wParagraf('TIPE: ' + cfg.label);
     if (tipe === 'pg4' || tipe === 'pg5') {
       cfg.opsi.forEach(h => {
-        b += wParagrafDuaRun(h + '. ', '[Tulis pilihan ' + h + ' di sini; boleh teks + gambar]');
+        b += wParagrafDuaRun(h + '. ', '[Pilihan ' + h + ']');
       });
       b += wParagraf('KUNCI: A');
-      b += wParagraf('PEMBAHASAN: [Tulis pembahasan di sini; boleh menggunakan LaTeX seperti $v=v_0+at$.]');
+      b += wParagraf('PEMBAHASAN:');
     } else if (tipe === 'pgk_mcma') {
       cfg.opsi.forEach(h => {
-        b += wParagrafDuaRun(h + '. ', '[Tulis opsi/pernyataan ' + h + ' di sini; boleh teks + Equation/gambar]');
+        b += wParagrafDuaRun(h + '. ', '[Pilihan ' + h + ']');
       });
       b += wParagraf('KUNCI: A, C');
-      b += wParagraf('MODE SKOR: EKSAK');
-      b += wParagraf('SKOR PENUH: 2');
-      b += wParagraf('SKOR SEBAGIAN: 1');
-      b += wParagraf('MINIMAL BENAR: 1');
-      b += wParagraf('PEMBAHASAN: [Tulis pembahasan PGK MCMA di sini]');
+      b += wParagraf('PEMBAHASAN:');
     } else if (tipe === 'pgk_kategori') {
       b += wParagraf('KATEGORI: Benar | Salah');
       for (let p = 1; p <= 5; p++) {
-        b += wParagraf('PERNYATAAN ' + p + ': [Tulis pernyataan ' + p + '; boleh Equation/gambar]');
+        b += wParagraf('PERNYATAAN ' + p + ':');
         b += wParagraf('KUNCI ' + p + ': ' + (p % 2 ? 'Benar' : 'Salah'));
       }
-      b += wParagraf('SKOR PENUH: 2');
-      b += wParagraf('SKOR SEBAGIAN: 1');
-      b += wParagraf('MINIMAL BENAR: 3');
-      b += wParagraf('PEMBAHASAN: [Tulis pembahasan PGK kategori di sini]');
+      b += wParagraf('PEMBAHASAN:');
     } else if (tipe === 'isian') {
-      b += wParagraf('KUNCI: [Tulis jawaban benar di sini; alternatif jawaban pisahkan dengan tanda |]');
-      b += wParagraf('PEMBAHASAN: [Opsional — boleh dikosongkan atau diisi cara penyelesaian]');
+      b += wParagraf('KUNCI:');
+      b += wParagraf('PEMBAHASAN:');
     } else {
-      b += wParagraf('PEMBAHASAN: [Opsional — rubrik/pedoman koreksi untuk soal esai ini]');
+      b += wParagraf('PEMBAHASAN:');
     }
     b += wKosong();
   }
@@ -7570,15 +7552,34 @@ async function loadDaftarPesertaAdmin() {
   }
 }
 
+let pesertaHalaman = 1;
+const PESERTA_PER_HALAMAN = 30;
+function pesertaTersaring() {
+  const kata = String((document.getElementById('pesertaCari') || {}).value || '').trim().toLowerCase();
+  const status = String((document.getElementById('pesertaFilterStatus') || {}).value || 'semua');
+  return (pesertaCache.content || []).filter(p => {
+    const cocokKata = !kata || String(p.nama || '').toLowerCase().includes(kata) || String(p.noUjian || '').toLowerCase().includes(kata);
+    const cocokStatus = status === 'semua' || (status === 'aktif' && p.aktif !== false && !p.ujiCoba) || (status === 'nonaktif' && p.aktif === false) || (status === 'uji' && !!p.ujiCoba);
+    return cocokKata && cocokStatus;
+  });
+}
+function filterPesertaAdmin() { pesertaHalaman = 1; renderPesertaAdminList(); }
+function pindahHalamanPeserta(arah) { pesertaHalaman += arah; renderPesertaAdminList(); document.getElementById('pesertaAdminList').scrollIntoView({behavior:'smooth',block:'start'}); }
 function renderPesertaAdminList() {
   const box = document.getElementById('pesertaAdminList');
   if (!pesertaCache.content.length) {
     box.innerHTML = '<p class="help">Belum ada peserta. Tambah nama di bawah — token dibuat otomatis.</p>';
     return;
   }
+  const filtered = pesertaTersaring();
+  if (!filtered.length) { box.innerHTML = '<p class="help">Peserta tidak ditemukan dengan pencarian atau filter tersebut.</p>'; return; }
+  const totalHalaman = Math.max(1, Math.ceil(filtered.length / PESERTA_PER_HALAMAN));
+  pesertaHalaman = Math.min(Math.max(1, pesertaHalaman), totalHalaman);
+  const awal = (pesertaHalaman - 1) * PESERTA_PER_HALAMAN;
+  const tampil = filtered.slice(awal, awal + PESERTA_PER_HALAMAN);
   box.innerHTML = `
-    <p class="help" style="margin-bottom:10px;">${pesertaCache.content.length} peserta · unduh Excel/PDF untuk bagikan token (jangan share file JSON).</p>
-    ` + pesertaCache.content.map(p => {
+    <div class="peserta-paging"><p class="help" style="margin:0;">Menampilkan <b>${awal + 1}–${Math.min(awal + PESERTA_PER_HALAMAN, filtered.length)}</b> dari <b>${filtered.length}</b> peserta${filtered.length !== pesertaCache.content.length ? ` (total ${pesertaCache.content.length})` : ''}.</p><div><button type="button" class="btn btn-outline" ${pesertaHalaman<=1?'disabled':''} onclick="pindahHalamanPeserta(-1)">← Sebelumnya</button> <button type="button" class="btn btn-outline" ${pesertaHalaman>=totalHalaman?'disabled':''} onclick="pindahHalamanPeserta(1)">Berikutnya →</button></div></div>
+    ` + tampil.map(p => {
     const paketLabel = (!p.paket || p.paket === 'semua' || (Array.isArray(p.paket) && !p.paket.length))
       ? 'Semua paket'
       : (Array.isArray(p.paket) ? p.paket.join(', ') : p.paket);
@@ -7602,7 +7603,7 @@ function renderPesertaAdminList() {
         <button class="btn btn-outline" style="color:#c0392b;" onclick="hapusPesertaSatu('${noUjianSafe}')">Hapus</button>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + `<div class="peserta-paging"><span class="help">Halaman ${pesertaHalaman} dari ${totalHalaman}</span><div><button type="button" class="btn btn-outline" ${pesertaHalaman<=1?'disabled':''} onclick="pindahHalamanPeserta(-1)">← Sebelumnya</button> <button type="button" class="btn btn-outline" ${pesertaHalaman>=totalHalaman?'disabled':''} onclick="pindahHalamanPeserta(1)">Berikutnya →</button></div></div>`;
 }
 
 function salinTokenPeserta(token) {
