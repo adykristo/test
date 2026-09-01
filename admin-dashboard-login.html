@@ -308,6 +308,8 @@ window.MathJax = {
     margin:0 auto;
     padding:24px 24px 64px;
   }
+  /* Editor paket diberi ruang kerja lebih lebar daripada halaman admin biasa. */
+  #panelTryout .wrap{max-width:1480px;}
   @media (max-width:600px){
     .wrap{ padding:18px 14px 48px; }
   }
@@ -700,6 +702,7 @@ window.MathJax = {
     content:'Pratinjau akan muncul di sini…';
     color:#b8a9c9;
   }
+  #panelTryout .inline-image{display:inline-block;vertical-align:middle;max-width:min(100%,420px);max-height:260px;object-fit:contain;margin:4px 6px;border:1px solid #e1d2ef;border-radius:8px;background:#fff;}
 
   /* Toolbar LaTeX — sisipkan rumus cepat */
   #panelTryout .latex-toolbar{
@@ -759,7 +762,13 @@ window.MathJax = {
     transition:box-shadow .15s ease, border-color .15s ease;
   }
   /* Editor lebar untuk soal panjang, rumus, pilihan, dan pembahasan. */
-  #panelTryout #soalContainer{max-width:1120px;margin:0 auto;}
+  #panelTryout #soalContainer{
+    max-width:1360px;margin:0 auto;
+    overflow-x:auto; overflow-y:visible; padding:2px 2px 14px;
+    scrollbar-color:var(--ungu) #efe7f7; scrollbar-width:thin;
+  }
+  /* Setiap editor soal dapat digeser mendatar bila layar tidak cukup lebar. */
+  #panelTryout #soalContainer .soal-block{min-width:980px;}
   #panelTryout .input-pertanyaan{min-height:145px;line-height:1.7;font-size:14.5px;background:#fff;}
   #panelTryout .input-pembahasan{min-height:125px;line-height:1.7;font-size:14.5px;background:#fff;}
   #panelTryout .pilihan-row .input-pilihan{min-height:66px;line-height:1.55;font-size:14px;background:#fff;resize:vertical;}
@@ -773,6 +782,7 @@ window.MathJax = {
     #panelTryout .soal-block{padding:12px;}
     #panelTryout .pilihan-row{gap:8px;padding:10px;}
     #panelTryout .pilihan-row .radio-benar{min-width:48px;font-size:10px;}
+    #panelTryout #soalContainer .soal-block{min-width:720px;}
   }
   #panelTryout .soal-block:hover{
     box-shadow:0 4px 16px rgba(123,47,247,.10);
@@ -2095,6 +2105,7 @@ window.MathJax = {
   <div class="box" id="formBox" style="display:none;">
     <h2 id="formTitle">3. Buat Paket Tryout Baru</h2>
     <div id="statusForm" class="status-bar"></div>
+    <p id="statusAutosaveKunci" class="help" aria-live="polite" style="margin:0 0 12px; color:var(--abu);">Kunci dan pembahasan akan tersimpan otomatis ke Google setelah Anda mulai mengisi soal.</p>
 
     <!-- ===== LANGKAH 1: Info paket (ringkas) ===== -->
     <div class="form-step">
@@ -5338,10 +5349,12 @@ async function toggleAktifPaket(id) {
 
 // ---------- Form state ----------
 let currentPaketId = null; // null = baru
+let currentKunciDraftId = null; // ID privat untuk autosave sebelum paket dipublish
 let soalIdCounter = 0;
 
 function mulaiPaketBaru() {
   currentPaketId = null;
+  currentKunciDraftId = 'draft-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
   document.getElementById('formTitle').textContent = '3. Buat Paket Tryout Baru';
   document.getElementById('fJenjang').value = 'sma';
   document.getElementById('fDurasi').value = 60;
@@ -5378,6 +5391,7 @@ async function editPaket(id) {
     if (!result) throw new Error('File paket tidak ditemukan');
     const paket = result.content;
     currentPaketId = id;
+    currentKunciDraftId = null;
     document.getElementById('formTitle').textContent = '3. Edit Paket: ' + paket.title;
     document.getElementById('fJenjang').value = paket.jenjang;
     document.getElementById('fDurasi').value = paket.durasi_menit;
@@ -5426,6 +5440,7 @@ async function editPaket(id) {
 function batalForm() {
   document.getElementById('formBox').style.display = 'none';
   currentPaketId = null;
+  currentKunciDraftId = null;
 }
 
 function toDateTimeLocal(value) {
@@ -6745,9 +6760,9 @@ function tambahSoal(existing) {
     </div>
 
     <div class="soal-field-group" style="margin-top:16px;">
-      <label class="soal-field-label">Pembahasan <span class="muted-hint">(opsional · teks + LaTeX + angka)</span></label>
+      <label class="soal-field-label">Pembahasan / pedoman jawaban esai <span class="muted-hint">(opsional · teks + LaTeX + angka)</span></label>
       <div class="latex-toolbar" data-target="pembahasan"></div>
-      <textarea class="input-pembahasan" rows="5" oninput="updatePreview(this)" placeholder="Contoh: $$a=F/m=10/2=5\\,\\mathrm{m/s^2}$$">${escHtmlTeks((existing && existing.pembahasan) || '')}</textarea>
+      <textarea class="input-pembahasan" rows="5" oninput="updatePreview(this)" placeholder="Contoh: $$a=F/m=10/2=5\\,\\mathrm{m/s^2}$$ · gunakan tombol 🖼 Sisip Gambar untuk gambar di tengah teks">${escHtmlTeks((existing && existing.pembahasan) || '')}</textarea>
       <div class="preview preview-pembahasan"></div>
       <div class="explanation-image-card">
         <label class="soal-field-label">Screenshot pembahasan <span class="muted-hint">(opsional)</span></label>
@@ -6878,7 +6893,9 @@ function escHtmlTeks(s) {
 /** Escape HTML, ubah baris baru jadi <br>, biarkan $...$ / $$...$$ untuk MathJax. */
 function formatTeksDenganLatex(teks) {
   if (!teks) return '';
-  return escHtmlTeks(teks).replace(/\n/g, '<br>');
+  return escHtmlTeks(teks)
+    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img class="inline-image" src="$2" alt="$1">')
+    .replace(/\n/g, '<br>');
 }
 
 const LATEX_SNIPPETS = [
@@ -6912,6 +6929,29 @@ function insertLatexAtCursor(inputEl, code) {
   updatePreview(inputEl);
 }
 
+function pilihDanSisipkanGambarInline(textarea) {
+  if (!ghToken) { alert('Masukkan dan simpan token GitHub terlebih dahulu sebelum mengunggah gambar.'); return; }
+  const picker = document.createElement('input');
+  picker.type = 'file'; picker.accept = 'image/*'; picker.style.display = 'none';
+  document.body.appendChild(picker);
+  picker.addEventListener('change', async function() {
+    const file = picker.files && picker.files[0];
+    picker.remove();
+    if (!file) return;
+    sedangUploadGambar++;
+    try {
+      const base64 = await fileToBase64(file);
+      const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      const path = `${GAMBAR_SOAL_FOLDER}/${Date.now()}-inline-${safeName}`;
+      const res = await ghPutBinaryFile(path, base64, `Upload gambar sisipan: ${safeName}`);
+      insertLatexAtCursor(textarea, `![Gambar](${res.content.download_url})`);
+      jadwalkanAutosaveKunci();
+    } catch (e) { alert('Gagal mengunggah gambar sisipan: ' + e.message); }
+    finally { sedangUploadGambar--; }
+  });
+  picker.click();
+}
+
 function initLatexToolbars(root) {
   if (!root) return;
   root.querySelectorAll('.latex-toolbar').forEach(bar => {
@@ -6922,8 +6962,19 @@ function initLatexToolbars(root) {
     LATEX_SNIPPETS.forEach(s => {
       html += `<button type="button" title="${escHtmlTeks(s.code)}" data-ltx="${escHtmlTeks(s.code)}">${escHtmlTeks(s.label)}</button>`;
     });
+    html += '<button type="button" class="ltx-more" title="Upload dan sisipkan gambar pada posisi kursor" data-inline-image="1">🖼 Sisip Gambar</button>';
     bar.innerHTML = html;
     bar.addEventListener('click', function (ev) {
+      const imageBtn = ev.target.closest('button[data-inline-image]');
+      if (imageBtn) {
+        ev.preventDefault();
+        let inputEl = null;
+        if (target === 'pertanyaan') inputEl = root.querySelector('.input-pertanyaan');
+        else if (target === 'pembahasan') inputEl = root.querySelector('.input-pembahasan');
+        else if (target.indexOf('pilihan-') === 0) inputEl = root.querySelector('.input-pilihan[data-huruf="' + target.replace('pilihan-', '') + '"]');
+        if (inputEl) pilihDanSisipkanGambarInline(inputEl);
+        return;
+      }
       const btn = ev.target.closest('button[data-ltx]');
       if (!btn) return;
       ev.preventDefault();
@@ -7158,6 +7209,67 @@ function bacaSatuSoalDariBlock(block) {
   return { ...base, pilihan, pilihan_gambar, jawaban_benar, opsi_otomatis: opsiOtomatis };
 }
 
+// ========== AUTOSAVE KUNCI & PEMBAHASAN KE GOOGLE ==========
+// Hanya data privat yang dikirim. Narasi/opsi soal tetap tersimpan ke GitHub
+// saat tombol Simpan & Publish dipilih, sehingga kunci tidak masuk file publik.
+let timerAutosaveKunci = null;
+let autosaveKunciSedangJalan = false;
+
+function daftarKunciDariEditor() {
+  return [...document.querySelectorAll('#soalContainer .soal-block')].map((block, idx) => {
+    const s = bacaSatuSoalDariBlock(block) || {};
+    return {
+      soalId: s.id || block.dataset.soalId || ('draft-q-' + idx), nomor: idx + 1,
+      tipe: s.tipe || 'pg5', jawaban_benar: s.jawaban_benar || '',
+      kunci_isian: s.kunci_isian || '', pembahasan: s.pembahasan || '',
+      correct_indexes: s.correct_indexes || [], scoring_mode: s.scoring_mode || 'exact',
+      max_points: s.max_points || 1, partial_points: s.partial_points || 1,
+      partial_threshold: s.partial_threshold || 1, category_labels: s.category_labels || [],
+      statement_keys: (s.statements || []).map(st => Number(st.correctIndex) || 0),
+      answer_image: s.answer_image || '', pembahasan_gambar: s.pembahasan_gambar || ''
+    };
+  });
+}
+
+function jadwalkanAutosaveKunci() {
+  if (!document.getElementById('formBox') || document.getElementById('formBox').style.display === 'none') return;
+  if (!hasilScriptUrl || !hasilAdminKey) return;
+  clearTimeout(timerAutosaveKunci);
+  const status = document.getElementById('statusAutosaveKunci');
+  if (status) status.textContent = 'Perubahan kunci/pembahasan akan disimpan otomatis…';
+  timerAutosaveKunci = setTimeout(simpanKunciOtomatis, 1400);
+}
+
+async function simpanKunciOtomatis() {
+  if (autosaveKunciSedangJalan || !hasilScriptUrl || !hasilAdminKey) return;
+  const kunci = daftarKunciDariEditor();
+  if (!kunci.length) return;
+  const paketId = currentPaketId || currentKunciDraftId;
+  if (!paketId) return;
+  autosaveKunciSedangJalan = true;
+  const status = document.getElementById('statusAutosaveKunci');
+  try {
+    if (status) status.textContent = 'Menyimpan kunci dan pembahasan ke Google…';
+    const res = await fetch(hasilScriptUrl, {
+      method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action:'simpanKunci', key:hasilAdminKey, paketId, kunci})
+    });
+    const out = await res.json();
+    if (!out || out.status !== 'ok') throw new Error((out && out.message) || 'server menolak data');
+    if (status) status.textContent = `✓ Kunci dan pembahasan tersimpan otomatis di Google (${kunci.length} soal).`;
+  } catch (e) {
+    if (status) status.textContent = '⚠ Autosimpan belum berhasil. Data tetap ada di editor; cek URL Apps Script dan Kode Rahasia.';
+    console.warn('Autosave kunci gagal:', e);
+  } finally { autosaveKunciSedangJalan = false; }
+}
+
+document.addEventListener('input', function(e) {
+  if (e.target.closest && e.target.closest('#soalContainer')) jadwalkanAutosaveKunci();
+});
+document.addEventListener('change', function(e) {
+  if (e.target.closest && e.target.closest('#soalContainer')) jadwalkanAutosaveKunci();
+});
+
 function kumpulkanDataForm() {
   // Buang dulu kartu soal yang masih kosong (mis. sisa kartu bawaan yang belum
   // diisi) supaya tidak menggagalkan Simpan & Publish karena soal yang tidak
@@ -7387,6 +7499,7 @@ async function simpanPaket() {
         action: 'simpanKunci',
         key: hasilAdminKey,
         paketId: id,
+        hapusPaketId: (!currentPaketId && currentKunciDraftId) ? currentKunciDraftId : '',
         kunci: kunciList
       })
     });
@@ -7403,6 +7516,7 @@ async function simpanPaket() {
     alert(`✓ BERHASIL!\n\nPaket "${data.title}" (${data.soal.length} soal) tersimpan.\nKunci di server. Mode hasil: ${data.mode_hasil || 'lengkap'}.`);
     renderPaketAdminList();
     currentPaketId = id;
+    currentKunciDraftId = null;
     batalForm();
     document.getElementById('paketAdminList').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {

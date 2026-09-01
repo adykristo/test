@@ -839,6 +839,7 @@ window.MathJax = {
     color:#2b1a3d;
     word-break:break-word;
   }
+  .inline-image{display:inline-block;vertical-align:middle;max-width:min(100%,460px);max-height:300px;object-fit:contain;margin:4px 6px;border:1px solid #e2d7ed;border-radius:8px;background:#fff;}
   .soal-player .pertanyaan img{
     max-width:100%;
     border-radius:12px;
@@ -2045,6 +2046,7 @@ function formatTeksDenganLatex(teks) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img class="inline-image" src="$2" alt="$1">')
     .replace(/\n/g, '<br>');
 }
 
