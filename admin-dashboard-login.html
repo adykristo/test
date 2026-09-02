@@ -5577,7 +5577,13 @@ function pdfLoadImageDataURL(url) {
       const reader = new FileReader();
       reader.onload = () => {
         const img = new Image();
-        img.onload = () => resolve({ dataUrl: reader.result, w: img.naturalWidth, h: img.naturalHeight });
+        img.onload = () => {
+          // Samakan semua grafik/PNG/SVG/WebP menjadi PNG agar jsPDF tidak gagal
+          // ketika sebelumnya dipaksa sebagai JPEG.
+          const canvas=document.createElement('canvas'); canvas.width=img.naturalWidth; canvas.height=img.naturalHeight;
+          canvas.getContext('2d').drawImage(img,0,0);
+          resolve({ dataUrl: canvas.toDataURL('image/png'), w: img.naturalWidth, h: img.naturalHeight, format:'PNG' });
+        };
         img.onerror = () => reject(new Error('gagal decode gambar'));
         img.src = reader.result;
       };
@@ -5693,7 +5699,7 @@ async function downloadPaketPDF(id) {
       doc.setFontSize(10);
       doc.text('SOAL ' + (i + 1), marginX + badgeW / 2, y + 12.5, { align: 'center' });
 
-      if (s.jawaban_benar) {
+      if (s.jawaban_benar && s.tipe !== 'pgk_kategori') {
         doc.setFillColor(232, 248, 237);
         doc.setDrawColor(46, 160, 90);
         doc.setLineWidth(0.6);
@@ -5728,7 +5734,7 @@ async function downloadPaketPDF(id) {
           const drawW = img.w * scale;
           const drawH = img.h * scale;
           butuhHalamanBaru(drawH + 12);
-          doc.addImage(img.dataUrl, 'JPEG', marginX, y, drawW, drawH);
+          doc.addImage(img.dataUrl, img.format || 'PNG', marginX, y, drawW, drawH);
           y += drawH + 12;
         } catch (e) {
           doc.setFontSize(9);
@@ -5741,7 +5747,11 @@ async function downloadPaketPDF(id) {
       // PGK kategori / Benar-Salah: tampilkan semua pernyataan dan pilihan kategori.
       if (s.tipe === 'pgk_kategori') {
         const labels = Array.isArray(s.category_labels) && s.category_labels.length ? s.category_labels : ['Benar','Salah'];
-        const rows = (s.statements || []).map((st,idx) => [String(idx+1)+'. '+pdfBersihkanLatex(st.text || ''), ...labels.map((lab,li) => (Number(st.correctIndex)===li ? '●' : '○'))]);
+        const rows = (s.statements || []).map((st,idx) => {
+          const teks = typeof st === 'string' ? st : (st.text || st.pertanyaan || '');
+          // Font bawaan jsPDF tidak stabil untuk ●/○/✓. Gunakan tanda ASCII.
+          return [String(idx+1)+'. '+pdfBersihkanLatex(teks), ...labels.map((lab,li) => (Number(st.correctIndex)===li ? '[X]' : '[ ]'))];
+        });
         if (rows.length && doc.autoTable) {
           butuhHalamanBaru(70 + rows.length * 32);
           doc.autoTable({startY:y,margin:{left:marginX,right:marginX},head:[['Pernyataan',...labels]],body:rows,theme:'grid',styles:{fontSize:9,cellPadding:6},headStyles:{fillColor:[90,55,125]}});
@@ -5776,7 +5786,7 @@ async function downloadPaketPDF(id) {
         doc.text(opsiLines, marginX + 12, y + 11);
         y += boxH + 3;
         if (gambarOpsi) {
-          try { const im=await pdfLoadImageDataURL(Array.isArray(gambarOpsi)?gambarOpsi[0]:gambarOpsi); const sc=Math.min((contentW-50)/im.w,110/im.h,1); butuhHalamanBaru(im.h*sc+6); doc.addImage(im.dataUrl,'JPEG',marginX+28,y,im.w*sc,im.h*sc); y+=im.h*sc+7; } catch(e) { doc.text('[Gambar opsi tidak dapat dimuat]',marginX+28,y+10); y+=16; }
+          try { const im=await pdfLoadImageDataURL(Array.isArray(gambarOpsi)?gambarOpsi[0]:gambarOpsi); const sc=Math.min((contentW-50)/im.w,110/im.h,1); butuhHalamanBaru(im.h*sc+6); doc.addImage(im.dataUrl,im.format || 'PNG',marginX+28,y,im.w*sc,im.h*sc); y+=im.h*sc+7; } catch(e) { doc.text('[Gambar opsi tidak dapat dimuat]',marginX+28,y+10); y+=16; }
         }
       }
       y += 6;
