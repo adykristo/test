@@ -5560,6 +5560,8 @@ function pdfBersihkanLatex(teks) {
   // jsPDF tidak bisa render KaTeX/LaTeX — buang tanda $ / $$ / \( \) supaya teks tetap terbaca,
   // walau rumus akan tampil sebagai kode mentah (mis. \frac{1}{2}) di PDF.
   return String(teks || '')
+    .replace(/\[align=(left|center|right|justify)\]|\[\/align\]/g, '')
+    .replace(/\[(b|i|u|sup|sub)\]|\[\/(b|i|u|sup|sub)\]/g, '')
     .replace(/\$\$/g, '')
     .replace(/\$/g, '')
     .replace(/\\\(|\\\)|\\\[|\\\]/g, '')
@@ -5623,6 +5625,19 @@ async function downloadPaketPDF(id) {
     const result = await ghGetFile(meta.file);
     if (!result) throw new Error('File paket tidak ditemukan di GitHub.');
     const paket = result.content;
+    // PDF yang dibuat admin boleh memuat kunci/pembahasan. Ambil data privat
+    // dari Apps Script lalu gabungkan hanya di memori browser admin.
+    if (hasilScriptUrl && hasilAdminKey) {
+      try {
+        const kr = await fetch(hasilScriptUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'ambilKunciAdmin',key:hasilAdminKey,paketId:id})});
+        const kd = await kr.json(); const map = kd && kd.status === 'ok' ? (kd.kunci || {}) : {};
+        paket.soal = (paket.soal || []).map(s => {
+          const k = map[s.id] || {}; const merged = {...s,...k};
+          if (merged.tipe === 'pgk_kategori') merged.statements = (s.statements || []).map((st,i) => ({...st,correctIndex:Number((k.statement_keys || [])[i]) || 0}));
+          return merged;
+        });
+      } catch(e) { console.warn('PDF dibuat tanpa kunci privat:',e); }
+    }
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -5723,9 +5738,22 @@ async function downloadPaketPDF(id) {
         }
       }
 
+      // PGK kategori / Benar-Salah: tampilkan semua pernyataan dan pilihan kategori.
+      if (s.tipe === 'pgk_kategori') {
+        const labels = Array.isArray(s.category_labels) && s.category_labels.length ? s.category_labels : ['Benar','Salah'];
+        const rows = (s.statements || []).map((st,idx) => [String(idx+1)+'. '+pdfBersihkanLatex(st.text || ''), ...labels.map((lab,li) => (Number(st.correctIndex)===li ? '●' : '○'))]);
+        if (rows.length && doc.autoTable) {
+          butuhHalamanBaru(70 + rows.length * 32);
+          doc.autoTable({startY:y,margin:{left:marginX,right:marginX},head:[['Pernyataan',...labels]],body:rows,theme:'grid',styles:{fontSize:9,cellPadding:6},headStyles:{fillColor:[90,55,125]}});
+          y=doc.lastAutoTable.finalY+12;
+        }
+      }
+
       // pilihan — tanpa unicode (cegah huruf berjarak)
       for (const h of huruf) {
-        if (!s.pilihan || s.pilihan[h] === undefined || s.pilihan[h] === '') continue;
+        const adaTeks = s.pilihan && s.pilihan[h] !== undefined && s.pilihan[h] !== '';
+        const gambarOpsi = s.pilihan_gambar && s.pilihan_gambar[h];
+        if (!adaTeks && !gambarOpsi) continue;
         const isBenar = s.jawaban_benar === h;
         const isi = pdfBersihkanLatex(s.pilihan[h]);
         const teksOpsi = h + '.  ' + isi;
@@ -5747,6 +5775,9 @@ async function downloadPaketPDF(id) {
         doc.setFontSize(10.5);
         doc.text(opsiLines, marginX + 12, y + 11);
         y += boxH + 3;
+        if (gambarOpsi) {
+          try { const im=await pdfLoadImageDataURL(Array.isArray(gambarOpsi)?gambarOpsi[0]:gambarOpsi); const sc=Math.min((contentW-50)/im.w,110/im.h,1); butuhHalamanBaru(im.h*sc+6); doc.addImage(im.dataUrl,'JPEG',marginX+28,y,im.w*sc,im.h*sc); y+=im.h*sc+7; } catch(e) { doc.text('[Gambar opsi tidak dapat dimuat]',marginX+28,y+10); y+=16; }
+        }
       }
       y += 6;
 
@@ -6963,6 +6994,7 @@ function escHtmlTeks(s) {
 function formatTeksDenganLatex(teks) {
   if (!teks) return '';
   return escHtmlTeks(teks)
+    .replace(/\[align=(left|center|right|justify)\]([\s\S]*?)\[\/align\]/g, '<div style="text-align:$1">$2</div>')
     .replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>')
     .replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>')
     .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
@@ -7061,7 +7093,7 @@ function initLatexToolbars(root) {
     bar.dataset.ready = '1';
     const target = bar.dataset.target || '';
     let html = '<span class="ltx-label">Rumus:</span>';
-    html += '<button type="button" class="rich-btn" data-rich="b" title="Tebal"><b>B</b></button><button type="button" class="rich-btn" data-rich="i" title="Miring"><i>I</i></button><button type="button" class="rich-btn" data-rich="u" title="Garis bawah"><u>U</u></button><button type="button" class="rich-btn" data-rich="sup" title="Superskrip">x²</button><button type="button" class="rich-btn" data-rich="sub" title="Subskrip">x₂</button>';
+    html += '<button type="button" class="rich-btn" data-rich="b" title="Tebal"><b>B</b></button><button type="button" class="rich-btn" data-rich="i" title="Miring"><i>I</i></button><button type="button" class="rich-btn" data-rich="u" title="Garis bawah"><u>U</u></button><button type="button" class="rich-btn" data-rich="sup" title="Superskrip">x²</button><button type="button" class="rich-btn" data-rich="sub" title="Subskrip">x₂</button><button type="button" class="rich-btn" data-rich="align-left" title="Rata kiri">L</button><button type="button" class="rich-btn" data-rich="align-center" title="Rata tengah">C</button><button type="button" class="rich-btn" data-rich="align-right" title="Rata kanan">R</button><button type="button" class="rich-btn" data-rich="align-justify" title="Rata kiri-kanan">J</button>';
     LATEX_SNIPPETS.forEach(s => {
       html += `<button type="button" title="${escHtmlTeks(s.code)}" data-ltx="${escHtmlTeks(s.code)}">${escHtmlTeks(s.label)}</button>`;
     });
@@ -7122,7 +7154,8 @@ function bungkusTeksDiKursor(inputEl, tag) {
   inputEl.focus();
   const a=inputEl.selectionStart ?? inputEl.value.length, b=inputEl.selectionEnd ?? a;
   const isi=inputEl.value.slice(a,b) || 'teks';
-  const kode=`[${tag}]${isi}[/${tag}]`;
+  const align = String(tag).replace('align-','');
+  const kode=String(tag).indexOf('align-')===0 ? `[align=${align}]${isi}[/align]` : `[${tag}]${isi}[/${tag}]`;
   inputEl.value=inputEl.value.slice(0,a)+kode+inputEl.value.slice(b);
   try{inputEl.setSelectionRange(a+tag.length+2,a+tag.length+2+isi.length);}catch(e){}
   inputEl.dispatchEvent(new Event('input',{bubbles:true})); updatePreview(inputEl);

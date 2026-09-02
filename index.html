@@ -2046,6 +2046,12 @@ function formatTeksDenganLatex(teks) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+    .replace(/\[align=(left|center|right|justify)\]([\s\S]*?)\[\/align\]/g, '<div style="text-align:$1">$2</div>')
+    .replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>')
+    .replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>')
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
+    .replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>')
+    .replace(/\[sub\]([\s\S]*?)\[\/sub\]/g, '<sub>$1</sub>')
     .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img class="inline-image" src="$2" alt="$1">')
     .replace(/\n/g, '<br>');
 }
