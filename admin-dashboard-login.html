@@ -7449,6 +7449,20 @@ document.addEventListener('change', function(e) {
 });
 
 function kumpulkanDataForm() {
+  // Paket lama/hasil duplikasi/import kadang membawa ID soal yang sama.
+  // Pastikan setiap kartu punya ID unik sebelum data dipublish ke GitHub.
+  let idDiubah = 0;
+  const idTerpakai = new Set();
+  document.querySelectorAll('#soalContainer .soal-block').forEach((block, index) => {
+    let sid = String(block.dataset.soalId || '').trim();
+    if (!sid || idTerpakai.has(sid)) {
+      sid = 'q' + Date.now() + '-' + index + '-' + Math.random().toString(36).slice(2, 7);
+      block.dataset.soalId = sid;
+      idDiubah++;
+    }
+    idTerpakai.add(sid);
+  });
+  if (idDiubah) console.warn(idDiubah + ' ID soal duplikat diperbaiki otomatis sebelum publish.');
   // Buang dulu kartu soal yang masih kosong (mis. sisa kartu bawaan yang belum
   // diisi) supaya tidak menggagalkan Simpan & Publish karena soal yang tidak
   // sengaja tertinggal kosong.
