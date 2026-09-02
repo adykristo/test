@@ -1,0 +1,53 @@
+{
+  "id": "uji-coba-mtjgk9w0",
+  "title": "UJI COBA",
+  "jenjang": "sma",
+  "topik": "GAYA",
+  "durasi_menit": 60,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "mulai_ujian": "",
+  "selesai_ujian": "",
+  "soal": [
+    {
+      "id": "q1788314843270-1",
+      "tipe": "pgk_kategori",
+      "pertanyaan": "AKU BINGUNG?",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1788314880862-diagram.svg",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [
+        {
+          "id": "q1788314843270-1-st-1",
+          "text": "Q",
+          "image": ""
+        },
+        {
+          "id": "q1788314843270-1-st-2",
+          "text": "B",
+          "image": ""
+        },
+        {
+          "id": "q1788314843270-1-st-3",
+          "text": "S",
+          "image": ""
+        },
+        {
+          "id": "q1788314843270-1-st-4",
+          "text": "S",
+          "image": ""
+        },
+        {
+          "id": "q1788314843270-1-st-5",
+          "text": "D",
+          "image": ""
+        }
+      ]
+    }
+  ]
+}
