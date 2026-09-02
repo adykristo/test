@@ -51,43 +51,20 @@
     },
     {
       "id": "q1788314843270-1",
-      "tipe": "pgk_kategori",
+      "tipe": "pgk_mcma",
       "pertanyaan": "AKU BINGUNG?",
       "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1788314880862-diagram.svg",
       "pdf_soal": "",
-      "pilihan": {},
+      "pilihan": {
+        "A": "ASA",
+        "B": "AS",
+        "C": "AS",
+        "D": "SS",
+        "E": "SSDS"
+      },
       "pilihan_gambar": {},
-      "category_labels": [
-        "Benar",
-        "Salah"
-      ],
-      "statements": [
-        {
-          "id": "q1788314843270-1-st-1",
-          "text": "Q",
-          "image": ""
-        },
-        {
-          "id": "q1788314843270-1-st-2",
-          "text": "B",
-          "image": ""
-        },
-        {
-          "id": "q1788314843270-1-st-3",
-          "text": "S",
-          "image": ""
-        },
-        {
-          "id": "q1788314843270-1-st-4",
-          "text": "S",
-          "image": ""
-        },
-        {
-          "id": "q1788314843270-1-st-5",
-          "text": "D",
-          "image": ""
-        }
-      ]
+      "category_labels": [],
+      "statements": []
     }
   ]
 }
