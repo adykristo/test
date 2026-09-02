@@ -706,6 +706,8 @@ window.MathJax = {
   #panelTryout .visual-tools{margin:14px 0;padding:12px;border:1px solid #ddc8ef;border-radius:13px;background:linear-gradient(135deg,#f9f4ff,#fff7fb);display:flex;gap:8px;align-items:end;flex-wrap:wrap;}
   #panelTryout .visual-tools label{font-size:11px;margin:0;display:grid;gap:3px;color:var(--ungu-tua);font-weight:800;}
   #panelTryout .visual-tools select{min-width:145px;margin:0;padding:7px;border:1px solid #dfc9ee;border-radius:8px;background:#fff;}
+  #panelTryout .advanced-import-card{display:none;}
+  #panelTryout .advanced-import-card.show{display:block;}
 
   /* Toolbar LaTeX — sisipkan rumus cepat */
   #panelTryout .latex-toolbar{
@@ -741,6 +743,8 @@ window.MathJax = {
     border-style:dashed;
     color:var(--abu);
   }
+  #panelTryout .latex-toolbar button.rich-btn{min-width:29px;padding:4px 7px;background:#fff;color:#4d3560;border-color:#d8c7e8;}
+  #panelTryout .latex-toolbar button.rich-btn:hover{background:#f4eafd;color:var(--ungu);}
   #panelTryout .latex-toolbar select.physics-picker,
   #panelTryout .latex-toolbar select.template-picker{
     max-width:175px; padding:4px 7px; border-radius:8px;
@@ -2176,7 +2180,7 @@ window.MathJax = {
     <div class="form-step" style="margin-top:22px;">
       <div class="form-step-num">2</div>
       <div class="form-step-body">
-        <h3 class="form-step-title">Isi soal <span class="help" style="font-weight:400;">— pilih salah satu cara, atau gabungkan</span></h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;"><h3 class="form-step-title">Isi soal <span class="help" style="font-weight:400;">— pilih salah satu cara, atau gabungkan</span></h3><button type="button" class="btn btn-outline btn-xs" onclick="toggleMetodeTambahan()">⚙ Metode tambahan</button></div>
 
         <div class="upload-methods">
           <!-- CARA A: Word (paling direkomendasikan) -->
@@ -2340,7 +2344,7 @@ Pembahasan: $\sum F=ma$</pre>
           </div>
 
           <!-- CARA: Soal Esai PDF utuh -->
-          <div class="upload-card upload-card-primary" id="cardEsaiPdf" style="grid-column:1 / -1;">
+          <div class="upload-card upload-card-primary advanced-import-card" id="cardEsaiPdf" style="grid-column:1 / -1;">
             <div class="upload-card-head">
               <span class="upload-badge">Esai PDF</span>
               <h4>📝 Soal Esai — upload PDF utuh</h4>
@@ -2364,7 +2368,7 @@ Pembahasan: $\sum F=ma$</pre>
           </div>
 
           <!-- CARA C: Foto soal -->
-          <div class="upload-card" id="cardGambar">
+          <div class="upload-card advanced-import-card" id="cardGambar">
             <div class="upload-card-head">
               <h4>🖼️ Dari foto / gambar soal</h4>
               <p>1 gambar = 1 soal. Opsi A–D/E otomatis. Cocok untuk soal yang difoto dari kertas.</p>
@@ -3778,6 +3782,12 @@ function syncGhConfigFromPanelSoal() {
   GITHUB_REPO = $('ghRepo').value.trim();
   GITHUB_BRANCH = $('ghBranch').value.trim() || 'main';
   ghToken = $('ghToken').value.trim();
+}
+
+function toggleMetodeTambahan() {
+  const cards = document.querySelectorAll('.advanced-import-card');
+  const akanTampil = ![...cards].some(card => card.classList.contains('show'));
+  cards.forEach(card => card.classList.toggle('show', akanTampil));
 }
 
 let GITHUB_USER = $('ghUser').value.trim();
@@ -6953,6 +6963,11 @@ function escHtmlTeks(s) {
 function formatTeksDenganLatex(teks) {
   if (!teks) return '';
   return escHtmlTeks(teks)
+    .replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>')
+    .replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>')
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
+    .replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>')
+    .replace(/\[sub\]([\s\S]*?)\[\/sub\]/g, '<sub>$1</sub>')
     .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img class="inline-image" src="$2" alt="$1">')
     .replace(/\n/g, '<br>');
 }
@@ -7046,6 +7061,7 @@ function initLatexToolbars(root) {
     bar.dataset.ready = '1';
     const target = bar.dataset.target || '';
     let html = '<span class="ltx-label">Rumus:</span>';
+    html += '<button type="button" class="rich-btn" data-rich="b" title="Tebal"><b>B</b></button><button type="button" class="rich-btn" data-rich="i" title="Miring"><i>I</i></button><button type="button" class="rich-btn" data-rich="u" title="Garis bawah"><u>U</u></button><button type="button" class="rich-btn" data-rich="sup" title="Superskrip">x²</button><button type="button" class="rich-btn" data-rich="sub" title="Subskrip">x₂</button>';
     LATEX_SNIPPETS.forEach(s => {
       html += `<button type="button" title="${escHtmlTeks(s.code)}" data-ltx="${escHtmlTeks(s.code)}">${escHtmlTeks(s.label)}</button>`;
     });
@@ -7056,6 +7072,13 @@ function initLatexToolbars(root) {
     html += '<button type="button" class="ltx-more" title="Upload dan sisipkan gambar pada posisi kursor" data-inline-image="1">🖼 Sisip Gambar</button>';
     bar.innerHTML = html;
     bar.addEventListener('click', function (ev) {
+      const richBtn = ev.target.closest('button[data-rich]');
+      if (richBtn) {
+        ev.preventDefault();
+        let inputEl = target === 'pertanyaan' ? root.querySelector('.input-pertanyaan') : target === 'pembahasan' ? root.querySelector('.input-pembahasan') : root.querySelector('.input-pilihan[data-huruf="' + target.replace('pilihan-', '') + '"]');
+        if (inputEl) bungkusTeksDiKursor(inputEl, richBtn.dataset.rich);
+        return;
+      }
       const imageBtn = ev.target.closest('button[data-inline-image]');
       if (imageBtn) {
         ev.preventDefault();
@@ -7093,6 +7116,16 @@ function initLatexToolbars(root) {
       if (select.matches('select')) select.value = '';
     });
   });
+}
+
+function bungkusTeksDiKursor(inputEl, tag) {
+  inputEl.focus();
+  const a=inputEl.selectionStart ?? inputEl.value.length, b=inputEl.selectionEnd ?? a;
+  const isi=inputEl.value.slice(a,b) || 'teks';
+  const kode=`[${tag}]${isi}[/${tag}]`;
+  inputEl.value=inputEl.value.slice(0,a)+kode+inputEl.value.slice(b);
+  try{inputEl.setSelectionRange(a+tag.length+2,a+tag.length+2+isi.length);}catch(e){}
+  inputEl.dispatchEvent(new Event('input',{bubbles:true})); updatePreview(inputEl);
 }
 
 /**
