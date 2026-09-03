@@ -50,7 +50,7 @@
     "durasi_menit": 60,
     "jumlah_soal": 1,
     "file": "data/tryout/to2-mtkyzzlx.json",
-    "aktif": false,
+    "aktif": true,
     "kode_akses": "",
     "mode_hasil": "lengkap",
     "mulai_ujian": "",
