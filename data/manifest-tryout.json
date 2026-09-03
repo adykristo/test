@@ -11,20 +11,5 @@
     "kode_akses": "",
     "mode_hasil": "nilai",
     "arsip": false
-  },
-  {
-    "id": "uji-coba-mtjgk9w0",
-    "title": "UJI COBA",
-    "jenjang": "sma",
-    "topik": "GAYA",
-    "durasi_menit": 60,
-    "jumlah_soal": 2,
-    "file": "data/tryout/uji-coba-mtjgk9w0.json",
-    "aktif": true,
-    "kode_akses": "",
-    "mode_hasil": "lengkap",
-    "mulai_ujian": "",
-    "selesai_ujian": "",
-    "arsip": false
   }
 ]
