@@ -11,5 +11,20 @@
     "kode_akses": "",
     "mode_hasil": "nilai",
     "arsip": false
+  },
+  {
+    "id": "to-1-mekanika-mtkyh56k",
+    "title": "TO 1 MEKANIKA",
+    "jenjang": "sma",
+    "topik": "GAYA FIKTIF",
+    "durasi_menit": 60,
+    "jumlah_soal": 1,
+    "file": "data/tryout/to-1-mekanika-mtkyh56k.json",
+    "aktif": false,
+    "kode_akses": "",
+    "mode_hasil": "nilai",
+    "mulai_ujian": "",
+    "selesai_ujian": "",
+    "arsip": false
   }
 ]
