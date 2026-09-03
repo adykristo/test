@@ -56,5 +56,20 @@
     "mulai_ujian": "",
     "selesai_ujian": "",
     "arsip": false
+  },
+  {
+    "id": "t03-mtkz4jas",
+    "title": "T03",
+    "jenjang": "sma",
+    "topik": "VEKTOR",
+    "durasi_menit": 60,
+    "jumlah_soal": 2,
+    "file": "data/tryout/t03-mtkz4jas.json",
+    "aktif": true,
+    "kode_akses": "",
+    "mode_hasil": "lengkap",
+    "mulai_ujian": "",
+    "selesai_ujian": "",
+    "arsip": false
   }
 ]
