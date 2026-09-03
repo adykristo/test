@@ -1,0 +1,24 @@
+{
+  "id": "to-1-mekanika-mtkyh56k",
+  "title": "TO 1 MEKANIKA",
+  "jenjang": "sma",
+  "topik": "GAYA FIKTIF",
+  "durasi_menit": 60,
+  "kode_akses": "",
+  "mode_hasil": "nilai",
+  "mulai_ujian": "",
+  "selesai_ujian": "",
+  "soal": [
+    {
+      "id": "q1788405448446-1",
+      "tipe": "isian",
+      "pertanyaan": "Sebuah benda bergerak lurus dengan kecepatan awal $v_0=[\\,]$ dan percepatan tetap $a=[\\,]$. Setelah bergerak selama $t=[\\,]$, tentukan [besaran yang ditanyakan].\\nDiketahui: $v_0=[\\,]$, $a=[\\,]$, $t=[\\,]$.",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    }
+  ]
+}
