@@ -1,0 +1,64 @@
+{
+  "id": "t03-mtkz4jas",
+  "title": "T03",
+  "jenjang": "sma",
+  "topik": "VEKTOR",
+  "durasi_menit": 60,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "mulai_ujian": "",
+  "selesai_ujian": "",
+  "soal": [
+    {
+      "id": "q1788406454553-1",
+      "tipe": "pgk_mcma",
+      "pertanyaan": "APA ITU?",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "A",
+        "B": "A",
+        "C": "C",
+        "E": "C"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788406545790-2",
+      "tipe": "pgk_kategori",
+      "pertanyaan": "APA ITU?",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [
+        {
+          "id": "q1788406545790-2-st-1",
+          "text": "A",
+          "image": ""
+        },
+        {
+          "id": "q1788406545790-2-st-2",
+          "text": "A",
+          "image": ""
+        },
+        {
+          "id": "q1788406545790-2-st-3",
+          "text": "S",
+          "image": ""
+        },
+        {
+          "id": "q1788406545790-2-st-4",
+          "text": "S",
+          "image": ""
+        }
+      ]
+    }
+  ]
+}
