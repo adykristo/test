@@ -20,7 +20,7 @@
     "durasi_menit": 60,
     "jumlah_soal": 1,
     "file": "data/tryout/to-1-mekanika-mtkyh56k.json",
-    "aktif": false,
+    "aktif": true,
     "kode_akses": "",
     "mode_hasil": "nilai",
     "mulai_ujian": "",
