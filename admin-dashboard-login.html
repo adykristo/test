@@ -218,6 +218,11 @@ window.MathJax = {
     display:flex;
     flex-direction:column;
   }
+  @media (min-width:901px){
+    body.editor-focus .admin-sidebar{ transform:translateX(-105%); }
+    body.editor-focus .admin-main{ margin-left:0; }
+    body.editor-focus .admin-topbar{ padding-left:28px; }
+  }
   .admin-topbar{
     background:linear-gradient(125deg, var(--ungu-tua) 0%, var(--ungu) 50%, var(--pink) 100%);
     color:#fff;
@@ -1371,6 +1376,27 @@ window.MathJax = {
     font-size:12.5px;
     color:var(--abu);
   }
+  #panelTryout .soal-block-title .soal-editor-status{
+    flex-shrink:0;
+    font-size:10px !important;
+    font-weight:800 !important;
+    letter-spacing:.01em;
+    padding:3px 8px;
+    border-radius:999px;
+    color:#a04411 !important;
+    background:#fff5dc;
+    border:1px solid #f6d58c;
+  }
+  #panelTryout .soal-block-title .soal-editor-status.ready{
+    color:#16743e !important;
+    background:#eaf9ef;
+    border-color:#a9e1bb;
+  }
+  #panelTryout .soal-block-title .soal-editor-status.missing{
+    color:#a61f48 !important;
+    background:#fff0f4;
+    border-color:#f5b7c9;
+  }
   #panelTryout .soal-block-body{
     padding-top:2px;
   }
@@ -2450,6 +2476,7 @@ Pembahasan: $\sum F=ma$</pre>
         <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
           <h3 class="form-step-title" style="margin:0;">Daftar soal <span id="soalCountBadge" class="soal-count-badge">0</span></h3>
           <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-outline" style="font-size:12px; padding:5px 10px;" onclick="toggleModeFokusEditor()" id="btnModeFokusEditor">⛶ Mode fokus</button>
             <button type="button" class="btn btn-outline" style="font-size:12px; padding:5px 10px;" onclick="ciutkanSemuaSoal(true)">▸ Ciutkan</button>
             <button type="button" class="btn btn-outline" style="font-size:12px; padding:5px 10px;" onclick="ciutkanSemuaSoal(false)">▾ Buka</button>
           </div>
@@ -2464,6 +2491,7 @@ Pembahasan: $\sum F=ma$</pre>
     <!-- Sticky actions -->
     <div class="form-actions-bar">
       <button type="button" class="btn btn-hijau" onclick="simpanPaket()">💾 Simpan &amp; Publish</button>
+      <button type="button" class="btn btn-outline" onclick="validasiPaketCepat()" title="Cek pertanyaan dan kunci yang belum lengkap">✓ Validasi</button>
       <button type="button" class="btn btn-outline" onclick="previewPaketSebagaiSiswa()" title="Lihat tampilan di sisi peserta">👁 Preview</button>
       <button type="button" class="btn btn-outline" onclick="batalForm()">Batal</button>
     </div>
@@ -6731,6 +6759,7 @@ function tambahSoal(existing) {
         <span class="soal-block-chevron">▾</span>
         <span>Soal #<span class="nomor-tampil"></span></span>
         <span class="soal-tipe-badge"></span>
+        <span class="soal-editor-status">Memeriksa…</span>
         <span class="soal-ringkasan">${escAttr((existing && existing.pertanyaan) || (existing && existing.gambar ? '(gambar)' : ''))}</span>
       </div>
       <div class="soal-block-actions" onclick="event.stopPropagation()">
@@ -6957,6 +6986,57 @@ function updateRingkasanSoal(uid) {
     if (!cuplikan && adaGambar) cuplikan = '(gambar)';
     ringkasan.textContent = cuplikan;
   }
+  const status = block.querySelector('.soal-editor-status');
+  if (!status) return;
+  const adaPertanyaan = !!((block.querySelector('.input-pertanyaan') || {}).value || '').trim() ||
+    !!((block.querySelector('.input-gambar-url') || {}).value || '').trim();
+  let pesan = 'Siap';
+  let kelas = 'ready';
+  if (!adaPertanyaan) {
+    pesan = 'Pertanyaan belum diisi'; kelas = 'missing';
+  } else if (tipe === 'isian' && !((block.querySelector('.input-kunci-isian') || {}).value || '').trim()) {
+    pesan = 'Kunci belum diisi'; kelas = 'missing';
+  } else if (tipe === 'pgk_mcma' && !block.querySelector('.input-kunci-mcma:checked')) {
+    pesan = 'Kunci belum dipilih'; kelas = 'missing';
+  } else if (tipe === 'pgk_kategori' && ![...block.querySelectorAll('.category-statement-row')].some(row =>
+    ((row.querySelector('.input-statement-text') || {}).value || '').trim() ||
+    ((row.querySelector('.input-statement-image-url') || {}).value || '').trim())) {
+    pesan = 'Pernyataan belum diisi'; kelas = 'missing';
+  } else if ((tipe === 'pg4' || tipe === 'pg5') && !block.querySelector('.area-pg input[type=radio]:checked')) {
+    pesan = 'Kunci belum dipilih'; kelas = 'missing';
+  }
+  status.textContent = pesan;
+  status.className = 'soal-editor-status ' + kelas;
+}
+
+function toggleModeFokusEditor() {
+  document.body.classList.toggle('editor-focus');
+  const aktif = document.body.classList.contains('editor-focus');
+  const tombol = document.getElementById('btnModeFokusEditor');
+  if (tombol) tombol.textContent = aktif ? '↤ Tampilkan menu' : '⛶ Mode fokus';
+}
+
+function validasiPaketCepat() {
+  const blocks = [...document.querySelectorAll('#soalContainer .soal-block')];
+  if (!blocks.length) { alert('Belum ada soal di paket ini.'); return false; }
+  let belumPertanyaan = 0, belumKunci = 0;
+  blocks.forEach(block => {
+    updateRingkasanSoal(block.id);
+    const tipe = (block.querySelector('.input-tipe-soal') || {}).value || 'pg5';
+    const adaPertanyaan = !!((block.querySelector('.input-pertanyaan') || {}).value || '').trim() ||
+      !!((block.querySelector('.input-gambar-url') || {}).value || '').trim();
+    if (!adaPertanyaan) { belumPertanyaan++; return; }
+    if (tipe === 'esai') return;
+    if (tipe === 'isian' && !((block.querySelector('.input-kunci-isian') || {}).value || '').trim()) belumKunci++;
+    if (tipe === 'pgk_mcma' && !block.querySelector('.input-kunci-mcma:checked')) belumKunci++;
+    if ((tipe === 'pg4' || tipe === 'pg5') && !block.querySelector('.area-pg input[type=radio]:checked')) belumKunci++;
+    if (tipe === 'pgk_kategori' && ![...block.querySelectorAll('.category-statement-row')].some(row =>
+      ((row.querySelector('.input-statement-text') || {}).value || '').trim() ||
+      ((row.querySelector('.input-statement-image-url') || {}).value || '').trim())) belumKunci++;
+  });
+  if (!belumPertanyaan && !belumKunci) alert('✓ Paket siap dipreview dan dipublish. ' + blocks.length + ' soal sudah terisi.');
+  else alert('Perlu dilengkapi: ' + belumPertanyaan + ' pertanyaan dan ' + belumKunci + ' kunci/pernyataan. Kartu yang perlu diperbaiki sudah diberi tanda merah.');
+  return !belumPertanyaan && !belumKunci;
 }
 
 function onGantiTipeSoal(uid) {
@@ -7442,10 +7522,18 @@ async function simpanKunciOtomatis() {
 }
 
 document.addEventListener('input', function(e) {
-  if (e.target.closest && e.target.closest('#soalContainer')) jadwalkanAutosaveKunci();
+  if (e.target.closest && e.target.closest('#soalContainer')) {
+    const block = e.target.closest('.soal-block');
+    if (block) updateRingkasanSoal(block.id);
+    jadwalkanAutosaveKunci();
+  }
 });
 document.addEventListener('change', function(e) {
-  if (e.target.closest && e.target.closest('#soalContainer')) jadwalkanAutosaveKunci();
+  if (e.target.closest && e.target.closest('#soalContainer')) {
+    const block = e.target.closest('.soal-block');
+    if (block) updateRingkasanSoal(block.id);
+    jadwalkanAutosaveKunci();
+  }
 });
 
 function kumpulkanDataForm() {
