@@ -1,0 +1,68 @@
+{
+  "id": "usaha-mtmkwmg4",
+  "title": "USAHA",
+  "jenjang": "sd",
+  "topik": "USAHA",
+  "durasi_menit": 30,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "mulai_ujian": "",
+  "selesai_ujian": "",
+  "soal": [
+    {
+      "id": "q1788503518411-2",
+      "tipe": "esai",
+      "pertanyaan": "Seorang siswa SD yang sangat cerdas mengikuti simulasi Olimpiade Sains Nasional (OSN) bidang IPA/Fisika. Ia mendorong sebuah balok bermassa $m = 5\\text{ kg}$ di atas lantai datar kasar yang memiliki koefisien gesekan kinetik $\\mu_k = 0{,}2$. Siswa tersebut menarik balok dengan gaya $F$ yang membentuk sudut $\\theta = 37^\\circ$ terhadap bidang horizontal ($^\\circ$ di mana $\\sin 37^\\circ = 0{,}6$ dan $\\cos 37^\\circ = 0{,}8$). Jika balok berpindah sejauh $\\Delta x = 10\\text{ m}$ dengan kecepatan konstan, berapakah besar usaha total yang dilakukan oleh seluruh gaya yang bekerja pada balok tersebut? (Gunakan percepatan gravitasi $g = 10\\text{ m/s}^2$)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788503518536-3",
+      "tipe": "esai",
+      "pertanyaan": "Dalam sebuah eksperimen fisika tingkat lanjut untuk peserta OSN SD, sebuah mesin derek mengangkat beban bermassa $m = 200\\text{ kg}$ dari keadaan diam hingga mencapai ketinggian $h = 15\\text{ m}$. Mesin tersebut tidak ideal sehingga menghasilkan percepatan konstan sebesar $a = 2\\text{ m/s}^2$ selama proses pengangkatan. Hitunglah besar usaha yang dilakukan oleh gaya tegangan tali mesin derek tersebut! (Gunakan $g = 10\\text{ m/s}^2$)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788503520549-4",
+      "tipe": "esai",
+      "pertanyaan": "Sebuah partikel bermassa $m = 0{,}5\\text{ kg}$ bergerak sepanjang sumbu-$x$ di bawah pengaruh gaya konservatif yang besarnya bergantung pada posisi $x$ menurut fungsi $F(x) = (3x^2 - 4x)\\text{ N}$. Jika partikel tersebut bergerak dari posisi awal $x_1 = 1\\text{ m}$ menuju posisi akhir $x_2 = 4\\text{ m}$, tentukan besar usaha yang dilakukan oleh gaya $F(x)$ tersebut!",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788503522239-5",
+      "tipe": "esai",
+      "pertanyaan": "Perhatikan sistem pegas ideal pada laboratorium OSN. Sebuah pegas memiliki konstanta pegas $k = 400\\text{ N/m}$. Pegas tersebut ditarik dari posisi setimbangnya ($x_0 = 0$) hingga meregang sejauh $x_1 = 10\\text{ cm}$, kemudian diregangkan lagi hingga $x_2 = 30\\text{ cm}$. Tentukan besar usaha yang dilakukan oleh gaya luar untuk mengubah regangan pegas dari $x_1 = 10\\text{ cm}$ menjadi $x_2 = 30\\text{ cm}$!",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788503523670-6",
+      "tipe": "esai",
+      "pertanyaan": "Sebuah kotak kecil bermassa $m = 2\\text{ kg}$ meluncur turun dari puncak bidang miring licin yang memiliki kemiringan $\\theta = 30^\\circ$ terhadap horizontal. Panjang bidang miring adalah $L = 5\\text{ m}$. Setibanya di bagian bawah bidang miring, kotak tersebut terus meluncur di atas lantai datar kasar dengan koefisien gesekan $\\mu_k = 0{,}4$ hingga akhirnya berhenti total. Berapakah total jarak (diukur dari ujung bawah bidang miring) yang ditempuh kotak di atas lantai datar sebelum benar-benar berhenti? (Gunakan $g = 10\\text{ m/s}^2$)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    }
+  ]
+}
