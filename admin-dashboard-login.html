@@ -4867,7 +4867,7 @@ function tempelReferensiAsetWord(teks, refs) {
 }
 
 function tipeDariGeminiWord(item) {
-  const raw = String((item || {}).type || '').toLowerCase().replace(/[\s_/-]+/g, '');
+  const raw = String((item || {}).type || (item || {}).tipe || (item || {}).question_type || '').toLowerCase().replace(/[\s_/-]+/g, '');
   const options = (item || {}).options || {};
   if (raw.includes('mcma') || raw.includes('pgkkompleks')) return 'pgk_mcma';
   if (raw.includes('kategori') || raw.includes('benarsalah') || raw === 'bs') return 'pgk_kategori';
@@ -4875,13 +4875,14 @@ function tipeDariGeminiWord(item) {
   if (raw.includes('esai') || raw.includes('essay')) return 'esai';
   if (raw.includes('pg4')) return 'pg4';
   if (raw.includes('pg5')) return 'pg5';
-  return Object.prototype.hasOwnProperty.call(options, 'E') ? 'pg5' : Object.keys(options).length ? 'pg4' : ((item || {}).answer ? 'isian' : 'esai');
+  return Object.prototype.hasOwnProperty.call(options, 'E') ? 'pg5' : Object.keys(options).length ? 'pg4' : (((item || {}).answer || (item || {}).short_answer) ? 'isian' : 'esai');
 }
 
 function soalDariHasilGeminiWord(items) {
   return (Array.isArray(items) ? items : []).map((item, index) => {
     const tipe = tipeDariGeminiWord(item);
-    const rawOptions = item && item.options && typeof item.options === 'object' ? item.options : {};
+    let rawOptions = item && item.options && typeof item.options === 'object' ? item.options : ((item && item.pilihan && typeof item.pilihan === 'object') ? item.pilihan : {});
+    if (Array.isArray(rawOptions)) rawOptions = rawOptions.reduce(function(out, val, oi) { out[String.fromCharCode(65 + oi)] = (val && (val.text || val.value)) || val || ''; return out; }, {});
     const pilihan = {}, pilihan_gambar = {};
     ['A','B','C','D','E'].forEach(h => {
       const raw = rawOptions[h] == null ? rawOptions[h.toLowerCase()] : rawOptions[h];
@@ -4895,11 +4896,11 @@ function soalDariHasilGeminiWord(items) {
       text:tempelReferensiAsetWord((st && (st.text || st.statement)) || '', st && st.image_refs),
       image:'', correctIndex:Math.max(0, Math.min(labels.length - 1, Number((st || {}).correctIndex) || 0))
     })).filter(st => st.text);
-    const answer = String((item && (item.answer || item.jawaban_benar)) || '').trim();
+    const answer = String((item && (item.answer || item.jawaban_benar || item.correct_answer || item.short_answer || item.kunci_isian)) || '').trim();
     const correct = [...new Set(Array.isArray(item && item.correct_indexes) ? item.correct_indexes : (answer.match(/[A-E]/gi) || []))]
       .map(x => String(x).toUpperCase()).filter(x => /^[A-E]$/.test(x));
-    const question = tempelReferensiAsetWord((item && (item.question || item.pertanyaan)) || '', item && item.question_image_refs);
-    const pembahasan = tempelReferensiAsetWord((item && (item.explanation || item.pembahasan)) || '', item && item.explanation_image_refs);
+    const question = tempelReferensiAsetWord((item && (item.question || item.pertanyaan || item.prompt || item.text)) || '', item && item.question_image_refs);
+    const pembahasan = tempelReferensiAsetWord((item && (item.explanation || item.pembahasan || item.solution || item.pedoman)) || '', item && item.explanation_image_refs);
     return {
       tipe, pertanyaan:question, gambar:'', pilihan, pilihan_gambar,
       jawaban_benar:tipe === 'pgk_mcma' ? correct.join(',') : (tipe === 'isian' ? answer : (answer.toUpperCase().match(/[A-E]/) || [''])[0]),
