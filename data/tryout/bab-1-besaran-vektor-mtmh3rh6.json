@@ -1,0 +1,278 @@
+{
+  "id": "bab-1-besaran-vektor-mtmh3rh6",
+  "title": "BAB 1 BESARAN VEKTOR",
+  "jenjang": "sma",
+  "topik": "VEKTOR",
+  "durasi_menit": 60,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "mulai_ujian": "",
+  "selesai_ujian": "",
+  "soal": [
+    {
+      "id": "q1788496323312-1",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Seorang pengendara motor melaju di jalan tol dengan kecepatan 80 km/jam ke arah utara, kemudian menginjak rem hingga mengalami perlambatan. Gaya rem yang bekerja pada motor tersebut melawan arah geraknya, sementara mesin motor terus menghasilkan energi kinetik selama motor masih bergerak. Dari ilustrasi tersebut, besaran-besaran fisika yang terlibat adalah:\n(1) Kecepatan motor\n(2) Energi kinetik motor\n(3) Percepatan (perlambatan) motor\n(4) Gaya rem\nBesaran yang termasuk besaran vektor ditunjukkan oleh nomor....[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "(1) dan (2)",
+        "B": "(1), (2), dan (4)",
+        "C": "(1), (3), dan (4)",
+        "D": "(4) saja",
+        "E": "(1), (2), (3), dan (4)"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323352-2",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Dua buah gaya bekerja pada satu titik yang sama yaitu F[sub]1[/sub] = 5 N dan F[sub]2[/sub] = 3 N, dengan sudut apit antara keduanya sebesar 60°. Jika resultan kedua gaya tersebut digambarkan menggunakan metode jajar genjang, maka besar resultan gaya tersebut adalah ....[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "2 N",
+        "B": "4 N",
+        "C": "7 N",
+        "D": "8 N",
+        "E": "15 N"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323380-3",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Sebuah mobil bergerak dengan kecepatan 50 km/jam membentuk sudut 30° terhadap sumbu x positif. Besar komponen vektor kecepatan tersebut pada sumbu x dan sumbu y berturut-turut adalah ....[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "25 km/jam dan 25 km/jam",
+        "B": "25 km/jam dan 25 km/jam",
+        "C": "25 km/jam dan 25 km/jam",
+        "D": "25 km/jam dan 25 km/jam",
+        "E": "25 km/jam dan 25 km/jam"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323408-4",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Perhatikan gambar vektor berikut. \n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496301022-kf_img_0.png)  Gambar 1\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496302433-kf_img_1.png) Gambar 2\n ![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496303640-kf_img_2.png) Gambar 3 \n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496306013-kf_img_3.png)  Gambar 4\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496307327-kf_img_4.png)  Gambar 5\nDengan menggunakan metode segitiga, resultan vektor yang benar ditunjukkan oleh gambar ….[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "Gambar 1",
+        "B": "Gambar 2",
+        "C": "Gambar 3",
+        "D": "Gambar 4",
+        "E": "Gambar 5"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323434-5",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Perhatikan vektor F[sub]1[/sub] dan vektor F[sub]2[/sub] yang besar dan arahnya terlukis pada kertas berpetak seperti gambar di samping. Jika panjang satu kotak adalah satu Newton (N), maka besar resultan kedua vektor adalah….\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496308718-kf_img_5.png)[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "5 N",
+        "B": "2 N",
+        "C": "8 N",
+        "D": "12 N",
+        "E": "24 N"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323461-6",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Seorang siswa mengukur dua gaya yang bekerja pada sebuah balok di atas meja datar. Gaya pertama sebesar 6 N searah sumbu-x positif, dan gaya kedua sebesar 8 N searah sumbu-y positif, sehingga kedua gaya saling tegak lurus satu sama lain. Arah vektor resultan tersebut dari kedua gaya tersebut adalah....[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "Membentuk sudut 37[sup]o[/sup] terhadap sumbu-x positif",
+        "B": "Membentuk sudut 45[sup]o[/sup] terhadap sumbu-x positif",
+        "C": "Membentuk sudut 53[sup]o[/sup] terhadap sumbu-x positif",
+        "D": "Membentuk sudut 37[sup]o[/sup] terhadap sumbu-y positif",
+        "E": "Membentuk sudut 60[sup]o[/sup] terhadap sumbu-x positif"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323486-7",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Perhatikan gambar vektor berikut! \n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496310574-kf_img_6.png) Gambar 1\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496312056-kf_img_7.png) Gambar 2 \n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496314568-kf_img_8.png)  Gambar 3\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496316017-kf_img_9.png)  Gambar 4 \n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496317475-kf_img_10.png)  Gambar 5\nBesar vektor resultan A + B + C + D yang benar adalah ….[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "Gambar 1",
+        "B": "Gambar 2",
+        "C": "Gambar 3",
+        "D": "Gambar 4",
+        "E": "Gambar 5"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323504-8",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Diketahui vektor A = (5i - 2j + k) satuan dan vektor B = (2i + 3j - 4k) satuan. Hasil A.B adalah .…[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "10 satuan",
+        "B": "-8 satuan",
+        "C": "0 satuan",
+        "D": "-10 satuan",
+        "E": "8 satuan"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323513-9",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Diketahui dua buah vektor yaitu a = 2i + 3j dan b = 4i − 5j. Hasil penjumlahan vektor a + b adalah ….[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "6i − 2j",
+        "B": "6i + 2j",
+        "C": "−2i + 8j",
+        "D": "6i − 8j",
+        "E": "2i − 8j"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323522-10",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Diketahui vektor A = (5i + 4j + 3k) satuan dan vektor B = (4i + 4j + 3k) satuan. Hasil IAxBI adalah ….\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496302433-kf_img_1.png)[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "2 satuan",
+        "B": "5 satuan",
+        "C": "7 satuan",
+        "D": "8 satuan",
+        "E": "9 satuan"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323531-11",
+      "tipe": "pgk_mcma",
+      "pertanyaan": "[align=justify]Dua buah vektor gaya bekerja pada satu titik tangkap yang sama, masing-masing besarnya F[sub]1[/sub] = 6 N dan F[sub]2[/sub] = 6 N. Sudut apit antara kedua vektor tersebut mula-mula adalah 120°. Manakah pernyataan berikut yang benar terkait resultan kedua vektor tersebut (dengan metode jajar genjang)?\nPilihlah jawaban yang benar! Jawaban benar lebih dari satu.\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496312056-kf_img_7.png)[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "A",
+        "B": "B",
+        "C": "C",
+        "D": "D",
+        "E": "E"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323540-12",
+      "tipe": "pgk_mcma",
+      "pertanyaan": "[align=justify]Dua buah vektor gaya F[sub]1[/sub] dan  F[sub]2[/sub] bekerja pada satu titik tangkap yang sama seperti gambar. \n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788496319257-kf_img_11.png) \nManakah pernyataan berikut yang benar?\nPilihlah jawaban yang benar! Jawaban benar lebih dari satu.[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "A",
+        "B": "B",
+        "C": "C",
+        "D": "D",
+        "E": "E"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788496323550-13",
+      "tipe": "pgk_kategori",
+      "pertanyaan": "[align=justify]Dua buah vektor gaya, yaitu Vektor P dan Vektor Q, bekerja pada satu titik tangkap yang sama dan saling tegak lurus (membentuk sudut 90°). Bila besar Vektor P sama dengan besar Vektor Q. Besar masing-masing vektor sebesar 10 N. Berdasarkan informasi tersebut, tentukan benar atau salah untuk setiap pernyataan berikut![/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [
+        {
+          "id": "q1788496323550-13-st-1",
+          "text": "Resultan kedua vektor tersebut sebesar 10 N",
+          "image": ""
+        },
+        {
+          "id": "q1788496323550-13-st-2",
+          "text": "Resultan kedua vektor membentuk sudut 45o terhadap sumbu x",
+          "image": ""
+        }
+      ]
+    },
+    {
+      "id": "q1788496323566-14",
+      "tipe": "pgk_kategori",
+      "pertanyaan": "[align=justify]Dua buah vektor gaya bekerja pada suatu benda, dinyatakan dalam notasi vektor satuan sebagai berikut:\nF1 = (6i + 8j) N\nF2 = (4i - 3j) N\nBerdasarkan informasi tersebut, tentukan benar atau salah untuk setiap pernyataan berikut![/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [
+        {
+          "id": "q1788496323566-14-st-1",
+          "text": "Resultan kedua vektor tersebut adalah F1 + F2 = (10i + 5j) N",
+          "image": ""
+        },
+        {
+          "id": "q1788496323566-14-st-2",
+          "text": "Besar vektor F1​​ lebih besar daripada besar vektor F2",
+          "image": ""
+        }
+      ]
+    },
+    {
+      "id": "q1788496323592-15",
+      "tipe": "isian",
+      "pertanyaan": "[align=justify]Sebuah drone (pesawat tanpa awak) sedang melakukan misi pemetaan udara di atas area perkebunan. Selama penerbangan, drone tersebut mendapat gaya dorong dari baling-baling sekaligus terpengaruh oleh gaya angin, sehingga gaya total yang bekerja pada drone dapat dinyatakan dalam sistem koordinat tiga dimensi (sumbu-x = arah timur, sumbu-y = arah utara, sumbu-z = arah vertikal ke atas).\nGaya total yang bekerja pada drone tersebut dinyatakan sebagai:\n P = (20i − 20j​ + 20k) N\nDalam selang waktu tertentu, drone mengalami perpindahan sejauh:\nQ ​= (i + 2j ​+ k) m \n Untuk mengetahui apakah gaya tersebut secara keseluruhan membantu atau menghambat gerak drone, teknisi lapangan perlu menghitung usaha yang dilakukan oleh gaya P sepanjang perpindahan Q, yaitu dengan menghitung hasil kali titik (dot product) P⋅Q​. Tentukan nilai P⋅Q dalam satuan Joule.![/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    }
+  ]
+}
