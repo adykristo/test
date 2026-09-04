@@ -11,5 +11,20 @@
     "kode_akses": "",
     "mode_hasil": "nilai",
     "arsip": false
+  },
+  {
+    "id": "fisika-11-mtmfkeyb",
+    "title": "FISIKA 11",
+    "jenjang": "sma",
+    "topik": "KINEMATIKA",
+    "durasi_menit": 11,
+    "jumlah_soal": 15,
+    "file": "data/tryout/fisika-11-mtmfkeyb.json",
+    "aktif": true,
+    "kode_akses": "",
+    "mode_hasil": "lengkap",
+    "mulai_ujian": "",
+    "selesai_ujian": "",
+    "arsip": false
   }
 ]
