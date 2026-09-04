@@ -1,0 +1,308 @@
+{
+  "id": "fisika-11-mtmfkeyb",
+  "title": "FISIKA 11",
+  "jenjang": "sma",
+  "topik": "KINEMATIKA",
+  "durasi_menit": 11,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "mulai_ujian": "",
+  "selesai_ujian": "",
+  "soal": [
+    {
+      "id": "q1788494054469-1",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Sebuah mobil melaju di jalan tol yang lurus dan lengang dengan kecepatan tetap 20 m/s. Selama bergerak, pengemudi mempertahankan kecepatan mobil sehingga tidak terjadi percepatan maupun perlambatan. Jika mobil tersebut bergerak selama 25 sekon, jarak yang ditempuh adalah ....[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "400 m",
+        "B": "500 m",
+        "C": "600 m",
+        "D": "720 m",
+        "E": "1.800 m"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054506-2",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Sebuah benda jatuh dari puncak menara tanpa kecepatan awal, setelah 2 sekon benda sampai di tanah. Jika g = 10 m/s² maka tinggi menara adalah ...[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "40 m",
+        "B": "20 m",
+        "C": "30 m",
+        "D": "10 m",
+        "E": "5 m"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054536-3",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Saat sedang berlatih melempar bola di halaman rumah, Rendi melemparkan sebuah bola kasti lurus ke atas secara tegak lurus menuju langit dengan kekuatan yang mantap sehingga bola meluncur naik perlahan, berhenti sejenak di titik tertinggi, lalu jatuh kembali tepat ke tangannya. Selama pergerakan tersebut kita mengabaikan adanya hambatan udara. Pernyataan yang paling tepat dan sesuai dengan konsep fisika pada peristiwa tersebut adalah ...[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "Kecepatan bola terus membesar seiring bola semakin tinggi meninggalkan tanah",
+        "B": "Ketika berada sesaat di titik tertinggi, kecepatan bola sama dengan nol, namun percepatannya tetap bernilai sama dengan percepatan gravitasi bumi",
+        "C": "Percepatan bola berubah arah menjadi berlawanan sewaktu tepat berada di puncak ketinggian",
+        "D": "Selama bergerak naik maupun turun, percepatan yang dialami bola sama dengan nol karena berhenti sesaat di puncak",
+        "E": "Waktu yang dibutuhkan bola untuk naik ke atas adalah dua kali lebih lama dibandingkan waktu kembali turun ke tangan"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054559-4",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Di sebuah jalan raya yang lurus dan sepi, seorang pengemudi mengendarai mobil dari keadaan diam. Gerak mobil tersebut diamati dan kecepatannya dicatat pada setiap waktu tertentu, lalu hasil pengamatannya digambarkan dalam bentuk grafik hubungan kecepatan terhadap waktu berikut:\n ![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788494047859-kf_img_0.png) \nPada rentang waktu berapakah mobil tersebut bergerak lurus beraturan dengan kecepatan yang tetap dan tidak berubah?[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "Sejak detik ke-0 hingga detik ke-3",
+        "B": "Sejak detik ke-3 hingga detik ke-7",
+        "C": "Sejak detik ke-7 hingga detik ke-9",
+        "D": "Sejak detik ke-0 hingga detik ke-9",
+        "E": "Mobil tidak pernah bergerak dengan kecepatan tetap sama sekali"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054576-5",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Seorang pengendara sepeda motor bergerak di jalan lurus dengan kecepatan awal 5 m/s. Setelah melewati persimpangan, pengendara menambah kecepatan sehingga sepeda motor mengalami percepatan tetap sebesar 2 m/s² selama 6 sekon. Kecepatan sepeda motor setelah 6 sekon adalah ....[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "15 m/s",
+        "B": "17 m/s",
+        "C": "19 m/s",
+        "D": "20 m/s",
+        "E": "22 m/s"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054593-6",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Dalam sebuah pertandingan sepak bola, seorang pemain menendang bola dengan kecepatan awal 40 m/s pada sudut elevasi 30° terhadap permukaan lapangan. Kecepatan vertikal bola terus berkurang hingga mencapai titik tertinggi. Jika hambatan udara diabaikan dan g = 10 m/s², waktu yang diperlukan bola untuk mencapai titik tertinggi adalah ....[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "1 sekon",
+        "B": "2 sekon",
+        "C": "3 sekon",
+        "D": "4 sekon",
+        "E": "5 sekon"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054609-7",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Terdapat dua buah batu, batu A bermassa 2 kg dan batu B bermassa 5 kg, dijatuhkan dari ketinggian yang sama secara bersamaan tanpa kecepatan awal. Jika gesekan udara diabaikan, maka peristiwa yang akan terjadi adalah ...[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "Batu A sampai tanah lebih dulu karena massa lebih kecil",
+        "B": "Kedua batu sampai di tanah pada waktu yang hampir bersamaan",
+        "C": "Batu B sampai tanah lebih dulu karena massa lebih besar",
+        "D": "Batu A selalu bergerak lebih cepat dari batu B selama jatuh",
+        "E": "Waktu jatuh tidak bergantung pada percepatan gravitasi"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054621-8",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Seorang atlet melemparkan bola dengan kecepatan awal 20 m/s pada sudut elevasi 30° terhadap arah horizontal. Bola bergerak membentuk lintasan parabola hingga mencapai titik tertinggi. Jika titik pelemparan dijadikan acuan, hambatan udara diabaikan, dan g = 10 m/s², tinggi maksimum yang dicapai bola adalah ....[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "2,5 m",
+        "B": "5 m",
+        "C": "10 m",
+        "D": "15 m",
+        "E": "20 m"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054630-9",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Seorang pemain menendang bola dari permukaan lapangan dengan kecepatan awal 20 m/s pada sudut elevasi 45°. Bola kembali menyentuh lapangan pada ketinggian yang sama dengan titik awal. Jika hambatan udara diabaikan dan g = 10 m/s², jangkauan horizontal bola adalah ....[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "30 m",
+        "B": "40 m",
+        "C": "50 m",
+        "D": "60 m",
+        "E": "80 m"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054640-10",
+      "tipe": "pg5",
+      "pertanyaan": "[align=justify]Sebuah bola dilempar vertikal ke atas dan mencapai ketinggian maksimum 20 m. Jika g = 10 m/s² maka kecepatan awal bola tersebut adalah ....\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1788494047859-kf_img_0.png)[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "10 m/s",
+        "B": "20 m/s",
+        "C": "15 m/s",
+        "D": "18 m/s",
+        "E": "25 m/s"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054649-11",
+      "tipe": "pgk_mcma",
+      "pertanyaan": "[align=justify]Sebuah mobil sedang melaju di jalan raya yang lurus dengan kecepatan awal 10 m/s. Ketika kondisi jalan mulai lengang, pengemudi menekan pedal gas sehingga mobil mengalami percepatan tetap sebesar 2 m/s² selama 5 sekon. Selama selang waktu tersebut, mobil bergerak pada lintasan lurus dan percepatannya dianggap konstan. Gerakan mobil ini dapat dianalisis menggunakan konsep gerak lurus berubah beraturan (GLBB). Berdasarkan informasi pada soal, analisislah setiap pernyataan berikut dengan teliti. Berilah tanda centang (✓) pada semua pernyataan yang benar. Perlu diperhatikan bahwa terdapat lebih dari satu pernyataan yang benar.[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "Setelah dipercepat selama 5 sekon, kecepatan mobil bertambah dari 10 m/s menjadi 20 m/s.",
+        "B": "Selama mengalami percepatan tetap sebesar 2 m/s² dalam waktu 5 sekon, mobil menempuh perpindahan sejauh 75 m.",
+        "C": "Jika percepatan mobil diperkecil menjadi 1 m/s², sedangkan kecepatan awal dan waktu geraknya tetap, kecepatan akhir mobil menjadi 15 m/s.",
+        "D": "Jika percepatan mobil diperbesar menjadi 4 m/s², sedangkan kecepatan awal dan waktu geraknya tetap, mobil akan menempuh perpindahan sejauh 125 m.",
+        "E": "Grafik hubungan antara kecepatan mobil dan waktu selama mobil mengalami percepatan tetap berbentuk garis lurus yang menanjak."
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054658-12",
+      "tipe": "pgk_mcma",
+      "pertanyaan": "[align=justify]Sebuah kereta sedang melaju di rel yang lurus dengan kecepatan tetap sebesar 15 m/s. Kondisi rel yang datar dan tidak ada hambatan membuat masinis tidak perlu mengubah kecepatan kereta sama sekali selama perjalanan berlangsung. Selama selang waktu tersebut, kereta bergerak pada lintasan lurus dan kecepatannya dianggap konstan. Berdasarkan informasi tersebut, tentukan pernyataan-pernyataan yang benar mengenai jarak tempuh dan waktu perjalanan kereta. Berdasarkan informasi pada soal, analisislah setiap pernyataan berikut dengan teliti. Berilah tanda centang (✓) pada semua pernyataan yang benar. Perlu diperhatikan bahwa terdapat lebih dari satu pernyataan yang benar.[/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "Dalam waktu 10 sekon, kereta menempuh jarak sejauh 150 m.",
+        "B": "Untuk menempuh jarak 300 m, kereta membutuhkan waktu 20 sekon.",
+        "C": "Percepatan yang dialami kereta selama bergerak adalah 0 m/s².",
+        "D": "Jika kereta bergerak selama 1 menit penuh, jarak yang ditempuh adalah 900 m.",
+        "E": "Grafik hubungan jarak terhadap waktu (s–t) pada gerak mobil ini berbentuk garis lurus."
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788494054665-13",
+      "tipe": "pgk_kategori",
+      "pertanyaan": "[align=justify]Seorang pemain sepak bola melakukan tendangan bebas. Bola meninggalkan kakinya dengan kecepatan awal 10 m/s membentuk sudut 53° terhadap tanah (sin 53° = 0,8; cos 53° = 0,6). Abaikan gesekan udara dan gunakan g = 10 m/s². Sesuai dengan data pada ilustrasi di atas, nyatakan apakah pernyataan berikut ini benar atau salah![/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [
+        {
+          "id": "q1788494054665-13-st-1",
+          "text": "Kecepatan awal bola pada arah horizontal (sumbu x) sebesar 6 m/s",
+          "image": ""
+        },
+        {
+          "id": "q1788494054665-13-st-2",
+          "text": "Kecepatan awal bola pada arah vertikal (sumbu y) sebesar 8 m/s",
+          "image": ""
+        },
+        {
+          "id": "q1788494054665-13-st-3",
+          "text": "Waktu yang dibutuhkan bola untuk mencapai titik tertinggi adalah 0,8 sekon",
+          "image": ""
+        },
+        {
+          "id": "q1788494054665-13-st-4",
+          "text": "Tinggi maksimum yang dicapai bola adalah 3,2 m",
+          "image": ""
+        },
+        {
+          "id": "q1788494054665-13-st-5",
+          "text": "Jangkauan maksimum (jarak mendatar) total yang ditempuh bola adalah 9 m",
+          "image": ""
+        }
+      ]
+    },
+    {
+      "id": "q1788494054681-14",
+      "tipe": "pgk_kategori",
+      "pertanyaan": "[align=justify]Sebuah bola dilempar vertikal ke atas dengan kecepatan awal 20 m/s dari permukaan tanah. Percepatan gravitasi bumi adalah 10 m/s² dan hambatan udara diabaikan. Sesuai dengan data pada ilustrasi di atas, nyatakan apakah pernyataan berikut ini benar atau salah![/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [
+        "Benar",
+        "Salah"
+      ],
+      "statements": [
+        {
+          "id": "q1788494054681-14-st-1",
+          "text": "Waktu yang dibutuhkan bola untuk mencapai titik tertinggi adalah 2 sekon.",
+          "image": ""
+        },
+        {
+          "id": "q1788494054681-14-st-2",
+          "text": "Ketinggian maksimum yang dicapai bola adalah 20 m.",
+          "image": ""
+        },
+        {
+          "id": "q1788494054681-14-st-3",
+          "text": "Total waktu bola berada di udara, sejak dilempar hingga kembali ke tanah, adalah 3 sekon.",
+          "image": ""
+        },
+        {
+          "id": "q1788494054681-14-st-4",
+          "text": "Pada saat bola berada di titik tertinggi, percepatan bola sama dengan nol.",
+          "image": ""
+        },
+        {
+          "id": "q1788494054681-14-st-5",
+          "text": "Kecepatan bola saat kembali menyentuh tanah besarnya sama dengan kecepatan awal saat dilempar, yaitu 20 m/s.",
+          "image": ""
+        }
+      ]
+    },
+    {
+      "id": "q1788494054700-15",
+      "tipe": "isian",
+      "pertanyaan": "[align=justify]Seorang pengendara mobil melaju dengan kecepatan 20 m/s. Ketika melihat ada polisi tidur di depannya dia menginjak rem dan mobil berhenti setelah 5 sekon kemudian. Hitung jarak yang ditempuh mobil itu! [/align]",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {},
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    }
+  ]
+}
