@@ -1173,8 +1173,16 @@ window.MathJax = {
     border-top:1px dashed #f0e2fa;
     font-size:13.5px;
     color:#3d2a52;
+    line-height:1.72;
+    overflow-wrap:anywhere;
   }
   .review-card .pembahasan b{ color:var(--ungu-tua); }
+  .review-card .pembahasan summary{cursor:pointer;color:var(--ungu-tua);font-weight:800;}
+  .review-card .pembahasan-content{margin-top:10px;padding:12px 14px;background:#fcf9ff;border-radius:10px;overflow-x:auto;}
+  .review-card .pembahasan-content img,.review-card .review-image-extra{display:block;max-width:100%;max-height:420px;object-fit:contain;margin:10px auto;border-radius:10px;}
+  .review-card .pembahasan-content mjx-container{max-width:100%;overflow-x:auto;overflow-y:hidden;padding:3px 0;}
+  .sertifikat-menunggu{display:none;max-width:540px;margin:0 auto 16px;padding:11px 14px;border-radius:11px;background:#fff4d8;color:#76500b;font-size:13px;line-height:1.5;border:1px solid #f2d28a;}
+  .sertifikat-menunggu.show{display:block;}
 
   /* ===== DATA PESERTA ===== */
   .peserta-box{
@@ -1565,6 +1573,7 @@ window.MathJax = {
     <div style="text-align:center;">
       <button type="button" class="btn-sertifikat" id="btnSertifikat" onclick="unduhSertifikat()">📜 Unduh Sertifikat</button>
     </div>
+    <div id="statusSertifikatEsai" class="sertifikat-menunggu">⏳ Sertifikat akan tersedia setelah admin menyelesaikan penilaian esai.</div>
     <div id="hasilReview"></div>
     <div class="tryout-footer-nav" style="justify-content:center;">
       <button class="btn-primary" onclick="gotoPage('tryout')">Kembali ke Daftar Tryout</button>
@@ -1585,6 +1594,7 @@ window.MathJax = {
       <div id="downloadBrowser"><div class="empty">Memuat…</div></div>
     </div>
   </section>
+
 
   <section id="page-kontak" class="page">
     <div class="kontak-wrap">
@@ -3069,7 +3079,7 @@ function renderReviewDariServer(review, mode) {
       ? `<img class="review-image-extra" src="${String(r.pembahasan_gambar).replace(/"/g,'&quot;')}" alt="Gambar pembahasan">`
       : '';
     const pembahasanHtml = (tampilKunci && (r.pembahasan || pembahasanImageHtml))
-      ? `<div class="pembahasan"><b>Pembahasan:</b> ${formatTeksDenganLatex(r.pembahasan || '')}${pembahasanImageHtml}</div>` : '';
+      ? `<details class="pembahasan"><summary>📘 Lihat pembahasan</summary><div class="pembahasan-content">${formatTeksDenganLatex(r.pembahasan || '')}${pembahasanImageHtml}</div></details>` : '';
     const gambarSoalHtml = r.gambar
       ? `<img src="${String(r.gambar).replace(/"/g,'&quot;')}" alt="Gambar Soal ${r.nomor}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`
       : '';
@@ -3089,6 +3099,75 @@ function renderReviewDariServer(review, mode) {
       </div>`;
   }).join('');
 }
+
+let cekSertifikatEsaiTimer = null;
+function aturSertifikatSetelahHasil(menungguEsai) {
+  const btn = document.getElementById('btnSertifikat');
+  const info = document.getElementById('statusSertifikatEsai');
+  if (!menungguEsai) {
+    if (btn) btn.classList.add('show');
+    if (info) info.classList.remove('show');
+    return;
+  }
+  if (btn) btn.classList.remove('show');
+  if (info) info.classList.add('show');
+  if (cekSertifikatEsaiTimer) clearInterval(cekSertifikatEsaiTimer);
+  const cek = async function() {
+    if (!lastHasil || !GOOGLE_SCRIPT_URL) return;
+    try {
+      const res = await fetch(GOOGLE_SCRIPT_URL, {method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'cekStatusSertifikatEsai',paketId:lastHasil.paketId,noUjian:lastHasil.noUjian})});
+      const data = await res.json();
+      if (data && data.status === 'ok' && data.selesai) {
+        if (btn) btn.classList.add('show');
+        if (info) { info.textContent='✓ Nilai esai sudah lengkap. Sertifikat siap diunduh.'; info.classList.add('show'); }
+        clearInterval(cekSertifikatEsaiTimer); cekSertifikatEsaiTimer=null;
+      }
+    } catch(e) {}
+  };
+  cek();
+  cekSertifikatEsaiTimer = setInterval(cek, 20000);
+}
+
+async function cekSertifikatLama() {
+  const noUjian=((document.getElementById('cekSertifikatNo')||{}).value||'').trim();
+  const kodeSertifikat=((document.getElementById('cekSertifikatKode')||{}).value||'').trim();
+  const status=document.getElementById('cekSertifikatStatus');
+  if(!noUjian||!kodeSertifikat){status.textContent='Isi Nomor Ujian dan Kode Sertifikat.';status.classList.add('show');return;}
+  status.textContent='Memeriksa data sertifikat…';status.className='err-msg show';
+  try{
+    const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'ambilSertifikatDenganKode',noUjian,kodeSertifikat})});
+    const data=await res.json();
+    if(!data||data.status!=='ok') throw new Error((data||{}).message||'Data tidak ditemukan.');
+    if(!data.siap){status.textContent='⏳ Nilai esai masih diperiksa admin. Sertifikat belum dapat diterbitkan.';status.className='err-msg show';return;}
+    lastHasil=data; lastHasil.paket=data.paket;
+    status.textContent='✓ Nilai sudah lengkap. Sertifikat sedang disiapkan…';status.className='err-msg show';
+    unduhSertifikat();
+  }catch(e){status.textContent='Gagal: '+(e.message||e);status.className='err-msg show';}
+}
+
+async function bukaLinkSertifikatPribadi() {
+  const p=new URLSearchParams(window.location.search);
+  if(p.get('sertifikat')!=='1') return;
+  const noUjian=p.get('no')||'', kodeSertifikat=p.get('kode')||'';
+  if(!noUjian||!kodeSertifikat) return;
+  gotoPage('tryout-result');
+  const status=document.getElementById('kirimStatus');
+  status.textContent='Memeriksa status sertifikat esai…';status.className='kirim-status sending';
+  try{
+    const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'ambilSertifikatDenganKode',noUjian,kodeSertifikat})});
+    const data=await res.json(); if(!data||data.status!=='ok') throw new Error((data||{}).message||'Link tidak valid.');
+    lastHasil=data; lastHasil.paket=data.paket;
+    document.getElementById('hasilJudul').textContent='Sertifikat: '+data.paket;
+    document.getElementById('hasilPesertaRingkas').innerHTML='Nama: <b>'+String(data.nama).replace(/</g,'&lt;')+'</b> · No. Ujian: <b>'+String(data.noUjian).replace(/</g,'&lt;')+'</b>';
+    document.getElementById('hasilNilai').textContent=data.nilai;
+    document.getElementById('hasilBenar').textContent=data.benar;document.getElementById('hasilSalah').textContent=data.salah;document.getElementById('hasilKosong').textContent=data.kosong;document.getElementById('hasilTotal').textContent=data.total;
+    document.getElementById('hasilReview').innerHTML='';
+    if(!data.siap){status.textContent='⏳ Nilai esai masih diperiksa admin. Simpan link ini dan buka lagi setelah penilaian selesai.';status.className='kirim-status sending';return;}
+    status.textContent='✓ Nilai esai sudah lengkap. Sertifikat siap diunduh.';status.className='kirim-status sent';
+    document.getElementById('btnSertifikat').classList.add('show');unduhSertifikat();
+  }catch(e){status.textContent='Gagal membuka sertifikat: '+(e.message||e);status.className='kirim-status failed';}
+}
+window.addEventListener('DOMContentLoaded', bukaLinkSertifikatPribadi);
 
 function kirimHasilKeSheet(hasil) {
   const statusEl = document.getElementById('kirimStatus');
@@ -3143,7 +3222,13 @@ function kirimHasilKeSheet(hasil) {
         lastHasil.total = resData.total;
       }
       const btnCert = document.getElementById('btnSertifikat');
-      if (btnCert) btnCert.classList.add('show');
+      if (btnCert) btnCert.classList.remove('show');
+      aturSertifikatSetelahHasil(!!resData.essayPending);
+      if (resData.essayPending && resData.kodeSertifikat) {
+        const info=document.getElementById('statusSertifikatEsai');
+        const link=window.location.origin+window.location.pathname+'?sertifikat=1&no='+encodeURIComponent(lastHasil.noUjian)+'&kode='+encodeURIComponent(resData.kodeSertifikat);
+        if(info){info.innerHTML='⏳ Nilai esai masih diperiksa admin.<br><b>Simpan Link Sertifikat Pribadi ini:</b><br><a href="'+link+'" style="word-break:break-all;color:#5b2d8e;font-weight:700;">'+link+'</a><br>Setelah admin selesai menilai, cukup buka link tersebut untuk mengunduh sertifikat.';info.classList.add('show');}
+      }
 
       const modeHasil = (tryoutState && (
         (tryoutState.paket && tryoutState.paket.mode_hasil) ||
