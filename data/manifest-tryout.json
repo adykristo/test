@@ -11,20 +11,5 @@
     "kode_akses": "",
     "mode_hasil": "nilai",
     "arsip": false
-  },
-  {
-    "id": "bab-1-besaran-vektor-mtmh3rh6",
-    "title": "BAB 1 BESARAN VEKTOR",
-    "jenjang": "sma",
-    "topik": "VEKTOR",
-    "durasi_menit": 60,
-    "jumlah_soal": 15,
-    "file": "data/tryout/bab-1-besaran-vektor-mtmh3rh6.json",
-    "aktif": true,
-    "kode_akses": "",
-    "mode_hasil": "lengkap",
-    "mulai_ujian": "",
-    "selesai_ujian": "",
-    "arsip": false
   }
 ]
