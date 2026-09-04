@@ -1,0 +1,173 @@
+{
+  "id": "gaya-mtmkey28",
+  "title": "GAYA",
+  "jenjang": "smp",
+  "topik": "GAYA",
+  "durasi_menit": 10,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "mulai_ujian": "",
+  "selesai_ujian": "",
+  "soal": [
+    {
+      "id": "q1788502771643-2",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah balok bermassa $m = 2$ kg berada pada bidang miring kasar dengan sudut kemiringan $\\theta$ terhadap horizontal, di mana $\\sin \\theta = 0{,}6$ dan $\\cos \\theta = 0{,}8$. Koefisien gesek kinetik antara balok dan bidang miring adalah $\\mu_k = 0{,}2$. Balok tersebut ditarik ke atas sejajar bidang miring dengan gaya konstan $F$ sedemikian rupa sehingga balok bergerak ke atas dengan percepatan $a = 2\\text{ m/s}^2$. Jika percepatan gravitasi $g = 10\\text{ m/s}^2$, besar gaya $F$ adalah...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$16\\text{ N}$",
+        "B": "$20\\text{ N}$",
+        "C": "$23{,}2\\text{ N}$",
+        "D": "$26{,}4\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788502771748-3",
+      "tipe": "pg4",
+      "pertanyaan": "Sistem katrol ideal (massa katrol dan tali diabaikan, serta tidak ada gesekan) terdiri dari dua beban bermassa $m_1 = 3\\text{ kg}$ dan $m_2 = 5\\text{ kg}$ yang dihubungkan melalui sebuah tali yang melewati katrol gantung. Jika sistem dilepaskan dari keadaan diam dan $g = 10\\text{ m/s}^2$, besar tegangan tali $T$ yang menghubungkan kedua beban tersebut adalah...",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1788502771805-ai-rangkaian.svg",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$30{,}5\\text{ N}$",
+        "B": "$35{,}7\\text{ N}$",
+        "C": "$37{,}5\\text{ N}$",
+        "D": "$40{,}0\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788502774092-4",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah benda bermassa $4\\text{ kg}$ mula-mula diam di atas lantai datar licin. Mulai $t = 0\\text{ s}$, benda tersebut dikenai gaya horizontal yang besarnya berubah terhadap waktu sesuai persamaan $F(t) = 3t^2 + 2t$ (dalam Newton). Kecepatan benda pada saat $t = 3\\text{ s}$ adalah...",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1788502774186-ai-grafik.svg",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$11{,}25\\text{ m/s}$",
+        "B": "$12{,}50\\text{ m/s}$",
+        "C": "$15{,}00\\text{ m/s}$",
+        "D": "$18{,}75\\text{ m/s}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788502775961-5",
+      "tipe": "pg4",
+      "pertanyaan": "Tiga buah balok identik masing-masing bermassa $m = 2\\text{ kg}$ disusun berderet di atas lantai licin. Balok pertama didorong dengan gaya horizontal $F = 24\\text{ N}$. Besar gaya kontak (gaya desak) antara balok kedua dan balok ketiga adalah...",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1788502776001-ai-vektor.svg",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$4\\text{ N}$",
+        "B": "$8\\text{ N}$",
+        "C": "$12\\text{ N}$",
+        "D": "$16\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788502778273-6",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah bola besi bermassa $0{,}5\\text{ kg}$ dilempar vertikal ke atas. Ketika mencapai ketinggian maksimum, gaya total (resultan gaya) yang bekerja pada bola tersebut adalah (abaikan gaya gesek udara dan ambil $g = 10\\text{ m/s}^2$)...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$0\\text{ N}$",
+        "B": "$2{,}5\\text{ N}$ ke atas",
+        "C": "$5\\text{ N}$ ke bawah",
+        "D": "$5\\text{ N}$ ke atas"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788502778305-7",
+      "tipe": "pg4",
+      "pertanyaan": "Perhatikan sistem dua benda yang dihubungkan dengan tali melalui katrol licin. Massa $m_1 = 2\\text{ kg}$ berada di atas meja datar licin, sedangkan massa $m_2 = 3\\text{ kg}$ menggantung di ujung tali melewati tepi meja. Jika sistem dilepaskan, besar tegangan tali pada sistem tersebut adalah ($g = 10\\text{ m/s}^2$)...",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1788502778343-ai-rangkaian.svg",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$6\\text{ N}$",
+        "B": "$10\\text{ N}$",
+        "C": "$12\\text{ N}$",
+        "D": "$15\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788502779696-8",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah benda bermassa $5\\text{ kg}$ ditarik dengan gaya $F$ membentuk sudut $60^{\\circ}$ terhadap arah horizontal ($\\cos 60^{\\circ} = 0{,}5$, $\\sin 60^{\\circ} = 0{,}866$). Jika lantai kasar dengan koefisien gesek kinetik $\\mu_k = 0{,}2$ dan benda bergerak dengan percepatan tetap $2\\text{ m/s}^2$, besar gaya $F$ tersebut adalah ($g = 10\\text{ m/s}^2$)...",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1788502779793-ai-vektor.svg",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$15\\text{ N}$",
+        "B": "$20\\text{ N}$",
+        "C": "$25\\text{ N}$",
+        "D": "$30\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788502781141-9",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah lift bergerak ke atas dengan percepatan tetap $2\\text{ m/s}^2$. Seorang anak bermassa $40\\text{ kg}$ berada di dalam lift tersebut dan berdiri di atas sebuah timbangan badan. Angka yang ditunjukkan oleh timbangan badan tersebut adalah ($g = 10\\text{ m/s}^2$)...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$320\\text{ N}$",
+        "B": "$400\\text{ N}$",
+        "C": "$480\\text{ N}$",
+        "D": "$500\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788502781177-10",
+      "tipe": "pg4",
+      "pertanyaan": "Dua buah balok $A$ dan $B$ masing-masing bermassa $m_A = 3\\text{ kg}$ dan $m_B = 2\\text{ kg}$ bersentuhan di atas lantai licin. Balok $A$ didorong oleh gaya horizontal $F = 20\\text{ N}$. Jika balok $A$ berada di sebelah kiri balok $B$, besar gaya kontak yang dialami oleh balok $B$ adalah...",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1788502781220-ai-vektor.svg",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$8\\text{ N}$",
+        "B": "$12\\text{ N}$",
+        "C": "$15\\text{ N}$",
+        "D": "$20\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1788502783053-11",
+      "tipe": "pg4",
+      "pertanyaan": "[align=justify]Sebuah benda bermassa $2\\text{ kg}$ diikat pada ujung seutas tali yang panjangnya $0{,}5\\text{ meter}$ lalu diputar dalam bidang vertikal dengan kecepatan sudut konstan $\\omega = 4\\text{ rad/s}$. Besar tegangan tali saat benda berada di titik terendah lintasan adalah ($g = 10\\text{ m/s}^2$)...[/align]",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1788502783101-ai-vektor.svg",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$16\\text{ N}$",
+        "B": "$26\\text{ N}$",
+        "C": "$36\\text{ N}$",
+        "D": "$46\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    }
+  ]
+}
