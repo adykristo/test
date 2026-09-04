@@ -5966,10 +5966,32 @@ function pdfBersihkanLatex(teks) {
   return String(teks || '')
     .replace(/\[align=(left|center|right|justify)\]|\[\/align\]/g, '')
     .replace(/\[(b|i|u|sup|sub)\]|\[\/(b|i|u|sup|sub)\]/g, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
     .replace(/\$\$/g, '')
     .replace(/\$/g, '')
     .replace(/\\\(|\\\)|\\\[|\\\]/g, '')
+    .replace(/[ \t]*[\r\n]+[ \t]*/g, ' ')
+    // Hasil salin/impor Word tertentu memecah satu kata menjadi huruf berjarak.
+    .replace(/\b\p{L}(?:\s+\p{L}){3,}\b/gu, function(kata) { return kata.replace(/\s+/g, ''); })
+    .replace(/\s{2,}/g, ' ')
     .trim();
+}
+
+/** Pisahkan gambar Markdown hasil impor Word dari teks yang akan dicetak. */
+function pdfEkstrakKonten(teks) {
+  const gambar = [];
+  const tanpaGambar = String(teks || '').replace(/!\[[^\]]*\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g, function(_, url) {
+    gambar.push(url);
+    return ' ';
+  });
+  return { teks: pdfBersihkanLatex(tanpaGambar), gambar };
+}
+
+function pdfGabungUrlGambar() {
+  return [...new Set(Array.from(arguments).flat().filter(function(url) {
+    return typeof url === 'string' && /^https?:\/\//i.test(url.trim());
+  }).map(function(url) { return url.trim(); }))];
 }
 
 function pdfLoadImageDataURL(url) {
@@ -6064,6 +6086,26 @@ async function downloadPaketPDF(id) {
       }
     }
 
+    async function cetakGambarPdf(url, opsi) {
+      if (!url) return;
+      const o = Object.assign({ indent: 0, maxW: contentW * 0.72, maxH: 190, jarakBawah: 10 }, opsi || {});
+      try {
+        const img = await pdfLoadImageDataURL(url);
+        const scale = Math.min(o.maxW / img.w, o.maxH / img.h, 1);
+        const drawW = img.w * scale;
+        const drawH = img.h * scale;
+        butuhHalamanBaru(drawH + o.jarakBawah);
+        doc.addImage(img.dataUrl, img.format || 'PNG', marginX + o.indent, y, drawW, drawH);
+        y += drawH + o.jarakBawah;
+      } catch (e) {
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(9);
+        doc.setTextColor(...PDF_WARNA.abu);
+        doc.text('[Gambar tidak dapat dimuat]', marginX + o.indent, y + 10);
+        y += 16;
+      }
+    }
+
     // ---- Judul paket ----
     doc.setTextColor(...PDF_WARNA.unguTua);
     doc.setFont('helvetica', 'bold');
@@ -6118,7 +6160,8 @@ async function downloadPaketPDF(id) {
       y += 28;
 
       // pertanyaan
-      const pertanyaan = pdfBersihkanLatex(s.pertanyaan);
+      const kontenPertanyaan = pdfEkstrakKonten(s.pertanyaan);
+      const pertanyaan = kontenPertanyaan.teks;
       if (pertanyaan) {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(11);
@@ -6130,36 +6173,36 @@ async function downloadPaketPDF(id) {
       }
 
       // gambar
-      if (s.gambar) {
-        try {
-          const img = await pdfLoadImageDataURL(s.gambar);
-          const maxW = contentW * 0.7;
-          const scale = Math.min(maxW / img.w, 180 / img.h, 1);
-          const drawW = img.w * scale;
-          const drawH = img.h * scale;
-          butuhHalamanBaru(drawH + 12);
-          doc.addImage(img.dataUrl, img.format || 'PNG', marginX, y, drawW, drawH);
-          y += drawH + 12;
-        } catch (e) {
-          doc.setFontSize(9);
-          doc.setTextColor(...PDF_WARNA.abu);
-          doc.text('[Gambar tidak dapat dimuat]', marginX, y);
-          y += 14;
-        }
-      }
+      for (const url of pdfGabungUrlGambar(s.gambar, kontenPertanyaan.gambar)) await cetakGambarPdf(url);
 
-      // PGK kategori / Benar-Salah: tampilkan semua pernyataan dan pilihan kategori.
+      // PGK kategori / Benar-Salah: hanya tulis jawaban pada kolom yang benar,
+      // tanpa tanda [X] atau [ ].
       if (s.tipe === 'pgk_kategori') {
         const labels = Array.isArray(s.category_labels) && s.category_labels.length ? s.category_labels : ['Benar','Salah'];
-        const rows = (s.statements || []).map((st,idx) => {
-          const teks = typeof st === 'string' ? st : (st.text || st.pertanyaan || '');
-          // Font bawaan jsPDF tidak stabil untuk ●/○/✓. Gunakan tanda ASCII.
-          return [String(idx+1)+'. '+pdfBersihkanLatex(teks), ...labels.map((lab,li) => (Number(st.correctIndex)===li ? '[X]' : '[ ]'))];
-        });
-        if (rows.length && doc.autoTable) {
+        const statements = s.statements || [];
+        if (statements.length && doc.autoTable) {
+          const rows = statements.map(function(st, idx) {
+            const teks = typeof st === 'string' ? st : (st.text || st.pertanyaan || '');
+            const isi = pdfEkstrakKonten(teks).teks;
+            const benar = typeof st === 'object' ? Number(st.correctIndex) : 0;
+            return [String(idx + 1) + '. ' + isi, ...labels.map(function(lab, li) { return benar === li ? String(lab) : ''; })];
+          });
           butuhHalamanBaru(70 + rows.length * 32);
-          doc.autoTable({startY:y,margin:{left:marginX,right:marginX},head:[['Pernyataan',...labels]],body:rows,theme:'grid',styles:{fontSize:9,cellPadding:6},headStyles:{fillColor:[90,55,125]}});
-          y=doc.lastAutoTable.finalY+12;
+          doc.autoTable({
+            startY:y, margin:{left:marginX,right:marginX}, head:[['Pernyataan',...labels]], body:rows,
+            theme:'grid', styles:{font:'helvetica',fontStyle:'normal',fontSize:9.5,cellPadding:6,overflow:'linebreak',valign:'middle'},
+            headStyles:{font:'helvetica',fontStyle:'bold',fillColor:[90,55,125]},
+            columnStyles:{0:{cellWidth:contentW - (labels.length * 70)},1:{cellWidth:70,halign:'center'},2:{cellWidth:70,halign:'center'}}
+          });
+          y=doc.lastAutoTable.finalY+8;
+          // Gambar pernyataan dicetak persis di bawah tabel agar tidak berubah menjadi link.
+          for (let si = 0; si < statements.length; si++) {
+            const st = statements[si];
+            const isi = typeof st === 'string' ? st : (st.text || st.pertanyaan || '');
+            const marker = pdfEkstrakKonten(isi).gambar;
+            const gambarPernyataan = typeof st === 'object' ? (st.image || st.gambar || '') : '';
+            for (const url of pdfGabungUrlGambar(gambarPernyataan, marker)) await cetakGambarPdf(url, { indent: 14, maxW: contentW - 28, maxH: 160 });
+          }
         }
       }
 
@@ -6169,7 +6212,8 @@ async function downloadPaketPDF(id) {
         const gambarOpsi = s.pilihan_gambar && s.pilihan_gambar[h];
         if (!adaTeks && !gambarOpsi) continue;
         const isBenar = s.jawaban_benar === h;
-        const isi = pdfBersihkanLatex(s.pilihan[h]);
+        const kontenOpsi = pdfEkstrakKonten(s.pilihan[h]);
+        const isi = kontenOpsi.teks;
         const teksOpsi = h + '.  ' + isi;
         const opsiLines = doc.splitTextToSize(teksOpsi, contentW - 28);
         const boxH = Math.max(18, opsiLines.length * 13 + 8);
@@ -6189,14 +6233,13 @@ async function downloadPaketPDF(id) {
         doc.setFontSize(10.5);
         doc.text(opsiLines, marginX + 12, y + 11);
         y += boxH + 3;
-        if (gambarOpsi) {
-          try { const im=await pdfLoadImageDataURL(Array.isArray(gambarOpsi)?gambarOpsi[0]:gambarOpsi); const sc=Math.min((contentW-50)/im.w,110/im.h,1); butuhHalamanBaru(im.h*sc+6); doc.addImage(im.dataUrl,im.format || 'PNG',marginX+28,y,im.w*sc,im.h*sc); y+=im.h*sc+7; } catch(e) { doc.text('[Gambar opsi tidak dapat dimuat]',marginX+28,y+10); y+=16; }
-        }
+        for (const url of pdfGabungUrlGambar(Array.isArray(gambarOpsi) ? gambarOpsi : gambarOpsi ? [gambarOpsi] : [], kontenOpsi.gambar)) await cetakGambarPdf(url, { indent: 28, maxW: contentW - 50, maxH: 130, jarakBawah: 7 });
       }
       y += 6;
 
       // pembahasan
-      const pembahasan = pdfBersihkanLatex(s.pembahasan);
+      const kontenPembahasan = pdfEkstrakKonten(s.pembahasan);
+      const pembahasan = kontenPembahasan.teks;
       if (pembahasan) {
         const pLines = doc.splitTextToSize(pembahasan, contentW - 20);
         const pH = 18 + pLines.length * 13 + 10;
@@ -6215,6 +6258,7 @@ async function downloadPaketPDF(id) {
         doc.text(pLines, marginX + 10, y + 28);
         y += pH + 8;
       }
+      for (const url of pdfGabungUrlGambar(s.pembahasan_gambar, kontenPembahasan.gambar)) await cetakGambarPdf(url, { indent: 10, maxW: contentW - 20, maxH: 180 });
 
       if (i < paket.soal.length - 1) {
         y += 6;
