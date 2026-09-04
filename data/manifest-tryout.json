@@ -20,7 +20,7 @@
     "durasi_menit": 10,
     "jumlah_soal": 10,
     "file": "data/tryout/gaya-mtmkey28.json",
-    "aktif": false,
+    "aktif": true,
     "kode_akses": "",
     "mode_hasil": "lengkap",
     "mulai_ujian": "",
