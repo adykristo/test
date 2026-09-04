@@ -2405,6 +2405,27 @@ Pembahasan: $\sum F=ma$</pre>
             </div>
           </div>
 
+          <!-- CARA A2: AI Gemini membuat draf soal -->
+          <div class="upload-card upload-card-primary" id="cardAIGemini">
+            <div class="upload-card-head">
+              <span class="upload-badge">AI Privat</span>
+              <h4>✨ Buat soal dengan Gemini</h4>
+              <p>Tulis perintah; AI membuat draf soal, kunci, pembahasan, rumus LaTeX, dan diagram fisika sederhana yang tetap bisa diedit.</p>
+            </div>
+            <div class="upload-card-body">
+              <label style="margin-top:0;">Perintah untuk AI</label>
+              <textarea id="aiSoalPrompt" rows="5" placeholder="Contoh: Buat 3 soal PG5 Fisika kelas 11 materi gerak parabola tingkat sedang. Gunakan angka mudah dihitung, opsi pengecoh masuk akal, kunci bervariasi, pembahasan langkah demi langkah, dan satu soal memakai diagram lintasan."></textarea>
+              <div class="row3" style="margin-top:10px;">
+                <div><label style="margin-top:0;">Jumlah</label><input id="aiSoalJumlah" type="number" value="1" min="1" max="10"></div>
+                <div><label style="margin-top:0;">Tipe utama</label><select id="aiSoalTipe"><option value="pg5">PG 5 opsi</option><option value="pg4">PG 4 opsi</option><option value="pgk_mcma">PGK MCMA</option><option value="pgk_kategori">Benar / Salah</option><option value="isian">Isian singkat</option><option value="esai">Esai</option></select></div>
+                <div><label style="margin-top:0;">Topik</label><input id="aiSoalTopik" placeholder="Ikuti topik paket"></div>
+              </div>
+              <button type="button" class="btn btn-primary" style="margin-top:12px;width:100%;" onclick="prosesBuatSoalGemini()">✨ Buat draf soal AI</button>
+              <div id="statusAiSoal" class="status-bar" style="margin-top:9px;"></div>
+              <p class="help" style="margin:9px 0 0;">AI membuat <b>draf</b>. Periksa konsep, angka, kunci, dan gambar sebelum Simpan &amp; Publish. API Gemini tetap tersimpan di Google Apps Script.</p>
+            </div>
+          </div>
+
           <!-- CARA B: Dari PDF (blok/kotakin soal) -->
           <div class="upload-card upload-card-primary" id="cardPdf" style="grid-column:1 / -1;">
             <div class="upload-card-head">
@@ -4891,6 +4912,57 @@ function soalDariHasilGeminiWord(items) {
   }).filter(s => s.pertanyaan || Object.keys(s.pilihan).length || s.statements.length);
 }
 
+/** Jalur admin ke Apps Script: kunci admin dan API Gemini tidak pernah dikirim ke siswa. */
+async function panggilAdminPrivat(action, payload) {
+  if (!hasilScriptUrl || !hasilAdminKey) throw new Error('Isi URL Apps Script dan Kode Rahasia Admin di Pengaturan Sistem terlebih dahulu.');
+  const res = await fetch(hasilScriptUrl, {
+    method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(Object.assign({ action:action, key:hasilAdminKey }, payload || {}))
+  });
+  const data = await res.json();
+  if (!data || data.status !== 'ok') throw new Error((data && data.message) || 'Server admin tidak merespons.');
+  return data;
+}
+
+async function prosesBuatSoalGemini() {
+  const prompt = ((document.getElementById('aiSoalPrompt') || {}).value || '').trim();
+  const jumlah = Math.max(1, Math.min(10, Number((document.getElementById('aiSoalJumlah') || {}).value) || 1));
+  const tipe = ((document.getElementById('aiSoalTipe') || {}).value || 'pg5');
+  const topik = ((document.getElementById('aiSoalTopik') || {}).value || (document.getElementById('fTopik') || {}).value || '').trim();
+  const jenjang = ((document.getElementById('fJenjang') || {}).value || 'sma');
+  if (!prompt) { setStatus('statusAiSoal', 'Tulis perintah untuk AI terlebih dahulu.', 'err'); return; }
+  if (!ghToken && /diagram|gambar|grafik|vektor|bidang miring|rangkaian|gelombang|lensa/i.test(prompt)) {
+    setStatus('statusAiSoal', 'Simpan token GitHub terlebih dahulu agar diagram/gambar AI dapat ikut diunggah.', 'err'); return;
+  }
+  try {
+    setStatus('statusAiSoal', 'Gemini sedang menyusun draf soal…', 'loading');
+    const result = await panggilAdminPrivat('buatSoalGemini', { prompt:prompt, jumlah:jumlah, tipe:tipe, jenjang:jenjang, topik:topik });
+    const raw = (result.questions || []).map(function(item) {
+      // Normalisasi agar mapper impor Word yang sudah teruji dapat dipakai kembali.
+      const copy = Object.assign({}, item);
+      if (!copy.answer && copy.short_answer) copy.answer = copy.short_answer;
+      return copy;
+    });
+    const soal = soalDariHasilGeminiWord(raw);
+    if (!soal.length) throw new Error('AI tidak menghasilkan soal yang dapat dimasukkan ke editor.');
+    for (let i = 0; i < soal.length; i++) {
+      tambahSoal(soal[i]);
+      const block = document.querySelector('#soalContainer .soal-block:last-child');
+      const tipeDiagram = String((raw[i] || {}).diagram_type || '').toLowerCase();
+      if (block && ['vektor','grafik','bidang','gelombang','rangkaian','lensa'].indexOf(tipeDiagram) >= 0) {
+        try { await kirimVisualKeTujuan(block, 'soal', btoa(svgDiagram(tipeDiagram)), 'ai-' + tipeDiagram + '.svg', 'Upload diagram AI'); }
+        catch (e) { console.warn('Diagram AI belum diunggah:', e); }
+      }
+    }
+    renumberSoal(); updateSoalCountBadge();
+    setStatus('statusAiSoal', '✓ ' + soal.length + ' draf soal dibuat. Buka tiap kartu untuk memeriksa dan mengedit sebelum publish.', 'ok');
+    const last = document.querySelector('#soalContainer .soal-block:last-child');
+    if (last) { last.classList.remove('collapsed'); last.scrollIntoView({behavior:'smooth',block:'center'}); }
+  } catch (e) {
+    setStatus('statusAiSoal', 'Gagal membuat soal AI: ' + (e.message || e), 'err');
+  }
+}
+
 function tambahMarkerFallback(teks, src, refDariSrc) {
   const id = refDariSrc[String(src || '')];
   if (!id) return teks || '';
@@ -6303,14 +6375,11 @@ async function muatBankSoal(force) {
   }
   if (statusEl) statusEl.textContent = 'Memuat bank soal…';
   try {
-    const result = await ghGetFile(BANK_SOAL_PATH);
-    if (result && Array.isArray(result.content)) {
-      bankSoalCache = { content: result.content, sha: result.sha };
-    } else {
-      bankSoalCache = { content: [], sha: null };
-    }
+    const result = await panggilAdminPrivat('bankSoalPrivatList');
+    bankSoalCache = { content: Array.isArray(result.content) ? result.content : [], sha: null };
   } catch (e) {
     bankSoalCache = { content: [], sha: null };
+    if (statusEl) statusEl.textContent = 'Bank privat belum dapat dimuat: ' + (e.message || e);
   }
   renderBankPickerList();
   if (statusEl) {
@@ -6362,7 +6431,6 @@ function renderBankPickerList() {
 }
 
 async function simpanSoalKeBank(uid) {
-  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
   const el = document.getElementById(uid);
   if (!el) return;
   let data;
@@ -6383,30 +6451,14 @@ async function simpanSoalKeBank(uid) {
     createdAt: new Date().toISOString(),
     jenjang,
     topik,
-    soal: {
-      // id baru saat dipakai di paket nanti
-      tipe: data.tipe,
-      pertanyaan: data.pertanyaan || '',
-      gambar: data.gambar || '',
-      pilihan: data.pilihan || {},
-      pilihan_gambar: data.pilihan_gambar || {},
-      jawaban_benar: data.jawaban_benar || '',
-      kunci_isian: data.kunci_isian || '',
-      pembahasan: data.pembahasan || '',
-      opsi_otomatis: !!data.opsi_otomatis
-    }
+    // id soal baru akan dibuat saat dipakai ke paket; seluruh kunci dan media tetap privat di bank.
+    soal: bankNormalizeSoalPayload(data)
   };
 
-  await muatBankSoal(true);
-  const newContent = (bankSoalCache.content || []).concat([entry]);
   try {
-    const putRes = await ghPutFile(
-      BANK_SOAL_PATH,
-      newContent,
-      bankSoalCache.sha,
-      'Tambah soal ke bank: ' + (data.pertanyaan || '').slice(0, 40)
-    );
-    bankSoalCache = { content: newContent, sha: putRes.content.sha };
+    const res = await panggilAdminPrivat('bankSoalPrivatSimpan', { entry:entry });
+    const lama = (bankSoalCache.content || []).filter(function(x) { return x.id !== res.entry.id; });
+    bankSoalCache = { content: lama.concat([res.entry]), sha:null };
     renderBankPickerList();
     alert('✓ Soal disimpan ke Bank Soal.\n\nNanti bisa dipakai ulang lewat kartu "Dari Bank Soal".');
   } catch (e) {
@@ -6442,13 +6494,10 @@ function tambahSoalDariBankTerpilih() {
 
 
 async function hapusDariBank(id) {
-  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
   if (!confirm('Hapus soal ini dari bank? (Tidak menghapus dari paket yang sudah memakai soal ini.)')) return;
-  await muatBankSoal(true);
-  const newContent = (bankSoalCache.content || []).filter(x => x.id !== id);
   try {
-    const putRes = await ghPutFile(BANK_SOAL_PATH, newContent, bankSoalCache.sha, 'Hapus soal dari bank');
-    bankSoalCache = { content: newContent, sha: putRes.content.sha };
+    await panggilAdminPrivat('bankSoalPrivatHapus', { id:id });
+    bankSoalCache = { content:(bankSoalCache.content || []).filter(x => x.id !== id), sha:null };
     renderBankPickerList();
     if (typeof renderBankAdminList === 'function') renderBankAdminList();
   } catch (e) {
@@ -6597,18 +6646,15 @@ function bankEditItem(id) {
 }
 
 async function bankDuplikatItem(id) {
-  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
-  await muatBankSoal(true);
   const item = (bankSoalCache.content || []).find(x => x.id === id);
   if (!item) return;
   const copy = JSON.parse(JSON.stringify(item));
   copy.id = 'bank-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
   copy.createdAt = new Date().toISOString();
   copy.updatedAt = copy.createdAt;
-  const newContent = (bankSoalCache.content || []).concat([copy]);
   try {
-    const putRes = await ghPutFile(BANK_SOAL_PATH, newContent, bankSoalCache.sha, 'Duplikat soal bank');
-    bankSoalCache = { content: newContent, sha: putRes.content.sha };
+    const res = await panggilAdminPrivat('bankSoalPrivatSimpan', { entry:copy });
+    bankSoalCache = { content:(bankSoalCache.content || []).concat([res.entry]), sha:null };
     renderBankAdminList();
     renderBankPickerList();
   } catch (e) {
@@ -6649,7 +6695,6 @@ function bankKirimEditorKePaket() {
 }
 
 async function bankSimpanDariEditor() {
-  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu di Koneksi GitHub.'); return; }
   const box = document.getElementById('bankEditorSoalContainer');
   const el = box && box.querySelector('.soal-block');
   if (!el) { alert('Editor kosong.'); return; }
@@ -6663,8 +6708,6 @@ async function bankSimpanDariEditor() {
   const topik = ((document.getElementById('bankEditTopik') || {}).value || '').trim();
   const tingkat = ((document.getElementById('bankEditTingkat') || {}).value || 'Sedang');
   const editId = (document.getElementById('bankEditId') || {}).value || '';
-  await muatBankSoal(true);
-  let newContent = (bankSoalCache.content || []).slice();
   const payload = {
     id: editId || ('bank-' + Date.now() + '-' + Math.floor(Math.random() * 10000)),
     createdAt: new Date().toISOString(),
@@ -6673,20 +6716,15 @@ async function bankSimpanDariEditor() {
     soal: bankNormalizeSoalPayload(data)
   };
   if (editId) {
-    const idx = newContent.findIndex(x => x.id === editId);
-    if (idx >= 0) {
-      payload.createdAt = newContent[idx].createdAt || payload.createdAt;
-      newContent[idx] = payload;
-    } else newContent.push(payload);
-  } else {
-    newContent.push(payload);
+    const lama = (bankSoalCache.content || []).find(x => x.id === editId);
+    if (lama) payload.createdAt = lama.createdAt || payload.createdAt;
   }
   const st = document.getElementById('bankEditorStatus');
   try {
     if (st) { st.textContent = 'Menyimpan…'; st.className = 'status-bar show loading'; }
-    const putRes = await ghPutFile(BANK_SOAL_PATH, newContent, bankSoalCache.sha, (editId ? 'Update' : 'Tambah') + ' soal bank');
-    bankSoalCache = { content: newContent, sha: putRes.content.sha };
-    document.getElementById('bankEditId').value = payload.id;
+    const res = await panggilAdminPrivat('bankSoalPrivatSimpan', { entry:payload });
+    bankSoalCache = { content:(bankSoalCache.content || []).filter(x => x.id !== res.entry.id).concat([res.entry]), sha:null };
+    document.getElementById('bankEditId').value = res.entry.id;
     renderBankAdminList();
     renderBankPickerList();
     if (st) { st.textContent = '✓ Tersimpan di bank soal.'; st.className = 'status-bar show ok'; }
@@ -6715,7 +6753,6 @@ async function bankImportJson(event) {
   const file = event.target.files && event.target.files[0];
   event.target.value = '';
   if (!file) return;
-  if (!ghToken) { alert('Masukkan & simpan token GitHub dulu.'); return; }
   try {
     const text = await file.text();
     const parsed = JSON.parse(text);
@@ -6767,23 +6804,22 @@ async function bankImportJson(event) {
       }
       return it;
     });
-    await muatBankSoal(true);
     const existingIds = new Set((bankSoalCache.content || []).map(x => x.id));
     let added = 0;
-    const merged = (bankSoalCache.content || []).slice();
-    items.forEach(function(it) {
+    const saved = [];
+    for (const it of items) {
       if (!it.id || existingIds.has(it.id)) {
         it.id = 'bank-' + Date.now() + '-' + Math.floor(Math.random()*10000) + '-' + added;
       }
       it.updatedAt = new Date().toISOString();
       if (!it.createdAt) it.createdAt = it.updatedAt;
       if (it.soal) it.soal = bankNormalizeSoalPayload(it.soal);
-      merged.push(it);
       existingIds.add(it.id);
+      const response = await panggilAdminPrivat('bankSoalPrivatSimpan', { entry:it });
+      saved.push(response.entry);
       added++;
-    });
-    const putRes = await ghPutFile(BANK_SOAL_PATH, merged, bankSoalCache.sha, 'Import JSON bank soal (' + added + ')');
-    bankSoalCache = { content: merged, sha: putRes.content.sha };
+    }
+    bankSoalCache = { content:(bankSoalCache.content || []).filter(function(x) { return !saved.some(function(y) { return y.id === x.id; }); }).concat(saved), sha:null };
     renderBankAdminList();
     renderBankPickerList();
     alert('✓ ' + added + ' soal diimpor ke bank.');
@@ -6879,8 +6915,6 @@ async function bankImportWord() {
       setBankWordStatus('✓ ' + soalMentah.length + ' soal dimasukkan ke editor paket tryout.', 'ok');
       return;
     }
-    if (!ghToken) throw new Error('Token GitHub belum diisi (perlu untuk simpan ke bank).');
-    await muatBankSoal(true);
     const entries = soalMentah.map(function(s, i) {
       return {
         id: 'bank-' + Date.now() + '-' + i + '-' + Math.floor(Math.random()*1000),
@@ -6892,9 +6926,9 @@ async function bankImportWord() {
         soal: bankNormalizeSoalPayload(s)
       };
     });
-    const merged = (bankSoalCache.content || []).concat(entries);
-    const putRes = await ghPutFile(BANK_SOAL_PATH, merged, bankSoalCache.sha, 'Import Word bank (' + entries.length + ')');
-    bankSoalCache = { content: merged, sha: putRes.content.sha };
+    const saved = [];
+    for (const entry of entries) saved.push((await panggilAdminPrivat('bankSoalPrivatSimpan', { entry:entry })).entry);
+    bankSoalCache = { content:(bankSoalCache.content || []).concat(saved), sha:null };
     renderBankAdminList();
     renderBankPickerList();
     setBankWordStatus('✓ ' + entries.length + ' soal dari Word masuk ke bank.', 'ok');
