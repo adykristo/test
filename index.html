@@ -2052,7 +2052,8 @@ function formatTeksDenganLatex(teks) {
     .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
     .replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>')
     .replace(/\[sub\]([\s\S]*?)\[\/sub\]/g, '<sub>$1</sub>')
-    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img class="inline-image" src="$2" alt="$1">')
+    // Tetap tampilkan gambar bila impor Word memberi baris baru di sekitar URL.
+    .replace(/!\[([^\]]*)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g, '<img class="inline-image" src="$2" alt="$1">')
     .replace(/\n/g, '<br>');
 }
 

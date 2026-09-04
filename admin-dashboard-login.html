@@ -707,7 +707,7 @@ window.MathJax = {
     content:'Pratinjau akan muncul di sini…';
     color:#b8a9c9;
   }
-  #panelTryout .inline-image{display:inline-block;vertical-align:middle;max-width:min(100%,420px);max-height:260px;object-fit:contain;margin:4px 6px;border:1px solid #e1d2ef;border-radius:8px;background:#fff;}
+  #panelTryout .inline-image,#previewModal .inline-image{display:inline-block;vertical-align:middle;max-width:min(100%,420px);max-height:260px;object-fit:contain;margin:4px 6px;border:1px solid #e1d2ef;border-radius:8px;background:#fff;}
   #panelTryout .visual-tools{margin:14px 0;padding:12px;border:1px solid #ddc8ef;border-radius:13px;background:linear-gradient(135deg,#f9f4ff,#fff7fb);display:flex;gap:8px;align-items:end;flex-wrap:wrap;}
   #panelTryout .visual-tools label{font-size:11px;margin:0;display:grid;gap:3px;color:var(--ungu-tua);font-weight:800;}
   #panelTryout .visual-tools select{min-width:145px;margin:0;padding:7px;border:1px solid #dfc9ee;border-radius:8px;background:#fff;}
@@ -7466,7 +7466,8 @@ function formatTeksDenganLatex(teks) {
     .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
     .replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>')
     .replace(/\[sub\]([\s\S]*?)\[\/sub\]/g, '<sub>$1</sub>')
-    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img class="inline-image" src="$2" alt="$1">')
+    // Spasi atau baris baru di sekitar URL tetap dibaca sebagai gambar inline.
+    .replace(/!\[([^\]]*)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/g, '<img class="inline-image" src="$2" alt="$1">')
     .replace(/\n/g, '<br>');
 }
 
@@ -10198,7 +10199,8 @@ function renderPreviewSoal() {
   document.getElementById('previewTipeBadge').textContent = label;
 
   let body = '';
-  const pertanyaan = (s.pertanyaan || '').replace(/</g, '&lt;');
+  // Gunakan renderer yang sama dengan halaman siswa: rumus, perataan, dan gambar inline tampil nyata.
+  const pertanyaan = formatTeksDenganLatex(s.pertanyaan || '');
   let gambar = '';
   if (s.gambar) {
     gambar = '<div style="margin:12px 0;"><img src="' + String(s.gambar).replace(/"/g, '&quot;') + '" alt="gambar soal" style="max-width:100%; border-radius:12px; border:1px solid #eee;"></div>';
@@ -10218,7 +10220,7 @@ function renderPreviewSoal() {
           const item = (st && typeof st === 'object') ? st : { text: String(st || ''), image: '' };
           const img = item.image ? '<img src="' + String(item.image).replace(/"/g,'&quot;') + '" style="display:block;max-width:260px;max-height:180px;border-radius:8px;margin-top:7px;">' : '';
           return '<div style="padding:11px;border:1.5px solid #e8d9f8;border-radius:12px;background:#faf7ff;">'
-            + '<div style="font-size:14px;line-height:1.5;"><b>' + (idx + 1) + '.</b> ' + String(item.text || '').replace(/</g,'&lt;') + img + '</div>'
+            + '<div style="font-size:14px;line-height:1.5;"><b>' + (idx + 1) + '.</b> ' + formatTeksDenganLatex(item.text || '') + img + '</div>'
             + '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;">'
             + labels.map(function(label) { return '<span style="padding:6px 11px;border:1px solid #d9c8ed;border-radius:999px;font-size:11px;color:#6a378f;">○ ' + String(label).replace(/</g,'&lt;') + '</span>'; }).join('')
             + '</div></div>';
@@ -10233,7 +10235,7 @@ function renderPreviewSoal() {
       const g = pgGambar[h] ? String(pgGambar[h]).trim() : '';
       return adaKey || g;
     }).map(h => {
-      const teks = (s.pilihan && s.pilihan[h]) ? String(s.pilihan[h]).replace(/</g, '&lt;') : '';
+      const teks = (s.pilihan && s.pilihan[h]) ? formatTeksDenganLatex(s.pilihan[h]) : '';
       let ghtml = '';
       const g = pgGambar[h];
       if (g) {
@@ -10247,7 +10249,7 @@ function renderPreviewSoal() {
   }
 
   const box = document.getElementById('previewModalBody');
-  box.innerHTML = '<div style="font-size:15.5px; line-height:1.55; color:#222; white-space:pre-wrap;">' + pertanyaan + '</div>' + gambar + body;
+  box.innerHTML = '<div style="font-size:15.5px; line-height:1.55; color:#222;">' + pertanyaan + '</div>' + gambar + body;
 
   if (window.MathJax && MathJax.typesetPromise) {
     try {
