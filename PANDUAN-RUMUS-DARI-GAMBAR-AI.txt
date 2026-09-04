@@ -1,0 +1,29 @@
+FITUR BACA RUMUS DARI GAMBAR (AI)
+==================================
+
+Fitur ini mengubah screenshot/foto satu rumus menjadi LaTeX yang dapat diedit.
+Tombolnya adalah: "∑ Baca rumus foto" pada toolbar Pertanyaan, Opsi, dan Pembahasan.
+
+PENGATURAN SATU KALI DI GOOGLE APPS SCRIPT
+1. Buka spreadsheet hasil tryout → Extensions → Apps Script.
+2. Timpa Code.gs dengan file code.gs dari paket ZIP ini.
+3. Klik Project Settings (ikon roda gigi) → Script properties → Add script property.
+4. Tambahkan:
+   Property : GEMINI_API_KEY
+   Value    : API key dari Google AI Studio.
+5. Opsional: tambahkan GEMINI_MODEL. Jika kosong, sistem memakai gemini-2.5-flash.
+6. Deploy → Manage deployments → Edit → Version: New version → Deploy.
+7. Buka kembali admin, lalu pastikan URL Apps Script dan Kode Rahasia Admin sudah tersimpan.
+
+CARA MEMAKAI
+1. Letakkan kursor di Pertanyaan, salah satu Opsi, atau Pembahasan.
+2. Klik "∑ Baca rumus foto".
+3. Pilih screenshot rumus yang tajam dan sebaiknya hanya berisi satu rumus.
+4. Tunggu hasil LaTeX dimasukkan otomatis, lalu periksa dan edit bila perlu.
+5. Klik Preview sebelum publish.
+
+CATATAN KEAMANAN
+- API key AI hanya berada di Script Properties Google Apps Script.
+- API key tidak ditulis di GitHub dan tidak dikirim ke siswa.
+- Jika GEMINI_API_KEY belum diatur, hanya fitur baca rumus foto yang memberi pesan gagal;
+  fitur admin lain tetap berjalan seperti biasa.
