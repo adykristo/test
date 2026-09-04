@@ -11,5 +11,20 @@
     "kode_akses": "",
     "mode_hasil": "nilai",
     "arsip": false
+  },
+  {
+    "id": "gaya-mtmkey28",
+    "title": "GAYA",
+    "jenjang": "smp",
+    "topik": "GAYA",
+    "durasi_menit": 10,
+    "jumlah_soal": 10,
+    "file": "data/tryout/gaya-mtmkey28.json",
+    "aktif": false,
+    "kode_akses": "",
+    "mode_hasil": "lengkap",
+    "mulai_ujian": "",
+    "selesai_ujian": "",
+    "arsip": false
   }
 ]
