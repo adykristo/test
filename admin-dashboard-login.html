@@ -2378,10 +2378,12 @@ window.MathJax = {
                   <label style="margin-top:0;">Pilih file .docx</label>
                   <input type="file" id="wordSoalFile" accept=".docx">
                   <button type="button" class="btn btn-primary" style="margin-top:12px; width:100%;" onclick="prosesWordKeForm()">⬆️ Import ke daftar soal</button>
+                  <button type="button" class="btn btn-outline" style="margin-top:8px; width:100%; border-color:#a855d9; color:#7022a2;" onclick="prosesWordDenganGemini()">✨ AI Gemini — rapikan &amp; import</button>
                 </div>
               </div>
               <div id="statusWordSoal" class="status-bar" style="margin-top:10px;"></div>
               <div class="word-equation-note"><b>Equation Word didukung:</b> rumus yang dibuat dari <i>Insert → Equation</i> akan dibaca, dirender menjadi PNG, lalu otomatis diunggah ke bagian narasi, opsi, kunci/pedoman, pernyataan, atau pembahasan yang sesuai.</div>
+              <p class="help" style="margin:9px 0 0;"><b>AI Gemini:</b> gunakan jika Word dibuat bebas/tidak mengikuti template. AI memecah nomor, tipe, opsi, kunci, dan pembahasan; gambar serta Equation Word tetap diunggah melalui sistem yang sama. Periksa hasil sebelum publish.</p>
               <details style="margin-top:10px;">
                 <summary class="help" style="cursor:pointer;">Lihat format penulisan Word</summary>
                 <pre class="format-pre">1. Benda bermassa $m=2\,\mathrm{kg}$ ditarik gaya $F=10\,\mathrm{N}$. Percepatannya?
@@ -4770,6 +4772,243 @@ function bersihkanSoalKosong() {
   });
   if (dihapus) renumberSoal();
   return dihapus;
+}
+
+// ---------- Impor Word dengan Gemini AI ----------
+// Parser lama tetap dipakai sebagai pelindung gambar/Equation Word. Gemini hanya
+// merapikan struktur dokumen yang formatnya bebas agar masuk ke kartu soal yang sama.
+function buatDokumenWordUntukAI(html) {
+  const root = document.createElement('div');
+  root.innerHTML = html || '';
+  const assets = {}, refDariSrc = {};
+  [...root.querySelectorAll('img')].forEach((img, index) => {
+    const id = 'KF_IMG_' + index;
+    const src = img.getAttribute('src') || '';
+    if (src) { assets[id] = src; if (!refDariSrc[src]) refDariSrc[src] = id; }
+    img.replaceWith(document.createTextNode(' [[' + id + ']] '));
+  });
+  root.querySelectorAll('br').forEach(br => br.replaceWith(document.createTextNode('\n')));
+  const text = (root.innerText || root.textContent || '').replace(/\u00a0/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  return { text, assets, refDariSrc };
+}
+
+function potongDokumenWordUntukAI(text, batas) {
+  const max = batas || 28000;
+  const lines = String(text || '').split('\n');
+  const hasil = [], mulaiSoal = /^(?:No\.?|Nomor|Soal)?\s*\d{1,3}[.)\]:-]/i;
+  let sekarang = '';
+  lines.forEach(line => {
+    const aman = line + '\n';
+    if (sekarang && sekarang.length + aman.length > max && (mulaiSoal.test(line) || sekarang.length > max * .82)) {
+      hasil.push(sekarang.trim()); sekarang = '';
+    }
+    sekarang += aman;
+  });
+  if (sekarang.trim()) hasil.push(sekarang.trim());
+  return hasil.length ? hasil : [String(text || '')];
+}
+
+function idsAsetDalamTeks(teks) {
+  return [...new Set((String(teks || '').match(/\[\[(KF_IMG_\d+)\]\]/g) || [])
+    .map(x => x.replace(/\[|\]/g, '')))].filter(Boolean);
+}
+
+function asetUntukAnalisisAI(ids, assets) {
+  let total = 0;
+  const out = [];
+  ids.slice(0, 12).forEach(id => {
+    const src = String(assets[id] || '');
+    const m = src.match(/^data:(image\/(?:png|jpeg|jpg|webp));base64,(.*)$/s);
+    if (!m || m[2].length > 1400000 || total + m[2].length > 6000000) return;
+    total += m[2].length;
+    out.push({ id, mimeType:m[1] === 'image/jpg' ? 'image/jpeg' : m[1], data:m[2] });
+  });
+  return out;
+}
+
+function refAsetWordAI(value) {
+  const id = String(value || '').replace(/[\[\]\s]/g, '');
+  return /^KF_IMG_\d+$/.test(id) ? id : '';
+}
+
+function daftarRefAsetWordAI(value) {
+  const arr = Array.isArray(value) ? value : (value ? [value] : []);
+  return [...new Set(arr.map(refAsetWordAI).filter(Boolean))];
+}
+
+function tempelReferensiAsetWord(teks, refs) {
+  let out = String(teks || '').trim();
+  daftarRefAsetWordAI(refs).forEach(id => {
+    const marker = '[[' + id + ']]';
+    if (!out.includes(marker)) out += (out ? '\n' : '') + marker;
+  });
+  return out;
+}
+
+function tipeDariGeminiWord(item) {
+  const raw = String((item || {}).type || '').toLowerCase().replace(/[\s_/-]+/g, '');
+  const options = (item || {}).options || {};
+  if (raw.includes('mcma') || raw.includes('pgkkompleks')) return 'pgk_mcma';
+  if (raw.includes('kategori') || raw.includes('benarsalah') || raw === 'bs') return 'pgk_kategori';
+  if (raw.includes('isian')) return 'isian';
+  if (raw.includes('esai') || raw.includes('essay')) return 'esai';
+  if (raw.includes('pg4')) return 'pg4';
+  if (raw.includes('pg5')) return 'pg5';
+  return Object.prototype.hasOwnProperty.call(options, 'E') ? 'pg5' : Object.keys(options).length ? 'pg4' : ((item || {}).answer ? 'isian' : 'esai');
+}
+
+function soalDariHasilGeminiWord(items) {
+  return (Array.isArray(items) ? items : []).map((item, index) => {
+    const tipe = tipeDariGeminiWord(item);
+    const rawOptions = item && item.options && typeof item.options === 'object' ? item.options : {};
+    const pilihan = {}, pilihan_gambar = {};
+    ['A','B','C','D','E'].forEach(h => {
+      const raw = rawOptions[h] == null ? rawOptions[h.toLowerCase()] : rawOptions[h];
+      const refs = item && item.option_image_refs && (item.option_image_refs[h] || item.option_image_refs[h.toLowerCase()]);
+      const val = tempelReferensiAsetWord(raw || '', refs);
+      if (val) pilihan[h] = val;
+    });
+    const labels = Array.isArray(item && item.category_labels) && item.category_labels.length >= 2 ? item.category_labels.slice(0,4).map(x => String(x).trim()) : ['Benar','Salah'];
+    const statements = (Array.isArray(item && item.statements) ? item.statements : []).map((st, si) => ({
+      id:'word-ai-st-' + Date.now() + '-' + index + '-' + si,
+      text:tempelReferensiAsetWord((st && (st.text || st.statement)) || '', st && st.image_refs),
+      image:'', correctIndex:Math.max(0, Math.min(labels.length - 1, Number((st || {}).correctIndex) || 0))
+    })).filter(st => st.text);
+    const answer = String((item && (item.answer || item.jawaban_benar)) || '').trim();
+    const correct = [...new Set(Array.isArray(item && item.correct_indexes) ? item.correct_indexes : (answer.match(/[A-E]/gi) || []))]
+      .map(x => String(x).toUpperCase()).filter(x => /^[A-E]$/.test(x));
+    const question = tempelReferensiAsetWord((item && (item.question || item.pertanyaan)) || '', item && item.question_image_refs);
+    const pembahasan = tempelReferensiAsetWord((item && (item.explanation || item.pembahasan)) || '', item && item.explanation_image_refs);
+    return {
+      tipe, pertanyaan:question, gambar:'', pilihan, pilihan_gambar,
+      jawaban_benar:tipe === 'pgk_mcma' ? correct.join(',') : (tipe === 'isian' ? answer : (answer.toUpperCase().match(/[A-E]/) || [''])[0]),
+      kunci_isian:tipe === 'isian' ? answer : '',
+      correct_indexes:tipe === 'pgk_mcma' ? correct : [],
+      scoring_mode:tipe === 'pgk_kategori' ? 'partial' : 'exact', max_points:tipe.indexOf('pgk_') === 0 ? 2 : 1,
+      partial_points:1, partial_threshold:1, category_labels:labels, statements,
+      answer_image:'', pembahasan, pembahasan_gambar:''
+    };
+  }).filter(s => s.pertanyaan || Object.keys(s.pilihan).length || s.statements.length);
+}
+
+function tambahMarkerFallback(teks, src, refDariSrc) {
+  const id = refDariSrc[String(src || '')];
+  if (!id) return teks || '';
+  const marker = '[[' + id + ']]';
+  const out = String(teks || '');
+  return out.includes(marker) ? out : (out + (out ? '\n' : '') + marker);
+}
+
+function lengkapiGambarFallbackWord(soalAI, fallback, refDariSrc) {
+  (soalAI || []).forEach((s, i) => {
+    const lama = (fallback || [])[i]; if (!lama) return;
+    s.pertanyaan = tambahMarkerFallback(s.pertanyaan, lama.gambar, refDariSrc);
+    ['A','B','C','D','E'].forEach(h => {
+      const raw = lama.pilihan_gambar && lama.pilihan_gambar[h];
+      const src = Array.isArray(raw) ? raw[0] : raw;
+      if (src && s.pilihan && s.pilihan[h] != null) s.pilihan[h] = tambahMarkerFallback(s.pilihan[h], src, refDariSrc);
+    });
+    s.pembahasan = tambahMarkerFallback(s.pembahasan, lama.pembahasan_gambar, refDariSrc);
+    (s.statements || []).forEach((st, si) => {
+      const source = lama.statements && lama.statements[si] && lama.statements[si].image;
+      st.text = tambahMarkerFallback(st.text, source, refDariSrc);
+    });
+  });
+}
+
+async function unggahAsetWordAi(assets) {
+  const ids = Object.keys(assets || {});
+  if (!ids.length) return {};
+  if (!ghToken) throw new Error('Masukkan dan simpan token GitHub terlebih dahulu agar gambar Word dapat ikut diunggah.');
+  const map = {};
+  sedangUploadGambar++;
+  try {
+    for (let i=0; i<ids.length; i++) {
+      const id = ids[i], src = String(assets[id] || '');
+      if (!src.startsWith('data:')) { map[id] = src; continue; }
+      const m = src.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/s);
+      if (!m) continue;
+      setStatus('statusWordSoal', `Mengunggah gambar Word ${i + 1}/${ids.length}…`, 'loading');
+      const ext = (m[1].split('/')[1] || 'png').replace('jpeg','jpg').split('+')[0];
+      const path = `${GAMBAR_SOAL_FOLDER}/word-ai-${Date.now()}-${id.toLowerCase()}.${ext}`;
+      const res = await ghPutBinaryFile(path, m[2], 'Upload gambar Word AI: ' + id);
+      map[id] = res.content.download_url;
+    }
+  } finally { sedangUploadGambar--; }
+  return map;
+}
+
+function gantiMarkerGambarWord(teks, assetUrls) {
+  return String(teks || '').replace(/\[\[(KF_IMG_\d+)\]\]/g, function(full, id) {
+    const url = assetUrls && assetUrls[id];
+    return url ? `![Gambar](${url})` : '';
+  }).replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function terapkanGambarWordKeSoal(soal, assetUrls) {
+  soal.pertanyaan = gantiMarkerGambarWord(soal.pertanyaan, assetUrls);
+  soal.pembahasan = gantiMarkerGambarWord(soal.pembahasan, assetUrls);
+  Object.keys(soal.pilihan || {}).forEach(h => { soal.pilihan[h] = gantiMarkerGambarWord(soal.pilihan[h], assetUrls); });
+  (soal.statements || []).forEach(st => { st.text = gantiMarkerGambarWord(st.text, assetUrls); });
+}
+
+async function unggahDataUrlTambahanWordAi(soal, nomor) {
+  async function upload(url, label) {
+    if (!String(url || '').startsWith('data:image')) return url || '';
+    const m = String(url).match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/s);
+    if (!m) return '';
+    const ext = (m[1].split('/')[1] || 'png').replace('jpeg','jpg').split('+')[0];
+    const res = await ghPutBinaryFile(`${GAMBAR_SOAL_FOLDER}/word-ai-${Date.now()}-${label}.${ext}`, m[2], 'Upload Equation Word AI: ' + label);
+    return res.content.download_url;
+  }
+  soal.gambar = await upload(soal.gambar, `soal-${nomor}`);
+  soal.answer_image = await upload(soal.answer_image, `soal-${nomor}-jawaban`);
+  soal.pembahasan_gambar = await upload(soal.pembahasan_gambar, `soal-${nomor}-pembahasan`);
+  for (const h of Object.keys(soal.pilihan_gambar || {})) soal.pilihan_gambar[h] = await upload(Array.isArray(soal.pilihan_gambar[h]) ? soal.pilihan_gambar[h][0] : soal.pilihan_gambar[h], `soal-${nomor}-opsi-${h}`);
+  for (let i=0; i<(soal.statements || []).length; i++) soal.statements[i].image = await upload(soal.statements[i].image, `soal-${nomor}-pernyataan-${i+1}`);
+}
+
+async function prosesWordDenganGemini() {
+  const inputEl = document.getElementById('wordSoalFile');
+  const file = inputEl && inputEl.files && inputEl.files[0];
+  if (!file) { setStatus('statusWordSoal', 'Pilih file Word (.docx) dulu.', 'err'); return; }
+  if (!hasilScriptUrl || !hasilAdminKey) { setStatus('statusWordSoal', 'Isi URL Apps Script dan Kode Rahasia Admin dulu. AI Gemini diproses aman melalui Apps Script.', 'err'); return; }
+  if (typeof mammoth === 'undefined') { setStatus('statusWordSoal', 'Pustaka pembaca Word belum termuat. Muat ulang halaman lalu coba lagi.', 'err'); return; }
+  try {
+    setStatus('statusWordSoal', 'Membaca teks, gambar, dan Equation Word…', 'loading');
+    const prepared = await siapkanEquationWord(await file.arrayBuffer());
+    const result = await mammoth.convertToHtml({ arrayBuffer:prepared.arrayBuffer }, { convertImage:mammoth.images.imgElement(async image => ({ src:'data:' + image.contentType + ';base64,' + await image.read('base64') })) });
+    const dokumen = buatDokumenWordUntukAI(result.value);
+    if (!dokumen.text) throw new Error('Isi Word tidak terbaca.');
+    const fallback = parseWordSoalHtml(result.value);
+    const chunks = potongDokumenWordUntukAI(dokumen.text);
+    if (chunks.length > 6) throw new Error('Dokumen terlalu panjang untuk dianalisis sekaligus. Pisahkan menjadi beberapa file Word (maksimal sekitar 100 soal).');
+    let hasilAi = [];
+    for (let i=0; i<chunks.length; i++) {
+      setStatus('statusWordSoal', `Gemini sedang menyusun soal bagian ${i + 1}/${chunks.length}…`, 'loading');
+      const res = await fetch(hasilScriptUrl, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({ action:'analisisWordTryout', key:hasilAdminKey, documentText:chunks[i], images:asetUntukAnalisisAI(idsAsetDalamTeks(chunks[i]), dokumen.assets) }) });
+      const out = await res.json();
+      if (!out || out.status !== 'ok') throw new Error((out && out.message) || 'Gemini gagal membaca Word.');
+      hasilAi = hasilAi.concat(out.questions || []);
+    }
+    let soal = soalDariHasilGeminiWord(hasilAi);
+    if (!soal.length) throw new Error('Gemini belum menemukan struktur soal pada Word ini.');
+    if (soal.length > 100) throw new Error('Terdeteksi lebih dari 100 soal. Maksimal 100 soal per paket.');
+    lengkapiGambarFallbackWord(soal, fallback, dokumen.refDariSrc);
+    setStatus('statusWordSoal', 'Mengunggah gambar Word ke GitHub…', 'loading');
+    const assetUrls = await unggahAsetWordAi(dokumen.assets);
+    soal.forEach(s => terapkanGambarWordKeSoal(s, assetUrls));
+    const jumlahEquation = await pasangEquationWordPadaSoal(soal, prepared.equations);
+    if (!ghToken && soal.some(s => String(s.gambar||'').startsWith('data:image') || Object.values(s.pilihan_gambar||{}).some(v => String(Array.isArray(v)?v[0]:v).startsWith('data:image')))) throw new Error('Masukkan token GitHub agar Equation Word dapat ikut diunggah.');
+    for (let i=0; i<soal.length; i++) await unggahDataUrlTambahanWordAi(soal[i], i+1);
+    soal.forEach(s => tambahSoal(s));
+    const dibersihkan = bersihkanSoalKosong();
+    updateSoalCountBadge();
+    setStatus('statusWordSoal', `✓ Gemini menyusun ${soal.length} soal ke editor.${Object.keys(assetUrls).length ? ' ' + Object.keys(assetUrls).length + ' gambar ikut diunggah.' : ''}${jumlahEquation ? ' ' + jumlahEquation + ' Equation Word dipertahankan.' : ''}${dibersihkan ? ' Kartu kosong dibersihkan.' : ''} Periksa hasil dan kunci sebelum publish.`, 'ok');
+    document.getElementById('soalContainer').scrollIntoView({behavior:'smooth',block:'start'});
+  } catch (e) {
+    setStatus('statusWordSoal', 'Gagal import AI Word: ' + (e.message || e), 'err');
+  } finally { inputEl.value = ''; }
 }
 
 async function prosesWordKeForm() {

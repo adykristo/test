@@ -1,0 +1,31 @@
+IMPORT WORD DENGAN GEMINI AI
+============================
+
+Fitur ini dipakai untuk file Word yang formatnya tidak seragam. Gemini akan
+mendeteksi nomor soal, tipe soal, opsi, kunci, pembahasan, dan pernyataan
+Benar/Salah; hasilnya langsung masuk ke kartu editor tryout.
+
+SEBELUM MEMAKAI
+1. Pastikan GEMINI_API_KEY dan GEMINI_MODEL sudah diatur pada Script Properties.
+2. Pastikan izin UrlFetchApp sudah aktif (fitur Baca Rumus Foto sudah berhasil).
+3. Code.gs versi baru sudah ditempel lalu Apps Script di-Deploy sebagai New version.
+4. Di admin, URL Apps Script, Kode Rahasia Admin, dan token GitHub sudah tersimpan.
+
+CARA MEMAKAI
+1. Buka Paket Tryout → Buat atau Edit paket.
+2. Pada langkah "Dari file Word", pilih file .docx.
+3. Klik "AI Gemini — rapikan & import".
+4. Tunggu sampai teks, opsi, kunci, pembahasan, gambar, dan Equation Word masuk
+   ke daftar soal.
+5. Periksa setiap kartu soal, terutama kunci jawaban dan hasil baca rumus.
+6. Klik Preview lalu Simpan & Publish.
+
+CATATAN PENTING
+- Tombol "Import ke daftar soal" lama tetap tersedia dan lebih cepat bila Word
+  sudah mengikuti template resmi.
+- Gambar Word diunggah apa adanya ke GitHub. Gemini dipakai untuk membaca
+  struktur dokumen, bukan mengganti gambar asli.
+- Equation Word dipertahankan sebagai gambar rumus agar tampil konsisten.
+- Untuk hasil terbaik: satu nomor soal per paragraf, opsi A–E pada baris sendiri,
+  dan tulis Kunci/Jawaban serta Pembahasan bila tersedia.
+- Isi Word dan gambar yang diperlukan dikirim ke Gemini untuk dianalisis.
