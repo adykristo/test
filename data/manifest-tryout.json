@@ -35,7 +35,7 @@
     "durasi_menit": 30,
     "jumlah_soal": 5,
     "file": "data/tryout/usaha-mtmkwmg4.json",
-    "aktif": false,
+    "aktif": true,
     "kode_akses": "",
     "mode_hasil": "lengkap",
     "mulai_ujian": "",
