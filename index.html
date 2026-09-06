@@ -1390,7 +1390,25 @@ window.MathJax = {
     justify-content:center;
     flex-shrink:0;
   }
+  .pelatihan-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:22px;align-items:start}.pelatihan-card{background:#fff;border:1px solid #eadcf7;border-radius:18px;padding:22px;box-shadow:0 10px 30px rgba(86,37,126,.08)}.pelatihan-card h3{margin:0 0 8px;color:#42176e}.pelatihan-card p{color:#665a70;line-height:1.65}.pelatihan-card input,.pelatihan-card select{width:100%;box-sizing:border-box;margin:7px 0 12px;padding:11px 12px;border:1px solid #d9c5ec;border-radius:10px;font:inherit}.pelatihan-card label{font-size:13px;font-weight:700;color:#57317d}.materi-item{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #f0e8f7}.materi-item:last-child{border:0}.badge-private{font-size:11px;font-weight:800;color:#6d27b5;background:#f1e5ff;border-radius:999px;padding:5px 8px}.pelatihan-status{margin:10px 0;padding:10px 12px;border-radius:10px;background:#f8f2ff;color:#5b2d8e;font-size:13px}@media(max-width:760px){.pelatihan-grid{grid-template-columns:1fr}}
+/* Penyempurnaan tampilan 2026 */
+:root{--shadow-soft:0 14px 38px rgba(72,25,112,.11);--surface:#fff;--line:#eadcf5}
+body{background:radial-gradient(circle at 5% 5%,#fff1fb 0,transparent 28%),radial-gradient(circle at 95% 18%,#efe5ff 0,transparent 30%),#fbf9fd}
+header{box-shadow:0 8px 28px rgba(69,19,110,.17)}
+.jenjang-nav{position:sticky;top:0;z-index:40;box-shadow:0 4px 18px rgba(66,25,101,.1)}
+.jenjang-nav button{border-radius:10px;margin:3px 1px}.jenjang-nav button.active{box-shadow:0 5px 15px rgba(132,40,190,.25)}
+.page{animation:pageIn .24s ease}@keyframes pageIn{from{opacity:.35;transform:translateY(6px)}to{opacity:1;transform:none}}
+.hero-home,.soal-card,.pelatihan-card,.result-card,.tryout-card{border:1px solid var(--line);box-shadow:var(--shadow-soft)}
+.soal-card{overflow:hidden;transition:transform .18s,box-shadow .18s}.soal-card:hover{transform:translateY(-3px);box-shadow:0 18px 42px rgba(72,25,112,.16)}
+.soal-card .head{background:linear-gradient(110deg,#fff8fe,#f8f2ff);padding:16px 18px;border-bottom:1px solid var(--line)}
+.soal-img{background:#fff;padding:10px;box-sizing:border-box}.toggle-btn,.btn-cta-primary{box-shadow:0 7px 15px rgba(121,44,185,.17)}
+.catalog-toolbar{padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.82);box-shadow:0 7px 21px rgba(72,25,112,.06)}
+.pelatihan-card{border-radius:20px}.materi-item{gap:18px}.pelatihan-status{border:1px solid #e7d5f5}
+@media(max-width:640px){header{padding:28px 17px}.jenjang-nav{overflow-x:auto;justify-content:flex-start}.jenjang-nav button{white-space:nowrap}.soal-card .head{padding:13px}.pelatihan-card{padding:16px}.catalog-toolbar{gap:8px}.catalog-toolbar input,.catalog-toolbar select{min-width:0;flex:1}}
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
 </head>
 <body>
 
@@ -1407,6 +1425,7 @@ window.MathJax = {
   <button data-page="sma">SMA</button>
   <button data-page="tryout">Try Out</button>
   <button data-page="download">Soal OSN</button>
+  <button data-page="pelatihan">Pelatihan</button>
   <button data-page="kontak">Kontak</button>
 </nav>
 
@@ -1477,6 +1496,17 @@ window.MathJax = {
       <span>Persiapan OSN Fisika</span>
     </div>
     <div id="listSMA" class="soal-list"><div class="skeleton-wrap" aria-hidden="true"><div class="skeleton-card"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line block"></div></div><div class="skeleton-card"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line block"></div></div></div></div>
+  </section>
+
+  <section id="page-pelatihan" class="page">
+    <div class="page-title"><h2>Pelatihan KlinikFisikapku</h2><span>Materi PDF privat, tryout lengkap, dan pendampingan melalui WhatsApp.</span></div>
+    <div class="pelatihan-grid">
+      <div class="pelatihan-card"><h3>Daftar pelatihan</h3><p>Isi data singkat berikut. Setelah itu Anda langsung diarahkan untuk menghubungi Admin melalui WhatsApp.</p>
+        <label>Nama lengkap<input id="trNama" placeholder="Nama peserta"></label><label>Nomor WhatsApp<input id="trWa" placeholder="Contoh: 0813xxxx"></label><label>Asal sekolah<input id="trSekolah" placeholder="Nama sekolah"></label><label>Kelas<input id="trKelas" placeholder="Contoh: XI IPA 1"></label><label>Durasi akses<select id="trPaket"></select></label><button class="btn-cta-primary" type="button" onclick="daftarPelatihan()">Daftar &amp; hubungi Admin</button><div id="trDaftarInfo" class="pelatihan-status" style="display:none"></div></div>
+      <div class="pelatihan-card"><h3>Biaya pelatihan</h3><p>Pilih durasi yang sesuai. Harga dapat berubah sesuai program dan akan dikonfirmasi Admin.</p><div id="trMateri"><div class="pelatihan-status">Memuat pilihan biaya…</div></div><p style="font-size:12px;margin-top:18px">Setelah pendaftaran, Admin akan memberikan informasi pembayaran dan mengaktifkan akses pelatihan.</p></div>
+    </div>
+    <div class="pelatihan-card" style="margin-top:22px"><h3>Login peserta</h3><p>Setelah pembayaran diverifikasi, Admin mengirimkan password awal melalui WhatsApp.</p><label>Nomor WhatsApp<input id="trLoginWa" placeholder="0813xxxx"></label><label>Password<input id="trPassword" type="password" placeholder="Password dari Admin"></label><button class="btn-cta-primary" type="button" onclick="loginPelatihan()">Masuk ke kelas saya</button><div id="trLoginInfo" class="pelatihan-status" style="display:none"></div></div>
+    <div class="pelatihan-card" id="trDashboardCard" style="margin-top:22px;display:none"><h3>Kelas saya</h3><div id="trDashboard" class="pelatihan-status"></div><label>Password baru<input id="trPasswordBaru" type="password" placeholder="Minimal 8 karakter"></label><button class="btn-cta-primary" type="button" onclick="gantiPasswordPelatihan()">Ganti password</button></div>
   </section>
 
   <section id="page-tryout" class="page">
@@ -1721,7 +1751,7 @@ function renderJenjang(jenjang) {
       </div>
       <img class="soal-img" src="${item.soalImage}" alt="${item.title}">
       <div class="toggle-wrap">
-        <button class="toggle-btn" onclick="toggleSolusi('${uid}')">Lihat Pembahasan</button>
+        <button class="toggle-btn" onclick="toggleSolusi('${uid}','${jenjang}')">Lihat Pembahasan</button>
         <div class="pembahasan-wrap" id="solusi-${uid}">
           ${solusiImgsHtml}
           ${ytBtn}
@@ -1731,9 +1761,14 @@ function renderJenjang(jenjang) {
   }).join('') + `<div class="catalog-pages"><span class="catalog-summary" style="margin:0;">Halaman ${state.page} dari ${totalHalaman}</span><div><button type="button" ${state.page<=1?'disabled':''} onclick="pindahHalamanKatalog('${jenjang}',-1)">← Sebelumnya</button> <button type="button" ${state.page>=totalHalaman?'disabled':''} onclick="pindahHalamanKatalog('${jenjang}',1)">Berikutnya →</button></div></div>`;
 }
 
-function toggleSolusi(uid) {
+async function toggleSolusi(uid, jenjang) {
   const wrap = document.getElementById('solusi-' + uid);
   const btn = wrap.previousElementSibling;
+  if (!wrap.classList.contains('show')) {
+    const token=localStorage.getItem('kf_training_session')||'';
+    let aktif=false; try { const s=await apiPelatihan('cekAksesPelatihan',{token:token}); aktif=!!s.aktif; } catch(e) {}
+    if (!aktif) { let sid=localStorage.getItem('kf_free_sid'); if(!sid){sid='kf'+Date.now().toString(36)+Math.random().toString(36).slice(2);localStorage.setItem('kf_free_sid',sid);} try { const a=await apiPelatihan('aksesGratis',{sid:sid,jenis:'soal',jenjang:jenjang}); if(!a.diizinkan){await appAlert('Batas 50 pembahasan gratis untuk jenjang ini sudah tercapai. Daftar pelatihan untuk akses penuh.','🎓');gotoPage('pelatihan');return;} } catch(e){} }
+  }
   const showing = wrap.classList.toggle('show');
   btn.textContent = showing ? 'Sembunyikan Pembahasan' : 'Lihat Pembahasan';
 }
@@ -2116,6 +2151,12 @@ async function startTryout(paketId) {
   if (meta.aktif === false) {
     appAlert('Paket tryout ini sedang tidak aktif / disembunyikan oleh admin.', '🚫');
     return;
+  }
+  // Paket yang ditandai uji coba/gratis dibatasi dari server; paket ber-token tidak terpengaruh.
+  if (meta.gratis === true || meta.uji_coba === true) {
+    let sid = localStorage.getItem('kf_free_sid');
+    if (!sid) { sid='kf'+Date.now().toString(36)+Math.random().toString(36).slice(2); localStorage.setItem('kf_free_sid',sid); }
+    try { const akses=await apiPelatihan('aksesGratis',{sid:sid,jenis:'tryout',jenjang:meta.jenjang||''}); if (!akses.diizinkan) { await appAlert('Kuota tryout gratis Anda sudah habis. Daftar pelatihan untuk akses tryout dan materi lengkap.','🎓'); gotoPage('pelatihan'); return; } } catch(e) {}
   }
   const box = document.getElementById('paketList');
   try {
@@ -3498,6 +3539,25 @@ function unduhSertifikat() {
 })();
 
 loadTryoutManifest();
+
+// ===== Pelatihan: akses peserta disimpan sementara di perangkat ini =====
+const KF_TRAINING_KEY='kf_training_session';
+function apiPelatihan(action,data){return fetch(GOOGLE_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:action},data||{}))}).then(r=>r.json());}
+function escPel(v){return String(v||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+async function muatPelatihan(){
+  try{const [p,m]=await Promise.all([apiPelatihan('listPaketPelatihan'),apiPelatihan('listMateriPelatihan')]);
+    const sel=document.getElementById('trPaket'); if(sel)sel.innerHTML=(p.paket||[]).map(x=>'<option value="'+escPel(x.Id||x.id)+'">'+escPel(x.Nama||x.nama)+' — '+(Number(x.Harga||x.harga)?'Rp '+Number(x.Harga||x.harga).toLocaleString('id-ID'):'Hubungi Admin')+'</option>').join('')||'<option value="sma-intensif">Pelatihan Intensif Fisika</option>';
+    const box=document.getElementById('trMateri'); if(box) box.innerHTML=(p.paket||[]).map(x=>'<div class="materi-item"><div><b>'+escPel(x.Nama||x.nama)+'</b><div style="font-size:12px;color:#7b6d85;margin-top:4px">Akses '+escPel(x.DurasiHari||x.durasiHari)+' hari</div></div><b style="color:#5b2d8e">'+(Number(x.Harga||x.harga)?'Rp '+Number(x.Harga||x.harga).toLocaleString('id-ID'):'Hubungi Admin')+'</b></div>').join('');
+  }catch(e){const box=document.getElementById('trMateri');if(box)box.innerHTML='<div class="pelatihan-status">Katalog belum dapat dimuat. Silakan coba lagi.</div>';}
+}
+function renderMateriPelatihan(items){const box=document.getElementById('trMateri');if(!box)return; if(!items.length){box.innerHTML='<div class="pelatihan-status">Materi akan tampil setelah Admin mengunggah PDF.</div>';return;}box.innerHTML=items.map(x=>'<div class="materi-item"><div><b>'+escPel(x.judul)+'</b><div style="font-size:12px;color:#7b6d85;margin-top:4px">'+escPel(x.jenjang||'Semua jenjang')+' · '+escPel(x.deskripsi||'Materi PDF')+'</div></div><button type="button" class="btn-cta-primary" style="padding:8px 10px;font-size:12px" onclick="bukaMateriPelatihan(\''+escPel(x.id)+'\')">Buka</button></div>').join('');}
+async function daftarPelatihan(){const out=document.getElementById('trDaftarInfo');out.style.display='block';out.textContent='Menyimpan pendaftaran…';const r=await apiPelatihan('daftarPelatihan',{nama:document.getElementById('trNama').value,whatsapp:document.getElementById('trWa').value,sekolah:document.getElementById('trSekolah').value,kelas:document.getElementById('trKelas').value,paketId:document.getElementById('trPaket').value});out.textContent=r.message||'Terjadi kesalahan.';if(r.ok)window.open(r.waUrl,'_blank','noopener');}
+async function loginPelatihan(){const out=document.getElementById('trLoginInfo'),wa=document.getElementById('trLoginWa').value.trim(),password=document.getElementById('trPassword').value;out.style.display='block';if(!wa||!password){out.textContent='Isi nomor WhatsApp dan password terlebih dahulu.';return;}out.textContent='Memeriksa akses…';const r=await apiPelatihan('loginPelatihan',{whatsapp:wa,password:password});out.textContent=r.message||'';if(r.ok){localStorage.setItem(KF_TRAINING_KEY,r.token);out.textContent='Berhasil masuk. Kelas Anda sudah siap.';document.getElementById('trDashboardCard').style.display='block';muatDashboardPelatihan();}}
+async function gantiPasswordPelatihan(){const token=localStorage.getItem(KF_TRAINING_KEY)||'',baru=document.getElementById('trPasswordBaru').value;const r=await apiPelatihan('gantiPasswordPelatihan',{token:token,passwordBaru:baru});appAlert(r.message||'Terjadi kesalahan.',r.ok?'✅':'⚠️');if(r.ok)document.getElementById('trPasswordBaru').value='';}
+async function muatDashboardPelatihan(){const box=document.getElementById('trDashboard'),token=localStorage.getItem(KF_TRAINING_KEY)||'';box.textContent='Memuat dashboard…';const r=await apiPelatihan('dashboardPelatihan',{token:token});if(!r.ok){box.textContent=r.message;return;}const materi=r.materi||[], selesai=materi.filter(x=>localStorage.getItem('kf_materi_'+x.id)==='1').length;box.innerHTML='<b>'+escPel(r.peserta.nama)+'</b><br>Paket: '+escPel(r.peserta.paket)+'<br>Status: <b>'+escPel(r.peserta.status)+'</b><br>Masa aktif sampai: '+escPel(r.peserta.aktifSampai||'—')+'<br><br><b>Progres materi:</b> '+selesai+' / '+materi.length+' selesai<br><b>Riwayat pembayaran/verifikasi</b><br>'+r.riwayat.map(x=>escPel(x.tanggal)+' — '+escPel(x.status)+' · '+escPel(x.catatan||'')).join('<br>')+'<br><br><a href="https://wa.me/6281365657020" target="_blank" rel="noopener">💬 Hubungi mentor/admin via WhatsApp</a>';}
+async function bukaMateriPelatihan(id){const token=localStorage.getItem(KF_TRAINING_KEY)||'';const r=await apiPelatihan('ambilMateriPelatihan',{id:id,token:token});if(!r.ok){appAlert(r.message||'Silakan login terlebih dahulu.','🔒');return;}localStorage.setItem('kf_materi_'+id,'1');apiPelatihan('simpanProgresMateri',{token:token,materiId:id}).catch(()=>{});if(r.url){window.open(r.url,'_blank','noopener');return;}const bytes=atob(r.base64), arr=new Uint8Array(bytes.length);for(let i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);const url=URL.createObjectURL(new Blob([arr],{type:r.mime||'application/pdf'}));window.open(url,'_blank','noopener');setTimeout(()=>URL.revokeObjectURL(url),60000);}
+document.addEventListener('visibilitychange',function(){if(document.hidden&&window.tryoutState&&window.tryoutState.noUjian){apiPelatihan('catatAktivitasUjian',{noUjian:window.tryoutState.noUjian,paketId:window.tryoutState.paketId,aktivitas:'pindah_tab',detail:'Peserta meninggalkan tab ujian'}).catch(()=>{});}});
+document.addEventListener('DOMContentLoaded',muatPelatihan);
 </script>
 
 <div class="app-modal-overlay" id="appModalOverlay">

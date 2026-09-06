@@ -1984,7 +1984,32 @@ window.MathJax = {
   .peserta-paging{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0;flex-wrap:wrap;}
   .peserta-paging .btn{margin:0;padding:7px 11px;font-size:12px;}
   @media(max-width:700px){.peserta-toolbar{grid-template-columns:1fr 1fr;}.peserta-toolbar .btn{grid-column:1/-1;}}
+/* Tata letak presisi admin — ukuran, ritme, dan menu dibuat seragam */
+:root{--sidebar-w:264px;--admin-gap:20px;--control-h:42px}
+.admin-sidebar{width:var(--sidebar-w);overflow-x:hidden}.admin-main{margin-left:var(--sidebar-w)}
+.sidebar-brand{height:76px;box-sizing:border-box;padding:18px 20px}.sidebar-section{padding:18px 12px 10px}.sidebar-section-title{height:24px;box-sizing:border-box;padding:0 12px 8px;display:flex;align-items:center}
+.admin-tabs{gap:5px;padding:0 6px 14px}.nav-group-label{margin:13px 12px 5px!important;font-size:10px!important;letter-spacing:1.15px!important;line-height:18px!important}
+.admin-tabs button.tab-btn{height:44px!important;box-sizing:border-box;margin:0!important;padding:0 14px!important;border-radius:10px!important;line-height:1!important}.admin-tabs button.tab-btn .tab-icon{width:21px!important;display:inline-flex;justify-content:center;align-items:center}
+.sidebar-footer{padding:14px 16px 16px}.logout-side{height:38px!important;margin-bottom:10px!important;border-radius:9px!important}
+.admin-topbar{height:78px;box-sizing:border-box;padding:0 28px!important;display:flex;align-items:center}.admin-topbar h1{font-size:20px!important;line-height:1.15!important;margin:0!important}.admin-topbar p{margin:4px 0 0!important;font-size:12.5px!important}.admin-topbar .guide-btn,.admin-topbar .logout-btn{height:36px!important;padding:0 14px!important;border-radius:9px!important}
+.admin-content{padding:24px 28px 54px!important}.tab-panel>header{padding:22px 28px!important}.tab-panel>header h1{font-size:22px!important}.tab-panel>header p{margin:6px 0 0!important}.tab-panel main{max-width:1500px;margin:auto}
+.box,.card{margin:0 0 var(--admin-gap)!important;padding:20px!important}.box h2,.card h2{font-size:16px!important;line-height:24px!important;margin:0 0 14px!important}.row,.row3{gap:14px!important;margin-bottom:14px!important}label{line-height:18px!important;margin-bottom:5px!important}input,select{height:var(--control-h)!important;box-sizing:border-box!important}textarea{min-height:110px!important}.btn{min-height:40px!important;box-sizing:border-box!important}
+table{table-layout:auto}th,td{height:42px;box-sizing:border-box;vertical-align:middle!important}.status,.status-bar{min-height:40px;box-sizing:border-box;display:flex;align-items:center}
+@media(max-width:900px){.admin-main{margin-left:0}.admin-topbar{height:72px;padding:0 16px!important}.admin-content{padding:16px 14px 46px!important}.tab-panel>header{padding:18px 16px!important}.admin-sidebar{width:264px}.box,.card{padding:16px!important}.admin-tabs button.tab-btn{height:43px!important}}
+/* Lapisan visual profesional — tidak mengubah fungsi dashboard */
+body{background:radial-gradient(circle at 92% 3%,#f7e8ff 0,transparent 28%),#faf8fd}.admin-sidebar{box-shadow:8px 0 30px rgba(46,15,79,.08)}.admin-topbar{box-shadow:0 7px 24px rgba(70,19,105,.14)}
+.tab-btn{border-radius:11px!important;margin:2px 8px;width:calc(100% - 16px)!important}.tab-btn.active{box-shadow:0 7px 16px rgba(112,35,177,.17)}
+.admin-content{padding-bottom:48px}.tab-panel header{border-radius:0 0 20px 20px;box-shadow:0 7px 18px rgba(76,25,112,.1)}
+.box,.card{border:1px solid #eadcf5!important;box-shadow:0 12px 30px rgba(69,20,108,.07)!important;border-radius:18px!important}.box:hover,.card:hover{box-shadow:0 15px 34px rgba(69,20,108,.1)!important}
+input,select,textarea{border-radius:10px!important}input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(152,61,217,.13)!important}
+button.btn,.btn-primary,.btn-outline{transition:transform .15s ease,box-shadow .15s ease!important}button.btn:hover,.btn-primary:hover,.btn-outline:hover{transform:translateY(-1px);box-shadow:0 7px 16px rgba(74,24,113,.14)!important}
+table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:linear-gradient(100deg,#5f2490,#a12cc2)!important;color:#fff!important}td,th{padding:10px 12px!important}tr:nth-child(even){background:#fcf9ff}
+.status,.status-bar{border-radius:11px!important}.bank-picker-item{border-radius:13px!important}.bank-picker-item:hover{box-shadow:0 7px 16px rgba(78,26,118,.09)}
+@media(max-width:760px){.admin-content{padding:14px!important}.row,.row3{gap:10px!important}.box,.card{padding:15px!important}.admin-topbar{padding:14px 16px!important}.admin-topbar h1{font-size:19px!important}}
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
 </head>
 <body class="admin-locked">
 
@@ -2026,6 +2051,8 @@ window.MathJax = {
         <button type="button" class="tab-btn" id="tabBtnEsai" onclick="switchAdminTab('panelEsai')"><span class="tab-icon">✎</span> Koreksi Esai</button>
         <div class="nav-group-label">Materi</div>
         <button type="button" class="tab-btn" id="tabBtnSoal" onclick="navigateAdmin('panelSoal','sectionUploadSoal')"><span class="tab-icon">↑</span> Konten Situs &amp; OSN</button>
+        <button type="button" class="tab-btn" id="tabBtnPelatihan" onclick="switchAdminTab('panelPelatihan')"><span class="tab-icon">▤</span> Pelatihan &amp; Materi</button>
+        <button type="button" class="tab-btn" id="tabBtnData" onclick="switchAdminTab('panelPusatData')"><span class="tab-icon">▦</span> Pusat Data</button>
         <div class="nav-group-label">Sistem</div>
         <button type="button" class="tab-btn" onclick="navigateAdmin('panelSoal','sectionGithub')"><span class="tab-icon">⚙</span> Pengaturan Sistem</button>
       </div>
@@ -2085,6 +2112,15 @@ window.MathJax = {
       <strong>Tips:</strong> selalu klik "Test Koneksi" dulu sebelum upload soal.
       Kalau gagal, coba matikan sementara ad-blocker/VPN.
     </p>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">🔐</span> Keamanan &amp; Backup</h2>
+    <p class="note">Putar kunci admin bila pernah terlihat orang lain. Simpan kunci baru di Pengaturan Sistem setelah tombol ditekan.</p>
+    <button type="button" class="btn btn-primary" onclick="buatBackupAdmin()">☁ Buat backup sekarang</button>
+    <button type="button" class="btn btn-outline" onclick="putarKunciAdmin()">🔑 Putar ADMIN_KEY</button>
+    <button type="button" class="btn btn-outline" onclick="lihatLogAdmin()">▤ Lihat log admin</button>
+    <div id="statusKeamanan" class="status"></div><div id="logAdminArea" style="margin-top:12px;max-height:260px;overflow:auto"></div>
   </div>
 
   <div class="card" id="sectionPengaturan">
@@ -2766,12 +2802,14 @@ Pembahasan: $\sum F=ma$</pre>
     <select id="hasilPaketSelect"><option value="">Memuat daftar paket…</option></select>
 
     <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
-      <button class="btn btn-primary" onclick="ambilHasilPeserta()">📋 Ambil Hasil</button>
+    <button class="btn btn-primary" onclick="ambilHasilPeserta()">📋 Ambil Hasil</button>
+      <button class="btn btn-outline" onclick="tampilRankingTryout()">🏆 Ranking Paket</button>
       <button class="btn btn-hijau" id="btnUnduhPdfHasil" style="display:none;" onclick="unduhHasilPesertaPDF()">📥 Unduh PDF</button>
       <button class="btn btn-hijau" id="btnUnduhExcelHasil" style="display:none; background:#1d6f42;" onclick="unduhHasilPesertaExcel()">📊 Unduh Excel</button>
       <button class="btn btn-hijau" id="btnUnduhSemuaSertifikat" style="display:none; background:linear-gradient(90deg,#f857a6,#7b2ff7);" onclick="unduhSemuaSertifikatPeserta()">📜 Unduh Semua Sertifikat (ZIP)</button>
     </div>
     <div id="statusHasilPeserta" class="status-bar"></div>
+    <div id="rankingTryoutArea" style="margin-top:12px;"></div>
     <div id="hasilPesertaPreview" style="display:none; margin-top:16px;"></div>
   </div>
 
@@ -2790,7 +2828,7 @@ Pembahasan: $\sum F=ma$</pre>
     <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div>
         <h2 style="margin:0;">Daftar Bank Soal</h2>
-        <p class="help" style="margin:4px 0 0;">Soal tersimpan di <code>data/bank-soal.json</code> (GitHub). Bisa dipakai ulang saat membuat paket tryout.</p>
+        <p class="help" style="margin:4px 0 0;">Soal tersimpan privat di Google Sheet melalui Apps Script. Bisa dipakai ulang saat membuat paket tryout.</p>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;">
         <button type="button" class="btn btn-primary" onclick="bankBukaEditorBaru()">+ Soal Baru</button>
@@ -2825,6 +2863,10 @@ Pembahasan: $\sum F=ma$</pre>
           <option value="isian">Isian Singkat</option>
           <option value="esai">Esai</option>
         </select>
+      </div>
+      <div>
+        <label>Status workflow</label>
+        <select id="bankAdminWorkflow" onchange="renderBankAdminList()"><option value="">Semua status</option><option value="draf">Draf</option><option value="ditinjau">Ditinjau</option><option value="siap_publish">Siap publish</option><option value="arsip">Arsip</option></select>
       </div>
     </div>
     <div id="bankAdminStats" class="help" style="margin-bottom:10px;"></div>
@@ -2918,6 +2960,15 @@ Pembahasan: $\sum F=ma$</pre>
 
 </main>
 </div>
+
+<div id="panelPelatihan" class="tab-panel">
+  <header><h1>🎓 Pelatihan &amp; Materi Privat</h1><p>Verifikasi transfer, aktifkan peserta, dan unggah materi PDF yang hanya dibuka peserta aktif.</p></header>
+  <main><div class="box"><h2>Peserta pelatihan</h2><p class="note">Setelah pembayaran diverifikasi, pilih status <b>aktif</b>, buat password awal minimal 8 karakter, lalu kirim password tersebut melalui WhatsApp.</p><button class="btn btn-primary" type="button" onclick="muatAdminPelatihan()">↻ Muat data</button><div id="pelatihanPeserta" style="margin-top:14px"></div></div>
+  <div class="box"><h2>Tambah paket pelatihan</h2><div class="row3"><div><label>Nama paket</label><input id="plNama" placeholder="Contoh: Intensif OSN SMA"></div><div><label>Jenjang</label><select id="plJenjang"><option>SD</option><option>SMP</option><option selected>SMA</option><option>Semua</option></select></div><div><label>Harga (Rp)</label><input id="plHarga" type="number" min="0" placeholder="150000"></div></div><label>Deskripsi</label><input id="plDeskripsi" placeholder="Akses materi dan tryout lengkap"><button class="btn btn-primary" type="button" onclick="simpanPaketPelatihan()">Simpan paket</button></div>
+  <div class="box"><h2>Materi PDF atau Video</h2><p class="note">PDF maksimal 6 MB disimpan privat. Video dapat berupa link YouTube/private.</p><div class="row3"><div><label>Judul materi</label><input id="pmJudul" placeholder="Kinematika gerak lurus"></div><div><label>Jenjang</label><select id="pmJenjang"><option>SD</option><option>SMP</option><option selected>SMA</option></select></div><div><label>Paket</label><select id="pmPaket"></select></div></div><label>Deskripsi singkat</label><input id="pmDeskripsi" placeholder="Ringkasan konsep dan latihan"><label>File PDF</label><input id="pmFile" type="file" accept="application/pdf"><button class="btn btn-primary" type="button" onclick="uploadMateriPelatihan()">Upload PDF privat</button><label>Link video/materi</label><input id="pmVideo" placeholder="https://youtube.com/... atau video privat"><button class="btn btn-outline" type="button" onclick="simpanVideoPelatihan()">Simpan link video</button><div id="pelatihanMateri" style="margin-top:14px"></div></div></main>
+</div>
+
+<div id="panelPusatData" class="tab-panel"><header><h1>🗂 Pusat Data KlinikFisikapku</h1><p>Ringkasan seluruh database dan jalur cepat ke menu pengelolaan.</p></header><main><div class="box"><button class="btn btn-primary" type="button" onclick="muatPusatData()">↻ Perbarui data</button><div id="pusatDataRingkas" class="row3" style="margin-top:16px"></div><div id="pusatDataTabel" style="margin-top:18px"></div></div><div class="box"><h2>Akses cepat</h2><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-outline" onclick="switchAdminTab('panelTryout')">Paket &amp; Hasil Tryout</button><button class="btn btn-outline" onclick="switchAdminTab('panelBank')">Bank Soal Privat</button><button class="btn btn-outline" onclick="switchAdminTab('panelPelatihan')">Peserta &amp; Materi</button><button class="btn btn-outline" onclick="lihatLogAdmin()">Log Aktivitas</button></div></div></main></div>
 
 <div id="panelEsai" class="tab-panel">
 <header>
@@ -3035,12 +3086,13 @@ async function pulihkanSesiAdmin() {
 }
 pulihkanSesiAdmin();
 
-const ADMIN_TAB_BTN = { panelSoal:'tabBtnSoal', panelTryout:'tabBtnTryout', panelBank:'tabBtnBank', panelEsai:'tabBtnEsai' };
+const ADMIN_TAB_BTN = { panelSoal:'tabBtnSoal', panelTryout:'tabBtnTryout', panelBank:'tabBtnBank', panelEsai:'tabBtnEsai', panelPelatihan:'tabBtnPelatihan', panelPusatData:'tabBtnData' };
 const ADMIN_TAB_META = {
   panelSoal: { title: 'Konten Situs & OSN', sub: 'Upload soal latihan dan kelola kumpulan soal OSN' },
   panelTryout: { title: 'Dashboard Tryout', sub: 'Kelola paket ujian, peserta, hasil, dan sertifikat' },
   panelBank: { title: 'Bank Soal', sub: 'Simpan, cari, import, dan gunakan ulang soal' },
-  panelEsai: { title: 'Koreksi Esai', sub: 'Periksa jawaban esai per paket dan peserta' }
+  panelEsai: { title: 'Koreksi Esai', sub: 'Periksa jawaban esai per paket dan peserta' },
+  panelPelatihan: { title: 'Pelatihan & Materi', sub: 'Kelola peserta berbayar dan materi PDF privat' }, panelPusatData:{title:'Pusat Data',sub:'Ringkasan database dan akses cepat administrasi'}
 };
 function switchAdminTab(id) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -3058,6 +3110,8 @@ function switchAdminTab(id) {
   if (id === 'panelBank') {
     muatBankSoal(true).then(function(){ renderBankAdminList(); bankPastikanEditorSiap(); });
   }
+  if (id === 'panelPelatihan') muatAdminPelatihan();
+  if (id === 'panelPusatData') muatPusatData();
   // statistik pengunjung hanya di tab Upload Soal
   const vd = document.getElementById('cbtVisitorDashboard');
   if (vd) vd.style.display = (id === 'panelSoal') ? '' : 'none';
@@ -6549,9 +6603,11 @@ function renderBankAdminList() {
   const q = ((document.getElementById('bankAdminSearch') || {}).value || '').trim().toLowerCase();
   const tipeF = ((document.getElementById('bankAdminTipe') || {}).value || '');
   const jenjangF = ((document.getElementById('bankAdminJenjang') || {}).value || '').toLowerCase();
+  const workflowF = ((document.getElementById('bankAdminWorkflow') || {}).value || '');
   let list = Array.isArray(bankSoalCache.content) ? bankSoalCache.content.slice() : [];
   if (tipeF) list = list.filter(x => (x.soal && x.soal.tipe) === tipeF);
   if (jenjangF) list = list.filter(x => String(x.jenjang || '').toLowerCase() === jenjangF);
+  if (workflowF) list = list.filter(x => String(x.statusWorkflow || 'draf') === workflowF);
   if (q) {
     list = list.filter(x => {
       const s = x.soal || {};
@@ -6577,7 +6633,7 @@ function renderBankAdminList() {
     const ringkas = teks.length > 160 ? teks.slice(0, 160) + '…' : teks;
     const meta = [
       (item.jenjang || '-').toString().toUpperCase(),
-      bankLabelTipe(tipe),
+      bankLabelTipe(tipe), (item.statusWorkflow || 'draf').replace('_',' '),
       item.tingkat || '',
       item.topik || ''
     ].filter(Boolean).join(' · ');
@@ -10381,5 +10437,46 @@ document.addEventListener('keydown', function(e) {
   </div>
 </div>
 
+<script>
+// Panel Pelatihan: memakai Apps Script yang sama dan kunci admin yang telah tersimpan.
+let _pelatihanData={paket:[],peserta:[],materi:[]};
+function pelEsc(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+async function muatAdminPelatihan(){
+  const a=document.getElementById('pelatihanPeserta'); if(a)a.innerHTML='Memuat data pelatihan…';
+  try{const r=await panggilAdminPrivat('adminPelatihanList',{});_pelatihanData=r;renderAdminPelatihan();}catch(e){if(a)a.innerHTML='<div class="status err">'+pelEsc(e.message)+'</div>';}
+}
+function renderAdminPelatihan(){
+  const a=document.getElementById('pelatihanPeserta'), b=document.getElementById('pelatihanMateri'), s=document.getElementById('pmPaket');
+  const paket=_pelatihanData.paket||[]; if(s)s.innerHTML=paket.map(x=>'<option value="'+pelEsc(x.Id)+'">'+pelEsc(x.Nama)+'</option>').join('')||'<option value="sma-intensif">Pelatihan Intensif Fisika</option>';
+  if(a)a.innerHTML=(_pelatihanData.peserta||[]).length?'<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th>Nama</th><th>WhatsApp</th><th>Sekolah / Kelas</th><th>Durasi</th><th>Status</th><th>Password awal</th><th>Aksi</th></tr></thead><tbody>'+_pelatihanData.peserta.map(x=>'<tr><td>'+pelEsc(x.Nama)+'</td><td>'+pelEsc(x.WhatsApp)+'</td><td>'+pelEsc(x.Sekolah)+'<br><small>'+pelEsc(x.Kelas)+'</small></td><td>'+pelEsc(x.PaketId)+'</td><td><select id="plst-'+pelEsc(x.Id)+'"><option '+(x.Status==='menunggu'?'selected':'')+'>menunggu</option><option '+(x.Status==='aktif'?'selected':'')+'>aktif</option><option '+(x.Status==='berakhir'?'selected':'')+'>berakhir</option></select></td><td><input id="plpw-'+pelEsc(x.Id)+'" type="text" placeholder="Min. 8 karakter"></td><td><button class="btn btn-outline" style="padding:6px 10px" onclick="simpanPesertaPelatihan(\''+pelEsc(x.Id)+'\')">Aktifkan & simpan</button></td></tr>').join('')+'</tbody></table></div>':'<p class="note">Belum ada pendaftaran pelatihan.</p>';
+  if(b)b.innerHTML=(_pelatihanData.materi||[]).map(x=>'<div style="padding:10px;border-bottom:1px solid #eee"><b>'+pelEsc(x.Judul)+'</b> <span class="note">('+pelEsc(x.Jenjang)+')</span> <button class="btn btn-outline" style="float:right;padding:5px 10px" onclick="hapusMateriPelatihan(\''+pelEsc(x.Id)+'\')">Nonaktifkan</button></div>').join('')||'<p class="note">Belum ada materi PDF.</p>';
+}
+async function simpanPesertaPelatihan(id){try{await panggilAdminPrivat('adminPelatihanSimpan',{id:id,status:document.getElementById('plst-'+id).value,passwordAwal:document.getElementById('plpw-'+id).value});await muatAdminPelatihan();}catch(e){alert(e.message);}}
+async function simpanPaketPelatihan(){try{await panggilAdminPrivat('adminPaketPelatihanSimpan',{paket:{nama:document.getElementById('plNama').value,jenjang:document.getElementById('plJenjang').value,harga:document.getElementById('plHarga').value,deskripsi:document.getElementById('plDeskripsi').value}});await muatAdminPelatihan();}catch(e){alert(e.message);}}
+async function uploadMateriPelatihan(){const f=document.getElementById('pmFile').files[0];if(!f){alert('Pilih file PDF terlebih dahulu.');return;}if(f.size>6000000){alert('Ukuran PDF maksimal 6 MB.');return;}try{const base64=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=no;r.readAsDataURL(f);});await panggilAdminPrivat('adminMateriPelatihanUpload',{nama:f.name,mime:f.type,base64:base64,judul:document.getElementById('pmJudul').value,jenjang:document.getElementById('pmJenjang').value,paketId:document.getElementById('pmPaket').value,deskripsi:document.getElementById('pmDeskripsi').value});document.getElementById('pmFile').value='';await muatAdminPelatihan();}catch(e){alert(e.message);}}
+async function hapusMateriPelatihan(id){if(!confirm('Nonaktifkan materi ini?'))return;try{await panggilAdminPrivat('adminMateriPelatihanHapus',{id:id});await muatAdminPelatihan();}catch(e){alert(e.message);}}
+</script>
+<script>
+async function buatBackupAdmin(){const s=document.getElementById('statusKeamanan');try{const r=await panggilAdminPrivat('adminBackup',{});s.textContent=r.message;s.className='status ok';}catch(e){s.textContent=e.message;s.className='status err';}}
+async function putarKunciAdmin(){if(!confirm('Kunci admin lama akan langsung tidak berlaku. Lanjutkan?'))return;const s=document.getElementById('statusKeamanan');try{const r=await panggilAdminPrivat('putarAdminKey',{});s.innerHTML='Kunci baru: <b>'+pelEsc(r.adminKeyBaru)+'</b><br>Simpan segera pada kolom Kode Rahasia Admin, lalu deploy Apps Script versi baru.';s.className='status ok';}catch(e){s.textContent=e.message;s.className='status err';}}
+async function lihatLogAdmin(){const box=document.getElementById('logAdminArea');box.textContent='Memuat log…';try{const r=await panggilAdminPrivat('adminLogList',{});box.innerHTML=(r.log||[]).map(x=>'<div style="padding:7px;border-bottom:1px solid #eee"><b>'+pelEsc(x.Aksi)+'</b><br><small>'+pelEsc(x.Waktu)+' · '+pelEsc(x.Detail)+'</small></div>').join('')||'Belum ada log.';}catch(e){box.textContent=e.message;}}
+</script>
+<script>
+async function tampilRankingTryout(){const a=document.getElementById('rankingTryoutArea'),p=(document.getElementById('hasilPaket')||{}).value||'';a.textContent='Memuat ranking…';try{const r=await panggilAdminPrivat('rankingTryout',{paketId:p});a.innerHTML=(r.ranking||[]).length?'<h3>🏆 Ranking peserta</h3><div style="overflow:auto"><table style="width:100%;border-collapse:collapse"><tr><th>#</th><th>Nama</th><th>Nilai</th><th>Benar</th></tr>'+r.ranking.map(x=>'<tr><td>'+x.peringkat+'</td><td>'+pelEsc(x.nama)+'</td><td><b>'+x.nilai+'</b></td><td>'+x.benar+' / '+x.total+'</td></tr>').join('')+'</table></div>':'Belum ada hasil untuk paket ini.';}catch(e){a.textContent=e.message;}}
+</script>
+<script>
+async function simpanVideoPelatihan(){try{await panggilAdminPrivat('adminMateriPelatihanLink',{url:document.getElementById('pmVideo').value,judul:document.getElementById('pmJudul').value,jenjang:document.getElementById('pmJenjang').value,paketId:document.getElementById('pmPaket').value,deskripsi:document.getElementById('pmDeskripsi').value});document.getElementById('pmVideo').value='';await muatAdminPelatihan();}catch(e){alert(e.message);}}
+</script>
+<script>
+async function muatPusatData(){const r=await panggilAdminPrivat('pusatDataAdmin',{}),a=document.getElementById('pusatDataRingkas'),b=document.getElementById('pusatDataTabel'),x=r.ringkasan||{};a.innerHTML=[['Hasil tryout',x.hasil],['Bank soal',x.bank],['Peserta pelatihan',x.peserta],['Materi',x.materi],['Log aktivitas',x.log]].map(z=>'<div class="card" style="padding:14px"><b>'+z[0]+'</b><div style="font-size:26px;color:var(--ungu);font-weight:800">'+z[1]+'</div></div>').join('');b.innerHTML='<table style="width:100%;border-collapse:collapse"><tr><th>Database</th><th>Status</th><th>Data</th><th>Kolom</th></tr>'+r.data.map(x=>'<tr><td>'+pelEsc(x.nama)+'</td><td>'+(x.ada?'✅ Aktif':'— Belum dibuat')+'</td><td>'+x.baris+'</td><td>'+x.kolom+'</td></tr>').join('')+'</table>';}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){const m=document.querySelector('#panelPelatihan main');if(!m||document.getElementById('paketPrivatJson'))return;m.insertAdjacentHTML('beforeend','<div class="box"><h2>Paket Tryout Privat</h2><p class="note">Paket disimpan di Google Sheet, bukan GitHub. Tempel JSON paket dari editor; kunci dipisahkan ke server.</p><label>JSON paket privat</label><textarea id="paketPrivatJson" placeholder="JSON paket dari editor" style="min-height:130px"></textarea><button class="btn btn-primary" type="button" onclick="simpanPaketPrivatAdmin()">Simpan Paket Privat</button><div id="paketPrivatStatus" class="status"></div></div>');});
+async function simpanPaketPrivatAdmin(){const s=document.getElementById('paketPrivatStatus');try{const paket=JSON.parse(document.getElementById('paketPrivatJson').value);const r=await panggilAdminPrivat('simpanPaketPrivat',{paket:paket});s.textContent='Paket privat tersimpan: '+r.id;s.className='status ok';}catch(e){s.textContent='Gagal: '+e.message;s.className='status err';}}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){const f=document.getElementById('pmFile');if(!f||document.getElementById('materiTampilan'))return;f.insertAdjacentHTML('afterend','<div id="materiTampilan" style="margin:12px 0;padding:12px;border:1px solid #eadcf5;border-radius:12px"><b style="font-size:13px">Tampilan di menu peserta</b><div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px"><label><input id="mtPdf" type="checkbox" checked> 📄 Modul PDF</label><label><input id="mtVideo" type="checkbox"> 🎥 Video</label><label><input id="mtRumus" type="checkbox"> ∑ Rumus cepat</label><label><input id="mtLatihan" type="checkbox"> 📝 Latihan</label><label><input id="mtTryout" type="checkbox"> 🏆 Tryout bab</label><label>Durasi video <input id="mtDurasi" type="text" placeholder="18 menit" style="width:90px"></label></div></div>');});
+async function uploadMateriPelatihan(){const f=document.getElementById('pmFile').files[0];if(!f){alert('Pilih file PDF terlebih dahulu.');return;}if(f.size>6000000){alert('Ukuran PDF maksimal 6 MB.');return;}try{const base64=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=no;r.readAsDataURL(f);});const tampil={pdf:document.getElementById('mtPdf').checked,video:document.getElementById('mtVideo').checked,rumus:document.getElementById('mtRumus').checked,latihan:document.getElementById('mtLatihan').checked,tryout:document.getElementById('mtTryout').checked,durasi:document.getElementById('mtDurasi').value};await panggilAdminPrivat('adminMateriPelatihanUpload',{nama:f.name,mime:f.type,base64:base64,judul:document.getElementById('pmJudul').value,jenjang:document.getElementById('pmJenjang').value,paketId:document.getElementById('pmPaket').value,deskripsi:document.getElementById('pmDeskripsi').value,tampilan:tampil});document.getElementById('pmFile').value='';await muatAdminPelatihan();}catch(e){alert(e.message);}}
+</script>
 </body>
 </html>
