@@ -2133,6 +2133,10 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
       <input type="checkbox" id="setLatihanAcak" checked>
       <label style="margin:0; font-weight:400;" for="setLatihanAcak">Tampilkan tombol <strong>Latihan 5 Soal Acak</strong> di halaman SD / SMP / SMA</label>
     </div>
+    <div class="checkbox-row" style="margin-top:10px;">
+      <input type="checkbox" id="setPelatihanAktif" checked>
+      <label style="margin:0; font-weight:400;" for="setPelatihanAktif">Tampilkan menu dan halaman <strong>Pelatihan</strong> untuk pengunjung</label>
+    </div>
     <button type="button" id="btnSimpanPengaturan" class="btn-primary" style="margin-top:16px;">Simpan Pengaturan</button>
     <button type="button" id="btnMuatPengaturan" class="secondary" style="margin-top:10px;">Muat Pengaturan dari GitHub</button>
     <div id="statusPengaturan" class="status"></div>
@@ -3229,7 +3233,7 @@ function getCfg() {
 
 /* ===== Pengaturan situs (data/pengaturan-situs.json) ===== */
 const PENGATURAN_PATH = 'data/pengaturan-situs.json';
-const PENGATURAN_DEFAULT = { latihanAcak: true };
+const PENGATURAN_DEFAULT = { latihanAcak: true, pelatihanAktif: true };
 
 async function muatPengaturanSitus() {
   const st = $('statusPengaturan');
@@ -3261,6 +3265,8 @@ async function muatPengaturanSitus() {
 function applyPengaturanForm(data) {
   const cb = $('setLatihanAcak');
   if (cb) cb.checked = data.latihanAcak !== false;
+  const pel = $('setPelatihanAktif');
+  if (pel) pel.checked = data.pelatihanAktif !== false;
 }
 
 async function simpanPengaturanSitus() {
@@ -3280,10 +3286,11 @@ async function simpanPengaturanSitus() {
       sha = meta.sha;
     }
     const data = {
-      latihanAcak: !!($('setLatihanAcak') && $('setLatihanAcak').checked)
+      latihanAcak: !!($('setLatihanAcak') && $('setLatihanAcak').checked),
+      pelatihanAktif: !!($('setPelatihanAktif') && $('setPelatihanAktif').checked)
     };
     const body = {
-      message: 'Update pengaturan situs (latihan acak: ' + (data.latihanAcak ? 'aktif' : 'nonaktif') + ')',
+      message: 'Update pengaturan situs',
       content: toBase64Unicode(JSON.stringify(data, null, 2)),
       branch: cfg.branch
     };

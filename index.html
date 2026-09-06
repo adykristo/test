@@ -1948,6 +1948,11 @@ async function loadPengaturanSitus() {
       const tb = document.getElementById('toolbar-' + j);
       if (tb) tb.style.display = show ? '' : 'none';
     });
+    const pelatihanAktif = data.pelatihanAktif !== false;
+    document.querySelectorAll('[data-page="pelatihan"]').forEach(el => el.style.display = pelatihanAktif ? '' : 'none');
+    const halaman = document.getElementById('page-pelatihan');
+    if (halaman) halaman.style.display = pelatihanAktif ? '' : 'none';
+    if (!pelatihanAktif && location.hash.replace('#','') === 'pelatihan') location.hash = 'home';
   } catch (e) {
     // file belum ada → biarkan toolbar tampil
   }
