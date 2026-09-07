@@ -2006,6 +2006,25 @@ button.btn,.btn-primary,.btn-outline{transition:transform .15s ease,box-shadow .
 table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:linear-gradient(100deg,#5f2490,#a12cc2)!important;color:#fff!important}td,th{padding:10px 12px!important}tr:nth-child(even){background:#fcf9ff}
 .status,.status-bar{border-radius:11px!important}.bank-picker-item{border-radius:13px!important}.bank-picker-item:hover{box-shadow:0 7px 16px rgba(78,26,118,.09)}
 @media(max-width:760px){.admin-content{padding:14px!important}.row,.row3{gap:10px!important}.box,.card{padding:15px!important}.admin-topbar{padding:14px 16px!important}.admin-topbar h1{font-size:19px!important}}
+/* Penyempurnaan ruang kerja admin: kolom lebih lebar, rapi, dan mudah dipindai. */
+.tab-panel .wrap{max-width:1240px!important;padding:28px 30px 68px!important}
+#panelSoal .wrap,#panelPelatihan .wrap,#panelPusatData .wrap{max-width:1160px!important}
+.page-title{display:flex;align-items:end;justify-content:space-between;gap:18px;padding:0 2px 16px;margin-bottom:22px;border-bottom:1px solid #eadcf5}
+.page-title h1{font-size:24px!important;letter-spacing:-.025em;line-height:1.2}.page-title .sub{max-width:620px;line-height:1.55}
+.card>h2,.box>h2{padding-bottom:12px;border-bottom:1px solid #f0e7f7}
+#panelSoal .card{max-width:1060px}
+#panelSoal #sectionGithub,#panelSoal #sectionPengaturan{max-width:760px}
+#panelSoal input[type="text"],#panelSoal input[type="password"],#panelSoal input[type="url"],#panelSoal input[type="date"],#panelSoal select{max-width:720px}
+#panelSoal input[type="file"]{width:100%;max-width:720px;padding:9px 11px;background:#fcfaff;border:1px dashed #cfaee9;border-radius:10px}
+#panelSoal .checkbox-row{padding:10px 12px;border:1px solid #eee2f7;border-radius:11px;background:#fdfaff}
+.admin-collapsible{max-width:1060px}.admin-collapsible>summary{display:flex;align-items:center;min-height:50px}
+.status,.status-bar{margin-top:12px;padding:9px 12px;font-size:12.5px;line-height:1.45}
+@media(min-width:1020px){#panelSoal #sectionUploadSoal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px;align-items:end}#panelSoal #sectionUploadSoal h2,#panelSoal #sectionUploadSoal .jenjang-row,#panelSoal #sectionUploadSoal .note,#panelSoal #sectionUploadSoal .checkbox-row,#panelSoal #sectionUploadSoal button,#panelSoal #sectionUploadSoal .status,#panelSoal #sectionUploadSoal #solusiFilesWrap{grid-column:1/-1}#panelSoal #sectionUploadSoal label{margin-top:2px}#panelSoal #sectionUploadSoal input,#panelSoal #sectionUploadSoal select{max-width:none}}
+@media(max-width:900px){.tab-panel .wrap,#panelSoal .wrap,#panelPelatihan .wrap,#panelPusatData .wrap{padding:20px 16px 52px!important}.page-title{display:block}.page-title h1{font-size:21px!important}.page-title .sub{margin-top:6px}.card{max-width:none!important}}
+/* Pengelola soal: daftar ringkas, tetap nyaman untuk 100 sampai ratusan soal. */
+.soal-manager-toolbar{display:grid;grid-template-columns:minmax(260px,1fr) 160px 180px;gap:10px;margin:14px 0 4px}.soal-manager-toolbar input,.soal-manager-toolbar select{margin:0!important;max-width:none!important}
+.soal-item{gap:14px!important;padding:15px 16px!important;border:1px solid #eadcf5!important;border-radius:14px!important;background:#fff}.soal-item+.soal-item{margin-top:10px}.soal-item .info{min-width:0;flex:1}.soal-item .info b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.soal-item .info span{margin-top:3px}.soal-actions{display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:flex-end}.soal-actions button{width:auto!important;margin:0!important;padding:8px 10px!important;font-size:12px!important}.btn-preview-soal{background:#f4eaff!important;color:#61249a!important;border:1px solid #d8bbed!important}.btn-preview-solusi{background:#eaf8ef!important;color:#237146!important;border:1px solid #b7e1c5!important}.btn-preview-off{opacity:.52;cursor:not-allowed!important}.soal-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:12px 0;border-top:1px solid #eee3f6;font-size:12px;color:var(--abu)}.soal-pagination .pager-actions{display:flex;gap:8px}.soal-pagination button{width:auto!important;margin:0!important;padding:8px 11px!important}.pdf-preview-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(38,12,61,.55);backdrop-filter:blur(3px)}.pdf-preview-modal.show{display:flex}.pdf-preview-dialog{width:min(1080px,100%);height:min(88vh,900px);display:flex;flex-direction:column;overflow:hidden;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(25,6,44,.35)}.pdf-preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;background:linear-gradient(100deg,#54217f,#922bc1);color:#fff}.pdf-preview-head b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pdf-preview-head button{width:34px;height:34px;padding:0!important;margin:0!important;border-radius:9px!important;background:rgba(255,255,255,.16)!important;border:1px solid rgba(255,255,255,.36)!important;color:#fff!important}.pdf-preview-dialog iframe{width:100%;height:100%;border:0;background:#f2eff5}
+@media(max-width:760px){.soal-manager-toolbar{grid-template-columns:1fr}.soal-item{display:block!important}.soal-item .info b{white-space:normal}.soal-actions{justify-content:flex-start;margin-top:12px}.soal-pagination{align-items:flex-start;flex-direction:column}.pdf-preview-modal{padding:8px}.pdf-preview-dialog{height:94vh;border-radius:13px}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
@@ -2164,17 +2183,16 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
     <label>Tanggal</label>
     <input type="date" id="tanggalS">
 
-    <label>File Gambar Soal</label>
-    <input type="file" id="fileSoal" accept="image/*">
+    <label>File PDF Soal</label>
+    <input type="file" id="fileSoal" accept="application/pdf,.pdf">
 
-    <label>File Gambar Pembahasan</label>
+    <label>File PDF Pembahasan</label>
     <div id="solusiFilesWrap">
       <div class="solusi-file-row" style="margin-bottom:8px;">
-        <input type="file" class="input-file-solusi" accept="image/*">
+        <input type="file" class="input-file-solusi" accept="application/pdf,.pdf">
       </div>
     </div>
-    <button type="button" class="secondary" style="margin-bottom:6px; width:100%;" onclick="tambahInputSolusi()">+ Tambah Gambar Pembahasan</button>
-    <p class="note" style="margin-top:2px; margin-bottom:14px;">Kalau pembahasannya butuh lebih dari 1 gambar (mis. banyak langkah), klik tombol di atas untuk menambah kolom upload lagi. Semua gambar akan tampil berurutan di halaman pembahasan.</p>
+    <p class="note" style="margin-top:2px; margin-bottom:14px;">Unggah satu PDF penuh untuk soal dan satu PDF penuh untuk pembahasan. Peserta dapat scroll halaman PDF dan memperbesar/memperkecil tampilannya.</p>
 
     <label>Link YouTube Pembahasan (opsional)</label>
     <input type="url" id="ytLinkS" placeholder="https://youtube.com/watch?v=...">
@@ -2188,25 +2206,25 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
   </div>
 
   <div class="card" id="sectionHapusSoal">
-    <h2>Hapus Soal</h2>
+    <h2>Kelola Soal yang Sudah Tampil</h2>
+    <p class="note">Daftar dibuat ringkas untuk ratusan soal. Gunakan pencarian, filter, dan preview tanpa membuka halaman peserta.</p>
 
-    <label>Filter Jenjang</label>
-    <select id="filterJenjangHapus">
-      <option value="semua">Semua Jenjang</option>
-      <option value="sd">SD</option>
-      <option value="smp">SMP</option>
-      <option value="sma">SMA</option>
-    </select>
+    <div class="soal-manager-toolbar">
+      <input type="search" id="cariSoalAdmin" placeholder="Cari judul atau topik soal…" autocomplete="off">
+      <select id="filterJenjangHapus" aria-label="Filter jenjang">
+        <option value="semua">Semua jenjang</option>
+        <option value="sd">SD</option>
+        <option value="smp">SMP</option>
+        <option value="sma">SMA</option>
+      </select>
+      <select id="filterTopikSoalAdmin" aria-label="Filter topik"><option value="semua">Semua topik</option></select>
+    </div>
 
     <button type="button" id="loadListBtn" class="secondary">Muat Daftar Soal</button>
     <div id="statusHapus" class="status"></div>
     <div id="daftarSoalHapus" style="margin-top:14px;"></div>
-
-    <p class="note" style="margin-top:12px;">
-      Menghapus soal akan menghapus gambar soal &amp; pembahasannya dari
-      GitHub, dan langsung menghilangkan soal dari
-      <code>data/manifest-soal.json</code>. Tindakan ini tidak bisa dibatalkan.
-    </p>
+    <div id="paginationSoalAdmin" class="soal-pagination" hidden></div>
+    <p class="note" style="margin-top:12px;">Menghapus soal akan menghapus file PDF soal dan pembahasannya dari GitHub, lalu menghilangkannya dari <code>data/manifest-soal.json</code>. Tindakan ini tidak bisa dibatalkan.</p>
   </div>
 
   <div class="card" id="sectionOsn">
@@ -3520,7 +3538,8 @@ $('submitBtnS').addEventListener('click', async () => {
   $('submitBtnS').disabled = true;
 
   try {
-    setStatusS('loading', 'Mengupload gambar soal…');
+    if (fileSoal.type !== 'application/pdf' || fileSolusiList.some(f => f.type !== 'application/pdf')) throw new Error('Gunakan file PDF untuk soal dan pembahasan.');
+    setStatusS('loading', 'Mengupload PDF soal…');
 
     const safeName = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g,'');
     const stamp = Date.now();
@@ -3538,13 +3557,13 @@ $('submitBtnS').addEventListener('click', async () => {
     }, cfg);
     if (!uploadSoalRes.ok) {
       const errData = await uploadSoalRes.json().catch(() => ({}));
-      throw new Error(errData.message || 'Gagal upload gambar soal.');
+      throw new Error(errData.message || 'Gagal upload PDF soal.');
     }
 
     const solusiPaths = [];
     for (let i = 0; i < fileSolusiList.length; i++) {
       const f = fileSolusiList[i];
-      setStatusS('loading', `Mengupload gambar pembahasan (${i + 1}/${fileSolusiList.length})…`);
+      setStatusS('loading', `Mengupload PDF pembahasan (${i + 1}/${fileSolusiList.length})…`);
       const extSolusi = f.name.split('.').pop();
       const suffix = fileSolusiList.length > 1 ? `-solusi-${i + 1}` : '-solusi';
       const path = `soal-osn/${jenjang}/${stamp}_${safeName}${suffix}.${extSolusi}`;
@@ -3559,7 +3578,7 @@ $('submitBtnS').addEventListener('click', async () => {
       }, cfg);
       if (!uploadSolusiRes.ok) {
         const errData = await uploadSolusiRes.json().catch(() => ({}));
-        throw new Error(errData.message || `Gagal upload gambar pembahasan ke-${i + 1}.`);
+        throw new Error(errData.message || `Gagal upload PDF pembahasan ke-${i + 1}.`);
       }
       solusiPaths.push(path);
     }
@@ -3568,14 +3587,14 @@ $('submitBtnS').addEventListener('click', async () => {
 
     await updateManifestWithRetry(
       {
-        title, topik, tanggal, jenjang, soalImage: soalPath,
-        solusiImage: solusiPaths[0], solusiImages: solusiPaths,
+        title, topik, tanggal, jenjang, soalPdf: soalPath,
+        solusiPdf: solusiPaths[0], solusiPdfs: solusiPaths,
         youtubeLink, showYoutube
       },
       cfg
     );
 
-    setStatusS('ok', `Berhasil! Soal (${jenjang.toUpperCase()}) & ${solusiPaths.length} gambar pembahasan akan muncul di web dalam ± 30–60 detik.`);
+    setStatusS('ok', `Berhasil! PDF soal dan PDF pembahasan akan muncul di web dalam ± 30–60 detik.`);
     $('titleS').value = '';
     $('topikS').value = '';
     $('fileSoal').value = '';
@@ -3619,16 +3638,23 @@ async function deleteFileIfExists(path, message, cfg) {
   }
 }
 
-// hapus 1 entri dari manifest berdasarkan soalImage (dipakai sebagai penanda unik),
-// dengan retry otomatis kalau kebentur konflik SHA (mis. ada perubahan lain barengan)
-async function updateManifestRemoveWithRetry(soalImagePath, cfg, attempt = 1) {
+// Setiap entri memiliki file soal sebagai penanda unik. Mendukung data PDF baru
+// serta data gambar lama agar daftar admin tetap kompatibel.
+function getSoalFile(item) { return item.soalPdf || item.soalImage || ''; }
+function getSolusiFiles(item) {
+  if (Array.isArray(item.solusiPdfs) && item.solusiPdfs.length) return item.solusiPdfs;
+  if (Array.isArray(item.solusiImages) && item.solusiImages.length) return item.solusiImages;
+  return item.solusiPdf ? [item.solusiPdf] : (item.solusiImage ? [item.solusiImage] : []);
+}
+// Hapus satu entri dari manifest berdasarkan file soal, dengan retry SHA.
+async function updateManifestRemoveWithRetry(soalFilePath, cfg, attempt = 1) {
   const { list, sha } = await fetchManifest(cfg);
-  const filtered = list.filter(item => item.soalImage !== soalImagePath);
+  const filtered = list.filter(item => getSoalFile(item) !== soalFilePath);
 
   const updateRes = await ghRequest('data/manifest-soal.json', {
     method: 'PUT',
     body: JSON.stringify({
-      message: `Hapus soal: ${soalImagePath}`,
+      message: `Hapus soal: ${soalFilePath}`,
       content: toBase64Unicode(JSON.stringify(filtered, null, 2)),
       sha: sha,
       branch: cfg.branch
@@ -3640,7 +3666,7 @@ async function updateManifestRemoveWithRetry(soalImagePath, cfg, attempt = 1) {
     const isShaConflict = updateRes.status === 409 || updateRes.status === 422;
     if (isShaConflict && attempt < 3) {
       await new Promise(r => setTimeout(r, 500));
-      return updateManifestRemoveWithRetry(soalImagePath, cfg, attempt + 1);
+      return updateManifestRemoveWithRetry(soalFilePath, cfg, attempt + 1);
     }
     throw new Error(errData.message || 'Gagal memperbarui manifest-soal.json.');
   }
@@ -3664,33 +3690,69 @@ function escAttr(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
 
-function renderDaftarSoalHapus(list) {
+let daftarSoalAdminCache = [];
+let halamanSoalAdmin = 1;
+const JUMLAH_SOAL_PER_HALAMAN = 15;
+
+function syncTopikSoalAdmin() {
+  const select = $('filterTopikSoalAdmin');
+  if (!select) return;
+  const current = select.value;
+  const topics = [...new Set(daftarSoalAdminCache.map(x => String(x.topik || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'id'));
+  select.innerHTML = '<option value="semua">Semua topik</option>' + topics.map(t => '<option value="' + escAttr(t) + '">' + escAttr(t) + '</option>').join('');
+  select.value = topics.includes(current) ? current : 'semua';
+}
+function getSoalAdminTersaring() {
+  const jenjang = $('filterJenjangHapus').value;
+  const topik = $('filterTopikSoalAdmin').value;
+  const kata = $('cariSoalAdmin').value.trim().toLowerCase();
+  return daftarSoalAdminCache.filter(item => {
+    const cocokJenjang = jenjang === 'semua' || item.jenjang === jenjang;
+    const cocokTopik = topik === 'semua' || String(item.topik || '') === topik;
+    const haystack = (String(item.title || '') + ' ' + String(item.topik || '')).toLowerCase();
+    return cocokJenjang && cocokTopik && (!kata || haystack.includes(kata));
+  }).sort((a,b) => new Date(b.tanggal || 0) - new Date(a.tanggal || 0));
+}
+function renderDaftarSoalHapus() {
   const box = $('daftarSoalHapus');
+  const list = getSoalAdminTersaring();
+  const pager = $('paginationSoalAdmin');
   if (!list.length) {
-    box.innerHTML = '<p class="note">Tidak ada soal untuk filter ini.</p>';
+    box.innerHTML = '<p class="note">Tidak ada soal yang sesuai dengan pencarian atau filter ini.</p>';
+    pager.hidden = true;
     return;
   }
-  // terbaru di atas
-  const sorted = [...list].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
-  box.innerHTML = sorted.map(item => {
+  const totalHalaman = Math.max(1, Math.ceil(list.length / JUMLAH_SOAL_PER_HALAMAN));
+  halamanSoalAdmin = Math.min(Math.max(1, halamanSoalAdmin), totalHalaman);
+  const awal = (halamanSoalAdmin - 1) * JUMLAH_SOAL_PER_HALAMAN;
+  const halaman = list.slice(awal, awal + JUMLAH_SOAL_PER_HALAMAN);
+  box.innerHTML = halaman.map(item => {
     const ytChecked = item.showYoutube === false ? '' : 'checked';
-    const solusiList = Array.isArray(item.solusiImages) && item.solusiImages.length
-      ? item.solusiImages
-      : (item.solusiImage ? [item.solusiImage] : []);
+    const soalFile = getSoalFile(item);
+    const solusiList = getSolusiFiles(item);
     return `
-    <div class="soal-item" data-soal-image="${item.soalImage.replace(/"/g, '&quot;')}" data-solusi-images="${escAttr(JSON.stringify(solusiList))}">
+    <div class="soal-item" data-soal-file="${escAttr(soalFile)}" data-solusi-files="${escAttr(JSON.stringify(solusiList))}">
       <div class="info">
-        <b>${item.title}</b>
-        <span>${item.jenjang.toUpperCase()} · ${item.topik || '-'} · ${formatTanggalHapus(item.tanggal)} · ${solusiList.length} gambar pembahasan</span>
+        <b>${escAttr(item.title || 'Tanpa judul')}</b>
+        <span>${String(item.jenjang || '-').toUpperCase()} · ${escAttr(item.topik || '-')} · ${formatTanggalHapus(item.tanggal)} · ${solusiList.length ? 'Pembahasan tersedia' : 'Belum ada pembahasan'}</span>
         <div class="yt-edit">
           <input type="url" class="yt-edit-input" placeholder="Link YouTube pembahasan (opsional)" value="${escAttr(item.youtubeLink || '')}">
           <label><input type="checkbox" class="yt-edit-show" ${ytChecked}> Tampilkan</label>
           <button type="button" class="btn-simpan-yt">Simpan Link</button>
         </div>
       </div>
-      <button type="button" class="btn-hapus-soal">Hapus</button>
+      <div class="soal-actions">
+        <button type="button" class="btn-preview-soal" ${soalFile ? '' : 'disabled'}>Lihat Soal</button>
+        <button type="button" class="btn-preview-solusi" ${solusiList[0] ? '' : 'disabled'}>Lihat Pembahasan</button>
+        <button type="button" class="btn-hapus-soal">Hapus</button>
+      </div>
     </div>
   `; }).join('');
+
+  pager.hidden = false;
+  pager.innerHTML = '<span>Menampilkan ' + (awal + 1) + '–' + Math.min(awal + JUMLAH_SOAL_PER_HALAMAN, list.length) + ' dari ' + list.length + ' soal</span><div class="pager-actions"><button type="button" class="secondary" data-page="prev" ' + (halamanSoalAdmin === 1 ? 'disabled' : '') + '>← Sebelumnya</button><button type="button" class="secondary" data-page="next" ' + (halamanSoalAdmin === totalHalaman ? 'disabled' : '') + '>Berikutnya →</button></div>';
+  pager.querySelector('[data-page="prev"]').onclick = () => { halamanSoalAdmin--; renderDaftarSoalHapus(); };
+  pager.querySelector('[data-page="next"]').onclick = () => { halamanSoalAdmin++; renderDaftarSoalHapus(); };
 
   box.querySelectorAll('.btn-hapus-soal').forEach(btn => {
     btn.addEventListener('click', () => hapusSoalSatu(btn));
@@ -3698,13 +3760,26 @@ function renderDaftarSoalHapus(list) {
   box.querySelectorAll('.btn-simpan-yt').forEach(btn => {
     btn.addEventListener('click', () => simpanYoutubeSoal(btn));
   });
+  box.querySelectorAll('.btn-preview-soal').forEach(btn => btn.addEventListener('click', () => bukaPreviewPdf(btn.closest('.soal-item').dataset.soalFile, 'Preview PDF Soal')));
+  box.querySelectorAll('.btn-preview-solusi').forEach(btn => btn.addEventListener('click', () => { const files = JSON.parse(btn.closest('.soal-item').dataset.solusiFiles || '[]'); if (files[0]) bukaPreviewPdf(files[0], 'Preview PDF Pembahasan'); }));
+}
+
+function bukaPreviewPdf(path, judul) {
+  if (!path) return;
+  const cfg = getCfg();
+  const direct = 'https://raw.githubusercontent.com/' + encodeURIComponent(cfg.user) + '/' + encodeURIComponent(cfg.repo) + '/' + encodeURIComponent(cfg.branch) + '/' + path.split('/').map(encodeURIComponent).join('/') + '#toolbar=1&view=FitH';
+  let modal = document.getElementById('pdfPreviewModal');
+  if (!modal) { document.body.insertAdjacentHTML('beforeend','<div class="pdf-preview-modal" id="pdfPreviewModal"><div class="pdf-preview-dialog"><div class="pdf-preview-head"><b></b><button type="button" aria-label="Tutup preview">✕</button></div><iframe title="Preview PDF"></iframe></div></div>'); modal = document.getElementById('pdfPreviewModal'); modal.querySelector('button').onclick = () => modal.classList.remove('show'); modal.onclick = e => { if (e.target === modal) modal.classList.remove('show'); }; }
+  modal.querySelector('b').textContent = judul;
+  modal.querySelector('iframe').src = direct;
+  modal.classList.add('show');
 }
 
 // Simpan/ubah link YouTube pembahasan untuk 1 soal yang sudah ada, tanpa
 // perlu upload ulang gambar. Hanya field youtubeLink & showYoutube yang diubah.
-async function updateManifestEntryWithRetry(soalImagePath, patch, cfg, attempt = 1) {
+async function updateManifestEntryWithRetry(soalFilePath, patch, cfg, attempt = 1) {
   const { list, sha } = await fetchManifest(cfg);
-  const idx = list.findIndex(item => item.soalImage === soalImagePath);
+  const idx = list.findIndex(item => getSoalFile(item) === soalFilePath);
   if (idx === -1) throw new Error('Soal tidak ditemukan di manifest (mungkin sudah dihapus/diubah).');
   list[idx] = { ...list[idx], ...patch };
 
@@ -3723,7 +3798,7 @@ async function updateManifestEntryWithRetry(soalImagePath, patch, cfg, attempt =
     const isShaConflict = updateRes.status === 409 || updateRes.status === 422;
     if (isShaConflict && attempt < 3) {
       await new Promise(r => setTimeout(r, 500));
-      return updateManifestEntryWithRetry(soalImagePath, patch, cfg, attempt + 1);
+      return updateManifestEntryWithRetry(soalFilePath, patch, cfg, attempt + 1);
     }
     throw new Error(errData.message || 'Gagal memperbarui manifest-soal.json.');
   }
@@ -3737,7 +3812,7 @@ async function simpanYoutubeSoal(btn) {
   }
 
   const wrapper = btn.closest('.soal-item');
-  const soalImagePath = wrapper.dataset.soalImage;
+  const soalImagePath = wrapper.dataset.soalFile;
   const youtubeLink = wrapper.querySelector('.yt-edit-input').value.trim();
   const showYoutube = wrapper.querySelector('.yt-edit-show').checked;
 
@@ -3765,23 +3840,22 @@ async function hapusSoalSatu(btn) {
   }
 
   const wrapper = btn.closest('.soal-item');
-  const soalImagePath = wrapper.dataset.soalImage;
+  const soalImagePath = wrapper.dataset.soalFile;
   const judul = wrapper.querySelector('.info b').textContent;
 
   let solusiImagePaths = [];
   try {
-    solusiImagePaths = JSON.parse(wrapper.dataset.solusiImages || '[]');
+    solusiImagePaths = JSON.parse(wrapper.dataset.solusiFiles || '[]');
   } catch (e) {
     solusiImagePaths = [];
   }
-  // fallback untuk data lama (sebelum fitur multi-gambar pembahasan ada):
-  // tebak nama file solusi dari nama file soal.
+  // Fallback untuk data lama yang belum menyimpan daftar pembahasan.
   if (!solusiImagePaths.length) {
     const guess = soalImagePath.replace(/-soal\.([a-zA-Z0-9]+)$/, '-solusi.$1');
     if (guess !== soalImagePath) solusiImagePaths = [guess];
   }
 
-  if (!confirm(`Yakin hapus soal "${judul}"? Gambar soal & ${solusiImagePaths.length} gambar pembahasannya juga akan terhapus dari GitHub. Tindakan ini tidak bisa dibatalkan.`)) {
+  if (!confirm(`Yakin hapus soal "${judul}"? File soal dan ${solusiImagePaths.length} file pembahasannya juga akan terhapus dari GitHub. Tindakan ini tidak bisa dibatalkan.`)) {
     return;
   }
 
@@ -3790,9 +3864,9 @@ async function hapusSoalSatu(btn) {
   setStatusHapus('loading', `Menghapus "${judul}"…`);
 
   try {
-    await deleteFileIfExists(soalImagePath, `Hapus gambar soal: ${judul}`, cfg);
+    await deleteFileIfExists(soalImagePath, `Hapus file soal: ${judul}`, cfg);
     for (const p of solusiImagePaths) {
-      await deleteFileIfExists(p, `Hapus gambar pembahasan: ${judul}`, cfg);
+      await deleteFileIfExists(p, `Hapus file pembahasan: ${judul}`, cfg);
     }
     await updateManifestRemoveWithRetry(soalImagePath, cfg);
 
@@ -3816,9 +3890,10 @@ $('loadListBtn').addEventListener('click', async () => {
   setStatusHapus('loading', 'Memuat daftar soal…');
   try {
     const { list } = await fetchManifest(cfg);
-    const jenjangFilter = $('filterJenjangHapus').value;
-    const filtered = jenjangFilter === 'semua' ? list : list.filter(item => item.jenjang === jenjangFilter);
-    renderDaftarSoalHapus(filtered);
+    daftarSoalAdminCache = Array.isArray(list) ? list : [];
+    halamanSoalAdmin = 1;
+    syncTopikSoalAdmin();
+    renderDaftarSoalHapus();
     $('statusHapus').className = 'status';
     $('statusHapus').textContent = '';
   } catch (e) {
@@ -3827,6 +3902,9 @@ $('loadListBtn').addEventListener('click', async () => {
     $('loadListBtn').disabled = false;
   }
 });
+$('cariSoalAdmin').addEventListener('input', () => { halamanSoalAdmin = 1; renderDaftarSoalHapus(); });
+$('filterJenjangHapus').addEventListener('change', () => { halamanSoalAdmin = 1; renderDaftarSoalHapus(); });
+$('filterTopikSoalAdmin').addEventListener('change', () => { halamanSoalAdmin = 1; renderDaftarSoalHapus(); });
 
 /* ================== KUMPULAN SOAL OSN (upload & hapus file) ================== */
 

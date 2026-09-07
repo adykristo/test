@@ -1405,6 +1405,26 @@ header{box-shadow:0 8px 28px rgba(69,19,110,.17)}
 .catalog-toolbar{padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.82);box-shadow:0 7px 21px rgba(72,25,112,.06)}
 .pelatihan-card{border-radius:20px}.materi-item{gap:18px}.pelatihan-status{border:1px solid #e7d5f5}
 @media(max-width:640px){header{padding:28px 17px}.jenjang-nav{overflow-x:auto;justify-content:flex-start}.jenjang-nav button{white-space:nowrap}.soal-card .head{padding:13px}.pelatihan-card{padding:16px}.catalog-toolbar{gap:8px}.catalog-toolbar input,.catalog-toolbar select{min-width:0;flex:1}}
+.pdf-viewer{width:100%;height:min(78vh,900px);min-height:520px;border:1px solid #dfcef5;border-radius:12px;background:#f5f2f8;display:block;margin:14px 0;}
+@media(max-width:640px){.pdf-viewer{height:72vh;min-height:440px;border-radius:8px;}}
+/* Tata letak layar peserta: lebih lapang untuk soal, PDF, dan hasil tryout. */
+main{max-width:1080px;padding:42px 28px 76px}
+#page-home{max-width:820px;margin:auto}
+#page-sd,#page-smp,#page-sma,#page-tryout,#page-tryout-peserta,#page-tryout-attempt,#page-tryout-result,#page-download,#page-pelatihan{max-width:1040px;margin:auto}
+.page-title{margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.page-title h2{letter-spacing:-.025em}
+.soal-card{border-radius:20px;background:#fff;margin-bottom:20px}
+.soal-card .head{display:flex;align-items:flex-start;gap:14px;justify-content:space-between}
+.soal-card .head h3{line-height:1.45}
+.soal-card .head .tgl{white-space:nowrap;align-self:center}
+.soal-card .soal-img{padding:18px;background:linear-gradient(135deg,#fff,#fcf8ff)}
+.soal-card .toggle-wrap{padding:0 18px 18px}
+.soal-card .pembahasan-wrap{margin:0 18px 18px;padding:16px;border:1px solid #eadcf5;border-radius:15px;background:#fdfaff}
+.pdf-viewer{height:min(82vh,960px);min-height:590px;margin:12px 0 0;box-shadow:0 12px 28px rgba(65,21,100,.09)}
+.catalog-toolbar{position:sticky;top:60px;z-index:8;grid-template-columns:minmax(260px,1fr) 190px 165px;padding:14px}
+.catalog-toolbar input,.catalog-toolbar select{height:43px;padding:10px 13px;background:#fff}
+.pelatihan-grid{gap:26px}.pelatihan-card{padding:26px}.materi-item{padding:15px 0}
+@media(max-width:760px){main{padding:28px 14px 56px}.page-title{margin-bottom:18px}.soal-card{border-radius:16px}.soal-card .head{display:block;padding:15px}.soal-card .head .tgl{display:inline-flex;margin-top:9px}.soal-card .soal-img{padding:10px}.soal-card .toggle-wrap{padding:0 12px 12px}.soal-card .pembahasan-wrap{margin:0 12px 12px;padding:10px}.pdf-viewer{height:72vh;min-height:460px}.catalog-toolbar{position:static;grid-template-columns:1fr}.pelatihan-card{padding:18px}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
@@ -1734,9 +1754,13 @@ function renderJenjang(jenjang) {
     const ytBtn = (item.showYoutube && item.youtubeLink)
       ? `<a class="yt-link" href="${escAttr(item.youtubeLink)}" target="_blank" rel="noopener noreferrer">▶ Tonton Video Pembahasan di YouTube</a>`
       : '';
+    const solusiPdfs = Array.isArray(item.solusiPdfs) && item.solusiPdfs.length
+      ? item.solusiPdfs : (item.solusiPdf ? [item.solusiPdf] : []);
     const solusiImgs = Array.isArray(item.solusiImages) && item.solusiImages.length
       ? item.solusiImages
       : (item.solusiImage ? [item.solusiImage] : []);
+    const pdfViewer = (src, label) => `<iframe class="pdf-viewer" src="${escAttr(src)}#toolbar=1&view=FitH" title="${escAttr(label)}" loading="lazy"></iframe>`;
+    const solusiPdfHtml = solusiPdfs.map((src, idx) => pdfViewer(src, `Pembahasan ${item.title} ${idx + 1}`)).join('');
     const solusiImgsHtml = solusiImgs.map((src, idx) =>
       `<img class="solusi-img" src="${escAttr(src)}" alt="Pembahasan ${escAttr(item.title)} ${idx + 1}">`
     ).join('');
@@ -1749,11 +1773,11 @@ function renderJenjang(jenjang) {
         </div>
         <span class="tgl">${formatTanggal(item.tanggal)}</span>
       </div>
-      <img class="soal-img" src="${item.soalImage}" alt="${item.title}">
+      ${item.soalPdf ? pdfViewer(item.soalPdf, `Soal ${item.title}`) : `<img class="soal-img" src="${item.soalImage}" alt="${item.title}">`}
       <div class="toggle-wrap">
         <button class="toggle-btn" onclick="toggleSolusi('${uid}','${jenjang}')">Lihat Pembahasan</button>
         <div class="pembahasan-wrap" id="solusi-${uid}">
-          ${solusiImgsHtml}
+          ${solusiPdfHtml || solusiImgsHtml}
           ${ytBtn}
         </div>
       </div>
