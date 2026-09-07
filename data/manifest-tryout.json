@@ -11,5 +11,20 @@
     "kode_akses": "",
     "mode_hasil": "nilai",
     "arsip": false
+  },
+  {
+    "id": "fluida-statis-mtri45bl",
+    "title": "FLUIDA STATIS",
+    "jenjang": "smp",
+    "topik": "TEKANAN HIDROSTATIS",
+    "durasi_menit": 60,
+    "jumlah_soal": 10,
+    "file": "data/tryout/fluida-statis-mtri45bl.json",
+    "aktif": true,
+    "kode_akses": "",
+    "mode_hasil": "lengkap",
+    "mulai_ujian": "",
+    "selesai_ujian": "",
+    "arsip": false
   }
 ]
