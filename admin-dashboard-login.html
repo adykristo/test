@@ -2030,7 +2030,13 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="supabase-client.js"></script>
-<style>.kf-toast{position:fixed;right:18px;bottom:20px;z-index:99999;max-width:360px;padding:13px 16px;border-radius:13px;color:#fff;background:#572080;box-shadow:0 12px 30px #32104a55;transform:translateY(120px);opacity:0;transition:.25s;font-weight:700;font-size:14px}.kf-toast.show{transform:translateY(0);opacity:1}.kf-toast.ok{background:#16884e}.kf-toast.err{background:#b42355}.kf-working{opacity:.72;pointer-events:none}.status{border-radius:11px;padding:11px 13px;line-height:1.45}</style>
+<style>.kf-toast{position:fixed;right:18px;bottom:20px;z-index:99999;max-width:360px;padding:13px 16px;border-radius:13px;color:#fff;background:#572080;box-shadow:0 12px 30px #32104a55;transform:translateY(120px);opacity:0;transition:.25s;font-weight:700;font-size:14px}.kf-toast.show{transform:translateY(0);opacity:1}.kf-toast.ok{background:#16884e}.kf-toast.err{background:#b42355}.kf-working{opacity:.72;pointer-events:none}.status{border-radius:11px;padding:11px 13px;line-height:1.45}
+/* Samakan lebar kartu pengaturan dengan kartu admin di bawahnya. */
+#panelSoal #sectionGithub,#panelSoal #sectionPengaturan,#panelSoal #sectionKeamanan{max-width:1060px!important;width:100%;box-sizing:border-box}
+#panelSoal #sectionGithub input,#panelSoal #sectionPengaturan input,#panelSoal #sectionKeamanan input{max-width:none!important;width:100%}
+#panelSoal #sectionGithub .row,#panelSoal #sectionPengaturan .row{max-width:760px}
+@media(min-width:920px){#panelSoal #sectionGithub,#panelSoal #sectionPengaturan,#panelSoal #sectionKeamanan{padding:24px 28px!important}#panelSoal #sectionGithub .card-actions,#panelSoal #sectionPengaturan .card-actions{display:flex;gap:10px;flex-wrap:wrap}}
+</style>
   <script src="ui-petunjuk.js"></script>
 </head>
 <body class="admin-locked">
