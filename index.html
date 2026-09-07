@@ -531,6 +531,7 @@ window.MathJax = {
     white-space:nowrap;
   }
   .paket-card .mulai-btn:hover{ opacity:.9; }
+  .tryout-mode-tabs{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}.tryout-mode-tabs button{border:1px solid #e4d3f2;background:#fff;color:var(--ungu-tua);padding:9px 14px;border-radius:10px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}.tryout-mode-tabs button.active{background:#f4e7ff;color:#6b229e;border-color:#bf94e2}.tryout-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 10px;color:#4a1d70}.tryout-section-title h3{font-size:15px}.tryout-section-title span{font-size:11px;color:var(--abu)}.tryout-card-badge{display:inline-flex;margin-bottom:8px;padding:4px 8px;border-radius:999px;background:#f3e6ff;color:#6723a2;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.05em}.tryout-card-badge.gratis{background:#e7f7ec;color:#247244}.tryout-card-badge.premium{background:#fff0dc;color:#9b5a00}.tryout-card-info{font-size:11.5px;color:#756985;margin-top:9px}.tryout-card-info b{color:#4a1d70}.tryout-status{margin-top:9px;font-size:11px;font-weight:800;color:#5c267d}.tryout-status.done{color:#21834a}.student-tryout-dashboard{margin:0 0 20px;padding:18px;border:1px solid #e6d7f2;border-radius:18px;background:linear-gradient(120deg,#fff,#fbf5ff);box-shadow:0 8px 22px rgba(73,22,112,.06)}.student-tryout-dashboard h3{color:#4a1d70;font-size:16px;margin-bottom:4px}.student-tryout-dashboard p{font-size:12.5px;color:var(--abu)}.tryout-dashboard-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:14px}.tryout-history{display:grid;gap:8px}.tryout-history-row{display:flex;justify-content:space-between;gap:8px;padding:10px 11px;border:1px solid #ebddf4;border-radius:11px;background:#fff;font-size:12px}.tryout-history-row b{color:#54217d}.learning-reco{padding:13px;border-radius:12px;background:#f2e7fb;color:#512376;font-size:12px;line-height:1.55}.learning-reco button{margin-top:8px;border:0;background:#7627ad;color:#fff;padding:8px 10px;border-radius:8px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.soal-learning-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}.soal-learning-actions button{border:1px solid #ded0ec;background:#fff;color:#59237f;padding:7px 10px;border-radius:9px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.soal-learning-actions button.active{background:#f0e2ff;border-color:#bc8fe4}.soal-learning-actions button:hover{background:#faf2ff}@media(max-width:680px){.tryout-dashboard-grid{grid-template-columns:1fr}.tryout-card-info{line-height:1.6}.paket-card{align-items:flex-start}}
 
   .tryout-header{
     display:flex;
@@ -1552,6 +1553,8 @@ main{max-width:1080px;padding:42px 28px 76px}
       <button data-jenjang="smp">SMP</button>
       <button data-jenjang="sma">SMA</button>
     </div>
+    <div class="tryout-mode-tabs" id="tryoutModeTabs"><button data-mode="semua" class="active">Semua Paket</button><button data-mode="gratis">Gratis</button><button data-mode="premium">Pelatihan</button></div>
+    <div class="student-tryout-dashboard" id="studentTryoutDashboard"><h3>📈 Riwayat belajar tryout</h3><p>Riwayat pada perangkat ini. Login pelatihan untuk akses kelas dan riwayat yang lebih lengkap.</p><div class="tryout-dashboard-grid"><div id="tryoutHistoryList" class="tryout-history"></div><div id="tryoutRecommendation" class="learning-reco"></div></div></div>
     <div id="paketList" class="paket-list"><div class="skeleton-wrap" aria-hidden="true"><div class="skeleton-card"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div><div class="skeleton-card"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div></div>
   </section>
 
@@ -1696,7 +1699,7 @@ async function loadSoal() {
   try {
     const res = await fetch('data/manifest-soal.json?_=' + Date.now());
     const data = await res.json();
-    allSoal = data.map(item => ({ ...item, jenjang: String(item.jenjang || '').toLowerCase() }));
+    allSoal = data.filter(item => !['draf','tinjau','arsip'].includes(String(item.statusDokumen || 'terbit'))).map(item => ({ ...item, jenjang: String(item.jenjang || '').toLowerCase() }));
     renderCounts();
     JENJANG_LIST.forEach(renderJenjang);
   } catch (e) {
@@ -1721,6 +1724,9 @@ function escAttr(s) {
 
 const KATALOG_PER_HALAMAN = 12;
 const katalogState = { sd:{query:'',topik:'',sort:'baru',page:1}, smp:{query:'',topik:'',sort:'baru',page:1}, sma:{query:'',topik:'',sort:'baru',page:1} };
+const KF_STUDY_MARK_KEY='kf_study_marks_v1';
+function bacaTandaBelajar(){try{return JSON.parse(localStorage.getItem(KF_STUDY_MARK_KEY)||'{}')}catch(e){return {}}}
+function tandaBelajar(id,tipe){const data=bacaTandaBelajar(),sebelumnya=data[id]||{};data[id]={...sebelumnya,[tipe]:!sebelumnya[tipe]};localStorage.setItem(KF_STUDY_MARK_KEY,JSON.stringify(data));const item=allSoal.find(x=>(x.soalPdf||x.soalImage)===id);if(item)renderJenjang(item.jenjang)}
 
 function setKatalogFilter(jenjang, key, value) {
   katalogState[jenjang][key] = value;
@@ -1755,6 +1761,7 @@ function renderJenjang(jenjang) {
   const tampil = items.slice(mulai, mulai + KATALOG_PER_HALAMAN);
   listEl.innerHTML = toolbar + `<p class="catalog-summary">Menampilkan ${mulai + 1}–${Math.min(mulai + KATALOG_PER_HALAMAN, items.length)} dari ${items.length} soal.</p>` + tampil.map((item, i) => {
     const uid = jenjang + '-' + (mulai + i);
+    const markId=item.soalPdf||item.soalImage||uid,mark=bacaTandaBelajar()[markId]||{};
     const ytBtn = (item.showYoutube && item.youtubeLink)
       ? `<a class="yt-link" href="${escAttr(item.youtubeLink)}" target="_blank" rel="noopener noreferrer">▶ Tonton Video Pembahasan di YouTube</a>`
       : '';
@@ -1780,6 +1787,7 @@ function renderJenjang(jenjang) {
       ${item.soalPdf ? pdfViewer(item.soalPdf, `Soal ${item.title}`, uid + '-q') : `<img class="soal-img" src="${item.soalImage}" alt="${item.title}">`}
       <div class="toggle-wrap">
         <button class="toggle-btn" onclick="toggleSolusi('${uid}','${jenjang}')">Lihat Pembahasan</button>
+        <div class="soal-learning-actions"><button type="button" class="${mark.sudah?'active':''}" onclick="tandaBelajar('${escAttr(markId)}','sudah')">${mark.sudah?'✓ Sudah dipelajari':'Tandai sudah dipelajari'}</button><button type="button" class="${mark.ulang?'active':''}" onclick="tandaBelajar('${escAttr(markId)}','ulang')">${mark.ulang?'↻ Perlu diulang':'Perlu diulang'}</button><button type="button" class="${mark.favorit?'active':''}" onclick="tandaBelajar('${escAttr(markId)}','favorit')">${mark.favorit?'★ Disimpan':'☆ Simpan soal'}</button></div>
         <div class="pembahasan-wrap" id="solusi-${uid}">
           ${solusiPdfHtml || solusiImgsHtml}
           ${ytBtn}
@@ -2078,6 +2086,11 @@ async function loadPengumuman() {
 const TRYOUT_MANIFEST_PATH = 'data/manifest-tryout.json';
 let tryoutManifest = [];
 let currentTryoutJenjang = 'sd';
+let currentTryoutMode = 'semua';
+const KF_TRYOUT_HISTORY_KEY = 'kf_tryout_history_v1';
+function bacaRiwayatTryout(){try{return JSON.parse(localStorage.getItem(KF_TRYOUT_HISTORY_KEY)||'[]')}catch(e){return []}}
+function simpanRiwayatTryout(item){const lama=bacaRiwayatTryout().filter(x=>x.paketId!==item.paketId);lama.unshift(item);localStorage.setItem(KF_TRYOUT_HISTORY_KEY,JSON.stringify(lama.slice(0,30)))}
+function renderDashboardTryout(){const list=document.getElementById('tryoutHistoryList'),reco=document.getElementById('tryoutRecommendation');if(!list||!reco)return;const riwayat=bacaRiwayatTryout();list.innerHTML=riwayat.length?riwayat.slice(0,4).map(x=>'<div class="tryout-history-row"><span><b>'+escAttr(x.judul)+'</b><br>'+escAttr(x.topik||'Campuran')+' · '+new Date(x.waktu).toLocaleDateString('id-ID')+'</span><strong>'+x.nilai+'</strong></div>').join(''):'<div class="tryout-history-row"><span>Belum ada tryout yang selesai. Pilih paket gratis atau pelatihan untuk mulai belajar.</span></div>';const rendah=riwayat.filter(x=>Number.isFinite(Number(x.nilai))).sort((a,b)=>Number(a.nilai)-Number(b.nilai))[0];if(rendah){reco.innerHTML='<b>Rekomendasi belajar</b><br>Nilai '+escAttr(rendah.topik||'topik ini')+' masih perlu ditingkatkan. Ulangi pembahasan lalu kerjakan latihan terkait.<br><button type="button" onclick="gotoPage(\''+escAttr(rendah.jenjang||'sma')+'\')">Buka latihan '+escAttr(String(rendah.jenjang||'SMA').toUpperCase())+'</button>';}else{reco.innerHTML='<b>Rekomendasi belajar</b><br>Mulai dari satu tryout gratis, lalu gunakan pembahasan untuk mengetahui topik yang perlu diulang.'}}
 
 // ==== Verifikasi peserta di SERVER (Apps Script) — daftar token TIDAK diunduh ke browser ====
 // File data/daftar-peserta.json sengaja dikosongkan di GitHub Pages agar tidak bocor.
@@ -2182,26 +2195,33 @@ async function loadTryoutManifest() {
 
 function renderPaketList() {
   const box = document.getElementById('paketList');
-  const items = tryoutManifest.filter(p =>
-    String(p.jenjang || '').toLowerCase() === currentTryoutJenjang && p.aktif !== false
-  );
+  const riwayat=bacaRiwayatTryout();
+  const items = tryoutManifest.filter(p => {
+    const premium=!!(p.premium||p.pelatihan||p.akses==='pelatihan'||p.gratis===false);
+    const cocokMode=currentTryoutMode==='semua'||(currentTryoutMode==='gratis'?!premium:premium);
+    return String(p.jenjang || '').toLowerCase() === currentTryoutJenjang && p.aktif !== false && cocokMode;
+  });
   if (!items.length) {
     box.innerHTML = '<div class="empty">Belum ada paket tryout untuk jenjang ini. Cek lagi nanti ya!</div>';
     return;
   }
-  box.innerHTML = items.map(p => `
+  box.innerHTML = items.map(p => { const premium=!!(p.premium||p.pelatihan||p.akses==='pelatihan'||p.gratis===false); const selesai=riwayat.find(x=>x.paketId===p.id); const jadwal=p.jadwal||p.jadwal_mulai||p.mulai||''; return `
     <div class="paket-card">
       <div>
+        <span class="tryout-card-badge ${premium?'premium':'gratis'}">${premium?'Pelatihan':'Gratis'}</span>
         <h3>${p.title}</h3>
         <div class="meta">
           <span>📚 ${p.topik || 'Campuran'}</span>
           <span>📝 ${p.jumlah_soal} soal</span>
           <span>⏱️ ${p.durasi_menit} menit</span>
         </div>
+        <div class="tryout-card-info">${jadwal?'🗓️ Jadwal: <b>'+escAttr(jadwal)+'</b> · ':''}${premium?'Akses penuh peserta pelatihan':'Dapat dicoba sesuai kuota gratis'}</div>
+        <div class="tryout-status ${selesai?'done':''}">${selesai?'✓ Sudah dikerjakan · Nilai '+escAttr(selesai.nilai):'○ Belum dikerjakan'}</div>
       </div>
-      <button class="mulai-btn" onclick="startTryout('${p.id}')">Mulai Tryout</button>
+      <button class="mulai-btn" onclick="startTryout('${p.id}')">${selesai?'Kerjakan lagi':'Mulai Tryout'}</button>
     </div>
-  `).join('');
+  `}).join('');
+  renderDashboardTryout();
 }
 
 document.querySelectorAll('#tryoutJenjangTabs button').forEach(btn => {
@@ -2211,6 +2231,7 @@ document.querySelectorAll('#tryoutJenjangTabs button').forEach(btn => {
     renderPaketList();
   });
 });
+document.querySelectorAll('#tryoutModeTabs button').forEach(btn=>btn.addEventListener('click',()=>{currentTryoutMode=btn.dataset.mode;document.querySelectorAll('#tryoutModeTabs button').forEach(b=>b.classList.toggle('active',b===btn));renderPaketList();}));
 
 async function startTryout(paketId) {
   const meta = tryoutManifest.find(p => p.id === paketId);
@@ -3328,6 +3349,7 @@ function kirimHasilKeSheet(hasil) {
         lastHasil.salah = resData.salah;
         lastHasil.kosong = resData.kosong;
         lastHasil.total = resData.total;
+        simpanRiwayatTryout({paketId:lastHasil.paketId,judul:lastHasil.paket,jenjang:lastHasil.jenjang,topik:lastHasil.topik,nilai:resData.nilai,waktu:lastHasil.waktu});
       }
       const btnCert = document.getElementById('btnSertifikat');
       if (btnCert) btnCert.classList.remove('show');

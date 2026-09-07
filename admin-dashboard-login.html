@@ -2022,9 +2022,10 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
 @media(min-width:1020px){#panelSoal #sectionUploadSoal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px;align-items:end}#panelSoal #sectionUploadSoal h2,#panelSoal #sectionUploadSoal .jenjang-row,#panelSoal #sectionUploadSoal .note,#panelSoal #sectionUploadSoal .checkbox-row,#panelSoal #sectionUploadSoal button,#panelSoal #sectionUploadSoal .status,#panelSoal #sectionUploadSoal #solusiFilesWrap{grid-column:1/-1}#panelSoal #sectionUploadSoal label{margin-top:2px}#panelSoal #sectionUploadSoal input,#panelSoal #sectionUploadSoal select{max-width:none}}
 @media(max-width:900px){.tab-panel .wrap,#panelSoal .wrap,#panelPelatihan .wrap,#panelPusatData .wrap{padding:20px 16px 52px!important}.page-title{display:block}.page-title h1{font-size:21px!important}.page-title .sub{margin-top:6px}.card{max-width:none!important}}
 /* Pengelola soal: daftar ringkas, tetap nyaman untuk 100 sampai ratusan soal. */
-.soal-manager-toolbar{display:grid;grid-template-columns:minmax(260px,1fr) 160px 180px;gap:10px;margin:14px 0 4px}.soal-manager-toolbar input,.soal-manager-toolbar select{margin:0!important;max-width:none!important}
+.soal-manager-toolbar{display:grid;grid-template-columns:minmax(230px,1fr) 145px 170px 145px;gap:10px;margin:14px 0 4px}.soal-manager-toolbar input,.soal-manager-toolbar select{margin:0!important;max-width:none!important}
+.doc-summary{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0 2px}.doc-summary span{padding:7px 10px;border-radius:999px;background:#f4ebfd;color:#54217d;font-size:12px;font-weight:750}.doc-summary span strong{color:#a72e91}.soal-item{position:relative}.doc-status{display:inline-flex;align-items:center;width:max-content;margin-top:7px;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;background:#eee6f7;color:#57327a}.doc-status.terbit{background:#e4f7eb;color:#1d7644}.doc-status.draf{background:#fff2d8;color:#9a5b00}.doc-status.tinjau{background:#e7f0ff;color:#2d5d9b}.doc-status.arsip{background:#eceff3;color:#58606d}.doc-editor{margin-top:12px;border-top:1px dashed #e6d9f0}.doc-editor>summary{padding:10px 0 1px;color:#64249b;font-size:12px;font-weight:800;cursor:pointer}.doc-editor-grid{display:grid;grid-template-columns:1.2fr .7fr .8fr;gap:10px;padding:12px 0 2px}.doc-editor-grid label{font-size:11px}.doc-editor-grid input,.doc-editor-grid select,.doc-editor-grid textarea{width:100%;margin-top:4px!important}.doc-editor-grid textarea{grid-column:1/-1;min-height:72px!important}.doc-editor-actions{display:flex;justify-content:flex-end;gap:8px;padding-top:8px}.doc-editor-actions button{width:auto!important;margin:0!important;padding:8px 11px!important}.btn-save-doc{background:linear-gradient(100deg,#7b2ff7,#e843a8)!important;color:#fff!important;border:0!important}
 .soal-item{gap:14px!important;padding:15px 16px!important;border:1px solid #eadcf5!important;border-radius:14px!important;background:#fff}.soal-item+.soal-item{margin-top:10px}.soal-item .info{min-width:0;flex:1}.soal-item .info b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.soal-item .info span{margin-top:3px}.soal-actions{display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:flex-end}.soal-actions button{width:auto!important;margin:0!important;padding:8px 10px!important;font-size:12px!important}.btn-preview-soal{background:#f4eaff!important;color:#61249a!important;border:1px solid #d8bbed!important}.btn-preview-solusi{background:#eaf8ef!important;color:#237146!important;border:1px solid #b7e1c5!important}.btn-preview-off{opacity:.52;cursor:not-allowed!important}.soal-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:12px 0;border-top:1px solid #eee3f6;font-size:12px;color:var(--abu)}.soal-pagination .pager-actions{display:flex;gap:8px}.soal-pagination button{width:auto!important;margin:0!important;padding:8px 11px!important}.pdf-preview-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(38,12,61,.55);backdrop-filter:blur(3px)}.pdf-preview-modal.show{display:flex}.pdf-preview-dialog{width:min(1080px,100%);height:min(88vh,900px);display:flex;flex-direction:column;overflow:hidden;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(25,6,44,.35)}.pdf-preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;background:linear-gradient(100deg,#54217f,#922bc1);color:#fff}.pdf-preview-head b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pdf-preview-head button{width:34px;height:34px;padding:0!important;margin:0!important;border-radius:9px!important;background:rgba(255,255,255,.16)!important;border:1px solid rgba(255,255,255,.36)!important;color:#fff!important}.pdf-preview-dialog iframe{width:100%;height:100%;border:0;background:#f2eff5}
-@media(max-width:760px){.soal-manager-toolbar{grid-template-columns:1fr}.soal-item{display:block!important}.soal-item .info b{white-space:normal}.soal-actions{justify-content:flex-start;margin-top:12px}.soal-pagination{align-items:flex-start;flex-direction:column}.pdf-preview-modal{padding:8px}.pdf-preview-dialog{height:94vh;border-radius:13px}}
+@media(max-width:760px){.soal-manager-toolbar{grid-template-columns:1fr}.soal-item{display:block!important}.soal-item .info b{white-space:normal}.soal-actions{justify-content:flex-start;margin-top:12px}.soal-pagination{align-items:flex-start;flex-direction:column}.pdf-preview-modal{padding:8px}.pdf-preview-dialog{height:94vh;border-radius:13px}.doc-editor-grid{grid-template-columns:1fr}.doc-editor-grid textarea{grid-column:auto}.doc-editor-actions{justify-content:flex-start}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
@@ -2218,10 +2219,12 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
         <option value="sma">SMA</option>
       </select>
       <select id="filterTopikSoalAdmin" aria-label="Filter topik"><option value="semua">Semua topik</option></select>
+      <select id="filterStatusSoalAdmin" aria-label="Filter status"><option value="semua">Semua status</option><option value="terbit">Terbit</option><option value="draf">Draf</option><option value="tinjau">Ditinjau</option><option value="arsip">Arsip</option></select>
     </div>
 
     <button type="button" id="loadListBtn" class="secondary">Muat Daftar Soal</button>
     <div id="statusHapus" class="status"></div>
+    <div id="ringkasanBankDokumen" class="doc-summary" hidden></div>
     <div id="daftarSoalHapus" style="margin-top:14px;"></div>
     <div id="paginationSoalAdmin" class="soal-pagination" hidden></div>
     <p class="note" style="margin-top:12px;">Menghapus soal akan menghapus file PDF soal dan pembahasannya dari GitHub, lalu menghilangkannya dari <code>data/manifest-soal.json</code>. Tindakan ini tidak bisa dibatalkan.</p>
@@ -3217,7 +3220,8 @@ document.addEventListener('DOMContentLoaded', function() {
     details.appendChild(setting);
   }
   groupSystemSettings();
-  collapseAdminSection('sectionHapusSoal', 'Area lanjutan: hapus soal');
+  collapseAdminSection('sectionHapusSoal', 'Bank Dokumen Soal & Pembahasan');
+  collapseAdminSection('sectionOsn', 'Kumpulan file OSN (opsional)');
   collapseAdminSection('bankImportSection', 'Import Word atau JSON (opsional)');
 });
 </script>
@@ -3705,10 +3709,12 @@ function syncTopikSoalAdmin() {
 function getSoalAdminTersaring() {
   const jenjang = $('filterJenjangHapus').value;
   const topik = $('filterTopikSoalAdmin').value;
+  const status = $('filterStatusSoalAdmin').value;
   const kata = $('cariSoalAdmin').value.trim().toLowerCase();
   return daftarSoalAdminCache.filter(item => {
     const cocokJenjang = jenjang === 'semua' || item.jenjang === jenjang;
     const cocokTopik = topik === 'semua' || String(item.topik || '') === topik;
+    const cocokStatus = status === 'semua' || String(item.statusDokumen || 'terbit') === status;
     const haystack = (String(item.title || '') + ' ' + String(item.topik || '')).toLowerCase();
     return cocokJenjang && cocokTopik && (!kata || haystack.includes(kata));
   }).sort((a,b) => new Date(b.tanggal || 0) - new Date(a.tanggal || 0));
@@ -3717,6 +3723,10 @@ function renderDaftarSoalHapus() {
   const box = $('daftarSoalHapus');
   const list = getSoalAdminTersaring();
   const pager = $('paginationSoalAdmin');
+  const summary = $('ringkasanBankDokumen');
+  const jumlahStatus = key => daftarSoalAdminCache.filter(x => String(x.statusDokumen || 'terbit') === key).length;
+  summary.hidden = !daftarSoalAdminCache.length;
+  summary.innerHTML = '<span>Total <strong>' + daftarSoalAdminCache.length + '</strong></span><span>Terbit <strong>' + jumlahStatus('terbit') + '</strong></span><span>Draf <strong>' + jumlahStatus('draf') + '</strong></span><span>Ditinjau <strong>' + jumlahStatus('tinjau') + '</strong></span><span>Arsip <strong>' + jumlahStatus('arsip') + '</strong></span>';
   if (!list.length) {
     box.innerHTML = '<p class="note">Tidak ada soal yang sesuai dengan pencarian atau filter ini.</p>';
     pager.hidden = true;
@@ -3730,16 +3740,30 @@ function renderDaftarSoalHapus() {
     const ytChecked = item.showYoutube === false ? '' : 'checked';
     const soalFile = getSoalFile(item);
     const solusiList = getSolusiFiles(item);
+    const statusDokumen = String(item.statusDokumen || 'terbit');
     return `
     <div class="soal-item" data-soal-file="${escAttr(soalFile)}" data-solusi-files="${escAttr(JSON.stringify(solusiList))}">
       <div class="info">
         <b>${escAttr(item.title || 'Tanpa judul')}</b>
         <span>${String(item.jenjang || '-').toUpperCase()} · ${escAttr(item.topik || '-')} · ${formatTanggalHapus(item.tanggal)} · ${solusiList.length ? 'Pembahasan tersedia' : 'Belum ada pembahasan'}</span>
+        <em class="doc-status ${escAttr(statusDokumen)}">${escAttr(statusDokumen)}</em>
         <div class="yt-edit">
           <input type="url" class="yt-edit-input" placeholder="Link YouTube pembahasan (opsional)" value="${escAttr(item.youtubeLink || '')}">
           <label><input type="checkbox" class="yt-edit-show" ${ytChecked}> Tampilkan</label>
           <button type="button" class="btn-simpan-yt">Simpan Link</button>
         </div>
+        <details class="doc-editor">
+          <summary>✎ Edit informasi dokumen</summary>
+          <div class="doc-editor-grid">
+            <label>Judul<input class="edit-doc-title" value="${escAttr(item.title || '')}"></label>
+            <label>Jenjang<select class="edit-doc-jenjang"><option value="sd" ${item.jenjang==='sd'?'selected':''}>SD</option><option value="smp" ${item.jenjang==='smp'?'selected':''}>SMP</option><option value="sma" ${item.jenjang==='sma'?'selected':''}>SMA</option></select></label>
+            <label>Topik<input class="edit-doc-topik" value="${escAttr(item.topik || '')}"></label>
+            <label>Status<select class="edit-doc-status"><option value="terbit" ${statusDokumen==='terbit'?'selected':''}>Terbit</option><option value="draf" ${statusDokumen==='draf'?'selected':''}>Draf</option><option value="tinjau" ${statusDokumen==='tinjau'?'selected':''}>Ditinjau</option><option value="arsip" ${statusDokumen==='arsip'?'selected':''}>Arsip</option></select></label>
+            <label>Tanggal<input class="edit-doc-tanggal" type="date" value="${escAttr(item.tanggal || '')}"></label>
+            <label>Catatan internal admin<textarea class="edit-doc-catatan" placeholder="Contoh: rumus perlu diperiksa lagi">${escAttr(item.catatanAdmin || '')}</textarea></label>
+          </div>
+          <div class="doc-editor-actions"><button type="button" class="btn-save-doc">Simpan Perubahan</button></div>
+        </details>
       </div>
       <div class="soal-actions">
         <button type="button" class="btn-preview-soal" ${soalFile ? '' : 'disabled'}>Lihat Soal</button>
@@ -3760,6 +3784,7 @@ function renderDaftarSoalHapus() {
   box.querySelectorAll('.btn-simpan-yt').forEach(btn => {
     btn.addEventListener('click', () => simpanYoutubeSoal(btn));
   });
+  box.querySelectorAll('.btn-save-doc').forEach(btn => btn.addEventListener('click', () => simpanEditDokumen(btn)));
   box.querySelectorAll('.btn-preview-soal').forEach(btn => btn.addEventListener('click', () => bukaPreviewPdf(btn.closest('.soal-item').dataset.soalFile, 'Preview PDF Soal')));
   box.querySelectorAll('.btn-preview-solusi').forEach(btn => btn.addEventListener('click', () => { const files = JSON.parse(btn.closest('.soal-item').dataset.solusiFiles || '[]'); if (files[0]) bukaPreviewPdf(files[0], 'Preview PDF Pembahasan'); }));
 }
@@ -3773,6 +3798,29 @@ function bukaPreviewPdf(path, judul) {
   modal.querySelector('b').textContent = judul;
   modal.querySelector('iframe').src = direct;
   modal.classList.add('show');
+}
+
+async function simpanEditDokumen(btn) {
+  const cfg = getCfg();
+  if (!cfg.user || !cfg.repo || !cfg.token) { setStatusHapus('err', 'Isi dulu Username, Repo, dan Token GitHub-nya di bagian Pengaturan sistem.'); return; }
+  const itemEl = btn.closest('.soal-item');
+  const panel = btn.closest('.doc-editor');
+  const patch = {
+    title: panel.querySelector('.edit-doc-title').value.trim() || 'Tanpa judul',
+    jenjang: panel.querySelector('.edit-doc-jenjang').value,
+    topik: panel.querySelector('.edit-doc-topik').value.trim(),
+    statusDokumen: panel.querySelector('.edit-doc-status').value,
+    tanggal: panel.querySelector('.edit-doc-tanggal').value,
+    catatanAdmin: panel.querySelector('.edit-doc-catatan').value.trim()
+  };
+  btn.disabled = true; const asal = btn.textContent; btn.textContent = 'Menyimpan…';
+  try {
+    await updateManifestEntryWithRetry(itemEl.dataset.soalFile, patch, cfg);
+    const idx = daftarSoalAdminCache.findIndex(x => getSoalFile(x) === itemEl.dataset.soalFile);
+    if (idx >= 0) daftarSoalAdminCache[idx] = {...daftarSoalAdminCache[idx], ...patch};
+    syncTopikSoalAdmin(); renderDaftarSoalHapus();
+    setStatusHapus('ok', '✓ Informasi dokumen disimpan. Status Draf, Ditinjau, atau Arsip tidak ditampilkan kepada peserta.');
+  } catch (e) { setStatusHapus('err', e.message || 'Gagal menyimpan informasi dokumen.'); btn.disabled = false; btn.textContent = asal; }
 }
 
 // Simpan/ubah link YouTube pembahasan untuk 1 soal yang sudah ada, tanpa
@@ -3905,6 +3953,7 @@ $('loadListBtn').addEventListener('click', async () => {
 $('cariSoalAdmin').addEventListener('input', () => { halamanSoalAdmin = 1; renderDaftarSoalHapus(); });
 $('filterJenjangHapus').addEventListener('change', () => { halamanSoalAdmin = 1; renderDaftarSoalHapus(); });
 $('filterTopikSoalAdmin').addEventListener('change', () => { halamanSoalAdmin = 1; renderDaftarSoalHapus(); });
+$('filterStatusSoalAdmin').addEventListener('change', () => { halamanSoalAdmin = 1; renderDaftarSoalHapus(); });
 
 /* ================== KUMPULAN SOAL OSN (upload & hapus file) ================== */
 
