@@ -1431,11 +1431,8 @@ main{max-width:1080px;padding:42px 28px 76px}
 .pelatihan-grid{gap:26px}.pelatihan-card{padding:26px}.materi-item{padding:15px 0}
 @media(max-width:760px){main{padding:28px 14px 56px}.page-title{margin-bottom:18px}.soal-card{border-radius:16px}.soal-card .head{display:block;padding:15px}.soal-card .head .tgl{display:inline-flex;margin-top:9px}.soal-card .soal-img{padding:10px}.soal-card .toggle-wrap{padding:0 12px 12px}.soal-card .pembahasan-wrap{margin:0 12px 12px;padding:10px}.pdf-viewer{height:72vh;min-height:460px}.catalog-toolbar{position:static;grid-template-columns:1fr}.pelatihan-card{padding:18px}}
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
-  <script src="supabase-client.js"></script>
-  <script src="supabase-tryout.js"></script>
-  <script src="supabase-login-peserta.js"></script>
+<style>.kf-toast{position:fixed;right:18px;bottom:20px;z-index:99999;max-width:360px;padding:13px 16px;border-radius:13px;color:#fff;background:#572080;box-shadow:0 12px 30px #32104a55;transform:translateY(120px);opacity:0;transition:.25s;font-weight:700;font-size:14px}.kf-toast.show{transform:translateY(0);opacity:1}.kf-toast.ok{background:#16884e}.kf-toast.err{background:#b42355}.kf-working{opacity:.72;pointer-events:none}.btn-cta-primary,.toggle-btn{min-height:42px;font-weight:800}.pelatihan-status,.status{border:1px solid #e3cfef;border-radius:11px;padding:11px 13px}</style>
+  <script src="ui-petunjuk.js"></script>
 </head>
 <body>
 
@@ -1452,7 +1449,7 @@ main{max-width:1080px;padding:42px 28px 76px}
   <button data-page="sma">SMA</button>
   <button data-page="tryout">Try Out</button>
   <button data-page="download">Soal OSN</button>
-  <button data-page="pelatihan">Pelatihan</button>
+  <button data-page="pelatihan" style="display:none">Pelatihan</button>
   <button data-page="kontak">Kontak</button>
 </nav>
 
@@ -1525,7 +1522,7 @@ main{max-width:1080px;padding:42px 28px 76px}
     <div id="listSMA" class="soal-list"><div class="skeleton-wrap" aria-hidden="true"><div class="skeleton-card"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line block"></div></div><div class="skeleton-card"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line block"></div></div></div></div>
   </section>
 
-  <section id="page-pelatihan" class="page">
+  <section id="page-pelatihan" class="page" style="display:none">
     <div class="page-title"><h2>Pelatihan KlinikFisikapku</h2><span>Materi PDF privat, tryout lengkap, dan pendampingan melalui WhatsApp.</span></div>
     <div class="pelatihan-grid">
       <div class="pelatihan-card"><h3>Daftar pelatihan</h3><p>Isi data singkat berikut. Setelah itu Anda langsung diarahkan untuk menghubungi Admin melalui WhatsApp.</p>

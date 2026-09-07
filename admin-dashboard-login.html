@@ -2030,6 +2030,8 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="supabase-client.js"></script>
+<style>.kf-toast{position:fixed;right:18px;bottom:20px;z-index:99999;max-width:360px;padding:13px 16px;border-radius:13px;color:#fff;background:#572080;box-shadow:0 12px 30px #32104a55;transform:translateY(120px);opacity:0;transition:.25s;font-weight:700;font-size:14px}.kf-toast.show{transform:translateY(0);opacity:1}.kf-toast.ok{background:#16884e}.kf-toast.err{background:#b42355}.kf-working{opacity:.72;pointer-events:none}.status{border-radius:11px;padding:11px 13px;line-height:1.45}</style>
+  <script src="ui-petunjuk.js"></script>
 </head>
 <body class="admin-locked">
 
@@ -2154,9 +2156,10 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
       <label style="margin:0; font-weight:400;" for="setLatihanAcak">Tampilkan tombol <strong>Latihan 5 Soal Acak</strong> di halaman SD / SMP / SMA</label>
     </div>
     <div class="checkbox-row" style="margin-top:10px;">
-      <input type="checkbox" id="setPelatihanAktif" checked>
-      <label style="margin:0; font-weight:400;" for="setPelatihanAktif">Tampilkan menu dan halaman <strong>Pelatihan</strong> untuk pengunjung</label>
+      <input type="checkbox" id="setPelatihanAktif">
+      <label style="margin:0; font-weight:400;" for="setPelatihanAktif"><strong>Terbitkan Halaman Pelatihan</strong> — tampilkan menu Pelatihan kepada pengunjung</label>
     </div>
+    <p class="note" style="margin:8px 0 0 30px;">Saat tidak dicentang, menu Pelatihan tidak terlihat oleh siswa. Materi, paket, dan data peserta di admin tetap tersimpan.</p>
     <button type="button" id="btnSimpanPengaturan" class="btn-primary" style="margin-top:16px;">Simpan Pengaturan</button>
     <button type="button" id="btnMuatPengaturan" class="secondary" style="margin-top:10px;">Muat Pengaturan dari GitHub</button>
     <div id="statusPengaturan" class="status"></div>
@@ -3255,7 +3258,8 @@ function getCfg() {
 
 /* ===== Pengaturan situs (data/pengaturan-situs.json) ===== */
 const PENGATURAN_PATH = 'data/pengaturan-situs.json';
-const PENGATURAN_DEFAULT = { latihanAcak: true, pelatihanAktif: true };
+// Pelatihan dimulai sebagai DRAF: tidak terlihat siswa sampai Admin menerbitkannya.
+const PENGATURAN_DEFAULT = { latihanAcak: true, pelatihanAktif: false };
 
 async function muatPengaturanSitus() {
   const st = $('statusPengaturan');
@@ -3327,9 +3331,7 @@ async function simpanPengaturanSitus() {
     }
     if (st) {
       st.className = 'status ok';
-      st.textContent = data.latihanAcak
-        ? '✓ Tersimpan. Tombol Latihan 5 Soal Acak akan tampil di situs siswa.'
-        : '✓ Tersimpan. Tombol Latihan 5 Soal Acak disembunyikan di situs siswa.';
+      st.textContent = '✓ Tersimpan. Tombol Latihan Acak ' + (data.latihanAcak ? 'ditampilkan.' : 'disembunyikan.') + ' Halaman Pelatihan ' + (data.pelatihanAktif ? 'sudah diterbitkan untuk siswa.' : 'masih draf dan disembunyikan dari siswa.');
     }
   } catch (e) {
     if (st) { st.className = 'status err'; st.textContent = 'Gagal: ' + e.message; }
@@ -10587,7 +10589,6 @@ function renderAdminPelatihan(){
 }
 async function simpanPesertaPelatihan(id){try{await panggilAdminPrivat('adminPelatihanSimpan',{id:id,status:document.getElementById('plst-'+id).value,passwordAwal:document.getElementById('plpw-'+id).value});await muatAdminPelatihan();}catch(e){alert(e.message);}}
 async function simpanPaketPelatihan(){try{await panggilAdminPrivat('adminPaketPelatihanSimpan',{paket:{nama:document.getElementById('plNama').value,jenjang:document.getElementById('plJenjang').value,harga:document.getElementById('plHarga').value,deskripsi:document.getElementById('plDeskripsi').value}});await muatAdminPelatihan();}catch(e){alert(e.message);}}
-async function uploadMateriPelatihan(){const f=document.getElementById('pmFile').files[0];if(!f){alert('Pilih file PDF terlebih dahulu.');return;}if(f.size>6000000){alert('Ukuran PDF maksimal 6 MB.');return;}try{const base64=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=no;r.readAsDataURL(f);});await panggilAdminPrivat('adminMateriPelatihanUpload',{nama:f.name,mime:f.type,base64:base64,judul:document.getElementById('pmJudul').value,jenjang:document.getElementById('pmJenjang').value,paketId:document.getElementById('pmPaket').value,deskripsi:document.getElementById('pmDeskripsi').value});document.getElementById('pmFile').value='';await muatAdminPelatihan();}catch(e){alert(e.message);}}
 async function hapusMateriPelatihan(id){if(!confirm('Nonaktifkan materi ini?'))return;try{await panggilAdminPrivat('adminMateriPelatihanHapus',{id:id});await muatAdminPelatihan();}catch(e){alert(e.message);}}
 </script>
 <script>
@@ -10606,7 +10607,9 @@ async function muatPusatData(){const r=await panggilAdminPrivat('pusatDataAdmin'
 </script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){const m=document.querySelector('#panelPelatihan main');if(!m||document.getElementById('paketPrivatJson'))return;m.insertAdjacentHTML('beforeend','<div class="box"><h2>Paket Tryout Privat</h2><p class="note">Paket disimpan di Google Sheet, bukan GitHub. Tempel JSON paket dari editor; kunci dipisahkan ke server.</p><label>JSON paket privat</label><textarea id="paketPrivatJson" placeholder="JSON paket dari editor" style="min-height:130px"></textarea><button class="btn btn-primary" type="button" onclick="simpanPaketPrivatAdmin()">Simpan Paket Privat</button><div id="paketPrivatStatus" class="status"></div></div>');});
+document.addEventListener('DOMContentLoaded',function(){const m=document.querySelector('#panelPelatihan main');if(!m||document.getElementById('migrasiKunciUrls'))return;m.insertAdjacentHTML('beforeend','<div class="box"><h2>🔐 Migrasi Kunci Tryout Lama</h2><p class="note">Tempel satu URL file JSON lama per baris. Kunci akan dipindahkan ke Sheet privat KunciJawaban, lalu tampil laporan hasilnya.</p><textarea id="migrasiKunciUrls" placeholder="https://.../data/tryout/paket-lama.json" style="min-height:110px"></textarea><button class="btn btn-primary" type="button" onclick="migrasiKunciLamaAdmin()">Pindai & pindahkan kunci</button><div id="migrasiKunciStatus" class="status"></div></div>');});
 async function simpanPaketPrivatAdmin(){const s=document.getElementById('paketPrivatStatus');try{const paket=JSON.parse(document.getElementById('paketPrivatJson').value);const r=await panggilAdminPrivat('simpanPaketPrivat',{paket:paket});s.textContent='Paket privat tersimpan: '+r.id;s.className='status ok';}catch(e){s.textContent='Gagal: '+e.message;s.className='status err';}}
+async function migrasiKunciLamaAdmin(){const s=document.getElementById('migrasiKunciStatus'),urls=document.getElementById('migrasiKunciUrls').value.split(/\n/).map(x=>x.trim()).filter(Boolean);if(!urls.length){s.textContent='Tempel minimal satu URL JSON paket lama.';s.className='status err';return;}s.textContent='Memindahkan kunci…';s.className='status loading';try{const r=await panggilAdminPrivat('migrasiKunciLama',{urls:urls});s.innerHTML='✓ '+r.totalKunci+' kunci dipindahkan.<br>'+(r.laporan||[]).map(x=>(x.status==='ok'?'✅ '+x.paketId+' ('+x.jumlah+' soal)':'⚠️ '+(x.url||'')+' — '+x.pesan)).join('<br>');s.className='status ok';}catch(e){s.textContent='Gagal: '+e.message;s.className='status err';}}
 </script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){const f=document.getElementById('pmFile');if(!f||document.getElementById('materiTampilan'))return;f.insertAdjacentHTML('afterend','<div id="materiTampilan" style="margin:12px 0;padding:12px;border:1px solid #eadcf5;border-radius:12px"><b style="font-size:13px">Tampilan di menu peserta</b><div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px"><label><input id="mtPdf" type="checkbox" checked> 📄 Modul PDF</label><label><input id="mtVideo" type="checkbox"> 🎥 Video</label><label><input id="mtRumus" type="checkbox"> ∑ Rumus cepat</label><label><input id="mtLatihan" type="checkbox"> 📝 Latihan</label><label><input id="mtTryout" type="checkbox"> 🏆 Tryout bab</label><label>Durasi video <input id="mtDurasi" type="text" placeholder="18 menit" style="width:90px"></label></div></div>');});

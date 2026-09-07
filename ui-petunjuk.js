@@ -1,0 +1,6 @@
+/* Petunjuk tampilan umum: tidak mengubah Apps Script atau data. */
+(function(){
+  const ok=/berhasil|tersimpan|sudah aktif|selesai|✓|dipindahkan/i, err=/gagal|kesalahan|ditolak|tidak dapat|belum/i;
+  function toast(pesan,tipe){let t=document.getElementById('kfToast');if(!t){t=document.createElement('div');t.id='kfToast';document.body.appendChild(t)}t.className='kf-toast '+(tipe||'info');t.textContent=pesan;t.classList.add('show');clearTimeout(window.kfToastTimer);window.kfToastTimer=setTimeout(()=>t.classList.remove('show'),4200)}
+  document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('button,a.btn').forEach(b=>{const x=(b.textContent||'').trim().replace(/\s+/g,' ');if(x&&!b.title)b.title=x;if(x&&!b.getAttribute('aria-label'))b.setAttribute('aria-label',x)});document.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{if(!b.disabled)b.classList.add('kf-working');setTimeout(()=>b.classList.remove('kf-working'),5000)}));const o=new MutationObserver(ms=>ms.forEach(m=>{const e=m.target,txt=(e.textContent||'').trim();if(!txt||e.dataset.kfLast===txt)return;e.dataset.kfLast=txt;if(ok.test(txt))toast(txt,'ok');else if(err.test(txt))toast(txt,'err')}));document.querySelectorAll('.status,.pelatihan-status,[id$="Info"],[id$="Status"]').forEach(e=>o.observe(e,{childList:true,characterData:true,subtree:true}));});
+})();

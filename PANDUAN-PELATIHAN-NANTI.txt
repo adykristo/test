@@ -1,0 +1,18 @@
+MODE PELATIHAN: DRAF / TERBIT
+
+Saat ini halaman Pelatihan dibuat sebagai DRAF.
+Menu Pelatihan tidak terlihat oleh siswa, tetapi semua menu lama tetap berjalan.
+
+Saat Anda sudah siap:
+1. Buka admin-dashboard-login.html dan login Admin.
+2. Buka Pengaturan Sistem.
+3. Pada Pengaturan Tampilan Situs, centang "Terbitkan Halaman Pelatihan".
+4. Klik "Simpan Pengaturan".
+5. Tunggu GitHub Pages memperbarui situs, lalu refresh halaman siswa.
+
+Untuk menyembunyikan kembali, hilangkan centang tersebut dan simpan.
+
+Catatan keamanan:
+- Soal, kunci jawaban, peserta, hasil tryout, materi privat, dan mode AI tetap memakai Apps Script lama.
+- Jangan mengunggah code.gs atau kunci API ke GitHub.
+- File materi berbayar tetap dikelola melalui Admin dan Google Drive privat.
