@@ -1434,6 +1434,7 @@ main{max-width:1080px;padding:42px 28px 76px}
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="supabase-client.js"></script>
+  <script src="supabase-tryout.js"></script>
 </head>
 <body>
 
@@ -1726,7 +1727,7 @@ const KATALOG_PER_HALAMAN = 12;
 const katalogState = { sd:{query:'',topik:'',sort:'baru',page:1}, smp:{query:'',topik:'',sort:'baru',page:1}, sma:{query:'',topik:'',sort:'baru',page:1} };
 const KF_STUDY_MARK_KEY='kf_study_marks_v1';
 function bacaTandaBelajar(){try{return JSON.parse(localStorage.getItem(KF_STUDY_MARK_KEY)||'{}')}catch(e){return {}}}
-function tandaBelajar(id,tipe){const data=bacaTandaBelajar(),sebelumnya=data[id]||{};data[id]={...sebelumnya,[tipe]:!sebelumnya[tipe]};localStorage.setItem(KF_STUDY_MARK_KEY,JSON.stringify(data));const item=allSoal.find(x=>(x.soalPdf||x.soalImage)===id);if(item)renderJenjang(item.jenjang)}
+function tandaBelajar(id,tipe){const data=bacaTandaBelajar(),sebelumnya=data[id]||{};data[id]={...sebelumnya,[tipe]:!sebelumnya[tipe]};localStorage.setItem(KF_STUDY_MARK_KEY,JSON.stringify(data));if(window.kfSupabaseTryout)window.kfSupabaseTryout.simpanProgres(id,data[id][tipe]?(tipe==='sudah'?'selesai':tipe):'dibuka').catch(()=>{});const item=allSoal.find(x=>(x.soalPdf||x.soalImage)===id);if(item)renderJenjang(item.jenjang)}
 
 function setKatalogFilter(jenjang, key, value) {
   katalogState[jenjang][key] = value;
