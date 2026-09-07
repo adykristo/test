@@ -2036,6 +2036,8 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
 #panelSoal #sectionGithub input,#panelSoal #sectionPengaturan input,#panelSoal #sectionKeamanan input{max-width:none!important;width:100%}
 #panelSoal #sectionGithub .row,#panelSoal #sectionPengaturan .row{max-width:760px}
 @media(min-width:920px){#panelSoal #sectionGithub,#panelSoal #sectionPengaturan,#panelSoal #sectionKeamanan{padding:24px 28px!important}#panelSoal #sectionGithub .card-actions,#panelSoal #sectionPengaturan .card-actions{display:flex;gap:10px;flex-wrap:wrap}}
+/* Teks soal langsung rapi saat diketik. */
+#panelTryout .input-pertanyaan,#panelTryout .input-pilihan,#panelTryout .input-pembahasan{ text-align:justify!important;text-justify:inter-word;line-height:1.75!important; }
 </style>
   <script src="ui-petunjuk.js"></script>
 </head>
@@ -7460,11 +7462,9 @@ function tambahSoal(existing) {
     </div>
 
     <div class="visual-tools">
-      <label>📐 Diagram fisika<select class="input-diagram-type"><option value="vektor">Vektor gaya</option><option value="grafik">Grafik gerak</option><option value="bidang">Bidang miring</option><option value="gelombang">Gelombang</option><option value="rangkaian">Rangkaian listrik</option><option value="lensa">Sinar lensa</option></select></label>
       <label>Masukkan ke<select class="input-visual-target"><option value="soal">Gambar soal</option><option value="opsi-A">Opsi A</option><option value="opsi-B">Opsi B</option><option value="opsi-C">Opsi C</option><option value="pembahasan">Gambar pembahasan</option></select></label>
-      <button type="button" class="btn btn-outline btn-xs" onclick="buatDiagramFisik('${uid}')">✦ Buat diagram</button>
       <label>✂ Crop foto<input type="file" accept="image/*" class="input-crop-foto" onchange="cropFotoKeTujuan(this)" style="max-width:190px;"></label>
-      <span class="help" style="margin:0;max-width:270px;">Diagram dibuat otomatis. Crop foto membuka alat potong lalu hasilnya masuk ke tujuan pilihan.</span>
+      <span class="help" style="margin:0;max-width:340px;">Ilustrasi soal dibuat melalui draf AI bila diperlukan. Crop foto tetap tersedia untuk memasukkan gambar sendiri.</span>
     </div>
 
     <div class="area-pg" style="margin-top:4px;">
