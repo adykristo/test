@@ -1437,6 +1437,9 @@ main{max-width:1080px;padding:42px 28px 76px}
 .soal-card mjx-container,.review-card mjx-container,.tryout-question-text mjx-container{ margin:0 .12em; }
 @media(max-width:640px){.soal-card .teks,.soal-card .opsi-teks,.soal-card .pembahasan-wrap,.review-card .soal-teks,.review-card .opsi-review,.review-card .pembahasan-content,.tryout-question-text,.question-text{line-height:1.68;text-align:justify}.soal-card .pembahasan-wrap{padding:14px}}
 </style>
+<style>
+.soal-card{margin-bottom:18px}.soal-open-actions{padding:14px 18px;border-top:1px solid #eee3f6;background:#fff}.open-soal-btn{border:0;border-radius:10px;padding:11px 17px;background:linear-gradient(110deg,#572080,#9d33df);color:#fff;font-weight:800;cursor:pointer}.soal-content-collapsed{display:none;padding:0 18px 2px;background:#faf8fc}.soal-content-collapsed.show{display:block}.soal-content-collapsed .pdf-reader{margin:0 auto 14px;max-width:900px}.soal-card .toggle-wrap{padding-top:13px}.soal-card .head{min-height:62px}@media(max-width:640px){.soal-open-actions{padding:12px}.soal-content-collapsed{padding:0 8px}.open-soal-btn{width:100%}}
+</style>
 <style>.kf-toast{position:fixed;right:18px;bottom:20px;z-index:99999;max-width:360px;padding:13px 16px;border-radius:13px;color:#fff;background:#572080;box-shadow:0 12px 30px #32104a55;transform:translateY(120px);opacity:0;transition:.25s;font-weight:700;font-size:14px}.kf-toast.show{transform:translateY(0);opacity:1}.kf-toast.ok{background:#16884e}.kf-toast.err{background:#b42355}.kf-working{opacity:.72;pointer-events:none}.btn-cta-primary,.toggle-btn{min-height:42px;font-weight:800}.pelatihan-status,.status{border:1px solid #e3cfef;border-radius:11px;padding:11px 13px}</style>
   <script src="ui-petunjuk.js"></script>
 </head>
@@ -1787,7 +1790,8 @@ function renderJenjang(jenjang) {
         </div>
         <span class="tgl">${formatTanggal(item.tanggal)}</span>
       </div>
-      ${item.soalPdf ? pdfViewer(item.soalPdf, `Soal ${item.title}`, uid + '-q') : `<img class="soal-img" src="${item.soalImage}" alt="${item.title}">`}
+      <div class="soal-open-actions"><button class="open-soal-btn" type="button" onclick="bukaSoalKatalog('${uid}',this)">Buka Soal</button></div>
+      <div class="soal-content-collapsed" id="soal-${uid}">${item.soalPdf ? pdfViewer(item.soalPdf, `Soal ${item.title}`, uid + '-q') : `<img class="soal-img" src="${item.soalImage}" alt="${item.title}">`}</div>
       <div class="toggle-wrap">
         <button class="toggle-btn" onclick="toggleSolusi('${uid}','${jenjang}')">Lihat Pembahasan</button>
         <div class="soal-learning-actions"><button type="button" class="${mark.sudah?'active':''}" onclick="tandaBelajar('${escAttr(markId)}','sudah')">${mark.sudah?'✓ Sudah dipelajari':'Tandai sudah dipelajari'}</button><button type="button" class="${mark.ulang?'active':''}" onclick="tandaBelajar('${escAttr(markId)}','ulang')">${mark.ulang?'↻ Perlu diulang':'Perlu diulang'}</button><button type="button" class="${mark.favorit?'active':''}" onclick="tandaBelajar('${escAttr(markId)}','favorit')">${mark.favorit?'★ Disimpan':'☆ Simpan soal'}</button></div>
@@ -1798,8 +1802,10 @@ function renderJenjang(jenjang) {
       </div>
     </div>`;
   }).join('') + `<div class="catalog-pages"><span class="catalog-summary" style="margin:0;">Halaman ${state.page} dari ${totalHalaman}</span><div><button type="button" ${state.page<=1?'disabled':''} onclick="pindahHalamanKatalog('${jenjang}',-1)">← Sebelumnya</button> <button type="button" ${state.page>=totalHalaman?'disabled':''} onclick="pindahHalamanKatalog('${jenjang}',1)">Berikutnya →</button></div></div>`;
-  listEl.querySelectorAll('.soal-card > .pdf-reader').forEach(el => aktifkanPdfReader(el));
+  listEl.querySelectorAll('.soal-content-collapsed .pdf-reader').forEach(el => aktifkanPdfReader(el));
 }
+
+function bukaSoalKatalog(uid,btn){const box=document.getElementById('soal-'+uid);if(!box)return;const buka=box.classList.toggle('show');btn.textContent=buka?'Sembunyikan Soal':'Buka Soal';if(buka)box.scrollIntoView({behavior:'smooth',block:'start'});}
 
 async function aktifkanPdfReader(reader) {
   if (!reader || reader.dataset.ready) return;
