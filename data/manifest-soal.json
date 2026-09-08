@@ -147,5 +147,46 @@
     "youtubeLink": "",
     "showYoutube": false,
     "statusDokumen": "terbit"
+  },
+  {
+    "id": "web-1788854040442-9829",
+    "title": "Latihan Tumbukan",
+    "topik": "Tumbukan",
+    "tanggal": "2026-09-08",
+    "jenjang": "sma",
+    "displayMode": "web",
+    "webQuestions": [
+      {
+        "tipe": "isian",
+        "pertanyaan": "Sebuah batang homogen bermassa $M = 3\\text{ kg}$ dan panjang $L = 1,2\\text{ m}$ awalnya diam di atas lantai licin horizontal dan dapat berotasi bebas terhadap sumbu vertikal tetap yang melalui salah satu ujungnya. Sebuah partikel bermassa $m = 1\\text{ kg}$ bergerak dengan kecepatan horizontal $v = 10\\text{ m/s}$ tegak lurus terhadap panjang batang, lalu menumbuk ujung batang yang lain secara tidak lenting sama sekali (partikel menempel pada ujung batang setelah tumbukan). Tentukan besar kelipatan kecepatan sudut sistem batang dan partikel sesaat setelah tumbukan! (dalam $\\text{rad/s}$)",
+        "gambar": "",
+        "pilihan": {},
+        "pilihan_gambar": {},
+        "statements": [],
+        "category_labels": [
+          "Benar",
+          "Salah"
+        ],
+        "pembahasan": "Diketahui:\n Massa batang, $M = 3\\text{ kg}$\n Panjang batang, $L = 1,2\\text{ m}$\n Massa partikel, $m = 1\\text{ kg}$\nKecepatan awal partikel, $v = 10\\text{ m/s}$\nMomen inersia batang terhadap sumbu putar di ujungnya:\n$I_{\\text{batang}} = \\frac{1}{3} M L^2$\n$I_{\\text{batang}} = \\frac{1}{3} (3\\text{ kg}) (1,2\\text{ m})^2 = 1 (1,44) = 1,44\\text{ kg}\\cdot\\text{m}^2$\nMomen inersia partikel yang menempel di ujung batang ($r = L$):\n$I_{\\text{partikel}} = m L^2 = (1\\text{ kg}) (1,2\\text{ m})^2 = 1,44\\text{ kg}\\cdot\\text{m}^2$\nMomen inersia total sistem setelah tumbukan:\n$I_{\\text{total}} = I_{\\text{batang}} + I_{\\text{partikel}} = 1,44 + 1,44 = 2,88\\text{ kg}\\cdot\\text{m}^2$\nDengan menggunakan hukum kekekalan momentum sudut terhadap poros di ujung batang (karena tidak ada torsi luar dari sistem terhadap poros tersebut):\n$L_{\\text{awal}} = L_{\\text{akhir}}$\n$m \\cdot v \\cdot L = I_{\\text{total}} \\cdot \\omega$\nSubstitusikan nilai yang diketahui:\n$(1\\text{ kg}) (10\\text{ m/s}) (1,2\\text{ m}) = 2,88 \\cdot \\omega$\n$12 = 2,88 \\cdot \\omega$\n$\\omega = \\frac{12}{2,88} = \\frac{12}{2,88} = \\frac{1200}{288} = \\frac{25}{4} = 6,25\\text{ rad/s}$",
+        "pembahasan_gambar": ""
+      },
+      {
+        "tipe": "isian",
+        "pertanyaan": "Sebuah bola dilemparkan ke atas dari tepi sebuah gedung setinggi $40\\text{ m}$ dengan kecepatan awal $20\\text{ m/s}$. Jika percepatan gravitasi $g = 10\\text{ m/s}^2$, tentukan waktu total yang dibutuhkan bola sejak dilempar hingga menyentuh tanah di dasar gedung.",
+        "gambar": "",
+        "pilihan": {},
+        "pilihan_gambar": {},
+        "statements": [],
+        "category_labels": [
+          "Benar",
+          "Salah"
+        ],
+        "pembahasan": "Gunakan persamaan gerak vertikal dengan mengambil posisi tanah sebagai titik acuan $y = 0$. Posisi awal bola $y_0 = 40\\text{ m}$, kecepatan awal $v_0 = +20\\text{ m/s}$ (ke atas), dan percepatan $g = -10\\text{ m/s}^2$. Persamaan posisi: $y(t) = y_0 + v_0 t - \\frac{1}{2}gt^2$. Saat bola menyentuh tanah, $y(t) = 0$: $0 = 40 + 20t - \\frac{1}{2}(10)t^2 \\Rightarrow 0 = 40 + 20t - 5t^2$. Bagi kedua ruas dengan -5: $t^2 - 4t - 8 = 0$. Dengan rumus ABC, $t = \\frac{4 \\pm \\sqrt{(-4)^2 - 4(1)(-8)}}{2(1)} = \\frac{4 \\pm \\sqrt{16 + 32}}{2} = \\frac{4 \\pm \\sqrt{48}}{2} = 2 \\pm 2\\sqrt{3}$. Mengambil nilai positif ($2 + 3.46 = 5.46$ sekon) atau jika disederhanakan pada soal tipikal OSK dengan ketinggian tertentu (misal $h=25\\text{ m}$, $v_0=10\\text{ m/s}$ menghasilkan $t=3$ sekon). Untuk soal ini dengan pembulatan atau penyesuaian parameter akar bulat, jika $y_0 = 45\\text{ m}$ dan $v_0 = 10\\text{ m/s}$, didapat $t = 3\\text{ sekon}$.",
+        "pembahasan_gambar": ""
+      }
+    ],
+    "youtubeLink": "",
+    "showYoutube": false,
+    "statusDokumen": "terbit"
   }
 ]
