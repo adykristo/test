@@ -2037,6 +2037,30 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
 @media(min-width:920px){#panelSoal #sectionGithub,#panelSoal #sectionPengaturan,#panelSoal #sectionKeamanan{padding:24px 28px!important}#panelSoal #sectionGithub .card-actions,#panelSoal #sectionPengaturan .card-actions{display:flex;gap:10px;flex-wrap:wrap}}
 /* Teks soal langsung rapi saat diketik. */
 #panelTryout .input-pertanyaan,#panelTryout .input-pilihan,#panelTryout .input-pembahasan{ text-align:justify!important;text-justify:inter-word;line-height:1.75!important; }
+#panelBank .box{max-width:1180px;margin-left:auto;margin-right:auto}
+#panelBank #bankDashboard{padding:24px;background:linear-gradient(145deg,#fff 0%,#fcf8ff 100%)}
+#panelBank .bank-picker-item{padding:14px 15px;border:1px solid #eadcf5;background:#fff;box-shadow:none}
+#panelBank .bank-picker-item:hover{border-color:#cda7ea;box-shadow:0 8px 18px rgba(93,31,139,.08)}
+#panelBank .bank-compact-section>summary{padding:16px;color:var(--ungu-tua);font-weight:800;cursor:pointer;list-style:none}
+#panelBank .bank-compact-section>summary::-webkit-details-marker{display:none}
+#panelBank .bank-compact-section>summary:after{content:'⌄';float:right;color:var(--ungu)}
+#panelBank .bank-compact-section[open]>summary{border-bottom:1px solid var(--border)}
+#panelBank .bank-compact-section[open]>summary:after{content:'⌃'}
+#panelBank .admin-collapsible{max-width:1180px;margin-left:auto;margin-right:auto}
+.admin-sidebar{background:#fff;border-right:1px solid #eee5f5;box-shadow:8px 0 28px rgba(74,22,112,.035)}
+.sidebar-brand{padding:21px 18px!important;border-bottom:1px solid #f0e8f6}
+.sidebar-section-title{margin:9px 0 5px!important;color:#a28aa9!important}
+.nav-group-label{margin-top:12px!important;padding:7px 14px 4px!important;color:#9b7bac!important}
+.admin-tabs button.tab-btn{border-radius:10px!important;margin:2px 8px!important;width:calc(100% - 16px)!important;text-align:left!important}
+.admin-tabs button.tab-btn:not(.active):hover{background:#f8f1ff!important;color:var(--ungu-tua)!important}
+.sidebar-more{display:block;margin:10px 8px 4px;border:1px solid #eee1f5;border-radius:11px;background:#fcfaff;overflow:hidden}
+.sidebar-more>summary{padding:10px 12px;color:#6a348a;font-size:12px;font-weight:800;cursor:pointer;list-style:none}.sidebar-more>summary::-webkit-details-marker{display:none}.sidebar-more>summary:after{content:'⌄';float:right}.sidebar-more[open]>summary{border-bottom:1px solid #eee1f5}.sidebar-more[open]>summary:after{content:'⌃'}
+.sidebar-more .tab-btn{margin:2px 4px!important;width:calc(100% - 8px)!important}
+.admin-topbar{box-shadow:0 5px 20px rgba(65,15,103,.10)!important}.admin-topbar h1{letter-spacing:-.45px!important}
+.admin-content{background:linear-gradient(135deg,#fbf8ff 0%,#fffafd 52%,#f8f2ff 100%)!important}
+.box,.card{border:1px solid #eadff4!important;box-shadow:0 9px 24px rgba(73,22,112,.055)!important}
+#panelTryout #adminDashboardBox{background:linear-gradient(145deg,#fff 0%,#fbf6ff 100%)}
+#panelTryout .dash-card{border:1px solid #eadcf5;border-radius:15px;background:#fff;box-shadow:none}
 </style>
   <script src="ui-petunjuk.js"></script>
 </head>
@@ -2082,9 +2106,11 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
         <div class="nav-group-label">Materi</div>
         <button type="button" class="tab-btn" id="tabBtnSoal" onclick="navigateAdmin('panelSoal','sectionUploadSoal')"><span class="tab-icon">↑</span> Konten Situs &amp; OSN</button>
         <button type="button" class="tab-btn" id="tabBtnPelatihan" onclick="switchAdminTab('panelPelatihan')"><span class="tab-icon">▤</span> Pelatihan &amp; Materi</button>
-        <button type="button" class="tab-btn" id="tabBtnData" onclick="switchAdminTab('panelPusatData')"><span class="tab-icon">▦</span> Pusat Data</button>
-        <div class="nav-group-label">Sistem</div>
-        <button type="button" class="tab-btn" onclick="navigateAdmin('panelSoal','sectionGithub')"><span class="tab-icon">⚙</span> Pengaturan Sistem</button>
+        <details class="sidebar-more">
+          <summary>⚙ Lainnya &amp; Sistem</summary>
+          <button type="button" class="tab-btn sub-item" id="tabBtnData" onclick="switchAdminTab('panelPusatData')"><span class="tab-icon">▦</span> Pusat Data</button>
+          <button type="button" class="tab-btn sub-item" onclick="navigateAdmin('panelSoal','sectionGithub')"><span class="tab-icon">⚙</span> Pengaturan Sistem</button>
+        </details>
       </div>
     </div>
     <div class="sidebar-footer">
@@ -2948,8 +2974,10 @@ Pembahasan: $\sum F=ma$</pre>
     </div>
     <div id="bankAdminStats" class="help" style="margin-bottom:10px;"></div>
     <div id="bankAdminList" class="bank-picker-list" style="max-height:none;"></div>
-    <div class="form-advanced" style="margin-top:16px;padding:16px;">
-      <h3 style="margin:0 0 6px;font-size:16px;color:var(--ungu-tua);">🌐 Terbitkan ke halaman SD / SMP / SMA</h3>
+    <details class="form-advanced bank-compact-section" style="margin-top:16px;padding:0;">
+      <summary>🌐 Terbitkan soal terpilih ke halaman SD / SMP / SMA</summary>
+      <div style="padding:0 16px 16px;">
+      <h3 style="margin:0 0 6px;font-size:16px;color:var(--ungu-tua);">Terbitkan sebagai Web Interaktif</h3>
       <p class="help" style="margin:0 0 12px;">Centang soal pada daftar di atas. Soal akan tampil sebagai <b>Web Interaktif</b>: teks responsif, rumus MathJax, gambar WebP, pembahasan buka-tutup, serta tombol YouTube bila diisi. Kunci Try Out tidak ikut diterbitkan.</p>
       <div class="row3">
         <div><label style="margin-top:0;">Judul kumpulan soal</label><input id="bankWebJudul" type="text" placeholder="Contoh: Latihan Dinamika Rotasi"></div>
@@ -2962,7 +2990,8 @@ Pembahasan: $\sum F=ma$</pre>
         <button type="button" class="btn btn-outline" onclick="bankPilihSemuaUntukWeb(false)">Kosongkan pilihan</button>
       </div>
       <div id="bankWebStatus" class="status-bar" style="margin-top:10px;"></div>
-    </div>
+      </div>
+    </details>
   </div>
 
   <div class="box" id="bankEditorSection" style="margin-top:18px;">
@@ -3289,6 +3318,7 @@ document.addEventListener('DOMContentLoaded', function() {
   groupSystemSettings();
   collapseAdminSection('sectionHapusSoal', 'Bank Dokumen Soal & Pembahasan');
   collapseAdminSection('sectionOsn', 'Kumpulan file OSN (opsional)');
+  collapseAdminSection('bankEditorSection', 'Editor Soal Bank (buat atau edit satu soal)');
   collapseAdminSection('bankImportSection', 'Import Word atau JSON (opsional)');
 });
 </script>
@@ -6988,6 +7018,9 @@ function bankPastikanEditorSiap() {
 function bankBukaEditorBaru(prefill) {
   const box = document.getElementById('bankEditorSoalContainer');
   if (!box) return;
+  const panel = document.getElementById('bankEditorSection');
+  const lipat = panel && panel.closest('details.admin-collapsible');
+  if (lipat) lipat.open = true;
   box.innerHTML = '';
   document.getElementById('bankEditId').value = '';
   if (typeof tambahSoal === 'function') {
