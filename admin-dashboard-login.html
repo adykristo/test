@@ -2936,6 +2936,8 @@ Pembahasan: $\sum F=ma$</pre>
       <div style="display:flex;flex-wrap:wrap;gap:8px;">
         <button type="button" class="btn btn-primary" onclick="bankBukaEditorBaru()">+ Soal Baru</button>
         <button type="button" class="btn btn-outline" onclick="muatBankSoal(true).then(renderBankAdminList)">🔄 Muat Ulang</button>
+        <button type="button" class="btn btn-outline" onclick="bankUnduhTerpilih('word')">📝 Unduh Word Terpilih</button>
+        <button type="button" class="btn btn-outline" onclick="bankUnduhTerpilih('pdf')">🖨️ PDF Tampilan Peserta</button>
         <button type="button" class="btn btn-outline" onclick="bankExportJson()">⬇ Export JSON</button>
         <label class="btn btn-outline" style="cursor:pointer;margin:0;">⬆ Import JSON<input type="file" id="bankImportJsonFile" accept=".json,application/json" style="display:none;" onchange="bankImportJson(event)"></label>
       </div>
@@ -2978,7 +2980,7 @@ Pembahasan: $\sum F=ma$</pre>
       <summary>🌐 Terbitkan soal terpilih ke halaman SD / SMP / SMA</summary>
       <div style="padding:0 16px 16px;">
       <h3 style="margin:0 0 6px;font-size:16px;color:var(--ungu-tua);">Terbitkan sebagai Web Interaktif</h3>
-      <p class="help" style="margin:0 0 12px;">Centang soal pada daftar di atas. Soal akan tampil sebagai <b>Web Interaktif</b>: teks responsif, rumus MathJax, gambar WebP, pembahasan buka-tutup, serta tombol YouTube bila diisi. Kunci Try Out tidak ikut diterbitkan.</p>
+      <p class="help" style="margin:0 0 12px;">Centang soal pada daftar di atas untuk diterbitkan atau diunduh. PDF memakai tampilan peserta agar rumus dan gambar tetap rapi. Kunci Try Out tidak ikut diterbitkan ke web.</p>
       <div class="row3">
         <div><label style="margin-top:0;">Judul kumpulan soal</label><input id="bankWebJudul" type="text" placeholder="Contoh: Latihan Dinamika Rotasi"></div>
         <div><label style="margin-top:0;">Topik</label><input id="bankWebTopik" type="text" placeholder="Otomatis dari Bank Soal"></div>
@@ -5230,7 +5232,7 @@ async function prosesBuatSoalGemini() {
   }
   try {
     setStatus('statusAiSoal', 'Gemini sedang menyusun draf soal…', 'loading');
-    const result = await panggilAdminPrivat('buatSoalGemini', { prompt:prompt, jumlah:jumlah, tipe:tipe, jenjang:jenjang, topik:topik });
+    const result = await panggilAdminPrivat('buatSoalGemini', { prompt:prompt + '\n\nWAJIB: Buat pembahasan siap pakai dan sistematis untuk setiap soal dengan urutan: Diketahui, Ditanya, Konsep fisika/persamaan yang digunakan, Penyelesaian langkah demi langkah, dan Jawaban akhir. Gunakan LaTex untuk semua rumus, angka konsisten, serta jangan menulis instruksi untuk admin.', jumlah:jumlah, tipe:tipe, jenjang:jenjang, topik:topik });
     const raw = (result.questions || []).map(function(item) {
       // Normalisasi agar mapper impor Word yang sudah teruji dapat dipakai kembali.
       const copy = Object.assign({}, item);
@@ -6986,7 +6988,7 @@ async function buatKontenWebDenganAi() {
   if (!cfg.user || !cfg.repo || !cfg.token) { if (st) { st.textContent='Isi dan uji koneksi GitHub di Pengaturan Sistem terlebih dahulu.'; st.className='status-bar show err'; } return; }
   try {
     if (st) { st.textContent='AI sedang membuat soal dan pembahasan…'; st.className='status-bar show loading'; }
-    const result = await panggilAdminPrivat('buatSoalGemini', {prompt:prompt,jumlah:jumlah,tipe:tipe,jenjang:jenjang,topik:topik});
+    const result = await panggilAdminPrivat('buatSoalGemini', {prompt:prompt+'\n\nWAJIB: Buat pembahasan siap pakai dan sistematis untuk setiap soal dengan urutan: Diketahui, Ditanya, Konsep fisika/persamaan yang digunakan, Penyelesaian langkah demi langkah, dan Jawaban akhir. Gunakan LaTex untuk semua rumus, angka konsisten, serta jangan menulis instruksi untuk admin.',jumlah:jumlah,tipe:tipe,jenjang:jenjang,topik:topik});
     const raw = (result.questions || []).map(function(x) { const salin=Object.assign({},x); if (!salin.answer && salin.short_answer) salin.answer=salin.short_answer; return salin; });
     const soal = soalDariHasilGeminiWord(raw);
     if (!soal.length) throw new Error('AI belum menghasilkan soal yang dapat dibaca.');
@@ -7160,6 +7162,32 @@ function bankExportJson() {
   a.download = 'bank-soal-klinikfisika-' + new Date().toISOString().slice(0,10) + '.json';
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+function bankSoalTerpilihUntukUnduh() {
+  const ids = Array.from(document.querySelectorAll('#bankAdminList .bank-web-check:checked')).map(el => el.value);
+  return ids.map(id => (bankSoalCache.content || []).find(x => x.id === id)).filter(Boolean);
+}
+function bankFormatCetak(teks) {
+  return escHtmlTeks(String(teks || '')).replace(/\n/g, '<br>');
+}
+function bankHtmlCetak(items) {
+  return items.map(function(item, i) {
+    const s = item.soal || {}, pilihan = s.pilihan || {};
+    const opsi = Object.keys(pilihan).sort().map(h => `<div class="opsi"><b>${escHtmlTeks(h)}.</b> ${bankFormatCetak(pilihan[h])}${s.pilihan_gambar && s.pilihan_gambar[h] ? `<img src="${escAttr(Array.isArray(s.pilihan_gambar[h]) ? s.pilihan_gambar[h][0] : s.pilihan_gambar[h])}">` : ''}</div>`).join('');
+    const gambar = s.gambar ? `<img src="${escAttr(Array.isArray(s.gambar) ? s.gambar[0] : s.gambar)}">` : '';
+    const pembahasan = s.pembahasan ? `<section class="bahas"><b>Pembahasan</b><div>${bankFormatCetak(s.pembahasan)}</div>${s.pembahasan_gambar ? `<img src="${escAttr(Array.isArray(s.pembahasan_gambar) ? s.pembahasan_gambar[0] : s.pembahasan_gambar)}">` : ''}</section>` : '';
+    return `<article class="soal"><div class="nomor">SOAL ${i + 1}</div><div class="teks">${bankFormatCetak(s.pertanyaan)}</div>${gambar}<div class="opsi-wrap">${opsi}</div>${pembahasan}</article>`;
+  }).join('');
+}
+function bankUnduhTerpilih(mode) {
+  const items = bankSoalTerpilihUntukUnduh();
+  if (!items.length) { alert('Centang minimal satu soal pada daftar Bank Soal.'); return; }
+  const isi = bankHtmlCetak(items);
+  const css = 'body{font-family:Arial,sans-serif;color:#241334;max-width:760px;margin:28px auto;line-height:1.7}h1{color:#4b197c;border-bottom:3px solid #f253a9;padding-bottom:10px}.soal{break-inside:avoid;border:1px solid #eadcf5;border-radius:14px;padding:18px;margin:16px 0}.nomor{display:inline-block;background:#4b197c;color:#fff;border-radius:7px;padding:3px 10px;font-weight:700;font-size:12px}.teks{margin:12px 0;text-align:justify}.opsi{padding:8px 10px;border:1px solid #eadcf5;border-radius:8px;margin:7px 0}.bahas{margin-top:16px;padding:13px;background:#fdf8ff;border-left:4px solid #d439ad;border-radius:8px}.soal img{display:block;max-width:100%;max-height:420px;margin:12px auto;object-fit:contain}@media print{body{margin:16mm}.soal{break-inside:avoid}}';
+  const dok = '<!doctype html><html><head><meta charset="utf-8"><title>Soal KlinikFisikapku</title><script>window.MathJax={tex:{inlineMath:[["$","$"]],displayMath:[["$$","$$"]]}};<\\/script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"><\\/script><style>'+css+'</style></head><body><h1>KlinikFisikapku — Kumpulan Soal</h1>'+isi+'</body></html>';
+  if (mode === 'word') { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([dok],{type:'application/msword'})); a.download='soal-terpilih-klinikfisikapku.doc'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000); return; }
+  const w=window.open('','_blank'); if(!w){alert('Izinkan pop-up browser untuk membuat PDF.');return;} w.document.write(dok+'<script>MathJax.startup.promise.then(()=>setTimeout(()=>window.print(),500));<\\/script>'); w.document.close();
 }
 
 async function bankImportJson(event) {
