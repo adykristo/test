@@ -1962,7 +1962,6 @@ window.MathJax = {
   #tryoutConnection,
   #bankCbtSection,
   #cbtVisitorDashboard,
-  #panelBank,
   #cardBank{ display:none !important; }
   .admin-tabs{gap:5px;}
   .admin-tabs button.tab-btn{padding:12px 14px;}
@@ -3551,7 +3550,7 @@ function tambahInputSolusi() {
 function resetInputSolusi() {
   $('solusiFilesWrap').innerHTML = `
     <div class="solusi-file-row" style="margin-bottom:8px;">
-      <input type="file" class="input-file-solusi" accept="image/*">
+      <input type="file" class="input-file-solusi" accept="application/pdf,.pdf">
     </div>`;
 }
 
@@ -3684,7 +3683,7 @@ async function deleteFileIfExists(path, message, cfg) {
 
 // Setiap entri memiliki file soal sebagai penanda unik. Mendukung data PDF baru
 // serta data gambar lama agar daftar admin tetap kompatibel.
-function getSoalFile(item) { return item.soalPdf || item.soalImage || ''; }
+function getSoalFile(item) { return item.soalPdf || item.soalImage || (item && item.id ? 'web:' + item.id : ''); }
 function getSolusiFiles(item) {
   if (Array.isArray(item.solusiPdfs) && item.solusiPdfs.length) return item.solusiPdfs;
   if (Array.isArray(item.solusiImages) && item.solusiImages.length) return item.solusiImages;
@@ -3781,11 +3780,12 @@ function renderDaftarSoalHapus() {
     const soalFile = getSoalFile(item);
     const solusiList = getSolusiFiles(item);
     const statusDokumen = String(item.statusDokumen || 'terbit');
+    const modeWeb = item.displayMode === 'web';
     return `
-    <div class="soal-item" data-soal-file="${escAttr(soalFile)}" data-solusi-files="${escAttr(JSON.stringify(solusiList))}">
+    <div class="soal-item" data-soal-file="${escAttr(soalFile)}" data-solusi-files="${escAttr(JSON.stringify(solusiList))}" data-display-mode="${modeWeb ? 'web' : 'pdf'}">
       <div class="info">
         <b>${escAttr(item.title || 'Tanpa judul')}</b>
-        <span>${String(item.jenjang || '-').toUpperCase()} · ${escAttr(item.topik || '-')} · ${formatTanggalHapus(item.tanggal)} · ${solusiList.length ? 'Pembahasan tersedia' : 'Belum ada pembahasan'}</span>
+        <span>${String(item.jenjang || '-').toUpperCase()} · ${escAttr(item.topik || '-')} · ${formatTanggalHapus(item.tanggal)} · ${modeWeb ? 'Web Interaktif' : (solusiList.length ? 'Pembahasan tersedia' : 'Belum ada pembahasan')}</span>
         <em class="doc-status ${escAttr(statusDokumen)}">${escAttr(statusDokumen)}</em>
         <div class="yt-edit">
           <input type="url" class="yt-edit-input" placeholder="Link YouTube pembahasan (opsional)" value="${escAttr(item.youtubeLink || '')}">
@@ -3929,6 +3929,7 @@ async function hapusSoalSatu(btn) {
 
   const wrapper = btn.closest('.soal-item');
   const soalImagePath = wrapper.dataset.soalFile;
+  const adalahWeb = wrapper.dataset.displayMode === 'web';
   const judul = wrapper.querySelector('.info b').textContent;
 
   let solusiImagePaths = [];
@@ -3943,7 +3944,10 @@ async function hapusSoalSatu(btn) {
     if (guess !== soalImagePath) solusiImagePaths = [guess];
   }
 
-  if (!confirm(`Yakin hapus soal "${judul}"? File soal dan ${solusiImagePaths.length} file pembahasannya juga akan terhapus dari GitHub. Tindakan ini tidak bisa dibatalkan.`)) {
+  const pesanHapus = adalahWeb
+    ? `Yakin hapus "${judul}" dari halaman siswa? Soal di Bank Soal Privat tidak ikut terhapus.`
+    : `Yakin hapus soal "${judul}"? File soal dan ${solusiImagePaths.length} file pembahasannya juga akan terhapus dari GitHub. Tindakan ini tidak bisa dibatalkan.`;
+  if (!confirm(pesanHapus)) {
     return;
   }
 
@@ -3952,9 +3956,11 @@ async function hapusSoalSatu(btn) {
   setStatusHapus('loading', `Menghapus "${judul}"…`);
 
   try {
-    await deleteFileIfExists(soalImagePath, `Hapus file soal: ${judul}`, cfg);
-    for (const p of solusiImagePaths) {
-      await deleteFileIfExists(p, `Hapus file pembahasan: ${judul}`, cfg);
+    if (!adalahWeb) {
+      await deleteFileIfExists(soalImagePath, `Hapus file soal: ${judul}`, cfg);
+      for (const p of solusiImagePaths) {
+        await deleteFileIfExists(p, `Hapus file pembahasan: ${judul}`, cfg);
+      }
     }
     await updateManifestRemoveWithRetry(soalImagePath, cfg);
 
@@ -6890,6 +6896,7 @@ async function bankTerbitkanWebTerpilih() {
   try {
     if (st) { st.textContent='Menerbitkan Web Interaktif…'; st.className='status-bar show loading'; }
     await updateManifestWithRetry({
+      id: 'web-' + Date.now() + '-' + Math.floor(Math.random() * 10000),
       title: title, topik: topik, tanggal: new Date().toISOString().slice(0,10), jenjang: jenjang,
       displayMode: 'web', webQuestions: selected.map(bankSoalUntukWeb),
       youtubeLink: youtubeLink, showYoutube: !!youtubeLink, statusDokumen: 'terbit'
