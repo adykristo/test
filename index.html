@@ -1432,6 +1432,22 @@ main{max-width:1080px;padding:42px 28px 76px}
 @media(max-width:760px){main{padding:28px 14px 56px}.page-title{margin-bottom:18px}.soal-card{border-radius:16px}.soal-card .head{display:block;padding:15px}.soal-card .head .tgl{display:inline-flex;margin-top:9px}.soal-card .soal-img{padding:10px}.soal-card .toggle-wrap{padding:0 12px 12px}.soal-card .pembahasan-wrap{margin:0 12px 12px;padding:10px}.pdf-viewer{height:72vh;min-height:460px}.catalog-toolbar{position:static;grid-template-columns:1fr}.pelatihan-card{padding:18px}}
 </style>
 <style>
+  .web-reader{max-width:880px;margin:0 auto;padding:18px;background:#fff;border:1px solid #e7d8f6;border-radius:16px;box-shadow:0 8px 24px rgba(77,28,122,.06)}
+  .web-reader-note{font-size:12px;color:var(--abu);margin:0 0 12px}
+  .web-question{padding:18px 0;border-bottom:1px dashed #e7d8f6}
+  .web-question:last-child{border-bottom:0}
+  .web-question-number{display:inline-flex;align-items:center;min-height:26px;padding:3px 11px;border-radius:999px;background:var(--ungu-tua);color:#fff;font-size:12px;font-weight:800;margin-bottom:10px}
+  .web-question-text,.web-explanation-text{font-size:15px;line-height:1.85;text-align:justify;overflow-wrap:anywhere}
+  .web-question-image,.web-explanation-image,.web-choice-image{display:block;max-width:100%;height:auto;margin:14px auto;border-radius:10px}
+  .web-choice-list{display:grid;gap:8px;margin-top:14px}
+  .web-choice{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border:1px solid #e5d5f5;border-radius:10px;background:#fefcff;font-size:14px;line-height:1.6}
+  .web-choice-letter{display:flex;align-items:center;justify-content:center;flex:0 0 24px;height:24px;border-radius:50%;background:#f1e5ff;color:var(--ungu-tua);font-weight:800;font-size:12px}
+  .web-statements{margin:12px 0 0 22px;padding:0;display:grid;gap:9px}
+  .web-explanation{padding:16px;margin:0 0 16px;border-radius:14px;background:#fcf8ff;border:1px solid #e9dafa}
+  .web-explanation h4{margin:0 0 8px;color:var(--ungu-tua);font-size:14px}
+  @media(max-width:600px){.web-reader{padding:12px;border-radius:12px}.web-question{padding:14px 0}.web-question-text,.web-explanation-text{font-size:14px;text-align:left}.web-choice{padding:10px}.web-statements{margin-left:18px}}
+</style>
+<style>
 /* Konsistensi tampilan peserta: semua teks soal rapi rata kiri-kanan. */
 .soal-card .teks,.soal-card .opsi-teks,.soal-card .pembahasan-wrap,.review-card .soal-teks,.review-card .opsi-review,.review-card .pembahasan-content,.tryout-question-text,.question-text{ text-align:justify; text-justify:inter-word; line-height:1.75; }
 .soal-card mjx-container,.review-card mjx-container,.tryout-question-text mjx-container{ margin:0 .12em; }
@@ -1745,6 +1761,36 @@ function pindahHalamanKatalog(jenjang, arah) {
   document.getElementById('list' + jenjang.toUpperCase()).scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+function gambarWeb(src, cls, alt) {
+  if (!src) return '';
+  const daftar = Array.isArray(src) ? src : [src];
+  return daftar.filter(Boolean).map(function(url) { return `<img class="${cls}" src="${escAttr(url)}" alt="${escAttr(alt || 'Gambar soal')}">`; }).join('');
+}
+
+function renderWebInteraktif(questions) {
+  const list = Array.isArray(questions) ? questions : [];
+  if (!list.length) return '<div class="empty">Soal web belum tersedia.</div>';
+  return `<div class="web-reader"><p class="web-reader-note">Baca soal terlebih dahulu. Pembahasan tersedia melalui tombol di bawah.</p>${list.map(function(q, index) {
+    const pilihan = q && q.pilihan && typeof q.pilihan === 'object' ? q.pilihan : {};
+    const opsi = Object.keys(pilihan).sort().map(function(huruf) {
+      const gambar = q.pilihan_gambar && q.pilihan_gambar[huruf] ? gambarWeb(q.pilihan_gambar[huruf], 'web-choice-image', 'Gambar pilihan ' + huruf) : '';
+      return `<div class="web-choice"><span class="web-choice-letter">${escAttr(huruf)}</span><div>${formatTeksDenganLatex(pilihan[huruf])}${gambar}</div></div>`;
+    }).join('');
+    const statements = Array.isArray(q.statements) && q.statements.length ? `<ol class="web-statements">${q.statements.map(function(s) { return `<li>${formatTeksDenganLatex((s && (s.text || s.statement)) || '')}${s && s.image ? gambarWeb(s.image,'web-choice-image','Gambar pernyataan') : ''}</li>`; }).join('')}</ol>` : '';
+    return `<article class="web-question"><div class="web-question-number">SOAL ${index + 1}</div><div class="web-question-text">${formatTeksDenganLatex(q.pertanyaan || '')}</div>${gambarWeb(q.gambar,'web-question-image','Ilustrasi soal')}${opsi ? `<div class="web-choice-list">${opsi}</div>` : ''}${statements}</article>`;
+  }).join('')}</div>`;
+}
+
+function renderPembahasanWeb(questions) {
+  const list = Array.isArray(questions) ? questions : [];
+  return list.map(function(q, index) {
+    const teks = q && q.pembahasan ? q.pembahasan : '';
+    const gambar = q && q.pembahasan_gambar ? gambarWeb(q.pembahasan_gambar, 'web-explanation-image', 'Gambar pembahasan') : '';
+    if (!teks && !gambar) return '';
+    return `<article class="web-explanation"><h4>Pembahasan Soal ${index + 1}</h4><div class="web-explanation-text">${formatTeksDenganLatex(teks)}</div>${gambar}</article>`;
+  }).join('') || '<div class="empty">Pembahasan belum ditambahkan.</div>';
+}
+
 function renderJenjang(jenjang) {
   const listEl = document.getElementById('list' + jenjang.toUpperCase());
   const state = katalogState[jenjang];
@@ -1771,6 +1817,7 @@ function renderJenjang(jenjang) {
     const ytBtn = (item.showYoutube && item.youtubeLink)
       ? `<a class="yt-link" href="${escAttr(item.youtubeLink)}" target="_blank" rel="noopener noreferrer">▶ Tonton Video Pembahasan di YouTube</a>`
       : '';
+    const modeWeb = item.displayMode === 'web' && Array.isArray(item.webQuestions);
     const solusiPdfs = Array.isArray(item.solusiPdfs) && item.solusiPdfs.length
       ? item.solusiPdfs : (item.solusiPdf ? [item.solusiPdf] : []);
     const solusiImgs = Array.isArray(item.solusiImages) && item.solusiImages.length
@@ -1790,19 +1837,20 @@ function renderJenjang(jenjang) {
         </div>
         <span class="tgl">${formatTanggal(item.tanggal)}</span>
       </div>
-      <div class="soal-open-actions"><button class="open-soal-btn" type="button" onclick="bukaSoalKatalog('${uid}',this)">Buka Soal</button></div>
-      <div class="soal-content-collapsed" id="soal-${uid}">${item.soalPdf ? pdfViewer(item.soalPdf, `Soal ${item.title}`, uid + '-q') : `<img class="soal-img" src="${item.soalImage}" alt="${item.title}">`}</div>
+      <div class="soal-open-actions"><button class="open-soal-btn" type="button" onclick="bukaSoalKatalog('${uid}',this)">${modeWeb ? 'Mulai Latihan' : 'Buka Soal'}</button></div>
+      <div class="soal-content-collapsed" id="soal-${uid}">${modeWeb ? renderWebInteraktif(item.webQuestions) : (item.soalPdf ? pdfViewer(item.soalPdf, `Soal ${item.title}`, uid + '-q') : `<img class="soal-img" src="${item.soalImage}" alt="${item.title}">`)}</div>
       <div class="toggle-wrap">
         <button class="toggle-btn" onclick="toggleSolusi('${uid}','${jenjang}')">Lihat Pembahasan</button>
         <div class="soal-learning-actions"><button type="button" class="${mark.sudah?'active':''}" onclick="tandaBelajar('${escAttr(markId)}','sudah')">${mark.sudah?'✓ Sudah dipelajari':'Tandai sudah dipelajari'}</button><button type="button" class="${mark.ulang?'active':''}" onclick="tandaBelajar('${escAttr(markId)}','ulang')">${mark.ulang?'↻ Perlu diulang':'Perlu diulang'}</button><button type="button" class="${mark.favorit?'active':''}" onclick="tandaBelajar('${escAttr(markId)}','favorit')">${mark.favorit?'★ Disimpan':'☆ Simpan soal'}</button></div>
         <div class="pembahasan-wrap" id="solusi-${uid}">
-          ${solusiPdfHtml || solusiImgsHtml}
+          ${modeWeb ? renderPembahasanWeb(item.webQuestions) : (solusiPdfHtml || solusiImgsHtml)}
           ${ytBtn}
         </div>
       </div>
     </div>`;
   }).join('') + `<div class="catalog-pages"><span class="catalog-summary" style="margin:0;">Halaman ${state.page} dari ${totalHalaman}</span><div><button type="button" ${state.page<=1?'disabled':''} onclick="pindahHalamanKatalog('${jenjang}',-1)">← Sebelumnya</button> <button type="button" ${state.page>=totalHalaman?'disabled':''} onclick="pindahHalamanKatalog('${jenjang}',1)">Berikutnya →</button></div></div>`;
   listEl.querySelectorAll('.soal-content-collapsed .pdf-reader').forEach(el => aktifkanPdfReader(el));
+  renderKatexIn(listEl);
 }
 
 function bukaSoalKatalog(uid,btn){const box=document.getElementById('soal-'+uid);if(!box)return;const buka=box.classList.toggle('show');btn.textContent=buka?'Sembunyikan Soal':'Buka Soal';if(buka)box.scrollIntoView({behavior:'smooth',block:'start'});}

@@ -2492,9 +2492,22 @@ Pembahasan: $\sum F=ma$</pre>
                 <div><label style="margin-top:0;">Tipe utama</label><select id="aiSoalTipe"><option value="pg5">PG 5 opsi</option><option value="pg4">PG 4 opsi</option><option value="pgk_mcma">PGK MCMA</option><option value="pgk_kategori">Benar / Salah</option><option value="isian">Isian singkat</option><option value="esai">Esai</option></select></div>
                 <div><label style="margin-top:0;">Topik</label><input id="aiSoalTopik" placeholder="Ikuti topik paket"></div>
               </div>
+              <div class="row" style="margin-top:10px; align-items:end;">
+                <div>
+                  <label style="margin-top:0;">Simpan untuk jenjang</label>
+                  <select id="aiSoalJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma" selected>SMA</option></select>
+                </div>
+                <div>
+                  <label style="margin-top:0;">Tingkat kesulitan</label>
+                  <select id="aiSoalTingkat"><option value="Mudah">Mudah</option><option value="Sedang" selected>Sedang</option><option value="Sulit">Sulit</option></select>
+                </div>
+                <label style="display:flex;align-items:center;gap:8px;margin:0 0 8px;font-weight:400;font-size:13px;color:var(--abu);">
+                  <input id="aiSoalSimpanBank" type="checkbox" checked style="width:auto;"> Simpan juga ke Bank Soal Privat
+                </label>
+              </div>
               <button type="button" class="btn btn-primary" style="margin-top:12px;width:100%;" onclick="prosesBuatSoalGemini()">✨ Buat draf soal AI</button>
               <div id="statusAiSoal" class="status-bar" style="margin-top:9px;"></div>
-              <p class="help" style="margin:9px 0 0;">AI membuat <b>draf</b>. Periksa konsep, angka, kunci, dan gambar sebelum Simpan &amp; Publish. API Gemini tetap tersimpan di Google Apps Script.</p>
+              <p class="help" style="margin:9px 0 0;"><b>Bank Soal Privat:</b> bila dicentang, setiap draf otomatis diberi jenjang, topik, dan tingkat kesulitan lalu tersimpan rapi di menu <b>Bank Soal</b>. Soal tetap masuk ke editor untuk diperiksa sebelum dipakai pada Try Out atau disusun menjadi PDF untuk halaman SD/SMP/SMA.</p>
             </div>
           </div>
 
@@ -2512,6 +2525,7 @@ Pembahasan: $\sum F=ma$</pre>
                   <input type="file" id="pdfSoalFile" accept="application/pdf">
                 </div>
                 <button type="button" class="btn btn-primary" style="white-space:nowrap;" onclick="muatPdfSoal()">📂 Muat PDF</button>
+                <button type="button" class="btn btn-outline" style="white-space:nowrap;" onclick="prosesPdfDenganGemini()">✨ AI baca PDF</button>
               </div>
               <div id="statusPdfSoal" class="status-bar" style="margin-top:8px;"></div>
 
@@ -2907,6 +2921,21 @@ Pembahasan: $\sum F=ma$</pre>
     </div>
     <div id="bankAdminStats" class="help" style="margin-bottom:10px;"></div>
     <div id="bankAdminList" class="bank-picker-list" style="max-height:none;"></div>
+    <div class="form-advanced" style="margin-top:16px;padding:16px;">
+      <h3 style="margin:0 0 6px;font-size:16px;color:var(--ungu-tua);">🌐 Terbitkan ke halaman SD / SMP / SMA</h3>
+      <p class="help" style="margin:0 0 12px;">Centang soal pada daftar di atas. Soal akan tampil sebagai <b>Web Interaktif</b>: teks responsif, rumus MathJax, gambar WebP, pembahasan buka-tutup, serta tombol YouTube bila diisi. Kunci Try Out tidak ikut diterbitkan.</p>
+      <div class="row3">
+        <div><label style="margin-top:0;">Judul kumpulan soal</label><input id="bankWebJudul" type="text" placeholder="Contoh: Latihan Dinamika Rotasi"></div>
+        <div><label style="margin-top:0;">Topik</label><input id="bankWebTopik" type="text" placeholder="Otomatis dari Bank Soal"></div>
+        <div><label style="margin-top:0;">Link YouTube pembahasan</label><input id="bankWebYoutube" type="url" placeholder="https://youtube.com/watch?v=..."></div>
+      </div>
+      <div class="form-actions-bar" style="position:static;margin:12px 0 0;">
+        <button type="button" class="btn btn-primary" onclick="bankTerbitkanWebTerpilih()">🚀 Terbitkan Web Interaktif</button>
+        <button type="button" class="btn btn-outline" onclick="bankPilihSemuaUntukWeb(true)">Pilih semua yang tampil</button>
+        <button type="button" class="btn btn-outline" onclick="bankPilihSemuaUntukWeb(false)">Kosongkan pilihan</button>
+      </div>
+      <div id="bankWebStatus" class="status-bar" style="margin-top:10px;"></div>
+    </div>
   </div>
 
   <div class="box" id="bankEditorSection" style="margin-top:18px;">
@@ -5128,7 +5157,9 @@ async function prosesBuatSoalGemini() {
   const jumlah = Math.max(1, Math.min(10, Number((document.getElementById('aiSoalJumlah') || {}).value) || 1));
   const tipe = ((document.getElementById('aiSoalTipe') || {}).value || 'pg5');
   const topik = ((document.getElementById('aiSoalTopik') || {}).value || (document.getElementById('fTopik') || {}).value || '').trim();
-  const jenjang = ((document.getElementById('fJenjang') || {}).value || 'sma');
+  const jenjang = ((document.getElementById('aiSoalJenjang') || {}).value || (document.getElementById('fJenjang') || {}).value || 'sma');
+  const tingkat = ((document.getElementById('aiSoalTingkat') || {}).value || 'Sedang');
+  const simpanKeBank = !!((document.getElementById('aiSoalSimpanBank') || {}).checked);
   if (!prompt) { setStatus('statusAiSoal', 'Tulis perintah untuk AI terlebih dahulu.', 'err'); return; }
   if (!ghToken && /diagram|gambar|grafik|vektor|bidang miring|rangkaian|gelombang|lensa/i.test(prompt)) {
     setStatus('statusAiSoal', 'Simpan token GitHub terlebih dahulu agar diagram/gambar AI dapat ikut diunggah.', 'err'); return;
@@ -5154,7 +5185,31 @@ async function prosesBuatSoalGemini() {
       }
     }
     renumberSoal(); updateSoalCountBadge();
-    setStatus('statusAiSoal', '✓ ' + soal.length + ' draf soal dibuat. Buka tiap kartu untuk memeriksa dan mengedit sebelum publish.', 'ok');
+    let jumlahTersimpan = 0;
+    if (simpanKeBank) {
+      setStatus('statusAiSoal', 'Menyimpan draf AI ke Bank Soal Privat…', 'loading');
+      const waktu = new Date().toISOString();
+      for (let i = 0; i < soal.length; i++) {
+        const entry = {
+          id: 'bank-ai-' + Date.now() + '-' + i + '-' + Math.floor(Math.random() * 10000),
+          createdAt: waktu,
+          updatedAt: waktu,
+          jenjang: jenjang,
+          topik: topik || 'Belum diberi topik',
+          tingkat: tingkat,
+          sumber: 'AI Gemini',
+          statusWorkflow: 'draf',
+          soal: bankNormalizeSoalPayload(soal[i])
+        };
+        const tersimpan = await panggilAdminPrivat('bankSoalPrivatSimpan', { entry:entry });
+        const lama = (bankSoalCache.content || []).filter(function(x) { return x.id !== tersimpan.entry.id; });
+        bankSoalCache = { content: lama.concat([tersimpan.entry]), sha:null };
+        jumlahTersimpan++;
+      }
+      if (typeof renderBankAdminList === 'function') renderBankAdminList();
+      if (typeof renderBankPickerList === 'function') renderBankPickerList();
+    }
+    setStatus('statusAiSoal', '✓ ' + soal.length + ' draf soal dibuat' + (jumlahTersimpan ? ' dan ' + jumlahTersimpan + ' soal tersimpan rapi di Bank Soal' : '') + '. Buka tiap kartu untuk memeriksa konsep, kunci, rumus, dan pembahasan sebelum dipakai.', 'ok');
     const last = document.querySelector('#soalContainer .soal-block:last-child');
     if (last) { last.classList.remove('collapsed'); last.scrollIntoView({behavior:'smooth',block:'center'}); }
   } catch (e) {
@@ -6783,6 +6838,7 @@ function renderBankAdminList() {
     ].filter(Boolean).join(' · ');
     const idSafe = String(item.id || '').replace(/'/g, "\\'");
     return `<div class="bank-picker-item" style="align-items:flex-start;">
+      <label style="display:flex;align-items:flex-start;padding-top:5px;cursor:pointer;" title="Pilih untuk diterbitkan sebagai Web Interaktif"><input type="checkbox" class="bank-web-check" value="${escAttr(item.id)}" aria-label="Pilih ${escAttr(ringkas)}"></label>
       <div style="flex:1;min-width:0;">
         <div class="bank-meta"><span class="bank-tipe-tag">${escHtmlTeks(bankLabelTipe(tipe))}</span> ${escHtmlTeks(meta)}</div>
         <div class="bank-teks">${escHtmlTeks(ringkas)}</div>
@@ -6795,6 +6851,55 @@ function renderBankAdminList() {
       </div>
     </div>`;
   }).join('');
+}
+
+function bankPilihSemuaUntukWeb(pilih) {
+  document.querySelectorAll('#bankAdminList .bank-web-check').forEach(function(el) { el.checked = !!pilih; });
+}
+
+function bankSoalUntukWeb(item) {
+  const s = (item && item.soal) || {};
+  return {
+    tipe: s.tipe || 'pg5',
+    pertanyaan: s.pertanyaan || '',
+    gambar: s.gambar || '',
+    pilihan: s.pilihan || {},
+    pilihan_gambar: s.pilihan_gambar || {},
+    statements: s.statements || [],
+    category_labels: s.category_labels || ['Benar', 'Salah'],
+    pembahasan: s.pembahasan || '',
+    pembahasan_gambar: s.pembahasan_gambar || ''
+  };
+}
+
+async function bankTerbitkanWebTerpilih() {
+  const checks = Array.from(document.querySelectorAll('#bankAdminList .bank-web-check:checked'));
+  const st = document.getElementById('bankWebStatus');
+  const cfg = getCfg();
+  if (!checks.length) { if (st) { st.textContent='Centang minimal satu soal dari daftar Bank Soal.'; st.className='status-bar show err'; } return; }
+  if (!cfg.user || !cfg.repo || !cfg.token) { if (st) { st.textContent='Isi koneksi GitHub di menu Konten Situs & OSN terlebih dahulu.'; st.className='status-bar show err'; } return; }
+  const selected = checks.map(function(ch) { return (bankSoalCache.content || []).find(function(x) { return x.id === ch.value; }); }).filter(Boolean);
+  const jenjang = String(selected[0].jenjang || '').toLowerCase();
+  if (selected.some(function(x) { return String(x.jenjang || '').toLowerCase() !== jenjang; })) { if (st) { st.textContent='Pilih soal dari satu jenjang saja (SD atau SMP atau SMA).'; st.className='status-bar show err'; } return; }
+  const topikDefault = selected[0].topik || 'Latihan';
+  const title = ((document.getElementById('bankWebJudul') || {}).value || '').trim() || ('Latihan ' + topikDefault);
+  const topik = ((document.getElementById('bankWebTopik') || {}).value || '').trim() || topikDefault;
+  const youtubeLink = ((document.getElementById('bankWebYoutube') || {}).value || '').trim();
+  if (youtubeLink && !/^https?:\/\//i.test(youtubeLink)) { if (st) { st.textContent='Link YouTube harus diawali https://'; st.className='status-bar show err'; } return; }
+  try {
+    if (st) { st.textContent='Menerbitkan Web Interaktif…'; st.className='status-bar show loading'; }
+    await updateManifestWithRetry({
+      title: title, topik: topik, tanggal: new Date().toISOString().slice(0,10), jenjang: jenjang,
+      displayMode: 'web', webQuestions: selected.map(bankSoalUntukWeb),
+      youtubeLink: youtubeLink, showYoutube: !!youtubeLink, statusDokumen: 'terbit'
+    }, cfg);
+    checks.forEach(function(ch) { ch.checked=false; });
+    if (st) { st.textContent='✓ ' + selected.length + ' soal diterbitkan sebagai Web Interaktif untuk halaman ' + jenjang.toUpperCase() + '.'; st.className='status-bar show ok'; }
+    const judul=document.getElementById('bankWebJudul'),top=document.getElementById('bankWebTopik'),yt=document.getElementById('bankWebYoutube');
+    if (judul) judul.value=''; if (top) top.value=''; if (yt) yt.value='';
+  } catch (e) {
+    if (st) { st.textContent='Gagal menerbitkan: ' + (e.message || e); st.className='status-bar show err'; }
+  }
 }
 
 let bankEditorUid = null;
@@ -10626,6 +10731,9 @@ async function uploadMateriPelatihan(){const f=document.getElementById('pmFile')
 <script>
 /* Cetak PDF menggunakan MathJax, sama seperti tampilan peserta. */
 async function downloadPaketPDF(id){const meta=manifestCache.content.find(p=>p.id===id);if(!meta)return;const btn=document.getElementById('btnPdf-'+id),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='Menyiapkan tampilan cetak…'}try{const r=await ghGetFile(meta.file);if(!r)throw new Error('File paket tidak ditemukan.');const p=r.content,esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const soal=(p.soal||[]).map((s,i)=>{const opsi=Object.entries(s.pilihan||{}).map(([h,v])=>'<li><b>'+esc(h)+'.</b> '+esc(v)+'</li>').join('');return '<article class="q"><h3>Soal '+(i+1)+'</h3><div class="teks">'+esc(s.pertanyaan||'')+'</div>'+(s.gambar?'<img src="'+esc(s.gambar)+'">':'')+(opsi?'<ol type="A">'+opsi+'</ol>':'')+'</article>';}).join('');const w=window.open('','_blank');if(!w)throw new Error('Izinkan pop-up untuk mencetak PDF.');w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(p.title||meta.title||'Soal')+'</title><script>window.MathJax={tex:{inlineMath:[["$","$"]],displayMath:[["$$","$$"]]}};<\/script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"><\/script><style>body{font-family:Arial,sans-serif;color:#21162c;margin:28px auto;max-width:760px;line-height:1.7}h1{color:#4b197c;border-bottom:3px solid #f253a9;padding-bottom:10px}.q{break-inside:avoid;border-bottom:1px solid #eadcf5;padding:14px 0}.q h3{color:#7b2ff7}.q img{max-width:100%;max-height:400px;display:block;margin:12px 0}ol{padding-left:28px}.teks{white-space:pre-wrap;text-align:justify}@media print{body{margin:16mm}.q{break-inside:avoid}}</style></head><body><h1>'+esc(p.title||meta.title||'Paket Soal')+'</h1>'+soal+'<script>MathJax.startup.promise.then(()=>setTimeout(()=>window.print(),500));<\/script></body></html>');w.document.close()}catch(e){alert('Gagal menyiapkan PDF: '+e.message)}finally{if(btn){btn.disabled=false;btn.textContent=old}}}
+</script>
+<script>
+async function prosesPdfDenganGemini(){const el=document.getElementById('pdfSoalFile'),f=el&&el.files[0];if(!f){setStatus('statusPdfSoal','Pilih PDF terlebih dahulu.','err');return}if(!hasilScriptUrl||!hasilAdminKey){setStatus('statusPdfSoal','Isi URL Apps Script dan Kode Rahasia Admin terlebih dahulu.','err');return}try{setStatus('statusPdfSoal','Membaca teks PDF dengan AI…','loading');const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;let teks='';for(let n=1;n<=pdf.numPages;n++){const pg=await pdf.getPage(n),c=await pg.getTextContent();teks+='\n\n--- HALAMAN '+n+' ---\n'+c.items.map(x=>x.str).join(' ')}if(teks.trim().length<30)throw new Error('PDF berupa scan/gambar. Gunakan tombol Muat PDF lalu blok area soal, atau ubah scan menjadi PDF OCR.');const res=await fetch(hasilScriptUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'analisisWordTryout',key:hasilAdminKey,documentText:teks.slice(0,110000),images:[]})}),out=await res.json();if(!out||out.status!=='ok')throw new Error((out&&out.message)||'AI gagal membaca PDF.');const soal=soalDariHasilGeminiWord(out.questions||[]);if(!soal.length)throw new Error('AI belum menemukan format soal.');soal.forEach(s=>tambahSoal(s));bersihkanSoalKosong();updateSoalCountBadge();setStatus('statusPdfSoal','✓ '+soal.length+' soal masuk sebagai draf. Periksa rumus, gambar, kunci, dan pembahasan sebelum publish.','ok');document.getElementById('soalContainer').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){setStatus('statusPdfSoal','Gagal import AI PDF: '+(e.message||e),'err')}finally{el.value=''}}
 </script>
 </body>
 </html>
