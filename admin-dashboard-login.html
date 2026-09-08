@@ -2176,6 +2176,31 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
   <div class="card" id="sectionUploadSoal">
     <h2><span class="num">2</span> Soal &amp; Pembahasan</h2>
 
+    <details open class="form-advanced" style="grid-column:1/-1;margin:0 0 12px;">
+      <summary>✨ AI Buat &amp; Isi Konten Web Otomatis</summary>
+      <div style="padding:14px 0 2px;">
+        <p class="note" style="margin:0 0 12px;">Tulis perintah sekali. AI membuat soal, opsi, kunci privat, pembahasan, dan rumus LaTeX; hasilnya otomatis masuk Bank Soal lalu tampil sebagai <b>Web Interaktif</b> di halaman SD/SMP/SMA.</p>
+        <label style="margin-top:0;">Perintah untuk AI</label>
+        <textarea id="aiWebPrompt" rows="4" placeholder="Contoh: Buat 10 soal pilihan ganda Fisika kelas 11 tentang dinamika rotasi tingkat sedang. Sertakan pembahasan langkah demi langkah, rumus LaTeX, dan opsi pengecoh yang masuk akal."></textarea>
+        <div class="row3" style="margin-top:10px;">
+          <div><label style="margin-top:0;">Jenjang</label><select id="aiWebJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma" selected>SMA</option></select></div>
+          <div><label style="margin-top:0;">Tipe soal</label><select id="aiWebTipe"><option value="pg5">PG 5 opsi</option><option value="pg4">PG 4 opsi</option><option value="isian">Isian singkat</option><option value="esai">Esai</option><option value="pgk_mcma">PG kompleks</option><option value="pgk_kategori">Benar / Salah</option></select></div>
+          <div><label style="margin-top:0;">Jumlah</label><input id="aiWebJumlah" type="number" min="1" max="10" value="5"></div>
+          <div><label style="margin-top:0;">Topik</label><input id="aiWebTopik" placeholder="Contoh: Dinamika Rotasi"></div>
+          <div><label style="margin-top:0;">Level</label><select id="aiWebLevel"><option value="Mudah">Mudah</option><option value="Sedang" selected>Sedang</option><option value="Sulit">Sulit</option></select></div>
+          <div><label style="margin-top:0;">Judul materi (opsional)</label><input id="aiWebJudul" placeholder="Otomatis dari topik"></div>
+        </div>
+        <label>Link YouTube pembahasan (opsional)</label><input id="aiWebYoutube" type="url" placeholder="https://youtube.com/watch?v=...">
+        <button type="button" class="btn btn-primary" style="margin-top:12px;width:100%;" onclick="buatKontenWebDenganAi()">✨ Buat AI &amp; Simpan sebagai Draf</button>
+        <button type="button" class="btn btn-outline" style="margin-top:8px;width:100%;" onclick="switchAdminTab('panelBank')">📚 Buka Bank Soal untuk Periksa &amp; Terbitkan</button>
+        <div id="statusAiWeb" class="status-bar" style="margin-top:10px;"></div>
+        <p class="help" style="margin:8px 0 0;">Hasil AI <b>tidak langsung tampil ke siswa</b>. Periksa dulu di Bank Soal, lalu terbitkan setelah rumus, gambar, dan pembahasannya rapi. Untuk dokumen scan/buku yang harus sama persis, gunakan unggah PDF di bawah.</p>
+      </div>
+    </details>
+
+    <details class="form-advanced" style="grid-column:1/-1;margin:0;">
+      <summary>📄 Upload PDF Asli (scan/buku/tata letak khusus)</summary>
+      <div style="padding-top:12px;">
     <label>Jenjang</label>
     <div class="jenjang-row">
       <input type="radio" name="jenjangS" id="jenjangSD" value="sd" checked>
@@ -2215,6 +2240,8 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
 
     <button id="submitBtnS">Upload &amp; Tampilkan di Web</button>
     <div id="statusS" class="status"></div>
+      </div>
+    </details>
   </div>
 
   <div class="card" id="sectionHapusSoal">
@@ -6889,9 +6916,11 @@ async function bankTerbitkanWebTerpilih() {
   const jenjang = String(selected[0].jenjang || '').toLowerCase();
   if (selected.some(function(x) { return String(x.jenjang || '').toLowerCase() !== jenjang; })) { if (st) { st.textContent='Pilih soal dari satu jenjang saja (SD atau SMP atau SMA).'; st.className='status-bar show err'; } return; }
   const topikDefault = selected[0].topik || 'Latihan';
-  const title = ((document.getElementById('bankWebJudul') || {}).value || '').trim() || ('Latihan ' + topikDefault);
+  const titleTersimpan = String(selected[0].judulMateri || '').trim();
+  const youtubeTersimpan = String(selected[0].youtubeLink || '').trim();
+  const title = ((document.getElementById('bankWebJudul') || {}).value || '').trim() || titleTersimpan || ('Latihan ' + topikDefault);
   const topik = ((document.getElementById('bankWebTopik') || {}).value || '').trim() || topikDefault;
-  const youtubeLink = ((document.getElementById('bankWebYoutube') || {}).value || '').trim();
+  const youtubeLink = ((document.getElementById('bankWebYoutube') || {}).value || '').trim() || youtubeTersimpan;
   if (youtubeLink && !/^https?:\/\//i.test(youtubeLink)) { if (st) { st.textContent='Link YouTube harus diawali https://'; st.className='status-bar show err'; } return; }
   try {
     if (st) { st.textContent='Menerbitkan Web Interaktif…'; st.className='status-bar show loading'; }
@@ -6907,6 +6936,43 @@ async function bankTerbitkanWebTerpilih() {
     if (judul) judul.value=''; if (top) top.value=''; if (yt) yt.value='';
   } catch (e) {
     if (st) { st.textContent='Gagal menerbitkan: ' + (e.message || e); st.className='status-bar show err'; }
+  }
+}
+
+async function buatKontenWebDenganAi() {
+  const prompt = ((document.getElementById('aiWebPrompt') || {}).value || '').trim();
+  const jenjang = ((document.getElementById('aiWebJenjang') || {}).value || 'sma').toLowerCase();
+  const tipe = ((document.getElementById('aiWebTipe') || {}).value || 'pg5');
+  const jumlah = Math.max(1, Math.min(10, Number((document.getElementById('aiWebJumlah') || {}).value) || 5));
+  const topik = ((document.getElementById('aiWebTopik') || {}).value || '').trim();
+  const tingkat = ((document.getElementById('aiWebLevel') || {}).value || 'Sedang');
+  const judulManual = ((document.getElementById('aiWebJudul') || {}).value || '').trim();
+  const youtubeLink = ((document.getElementById('aiWebYoutube') || {}).value || '').trim();
+  const st = document.getElementById('statusAiWeb');
+  const cfg = getCfg();
+  if (!prompt) { if (st) { st.textContent='Tulis perintah untuk AI terlebih dahulu.'; st.className='status-bar show err'; } return; }
+  if (!topik) { if (st) { st.textContent='Isi topik agar judul dan penyimpanan Bank Soal rapi.'; st.className='status-bar show err'; } return; }
+  if (youtubeLink && !/^https?:\/\//i.test(youtubeLink)) { if (st) { st.textContent='Link YouTube harus diawali https://'; st.className='status-bar show err'; } return; }
+  if (!cfg.user || !cfg.repo || !cfg.token) { if (st) { st.textContent='Isi dan uji koneksi GitHub di Pengaturan Sistem terlebih dahulu.'; st.className='status-bar show err'; } return; }
+  try {
+    if (st) { st.textContent='AI sedang membuat soal dan pembahasan…'; st.className='status-bar show loading'; }
+    const result = await panggilAdminPrivat('buatSoalGemini', {prompt:prompt,jumlah:jumlah,tipe:tipe,jenjang:jenjang,topik:topik});
+    const raw = (result.questions || []).map(function(x) { const salin=Object.assign({},x); if (!salin.answer && salin.short_answer) salin.answer=salin.short_answer; return salin; });
+    const soal = soalDariHasilGeminiWord(raw);
+    if (!soal.length) throw new Error('AI belum menghasilkan soal yang dapat dibaca.');
+    if (st) { st.textContent='Menyimpan ' + soal.length + ' soal ke Bank Soal Privat…'; st.className='status-bar show loading'; }
+    const waktu = new Date().toISOString();
+    for (let i=0;i<soal.length;i++) {
+      const entry = {id:'bank-web-ai-'+Date.now()+'-'+i+'-'+Math.floor(Math.random()*10000),createdAt:waktu,updatedAt:waktu,jenjang:jenjang,topik:topik,tingkat:tingkat,judulMateri:judulManual || ('Latihan ' + topik),youtubeLink:youtubeLink,sumber:'AI Konten Web',statusWorkflow:'draf',soal:bankNormalizeSoalPayload(soal[i])};
+      const saved = await panggilAdminPrivat('bankSoalPrivatSimpan',{entry:entry});
+      bankSoalCache = {content:(bankSoalCache.content || []).filter(function(x){return x.id!==saved.entry.id;}).concat([saved.entry]),sha:null};
+    }
+    if (typeof renderBankAdminList === 'function') renderBankAdminList();
+    if (typeof renderBankPickerList === 'function') renderBankPickerList();
+    if (st) { st.textContent='✓ ' + soal.length + ' soal dibuat AI dan tersimpan sebagai draf di Bank Soal. Periksa/edit terlebih dahulu, lalu pilih dan terbitkan sebagai Web Interaktif.'; st.className='status-bar show ok'; }
+    ['aiWebPrompt','aiWebTopik','aiWebJudul','aiWebYoutube'].forEach(function(id){const el=document.getElementById(id);if(el)el.value='';});
+  } catch (e) {
+    if (st) { st.textContent='Gagal membuat konten AI: ' + (e.message || e); st.className='status-bar show err'; }
   }
 }
 
