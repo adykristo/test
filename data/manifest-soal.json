@@ -1,56 +1,5 @@
 [
   {
-    "id": "web-1788852391722-3752",
-    "title": "Latihan Fluida Statis",
-    "topik": "Fluida Statis",
-    "tanggal": "2026-09-08",
-    "jenjang": "smp",
-    "displayMode": "web",
-    "webQuestions": [
-      {
-        "tipe": "pg4",
-        "pertanyaan": "Sebuah balok kayu homogen dengan massa jenis $\\rho_k = 600\\text{ kg/m}^3$ dan volume $V = 0,5\\text{ m}^3$ diikat dengan seutas tali ringan pada dasar sebuah bejana yang berisi penuh air ($\\rho_a = 1000\\text{ kg/m}^3$). Balok tersebut tercelup seluruhnya ke dalam air. Jika percepatan gravitasi $g = 10\\text{ m/s}^2$, besar tegangan tali yang mengikat balok tersebut adalah...",
-        "gambar": "",
-        "pilihan": {
-          "A": "$1000\\text{ N}$",
-          "B": "$2000\\text{ N}$",
-          "C": "$3000\\text{ N}$",
-          "D": "$5000\\text{ N}$"
-        },
-        "pilihan_gambar": {},
-        "statements": [],
-        "category_labels": [
-          "Benar",
-          "Salah"
-        ],
-        "pembahasan": "Gaya-gaya yang bekerja pada balok dalam keadaan seimbang adalah:\n1. Gaya ke atas (gaya Archimedes $F_A$) yang bernilai $F_A = \\rho_a \\cdot g \\cdot V_{celup} = 1000 \\times 10 \\times 0,5 = 5000\\text{ N}$.\n2. Gaya berat balok ($w$) ke bawah yang bernilai $w = m \\cdot g = \\rho_k \\cdot V \\cdot g = 600 \\times 0,5 \\times 10 = 3000\\text{ N}$.\n3. Gaya tegangan tali ($T$) ke bawah karena balok cenderung mengapung.\n\nPersamaan keseimbangan gaya:\n$\\sum F = 0$\n$F_A - w - T = 0$\n$T = F_A - w$\n$T = 5000\\text{ N} - 3000\\text{ N} = 2000\\text{ N}$.",
-        "pembahasan_gambar": ""
-      },
-      {
-        "tipe": "pg4",
-        "pertanyaan": "Sebuah balok kayu homogen dengan massa jenis $\\rho_k = 600\\text{ kg/m}^3$ dan volume $V = 0,5\\text{ m}^3$ diikat dengan seutas tali ringan pada dasar sebuah bejana yang berisi penuh air ($\\rho_a = 1000\\text{ kg/m}^3$). Balok tersebut tercelup seluruhnya ke dalam air. Jika percepatan gravitasi $g = 10\\text{ m/s}^2$, besar tegangan tali yang mengikat balok tersebut adalah...",
-        "gambar": "",
-        "pilihan": {
-          "A": "$1000\\text{ N}$",
-          "B": "$2000\\text{ N}$",
-          "C": "$3000\\text{ N}$",
-          "D": "$5000\\text{ N}$"
-        },
-        "pilihan_gambar": {},
-        "statements": [],
-        "category_labels": [
-          "Benar",
-          "Salah"
-        ],
-        "pembahasan": "Gaya-gaya yang bekerja pada balok dalam keadaan seimbang adalah:\n1. Gaya ke atas (gaya Archimedes $F_A$) yang bernilai $F_A = \\rho_a \\cdot g \\cdot V_{celup} = 1000 \\times 10 \\times 0,5 = 5000\\text{ N}$.\n2. Gaya berat balok ($w$) ke bawah yang bernilai $w = m \\cdot g = \\rho_k \\cdot V \\cdot g = 600 \\times 0,5 \\times 10 = 3000\\text{ N}$.\n3. Gaya tegangan tali ($T$) ke bawah karena balok cenderung mengapung.\n\nPersamaan keseimbangan gaya:\n$\\sum F = 0$\n$F_A - w - T = 0$\n$T = F_A - w$\n$T = 5000\\text{ N} - 3000\\text{ N} = 2000\\text{ N}$.",
-        "pembahasan_gambar": ""
-      }
-    ],
-    "youtubeLink": "",
-    "showYoutube": false,
-    "statusDokumen": "terbit"
-  },
-  {
     "id": "web-1788854040442-9829",
     "title": "Latihan Tumbukan",
     "topik": "Tumbukan",
