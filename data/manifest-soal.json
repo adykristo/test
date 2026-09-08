@@ -1,7 +1,7 @@
 [
   {
     "id": "web-1788851433711-8960",
-    "title": "Latihan kinematika",
+    "title": "Kinematika",
     "topik": "kinematika",
     "tanggal": "2026-09-08",
     "jenjang": "sma",
@@ -94,6 +94,7 @@
     ],
     "youtubeLink": "",
     "showYoutube": false,
-    "statusDokumen": "terbit"
+    "statusDokumen": "terbit",
+    "catatanAdmin": ""
   }
 ]
