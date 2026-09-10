@@ -125,5 +125,33 @@
     "youtubeLink": "",
     "showYoutube": false,
     "statusDokumen": "terbit"
+  },
+  {
+    "id": "web-1789022436899-7768",
+    "title": "Kinematika",
+    "topik": "Kinematika",
+    "tanggal": "2026-09-10",
+    "jenjang": "sma",
+    "displayMode": "web",
+    "webQuestions": [
+      {
+        "tipe": "isian",
+        "pertanyaan": "Sebuah benda bergerak dengan kecepatan yang memenuhi persamaan $v(t) = -t^2 + 8t - 15$, di mana $v$ dalam m/s dan $t$ dalam detik. Benda akan berbalik arah dari bergerak ke kanan menjadi ke kiri saat $t = \\dots$ detik.",
+        "gambar": "",
+        "pilihan": {},
+        "pilihan_gambar": {},
+        "statements": [],
+        "category_labels": [
+          "Benar",
+          "Salah"
+        ],
+        "jawabanLatihan": "5",
+        "pembahasan": "Diketahui:\nPersamaan kecepatan benda: $v(t) = -t^2 + 8t - 15$\n\nDitanya:\nNilai $t$ saat benda berbalik arah.\n\nKonsep/Rumus:\nBenda berbalik arah ketika kecepatan sesaatnya bernilai nol ($v(t) = 0$). Titik balik arah terjadi saat benda berhenti sejenak sebelum mengubah arah geraknya.\n\nPenyelesaian:\n1. Setarakan persamaan kecepatan dengan nol:\n$v(t) = 0$\n$-t^2 + 8t - 15 = 0$\n\n2. Kalikan persamaan dengan $-1$ untuk mempermudah pemfaktoran:\n$t^2 - 8t + 15 = 0$\n\n3. Faktorkan persamaan kuadrat tersebut:\n$(t - 3)(t - 5) = 0$\n\nDidapatkan dua nilai waktu:\n$t = 3$ detik atau $t = 5$ detik.\n\nBerdasarkan sifat gerak dengan fungsi kecepatan tersebut, pada $t = 3$ benda berbalik arah dari kiri ke kanan, sedangkan pada $t = 5$ detik benda berbalik arah dari kanan ke kiri (kecepatan berubah dari positif ke negatif).\n\nJawaban Akhir:\n5",
+        "pembahasan_gambar": ""
+      }
+    ],
+    "youtubeLink": "",
+    "showYoutube": false,
+    "statusDokumen": "terbit"
   }
 ]
