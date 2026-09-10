@@ -1459,7 +1459,7 @@ main{max-width:1080px;padding:42px 28px 76px}
 </style>
 <style>.kf-toast{position:fixed;right:18px;bottom:20px;z-index:99999;max-width:360px;padding:13px 16px;border-radius:13px;color:#fff;background:#572080;box-shadow:0 12px 30px #32104a55;transform:translateY(120px);opacity:0;transition:.25s;font-weight:700;font-size:14px}.kf-toast.show{transform:translateY(0);opacity:1}.kf-toast.ok{background:#16884e}.kf-toast.err{background:#b42355}.kf-working{opacity:.72;pointer-events:none}.btn-cta-primary,.toggle-btn{min-height:42px;font-weight:800}.pelatihan-status,.status{border:1px solid #e3cfef;border-radius:11px;padding:11px 13px}
 /* Tampilan tryout dan katalog yang lebih menyatu serta mudah dipindai. */
-#page-pelatihan{display:none!important}.tryout-flow{padding:22px 24px;background:linear-gradient(120deg,#fff,#fbf2ff);border:1px solid #ead5f7}.tryout-flow h3{margin:2px 0 18px;color:#3c1768}.tryout-flow .tryout-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0}.tryout-flow .tryout-step{min-height:120px;position:relative;display:flex;flex-direction:column;align-items:flex-start;padding:16px 18px 14px 50px;background:transparent;border:0}.tryout-flow .tryout-step:not(:last-child):after{content:'→';position:absolute;right:-7px;top:42px;color:#b868d3;font-size:22px;font-weight:800}.tryout-flow .tryout-step-num{position:absolute;left:10px;top:15px;background:linear-gradient(135deg,#7b2ff7,#f653a9);box-shadow:0 6px 14px #a82fc144}.tryout-flow b{color:#4b187b;font-size:14px}.tryout-flow small{margin-top:6px;color:#7b6d85;font-size:12px;line-height:1.45}.soal-list{display:flex;flex-direction:column;gap:0}.soal-list .soal-card{margin:0;border-radius:0;border-bottom:1px solid #eadff4}.soal-list .soal-card:first-child{border-radius:16px 16px 0 0}.soal-list .soal-card:last-child{border-radius:0 0 16px 16px;border-bottom:0}@media(max-width:760px){.tryout-flow{padding:18px}.tryout-flow .tryout-steps{grid-template-columns:1fr 1fr}.tryout-flow .tryout-step{min-height:105px;padding-left:44px}.tryout-flow .tryout-step:nth-child(2):after{display:none}.tryout-flow .tryout-step:not(:last-child):after{top:auto;bottom:-10px;right:50%;transform:rotate(90deg)}}</style>
+#page-pelatihan{display:none!important}.tryout-flow{padding:22px 24px;background:linear-gradient(120deg,#fff,#fbf2ff);border:1px solid #ead5f7}.tryout-flow h3{margin:2px 0 18px;color:#3c1768}.tryout-flow .tryout-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0}.tryout-flow .tryout-step{min-height:120px;position:relative;display:flex;flex-direction:column;align-items:flex-start;padding:16px 18px 14px 50px;background:transparent;border:0}.tryout-flow .tryout-step:not(:last-child):after{content:'→';position:absolute;right:-7px;top:42px;color:#b868d3;font-size:22px;font-weight:800}.tryout-flow .tryout-step-num{position:absolute;left:10px;top:15px;background:linear-gradient(135deg,#7b2ff7,#f653a9);box-shadow:0 6px 14px #a82fc144}.tryout-flow b{color:#4b187b;font-size:14px}.tryout-flow small{margin-top:6px;color:#7b6d85;font-size:12px;line-height:1.45}.soal-list{display:flex;flex-direction:column;gap:0}.soal-list .soal-card{margin:0;border-radius:0;border-bottom:1px solid #eadff4}.soal-list .soal-card:first-child{border-radius:16px 16px 0 0}.soal-list .soal-card:last-child{border-radius:0 0 16px 16px;border-bottom:0}.latihan-jawab{margin-top:15px;padding:13px;border:1px solid #ead7f5;border-radius:12px;background:#fcf9ff}.latihan-pilih{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.latihan-pilih label{cursor:pointer;padding:7px 10px;border:1px solid #dbc5ed;border-radius:8px;background:#fff;font-size:13px}.latihan-input{display:block;width:100%;min-height:82px;padding:10px;border:1px solid #dbc5ed;border-radius:9px;font:inherit;margin-bottom:10px}.latihan-jawab button{border:0;border-radius:9px;padding:9px 13px;color:#fff;background:linear-gradient(110deg,#6626bf,#f14fa5);font-weight:800;cursor:pointer}.latihan-status{margin-top:9px;font-size:13px;font-weight:700}.latihan-status.ok{color:#13824c}.latihan-status.wrong{color:#b42e5d}.latihan-status.warn{color:#9a6500}.latihan-status.info{color:#5b2a94}@media(max-width:760px){.tryout-flow{padding:18px}.tryout-flow .tryout-steps{grid-template-columns:1fr 1fr}.tryout-flow .tryout-step{min-height:105px;padding-left:44px}.tryout-flow .tryout-step:nth-child(2):after{display:none}.tryout-flow .tryout-step:not(:last-child):after{top:auto;bottom:-10px;right:50%;transform:rotate(90deg)}}</style>
   <script src="ui-petunjuk.js"></script>
 </head>
 <body>
@@ -1770,19 +1770,25 @@ function gambarWeb(src, cls, alt) {
   return daftar.filter(Boolean).map(function(url) { return `<img class="${cls}" src="${escAttr(url)}" alt="${escAttr(alt || 'Gambar soal')}">`; }).join('');
 }
 
+const kfLatihanKunci = {};
 function renderWebInteraktif(questions) {
   const list = Array.isArray(questions) ? questions : [];
   if (!list.length) return '<div class="empty">Soal web belum tersedia.</div>';
-  return `<div class="web-reader"><p class="web-reader-note">Baca soal terlebih dahulu. Pembahasan tersedia melalui tombol di bawah.</p>${list.map(function(q, index) {
+  return `<div class="web-reader"><p class="web-reader-note">Pilih atau tulis jawaban, lalu klik Periksa Jawaban. Pembahasan tetap dapat dibuka setelahnya.</p>${list.map(function(q, index) {
+    const latihanId='latihan-'+String(q.pertanyaan||'').length+'-'+index; kfLatihanKunci[latihanId]=q.jawabanLatihan || q.kunci_latihan || '';
     const pilihan = q && q.pilihan && typeof q.pilihan === 'object' ? q.pilihan : {};
     const opsi = Object.keys(pilihan).sort().map(function(huruf) {
       const gambar = q.pilihan_gambar && q.pilihan_gambar[huruf] ? gambarWeb(q.pilihan_gambar[huruf], 'web-choice-image', 'Gambar pilihan ' + huruf) : '';
       return `<div class="web-choice"><span class="web-choice-letter">${escAttr(huruf)}</span><div>${formatTeksDenganLatex(pilihan[huruf])}${gambar}</div></div>`;
     }).join('');
     const statements = Array.isArray(q.statements) && q.statements.length ? `<ol class="web-statements">${q.statements.map(function(s) { return `<li>${formatTeksDenganLatex((s && (s.text || s.statement)) || '')}${s && s.image ? gambarWeb(s.image,'web-choice-image','Gambar pernyataan') : ''}</li>`; }).join('')}</ol>` : '';
-    return `<article class="web-question"><div class="web-question-number">SOAL ${index + 1}</div><div class="web-question-text">${formatTeksDenganLatex(q.pertanyaan || '')}</div>${gambarWeb(q.gambar,'web-question-image','Ilustrasi soal')}${opsi ? `<div class="web-choice-list">${opsi}</div>` : ''}${statements}</article>`;
+    const tipe=String(q.tipe||'pg4'),multi=tipe==='pgk_mcma',isian=tipe==='isian'||tipe==='esai';
+    const jawab=isian?`<textarea class="latihan-input" data-latihan="${latihanId}" placeholder="Tulis jawaban Anda di sini…"></textarea>`:(opsi?`<div class="latihan-pilih">${Object.keys(pilihan).sort().map(h=>`<label><input type="${multi?'checkbox':'radio'}" name="${latihanId}" value="${escAttr(h)}"> ${h}</label>`).join('')}</div>`:'');
+    return `<article class="web-question"><div class="web-question-number">SOAL ${index + 1}</div><div class="web-question-text">${formatTeksDenganLatex(q.pertanyaan || '')}</div>${gambarWeb(q.gambar,'web-question-image','Ilustrasi soal')}${opsi ? `<div class="web-choice-list">${opsi}</div>` : ''}${statements}<div class="latihan-jawab">${jawab}<button type="button" onclick="cekJawabanLatihan('${latihanId}')">✓ Periksa Jawaban</button><div class="latihan-status" id="status-${latihanId}"></div></div></article>`;
   }).join('')}</div>`;
 }
+
+function cekJawabanLatihan(id){const kunci=kfLatihanKunci[id],status=document.getElementById('status-'+id),isian=document.querySelector('.latihan-input[data-latihan="'+id+'"]');const jawaban=isian?isian.value.trim():[...document.querySelectorAll('input[name="'+id+'"]:checked')].map(x=>x.value).sort().join(',');if(!jawaban){status.textContent='Pilih atau tulis jawaban terlebih dahulu.';status.className='latihan-status warn';return;}if(!kunci){status.textContent='✓ Jawaban tersimpan untuk latihan. Kunci belum diterbitkan; lihat pembahasan untuk mengecek konsep.';status.className='latihan-status info';return;}const benar=Array.isArray(kunci)?kunci.map(String).sort().join(','):String(kunci).trim();const cocok=jawaban.toLowerCase()===benar.toLowerCase();status.textContent=cocok?'✓ Jawaban benar!':'Belum tepat. Coba telaah pembahasan lalu ulangi.';status.className='latihan-status '+(cocok?'ok':'wrong');}
 
 function renderPembahasanWeb(questions) {
   const list = Array.isArray(questions) ? questions : [];
@@ -1790,7 +1796,10 @@ function renderPembahasanWeb(questions) {
     // Beberapa draf lama menyimpan label tombol sebagai isi pembahasan.
     // Jangan tampilkan label "Lihat Pembahasan" dua kali kepada siswa.
     const teksAwal = q && q.pembahasan ? String(q.pembahasan) : '';
-    const teks = /^\s*lihat\s+pembahasan\s*[:.!-]*\s*$/i.test(teksAwal) ? '' : teksAwal;
+    // Draf lama kadang menyimpan label tombol sebagai teks biasa, HTML, atau
+    // label yang berulang. Hilangkan hanya bila seluruh isinya adalah label itu.
+    const labelBersih = teksAwal.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
+    const teks = /^lihat\s+pembahasan\s*[:.!-]*$/i.test(labelBersih) ? '' : teksAwal;
     const gambar = q && q.pembahasan_gambar ? gambarWeb(q.pembahasan_gambar, 'web-explanation-image', 'Gambar pembahasan') : '';
     if (!teks && !gambar) return '';
     return `<article class="web-explanation"><h4>Pembahasan Soal ${index + 1}</h4><div class="web-explanation-text">${formatTeksDenganLatex(teks)}</div>${gambar}</article>`;
@@ -1899,7 +1908,7 @@ async function toggleSolusi(uid, jenjang) {
   if (!wrap.classList.contains('show')) {
     const token=localStorage.getItem('kf_training_session')||'';
     let aktif=false; try { const s=await apiPelatihan('cekAksesPelatihan',{token:token}); aktif=!!s.aktif; } catch(e) {}
-    if (!aktif) { let sid=localStorage.getItem('kf_free_sid'); if(!sid){sid='kf'+Date.now().toString(36)+Math.random().toString(36).slice(2);localStorage.setItem('kf_free_sid',sid);} try { const a=await apiPelatihan('aksesGratis',{sid:sid,jenis:'soal',jenjang:jenjang}); if(!a.diizinkan){await appAlert('Batas 50 pembahasan gratis untuk jenjang ini sudah tercapai. Daftar pelatihan untuk akses penuh.','🎓');gotoPage('pelatihan');return;} } catch(e){} }
+    if (!aktif) { let sid=localStorage.getItem('kf_free_sid'); if(!sid){sid='kf'+Date.now().toString(36)+Math.random().toString(36).slice(2);localStorage.setItem('kf_free_sid',sid);} try { const a=await apiPelatihan('aksesGratis',{sid:sid,jenis:'soal',jenjang:jenjang}); if(!a.diizinkan){await appAlert('Batas pembahasan gratis sudah tercapai. Hubungi admin untuk mendapatkan akses berikutnya.','ℹ️');gotoPage('kontak');return;} } catch(e){} }
   }
   const showing = wrap.classList.toggle('show');
   btn.textContent = showing ? 'Sembunyikan Pembahasan' : 'Lihat Pembahasan';
@@ -2274,7 +2283,7 @@ function renderPaketList() {
   box.innerHTML = items.map(p => { const premium=!!(p.premium||p.pelatihan||p.akses==='pelatihan'||p.gratis===false); const selesai=riwayat.find(x=>x.paketId===p.id); const jadwal=p.jadwal||p.jadwal_mulai||p.mulai||''; return `
     <div class="paket-card">
       <div>
-        <span class="tryout-card-badge ${premium?'premium':'gratis'}">${premium?'Pelatihan':'Gratis'}</span>
+        <span class="tryout-card-badge ${premium?'premium':'gratis'}">${premium?'Token':'Gratis'}</span>
         <h3>${p.title}</h3>
         <div class="meta">
           <span>📚 ${p.topik || 'Campuran'}</span>
@@ -2310,7 +2319,7 @@ async function startTryout(paketId) {
   if (meta.gratis === true || meta.uji_coba === true) {
     let sid = localStorage.getItem('kf_free_sid');
     if (!sid) { sid='kf'+Date.now().toString(36)+Math.random().toString(36).slice(2); localStorage.setItem('kf_free_sid',sid); }
-    try { const akses=await apiPelatihan('aksesGratis',{sid:sid,jenis:'tryout',jenjang:meta.jenjang||''}); if (!akses.diizinkan) { await appAlert('Kuota tryout gratis Anda sudah habis. Daftar pelatihan untuk akses tryout dan materi lengkap.','🎓'); gotoPage('pelatihan'); return; } } catch(e) {}
+    try { const akses=await apiPelatihan('aksesGratis',{sid:sid,jenis:'tryout',jenjang:meta.jenjang||''}); if (!akses.diizinkan) { await appAlert('Kuota tryout gratis Anda sudah habis. Hubungi admin untuk token atau akses tryout berikutnya.','ℹ️'); gotoPage('kontak'); return; } } catch(e) {}
   }
   const box = document.getElementById('paketList');
   try {
