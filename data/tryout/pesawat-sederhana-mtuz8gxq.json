@@ -1,0 +1,93 @@
+{
+  "id": "pesawat-sederhana-mtuz8gxq",
+  "title": "Pesawat Sederhana",
+  "jenjang": "smp",
+  "topik": "Pesawat Sederhana",
+  "durasi_menit": 60,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "mulai_ujian": "",
+  "selesai_ujian": "",
+  "soal": [
+    {
+      "id": "q1789011253560-1",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah bidang miring memiliki panjang $5\\text{ m}$ dan tinggi $3\\text{ m}$. Jika seorang pekerja ingin mengangkat beban seberat $600\\text{ N}$ ke puncak bidang miring tersebut, besar kuasa minimal yang harus dikeluarkan adalah...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$200\\text{ N}$",
+        "B": "$300\\text{ N}$",
+        "C": "$360\\text{ N}$",
+        "D": "$1000\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789011253847-2",
+      "tipe": "pg4",
+      "pertanyaan": "Perhatikan tuas (pengungkit) berikut! Beban seberat $400\\text{ N}$ berada pada jarak $20\\text{ cm}$ dari titik tumpu. Jika panjang lengan kuasa adalah $80\\text{ cm}$, besar gaya kuasa yang diperlukan untuk mengangkat beban tersebut adalah...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$50\\text{ N}$",
+        "B": "$100\\text{ N}$",
+        "C": "$200\\text{ N}$",
+        "D": "$1600\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789011253973-3",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah sistem katrol majemuk terdiri atas $4$ buah katrol yang tersusun terhubung. Jika sebuah beban seberat $1000\\text{ N}$ ingin diangkat menggunakan sistem katrol tersebut, maka besar gaya minimal yang harus diberikan adalah...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$125\\text{ N}$",
+        "B": "$250\\text{ N}$",
+        "C": "$500\\text{ N}$",
+        "D": "$1000\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789011254076-4",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah katrol bergerak digunakan untuk mengangkat beban. Jika gaya yang diberikan pada katrol tersebut adalah $150\\text{ N}$ dan keuntungan mekanis katrol bergerak bernilai $2$, maka berat beban maksimum yang dapat diangkat adalah...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$75\\text{ N}$",
+        "B": "$150\\text{ N}$",
+        "C": "$300\\text{ N}$",
+        "D": "$600\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789011254180-5",
+      "tipe": "pg4",
+      "pertanyaan": "Perhatikan pernyataan-pernyataan berikut tentang pesawat sederhana:\n1. Katrol tetap mengubah arah gaya kuasa.\n2. Bidang miring memperkecil usaha total yang dilakukan.\n3. Roda berporos memperbesar kecepatan atau gaya.\n4. Semakin pendek lengan kuasa pada tuas, semakin kecil gaya yang diperlukan.\nPernyataan yang benar mengenai prinsip kerja pesawat sederhana ditunjukkan oleh nomor...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "1 dan 3",
+        "B": "1 dan 4",
+        "C": "2 dan 3",
+        "D": "2 dan 4"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    }
+  ]
+}
