@@ -1784,7 +1784,7 @@ function renderWebInteraktif(questions) {
     const statements = Array.isArray(q.statements) && q.statements.length ? `<ol class="web-statements">${q.statements.map(function(s) { return `<li>${formatTeksDenganLatex((s && (s.text || s.statement)) || '')}${s && s.image ? gambarWeb(s.image,'web-choice-image','Gambar pernyataan') : ''}</li>`; }).join('')}</ol>` : '';
     const tipe=String(q.tipe||'pg4'),multi=tipe==='pgk_mcma',isian=tipe==='isian'||tipe==='esai';
     const jawab=isian?`<textarea class="latihan-input" data-latihan="${latihanId}" placeholder="Tulis jawaban Anda di sini…"></textarea>`:(opsi?`<div class="latihan-pilih">${Object.keys(pilihan).sort().map(h=>`<label><input type="${multi?'checkbox':'radio'}" name="${latihanId}" value="${escAttr(h)}"> ${h}</label>`).join('')}</div>`:'');
-    return `<article class="web-question"><div class="web-question-number">SOAL ${index + 1}</div><div class="web-question-text">${formatTeksDenganLatex(q.pertanyaan || '')}</div>${gambarWeb(q.gambar,'web-question-image','Ilustrasi soal')}${opsi ? `<div class="web-choice-list">${opsi}</div>` : ''}${statements}<div class="latihan-jawab">${jawab}<button type="button" onclick="cekJawabanLatihan('${latihanId}')">✓ Periksa Jawaban</button><div class="latihan-status" id="status-${latihanId}"></div></div></article>`;
+    return `<article class="web-question"><div class="web-question-text">${formatTeksDenganLatex(q.pertanyaan || '')}</div>${gambarWeb(q.gambar,'web-question-image','Ilustrasi soal')}${opsi ? `<div class="web-choice-list">${opsi}</div>` : ''}${statements}<div class="latihan-jawab">${jawab}<button type="button" onclick="cekJawabanLatihan('${latihanId}')">✓ Periksa Jawaban</button><div class="latihan-status" id="status-${latihanId}"></div></div></article>`;
   }).join('')}</div>`;
 }
 
@@ -1867,6 +1867,14 @@ function renderJenjang(jenjang) {
       </div>
     </div>`;
   }).join('') + `<div class="catalog-pages"><span class="catalog-summary" style="margin:0;">Halaman ${state.page} dari ${totalHalaman}</span><div><button type="button" ${state.page<=1?'disabled':''} onclick="pindahHalamanKatalog('${jenjang}',-1)">← Sebelumnya</button> <button type="button" ${state.page>=totalHalaman?'disabled':''} onclick="pindahHalamanKatalog('${jenjang}',1)">Berikutnya →</button></div></div>`;
+  // Bersihkan label lama yang pernah tersimpan sebagai isi pembahasan pada
+  // data PDF/gambar. Tombol resmi "Lihat Pembahasan" tetap berada di atasnya.
+  listEl.querySelectorAll('.pembahasan-wrap').forEach(wrap => {
+    const walker=document.createTreeWalker(wrap,NodeFilter.SHOW_TEXT);
+    const hapus=[]; let node;
+    while(node=walker.nextNode()) if(/^\s*lihat\s+pembahasan\s*[:.!-]*\s*$/i.test(node.nodeValue||'')) hapus.push(node);
+    hapus.forEach(node=>node.parentNode&&node.parentNode.removeChild(node));
+  });
   listEl.querySelectorAll('.soal-content-collapsed .pdf-reader').forEach(el => aktifkanPdfReader(el));
   renderKatexIn(listEl);
 }
