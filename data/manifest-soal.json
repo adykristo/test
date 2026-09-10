@@ -153,5 +153,33 @@
     "youtubeLink": "",
     "showYoutube": false,
     "statusDokumen": "terbit"
+  },
+  {
+    "id": "web-1789022895516-7724",
+    "title": "Latihan Kinematika",
+    "topik": "Kinematika",
+    "tanggal": "2026-09-10",
+    "jenjang": "sma",
+    "displayMode": "web",
+    "webQuestions": [
+      {
+        "tipe": "isian",
+        "pertanyaan": "Sebuah benda bergerak pada suatu lintasan lurus yang posisinya memenuhi persamaan $x(t) = -t^2 + 8t - 15$, di mana $x$ dalam meter dan $t$ dalam detik. Tentukan saat benda mulai berbalik arah atau mengalami perubahan arah gerak (atau dipercepat ke arah sumbu negatif/kiri), yang secara matematis ditentukan saat kecepatan benda bernilai nol atau mulai bernilai negatif. Tentukan pada saat $t = \\dots$ detik benda mulai bergerak ke kiri.",
+        "gambar": "",
+        "pilihan": {},
+        "pilihan_gambar": {},
+        "statements": [],
+        "category_labels": [
+          "Benar",
+          "Salah"
+        ],
+        "jawabanLatihan": "4",
+        "pembahasan": "Diketahui:\nPersamaan posisi: $x(t) = -t^2 + 8t - 15$\n\nDitanya:\nSaat $t$ ketika benda mulai bergerak ke kiri (kecepatan bernilai negatif atau saat $v(t) \\le 0$).\n\nKonsep/Rumus:\n1. Kecepatan benda merupakan turunan pertama dari posisi terhadap waktu:\n$v(t) = \\frac{dx}{dt}$\n2. Percepatan konstan pada gerak ini bernilai negatif, menunjukkan arah ke kiri.\n\nPenyelesaian:\n1. Menentukan fungsi kecepatan $v(t)$:\n$v(t) = \\frac{d}{dt}(-t^2 + 8t - 15)$\n$v(t) = -2t + 8$\n\n2. Menentukan saat benda berhenti atau titik balik ($v(t) = 0$):\n$-2t + 8 = 0$\n$2t = 8$\n$t = 4\\text{ sekon}$\n\n3. Menganalisis arah gerak:\n- Untuk $t < 4$, misal $t = 3$, maka $v(3) = -2(3) + 8 = +2\\text{ m/s}$ (bergerak ke kanan).\n- Untuk $t > 4$, misal $t = 5$, maka $v(5) = -2(5) + 8 = -2\\text{ m/s}$ (bergerak ke kiri).\nOleh karena itu, pada saat $t = 4$ detik, benda mulai bergerak ke arah kiri.\n\nJawaban Akhir:\n4",
+        "pembahasan_gambar": ""
+      }
+    ],
+    "youtubeLink": "",
+    "showYoutube": false,
+    "statusDokumen": "terbit"
   }
 ]
