@@ -1457,7 +1457,9 @@ main{max-width:1080px;padding:42px 28px 76px}
 <style>
 .soal-card{margin-bottom:18px}.soal-open-actions{padding:14px 18px;border-top:1px solid #eee3f6;background:#fff}.open-soal-btn{border:0;border-radius:10px;padding:11px 17px;background:linear-gradient(110deg,#572080,#9d33df);color:#fff;font-weight:800;cursor:pointer}.soal-content-collapsed{display:none;padding:0 18px 2px;background:#faf8fc}.soal-content-collapsed.show{display:block}.soal-content-collapsed .pdf-reader{margin:0 auto 14px;max-width:900px}.soal-card .toggle-wrap{padding-top:13px}.soal-card .head{min-height:62px}@media(max-width:640px){.soal-open-actions{padding:12px}.soal-content-collapsed{padding:0 8px}.open-soal-btn{width:100%}}
 </style>
-<style>.kf-toast{position:fixed;right:18px;bottom:20px;z-index:99999;max-width:360px;padding:13px 16px;border-radius:13px;color:#fff;background:#572080;box-shadow:0 12px 30px #32104a55;transform:translateY(120px);opacity:0;transition:.25s;font-weight:700;font-size:14px}.kf-toast.show{transform:translateY(0);opacity:1}.kf-toast.ok{background:#16884e}.kf-toast.err{background:#b42355}.kf-working{opacity:.72;pointer-events:none}.btn-cta-primary,.toggle-btn{min-height:42px;font-weight:800}.pelatihan-status,.status{border:1px solid #e3cfef;border-radius:11px;padding:11px 13px}</style>
+<style>.kf-toast{position:fixed;right:18px;bottom:20px;z-index:99999;max-width:360px;padding:13px 16px;border-radius:13px;color:#fff;background:#572080;box-shadow:0 12px 30px #32104a55;transform:translateY(120px);opacity:0;transition:.25s;font-weight:700;font-size:14px}.kf-toast.show{transform:translateY(0);opacity:1}.kf-toast.ok{background:#16884e}.kf-toast.err{background:#b42355}.kf-working{opacity:.72;pointer-events:none}.btn-cta-primary,.toggle-btn{min-height:42px;font-weight:800}.pelatihan-status,.status{border:1px solid #e3cfef;border-radius:11px;padding:11px 13px}
+/* Tampilan tryout dan katalog yang lebih menyatu serta mudah dipindai. */
+#page-pelatihan{display:none!important}.tryout-flow{padding:22px 24px;background:linear-gradient(120deg,#fff,#fbf2ff);border:1px solid #ead5f7}.tryout-flow h3{margin:2px 0 18px;color:#3c1768}.tryout-flow .tryout-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0}.tryout-flow .tryout-step{min-height:120px;position:relative;display:flex;flex-direction:column;align-items:flex-start;padding:16px 18px 14px 50px;background:transparent;border:0}.tryout-flow .tryout-step:not(:last-child):after{content:'→';position:absolute;right:-7px;top:42px;color:#b868d3;font-size:22px;font-weight:800}.tryout-flow .tryout-step-num{position:absolute;left:10px;top:15px;background:linear-gradient(135deg,#7b2ff7,#f653a9);box-shadow:0 6px 14px #a82fc144}.tryout-flow b{color:#4b187b;font-size:14px}.tryout-flow small{margin-top:6px;color:#7b6d85;font-size:12px;line-height:1.45}.soal-list{display:flex;flex-direction:column;gap:0}.soal-list .soal-card{margin:0;border-radius:0;border-bottom:1px solid #eadff4}.soal-list .soal-card:first-child{border-radius:16px 16px 0 0}.soal-list .soal-card:last-child{border-radius:0 0 16px 16px;border-bottom:0}@media(max-width:760px){.tryout-flow{padding:18px}.tryout-flow .tryout-steps{grid-template-columns:1fr 1fr}.tryout-flow .tryout-step{min-height:105px;padding-left:44px}.tryout-flow .tryout-step:nth-child(2):after{display:none}.tryout-flow .tryout-step:not(:last-child):after{top:auto;bottom:-10px;right:50%;transform:rotate(90deg)}}</style>
   <script src="ui-petunjuk.js"></script>
 </head>
 <body>
@@ -1564,13 +1566,13 @@ main{max-width:1080px;padding:42px 28px 76px}
       <h2>Soal Tryout</h2>
       <span>Persiapan OSN Fisika</span>
     </div>
-    <div class="tryout-petunjuk">
-      <div class="tryout-petunjuk-label">Cara ikut</div>
+    <div class="tryout-petunjuk tryout-flow">
+      <div><div class="tryout-petunjuk-label">CARA IKUT TRYOUT</div><h3>Mulai dalam empat langkah sederhana</h3></div>
       <div class="tryout-steps">
-        <div class="tryout-step"><span class="tryout-step-num">1</span> Minta nomor ujian ke admin</div>
-        <div class="tryout-step"><span class="tryout-step-num">2</span> Pilih paket di bawah</div>
-        <div class="tryout-step"><span class="tryout-step-num">3</span> Masukkan nomor ujian</div>
-        <div class="tryout-step"><span class="tryout-step-num">4</span> Kerjakan &amp; kumpulkan</div>
+        <div class="tryout-step"><span class="tryout-step-num">1</span><b>🎫 Minta nomor ujian</b><small>Hubungi admin untuk memperoleh token.</small></div>
+        <div class="tryout-step"><span class="tryout-step-num">2</span><b>📚 Pilih paket</b><small>Pilih tryout sesuai jenjang di bawah.</small></div>
+        <div class="tryout-step"><span class="tryout-step-num">3</span><b>⌨️ Verifikasi peserta</b><small>Masukkan token dan data yang diminta.</small></div>
+        <div class="tryout-step"><span class="tryout-step-num">4</span><b>🏁 Kerjakan &amp; kumpulkan</b><small>Jawaban tersimpan otomatis hingga selesai.</small></div>
       </div>
     </div>
     <div class="tryout-tabs" id="tryoutJenjangTabs">
