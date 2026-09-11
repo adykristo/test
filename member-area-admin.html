@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin Member Area · KlinikFisikapku</title>
+    <style>
+      :root {
+        --u: #52217f;
+        --p: #f44ca8;
+        --bg: #faf6ff;
+        --line: #e9dafa;
+        --ink: #241238;
+        --muted: #7d7190;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font:
+          14px/1.45 Inter,
+          Segoe UI,
+          Arial;
+        color: var(--ink);
+        background: var(--bg);
+      }
+      .top {
+        height: 72px;
+        background: linear-gradient(105deg, #3d1b66, #942bdb, #f34ea5);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 25px;
+      }
+      .brand b {
+        font-size: 18px;
+      }
+      .brand small {
+        display: block;
+        opacity: 0.78;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 245px 1fr;
+        min-height: calc(100vh - 72px);
+      }
+      aside {
+        background: #fff;
+        border-right: 1px solid var(--line);
+        padding: 22px 14px;
+      }
+      aside button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        border-radius: 10px;
+        padding: 11px 13px;
+        margin: 4px 0;
+        color: #4b365f;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      aside button.active,
+      aside button:hover {
+        background: #f7ebff;
+        color: #8129dc;
+      }
+      .label {
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: #a28aaa;
+        font-weight: 800;
+        margin: 17px 11px 7px;
+      }
+      main {
+        padding: 28px;
+        max-width: 1250px;
+        width: 100%;
+        margin: auto;
+      }
+      .panel {
+        display: none;
+      }
+      .panel.show {
+        display: block;
+      }
+      h1 {
+        font-size: 28px;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 0;
+      }
+      .sub {
+        color: var(--muted);
+        margin: 0 0 22px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 22px;
+      }
+      .stat,
+      .card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 17px;
+        box-shadow: 0 8px 24px #4f22730b;
+      }
+      .stat b {
+        display: block;
+        font-size: 26px;
+        color: var(--u);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+      .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .btn {
+        border: 0;
+        border-radius: 9px;
+        padding: 9px 12px;
+        background: linear-gradient(110deg, #8628db, var(--p));
+        color: #fff;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .btn.ghost {
+        background: #fff;
+        color: var(--u);
+        border: 1px solid #dec8f4;
+      }
+      .btn.danger {
+        background: #fff1f4;
+        color: #bd2456;
+        border: 1px solid #ffc3d4;
+      }
+      .btn.small {
+        padding: 6px 9px;
+        font-size: 12px;
+      }
+      .row-actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .manage-list {
+        margin-top: 16px;
+      }
+      .manage-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0e7f7;
+      }
+      .manage-item:last-child {
+        border-bottom: 0;
+      }
+      .manage-item p {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .muted-item {
+        opacity: 0.58;
+      }
+      .mode-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:14px 0; }
+      .mode-tabs button { border:1px solid #dec8f4; border-radius:999px; padding:8px 12px; background:#fff; color:var(--u); cursor:pointer; font-weight:800; }
+      .mode-tabs button.active { color:#fff; border-color:transparent; background:linear-gradient(110deg,#8628db,var(--p)); }
+      .mode-pane { display:none; }
+      .mode-pane.show { display:block; }
+      .import-guide { padding:12px; border:1px dashed #d4b6f1; border-radius:10px; color:#674c81; background:#fcf9ff; font-size:12px; }
+      .ai-output { white-space:pre-wrap; min-height:52px; padding:12px; border-radius:10px; background:#f8efff; color:#542577; margin-top:10px; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        text-align: left;
+        color: #755389;
+        font-size: 12px;
+      }
+      td,
+      th {
+        padding: 11px 7px;
+        border-bottom: 1px solid #f0e7f7;
+      }
+      .tag {
+        font-size: 11px;
+        font-weight: 800;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: #ffe4f2;
+        color: #b32b70;
+      }
+      .ok {
+        background: #e6fff0;
+        color: #087a42;
+      }
+      .form {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      .form .wide {
+        grid-column: 1/-1;
+      }
+      label {
+        font-weight: 800;
+        font-size: 12px;
+        display: block;
+        margin-bottom: 5px;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddcbed;
+        border-radius: 9px;
+        font: inherit;
+      }
+      textarea {
+        min-height: 90px;
+      }
+      .notice {
+        padding: 11px;
+        border-radius: 10px;
+        background: #f4eaff;
+        color: #6925a6;
+        display: none;
+        margin-top: 12px;
+      }
+      @media (max-width: 760px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        aside {
+          display: flex;
+          overflow: auto;
+          padding: 8px;
+          gap: 4px;
+        }
+        aside button {
+          white-space: nowrap;
+          width: auto;
+        }
+        .label {
+          display: none;
+        }
+        main {
+          padding: 20px 14px;
+        }
+        .stats {
+          grid-template-columns: 1fr 1fr;
+        }
+        .grid,
+        .form {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <b>KlinikFisikapku</b><small>Admin Member Area</small>
+      </div>
+      <button
+        class="btn ghost"
+        onclick="alert('Halaman ini nanti digabung ke login admin utama.')"
+      >
+        Keluar
+      </button>
+    </header>
+    <div class="layout">
+      <aside>
+        <div class="label">MEMBER AREA</div>
+        <button class="active" onclick="openPanel('ringkasan', this)">
+          ⌂ Ringkasan</button
+        ><button onclick="openPanel('pendaftaran', this)">
+          ◷ Pendaftaran Baru</button
+        ><button onclick="openPanel('member', this)">♙ Daftar Member</button>
+        <div class="label">KONTEN BELAJAR</div>
+        <button onclick="openPanel('modul', this)">▤ Modul & Topik</button
+        ><button onclick="openPanel('latihan', this)">✎ Soal Latihan</button
+        ><button onclick="openPanel('video', this)">▶ Video Pembahasan</button
+        ><button onclick="openPanel('tryout', this)">★ Tryout Mingguan</button>
+      </aside>
+      <main>
+        <section id="ringkasan" class="panel show">
+          <h1>Ringkasan Member Area</h1>
+          <p class="sub">Kelola peserta dan konten belajar dari satu tempat.</p>
+          <div class="stats">
+            <div class="stat"><b>128</b>Member aktif</div>
+            <div class="stat"><b>7</b>Pendaftaran menunggu</div>
+            <div class="stat"><b>16</b>Topik tersedia</div>
+            <div class="stat"><b>2</b>Tryout minggu ini</div>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <div class="head">
+                <h2>Pendaftaran terbaru</h2>
+                <button class="btn ghost" onclick="openPanel('pendaftaran')">
+                  Lihat semua
+                </button>
+              </div>
+              <table>
+                <tr>
+                  <th>Nama</th>
+                  <th>Kelas</th>
+                  <th>Status</th>
+                </tr>
+                <tr>
+                  <td>Nadia Putri</td>
+                  <td>SMA 11</td>
+                  <td><span class="tag">Menunggu</span></td>
+                </tr>
+                <tr>
+                  <td>Raka Pratama</td>
+                  <td>SMP</td>
+                  <td><span class="tag">Menunggu</span></td>
+                </tr>
+              </table>
+            </div>
+            <div class="card">
+              <h2>Aktivitas Admin</h2>
+              <p>✓ Modul Listrik Dinamis diperbarui</p>
+              <p>✓ Video Gerak Parabola ditambahkan</p>
+              <p>◷ Tryout Mingguan #04 dijadwalkan</p>
+            </div>
+          </div>
+        </section>
+        <section id="pendaftaran" class="panel">
+          <h1>Pendaftaran Baru</h1>
+          <p class="sub">
+            Verifikasi data, buatkan username/password, lalu aktifkan member.
+          </p>
+          <div class="card">
+            <table>
+              <tr>
+                <th>Nama Akun & WhatsApp</th>
+                <th>Email</th>
+                <th>Kelas / Sekolah</th>
+                <th>Aksi</th>
+              </tr>
+              <tbody id="pendingMemberList"></tbody>
+            </table>
+          </div>
+        </section>
+        <section id="member" class="panel">
+          <h1>Daftar Member</h1>
+          <p class="sub">Cari, ubah status, atau reset password member.</p>
+          <div class="card">
+            <input
+              id="memberCari"
+              placeholder="Cari nama, WhatsApp, kelas, atau sekolah…"
+              oninput="renderMemberAdmin()"
+            />
+            <table>
+              <tr>
+                <th>Member</th>
+                <th>Kelas</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+              <tbody id="allMemberList"></tbody>
+            </table>
+          </div>
+        </section>
+        <section id="modul" class="panel">
+          <h1>Modul & Topik</h1>
+          <p class="sub">
+            Topik yang ditambahkan di sini akan tampil di Dashboard Member.
+          </p>
+          <div class="grid">
+            <form class="card" id="modulForm" onsubmit="simpanModul(event)">
+              <h2>Tambah Topik / Modul</h2>
+              <label>Jenjang</label
+              ><select id="modulJenjang">
+                <option value="sd">SD</option>
+                <option value="smp">SMP</option>
+                <option value="sma">SMA</option>
+              </select>
+              <label>Nama Topik</label
+              ><input
+                id="modulTopik"
+                required
+                placeholder="Contoh: Kinematika"
+              />
+              <label>Judul Modul</label
+              ><input
+                id="modulJudul"
+                required
+                placeholder="Contoh: GLBB dan Grafik Gerak"
+              />
+              <label>Link Modul PDF</label
+              ><input id="modulUrl" placeholder="https://…" />
+              <label>Upload File Modul PDF</label
+              ><input
+                id="modulFile"
+                type="file"
+                accept="application/pdf,.pdf"
+              />
+              <button class="btn" style="margin-top: 15px">Simpan Modul</button>
+              <div class="notice"></div>
+            </form>
+            <div class="card">
+              <div class="head">
+                <h2>Topik aktif</h2>
+                <button class="btn ghost small" onclick="renderKontenAdmin()">
+                  ↻ Muat ulang
+                </button>
+              </div>
+              <p class="sub" style="margin: 0 0 8px">
+                Kelola modul per topik. Item tersembunyi tidak muncul pada
+                Member Area.
+              </p>
+              <div id="modulList" class="manage-list"></div>
+            </div>
+          </div>
+        </section>
+        <section id="latihan" class="panel">
+          <h1>Soal Latihan</h1>
+          <p class="sub">Studio soal seperti Admin KlinikFisikapku: manual, impor Word, atau Bantuan AI. Semua soal dapat diedit dan dikelola setelah disimpan.</p>
+          <div class="card">
+            <h2>Studio Soal Latihan</h2>
+            <div class="mode-tabs" data-studio="latihan">
+              <button class="active" type="button" onclick="bukaMode('latihan','manual',this)">✎ Input Manual</button>
+              <button type="button" onclick="bukaMode('latihan','word',this)">⇧ Impor Word</button>
+              <button type="button" onclick="bukaMode('latihan','ai',this)">✦ Buat dengan AI</button>
+            </div>
+            <div id="latihan-manual" class="mode-pane show">
+            <form class="form" onsubmit="simpanLatihan(event)">
+              <div>
+                <label>Jenjang</label
+                ><select id="latihanJenjang">
+                  <option value="sd">SD</option>
+                  <option value="smp">SMP</option>
+                  <option value="sma">SMA</option>
+                </select>
+              </div>
+              <div>
+                <label>Topik</label
+                ><input
+                  id="latihanTopik"
+                  required
+                  placeholder="Contoh: Kinematika"
+                />
+              </div>
+              <div class="wide">
+                <label>Judul latihan</label
+                ><input
+                  id="latihanJudul"
+                  required
+                  placeholder="Contoh: Latihan GLBB 1"
+                />
+              </div>
+              <div><label>Tipe soal</label><select id="latihanTipe" onchange="aturTipeManual('latihan')"><option value="pg4">Pilihan Ganda (4 opsi)</option><option value="pg5">Pilihan Ganda (5 opsi)</option><option value="isian">Isian Singkat</option><option value="esai">Esai</option></select></div>
+              <div><label>Gambar soal (opsional)</label><input id="latihanGambar" type="file" accept="image/*" /></div>
+              <div class="wide">
+                <label>Pertanyaan</label
+                ><textarea
+                  id="latihanSoal"
+                  required
+                  placeholder="Tulis soal latihan…"
+                ></textarea>
+              </div>
+              <div id="latihanOpsi" class="wide form"><div><label>Opsi A</label><input id="opsi0" required /></div><div><label>Opsi B</label><input id="opsi1" required /></div><div><label>Opsi C</label><input id="opsi2" required /></div><div><label>Opsi D</label><input id="opsi3" required /></div></div>
+              <div id="latihanKunciWrap">
+                <label>Jawaban benar</label
+                ><select id="latihanKunci">
+                  <option value="0">A</option>
+                  <option value="1">B</option>
+                  <option value="2">C</option>
+                  <option value="3">D</option>
+                </select>
+              </div>
+              <div>
+                <label>Pembahasan singkat</label
+                ><input id="latihanBahas" placeholder="Penjelasan jawaban" />
+              </div>
+              <div class="wide">
+                <button class="btn">Simpan Latihan</button>
+                <div class="notice"></div>
+              </div>
+            </form>
+            </div>
+            <div id="latihan-word" class="mode-pane">
+              <div class="import-guide"><b>Format Word yang didukung:</b> nomor soal <code>1.</code>, opsi <code>A.</code>–<code>E.</code>, lalu <code>KUNCI:</code> dan <code>PEMBAHASAN:</code>. Untuk tipe lain gunakan <code>TIPE: ISIAN</code> atau <code>TIPE: ESAI</code>. Rumus dapat ditulis dengan LaTeX, misalnya <code>$v=s/t$</code>.</div>
+              <form class="form" style="margin-top:12px" onsubmit="imporWord(event,'latihan')"><div><label>Jenjang</label><select id="wordLatihanJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Topik</label><input id="wordLatihanTopik" required placeholder="Contoh: Kinematika" /></div><div class="wide"><label>File Word / teks</label><input id="wordLatihanFile" type="file" accept=".docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required /></div><div class="wide"><button class="btn">Impor ke Latihan</button><div class="notice"></div></div></form>
+            </div>
+            <div id="latihan-ai" class="mode-pane">
+              <form class="form" onsubmit="buatDraftAI(event,'latihan')"><div><label>Jenjang</label><select id="aiLatihanJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Topik</label><input id="aiLatihanTopik" required placeholder="Contoh: Energi" /></div><div><label>Tipe</label><select id="aiLatihanTipe"><option value="pg4">PG 4 opsi</option><option value="pg5">PG 5 opsi</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label>Tingkat kesulitan</label><select id="aiLatihanSulit"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div><div class="wide"><label>Instruksi untuk AI</label><textarea id="aiLatihanInstruksi" placeholder="Contoh: Buat soal konteks kehidupan sehari-hari, sertakan pembahasan sistematis."></textarea></div><div class="wide"><button class="btn">✦ Buat Draf Soal</button><div id="aiLatihanOutput" class="ai-output" style="display:none"></div></div></form>
+            </div>
+            <div id="latihanList" class="manage-list"></div>
+          </div>
+        </section>
+        <section id="video" class="panel">
+          <h1>Video Pembahasan</h1>
+          <p class="sub">
+            Tambahkan video YouTube atau video privat per topik.
+          </p>
+          <form id="videoForm" class="card form" onsubmit="simpanVideo(event)">
+            <div>
+              <label>Jenjang</label
+              ><select id="videoJenjang">
+                <option value="sd">SD</option>
+                <option value="smp">SMP</option>
+                <option value="sma">SMA</option>
+              </select>
+            </div>
+            <div>
+              <label>Topik</label
+              ><input id="videoTopik" required placeholder="Kinematika" />
+            </div>
+            <div class="wide">
+              <label>Judul video</label
+              ><input
+                id="videoJudul"
+                required
+                placeholder="Pembahasan soal GLBB"
+              />
+            </div>
+            <div class="wide">
+              <label>Link YouTube / Video</label
+              ><input
+                id="videoUrl"
+                required
+                type="url"
+                placeholder="https://youtube.com/watch?v=…"
+              />
+            </div>
+            <button class="btn">Simpan Video</button>
+            <div class="notice"></div>
+          </form>
+          <div class="card">
+            <h2>Video tersimpan</h2>
+            <div id="videoList" class="manage-list"></div>
+          </div>
+        </section>
+        <section id="tryout" class="panel">
+          <h1>Tryout Mingguan</h1>
+          <p class="sub">
+            Jadwalkan Tryout khusus member. Member yang sudah aktif dapat
+            mengerjakan tanpa Token/Nomor Ujian.
+          </p>
+          <div class="card">
+            <h2>Studio Soal Tryout</h2>
+            <p class="sub">Buat dahulu soal paket tryout lewat salah satu mode berikut, lalu pilih paketnya pada jadwal tryout di bawah.</p>
+            <div class="mode-tabs" data-studio="tryout">
+              <button class="active" type="button" onclick="bukaMode('tryout','manual',this)">✎ Input Manual</button>
+              <button type="button" onclick="bukaMode('tryout','word',this)">⇧ Impor Word</button>
+              <button type="button" onclick="bukaMode('tryout','ai',this)">✦ Buat dengan AI</button>
+            </div>
+            <div id="tryout-manual" class="mode-pane show">
+              <form class="form" onsubmit="simpanSoalTryout(event)">
+                <div><label>Jenjang</label><select id="tryoutSoalJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div>
+                <div><label>Nama paket tryout</label><input id="tryoutSoalPaket" required placeholder="Contoh: TO Kinematika #01" /></div>
+                <div><label>Topik</label><input id="tryoutSoalTopik" required placeholder="Contoh: Kinematika" /></div><div><label>Tipe soal</label><select id="tryoutSoalTipe" onchange="aturTipeManual('tryout')"><option value="pg4">Pilihan Ganda (4 opsi)</option><option value="pg5">Pilihan Ganda (5 opsi)</option><option value="isian">Isian Singkat</option><option value="esai">Esai</option></select></div>
+                <div class="wide"><label>Pertanyaan</label><textarea id="tryoutSoalTeks" required placeholder="Tulis soal tryout…"></textarea></div>
+                <div id="tryoutOpsi" class="wide form"><div><label>Opsi A</label><input id="toOpsi0" required /></div><div><label>Opsi B</label><input id="toOpsi1" required /></div><div><label>Opsi C</label><input id="toOpsi2" required /></div><div><label>Opsi D</label><input id="toOpsi3" required /></div></div>
+                <div id="tryoutKunciWrap"><label>Jawaban benar</label><select id="tryoutSoalKunci"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></div><div><label>Pembahasan</label><input id="tryoutSoalBahas" placeholder="Pembahasan singkat" /></div>
+                <div class="wide"><button class="btn">Simpan Soal ke Paket Tryout</button><div class="notice"></div></div>
+              </form>
+            </div>
+            <div id="tryout-word" class="mode-pane"><div class="import-guide"><b>Impor Word tryout:</b> gunakan format yang sama dengan Bank Soal KlinikFisikapku: nomor soal, A.–E., KUNCI:, PEMBAHASAN:, serta TIPE: ISIAN/ESAI bila diperlukan.</div><form class="form" style="margin-top:12px" onsubmit="imporWord(event,'tryout')"><div><label>Jenjang</label><select id="wordTryoutJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Nama paket</label><input id="wordTryoutPaket" required placeholder="Contoh: TO Kinematika #01" /></div><div><label>Topik</label><input id="wordTryoutTopik" required placeholder="Kinematika" /></div><div class="wide"><label>File Word / teks</label><input id="wordTryoutFile" type="file" accept=".docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required /></div><div class="wide"><button class="btn">Impor ke Paket Tryout</button><div class="notice"></div></div></form></div>
+            <div id="tryout-ai" class="mode-pane"><form class="form" onsubmit="buatDraftAI(event,'tryout')"><div><label>Jenjang</label><select id="aiTryoutJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Nama paket</label><input id="aiTryoutPaket" required placeholder="Contoh: TO Kinematika #01" /></div><div><label>Topik</label><input id="aiTryoutTopik" required placeholder="Kinematika" /></div><div><label>Tipe</label><select id="aiTryoutTipe"><option value="pg4">PG 4 opsi</option><option value="pg5">PG 5 opsi</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div class="wide"><label>Instruksi untuk AI</label><textarea id="aiTryoutInstruksi" placeholder="Contoh: Buat soal OSN tingkat sedang dengan pembahasan diketahui, ditanya, konsep, dan penyelesaian."></textarea></div><div class="wide"><button class="btn">✦ Buat Draf Soal Tryout</button><div id="aiTryoutOutput" class="ai-output" style="display:none"></div></div></form></div>
+          </div>
+          <form
+            id="tryoutForm"
+            class="card form"
+            onsubmit="simpanTryout(event)"
+          >
+            <div>
+              <label>Judul Tryout</label
+              ><input
+                id="tryoutJudul"
+                required
+                placeholder="Tryout Kinematika #05"
+              />
+            </div>
+            <div>
+              <label>Jenjang</label
+              ><select id="tryoutJenjang">
+                <option value="sd">SD</option>
+                <option value="smp">SMP</option>
+                <option value="sma">SMA</option>
+              </select>
+            </div>
+            <div>
+              <label>Tanggal & waktu</label
+              ><input id="tryoutTanggal" type="datetime-local" required />
+            </div>
+            <div>
+              <label>Paket Tryout dari Bank</label
+              ><select id="tryoutPaket" required><option value="">Pilih paket tryout…</option></select>
+            </div>
+            <div class="wide">
+              <label>Catatan untuk member</label
+              ><textarea
+                id="tryoutCatatan"
+                placeholder="Durasi, materi, dan aturan tryout…"
+              ></textarea>
+            </div>
+            <button class="btn">Jadwalkan Tryout</button>
+            <div class="notice"></div>
+          </form>
+          <div class="card">
+            <h2>Tryout terjadwal</h2>
+            <div id="tryoutList" class="manage-list"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
+    <script>
+      function openPanel(id, b) {
+        document
+          .querySelectorAll(".panel")
+          .forEach((x) => x.classList.toggle("show", x.id === id));
+        document
+          .querySelectorAll("aside button")
+          .forEach((x) => x.classList.remove("active"));
+        if (b) b.classList.add("active");
+      }
+      function approve(b) {
+        b.textContent = "✓ Aktif";
+        b.disabled = true;
+        b.closest("tr").querySelector(".tag").textContent = "Aktif";
+        b.closest("tr").querySelector(".tag").className = "tag ok";
+      }
+      function saved(e, msg) {
+        e.preventDefault();
+        const n = e.target.querySelector(".notice");
+        n.textContent = "✓ " + msg;
+        n.style.display = "block";
+        e.target.reset();
+      }
+      const AKUN_MEMBER = "kf_member_accounts_v1";
+      const MATERI_MEMBER = "kf_member_materials_v1";
+      const enc = (v) => encodeURIComponent(String(v || ""));
+      const dec = (v) => decodeURIComponent(v);
+      function akunMember() {
+        try {
+          return JSON.parse(localStorage.getItem(AKUN_MEMBER)) || [];
+        } catch (e) {
+          return [];
+        }
+      }
+      function simpanAkunMember(x) {
+        localStorage.setItem(AKUN_MEMBER, JSON.stringify(x));
+      }
+      function escMember(v) {
+        return String(v || "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      }
+      function materiAwal() {
+        return {
+          sd: [
+            {
+              id: "m-sd-1",
+              topik: "Energi",
+              judul: "Usaha dan Energi",
+              jenis: "pdf",
+              pdfUrl: "",
+              visible: true,
+            },
+          ],
+          smp: [
+            {
+              id: "m-smp-1",
+              topik: "Kinematika",
+              judul: "Gerak Lurus dan Grafik",
+              jenis: "soal",
+              soal: "Sebuah mobil bergerak lurus beraturan dengan kecepatan 20 m/s selama 5 sekon. Berapa jarak yang ditempuh?",
+              opsi: ["50 m", "100 m", "150 m", "200 m"],
+              kunci: 1,
+              pembahasan: "Jarak = kecepatan × waktu = 20 × 5 = 100 m.",
+              visible: true,
+            },
+          ],
+          sma: [
+            {
+              id: "m-sma-1",
+              topik: "Kinematika",
+              judul: "Gerak Parabola",
+              jenis: "video",
+              youtube: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+              visible: true,
+            },
+          ],
+        };
+      }
+      function bacaMateri() {
+        try {
+          return (
+            JSON.parse(localStorage.getItem(MATERI_MEMBER)) || materiAwal()
+          );
+        } catch (e) {
+          return materiAwal();
+        }
+      }
+      function simpanMateri(d) {
+        localStorage.setItem(MATERI_MEMBER, JSON.stringify(d));
+      }
+      function idBaru() {
+        return "m-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7);
+      }
+      function semuaMateri() {
+        const d = bacaMateri();
+        return Object.entries(d).flatMap(([jenjang, list]) =>
+          (list || []).map((x) => ({ ...x, jenjang })),
+        );
+      }
+      function notifikasi(form, msg) {
+        const n = form.querySelector(".notice");
+        if (n) {
+          n.textContent = "✓ " + msg;
+          n.style.display = "block";
+        }
+      }
+      function renderMemberAdmin() {
+        const akun = akunMember(),
+          pending = document.getElementById("pendingMemberList"),
+          all = document.getElementById("allMemberList");
+        if (pending)
+          pending.innerHTML =
+            akun
+              .filter((x) => !x.aktif)
+              .map(
+                (x) =>
+                  `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username)}</small><br>${escMember(x.wa)}</td><td>${escMember(x.email)}</td><td>${escMember(String(x.kelas || "").toUpperCase())}<br>${escMember(x.sekolah)}</td><td><div class="row-actions"><button class="btn small" onclick="aktifkanMember('${enc(x.username)}')">Aktifkan</button><button class="btn danger small" onclick="hapusMember('${enc(x.username)}')">Hapus</button></div></td></tr>`,
+              )
+              .join("") ||
+            '<tr><td colspan="4">Tidak ada peserta yang menunggu aktivasi.</td></tr>';
+        const q = (
+          (document.getElementById("memberCari") || {}).value || ""
+        ).toLowerCase();
+        const tersaring = akun.filter((x) =>
+          [x.nama, x.username, x.wa, x.email, x.kelas, x.sekolah]
+            .join(" ")
+            .toLowerCase()
+            .includes(q),
+        );
+        if (all)
+          all.innerHTML =
+            tersaring
+              .map(
+                (x) =>
+                  `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username)}</small></td><td>${escMember(String(x.kelas || "").toUpperCase())}</td><td><span class="tag ${x.aktif ? "ok" : ""}">${x.aktif ? "Aktif" : "Menunggu pembayaran"}</span></td><td><div class="row-actions"><button class="btn ghost small" onclick="ubahAktifMember('${enc(x.username)}',${x.aktif ? "false" : "true"})">${x.aktif ? "Nonaktifkan" : "Aktifkan"}</button><button class="btn danger small" onclick="hapusMember('${enc(x.username)}')">Hapus</button></div></td></tr>`,
+              )
+              .join("") ||
+            '<tr><td colspan="4">Tidak ada member yang sesuai.</td></tr>';
+      }
+      function aktifkanMember(username) {
+        ubahAktifMember(username, true);
+        alert("✓ Peserta aktif dan sudah dapat masuk ke Member Area.");
+      }
+      function ubahAktifMember(username, status) {
+        username = dec(username);
+        const a = akunMember(),
+          p = a.find((x) => x.username === username);
+        if (!p) return;
+        p.aktif = status;
+        simpanAkunMember(a);
+        renderMemberAdmin();
+      }
+      function hapusMember(username) {
+        username = dec(username);
+        const a = akunMember(),
+          p = a.find((x) => x.username === username);
+        if (!p) return;
+        if (
+          !confirm("Hapus peserta " + p.nama + "? Akun tidak dapat dipulihkan.")
+        )
+          return;
+        simpanAkunMember(a.filter((x) => x.username !== username));
+        renderMemberAdmin();
+      }
+      function renderKontenAdmin() {
+        const all = semuaMateri();
+        const render = (target, filter, empty) => {
+          const box = document.getElementById(target);
+          if (!box) return;
+          const rows = all.filter(filter);
+          box.innerHTML = rows.length
+            ? rows
+                .map(
+                  (x) =>
+                    `<div class="manage-item ${x.visible === false ? "muted-item" : ""}"><div><b>${escMember(x.judul || x.topik || "Tanpa judul")}</b><p>${escMember(x.jenjang.toUpperCase())} · ${escMember(x.topik || "Tanpa topik")}${x.visible === false ? " · Disembunyikan" : ""}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editKonten('${x.id}')">Ubah</button><button class="btn ghost small" onclick="toggleKonten('${x.id}')">${x.visible === false ? "Tampilkan" : "Sembunyikan"}</button><button class="btn danger small" onclick="hapusKonten('${x.id}')">Hapus</button></div></div>`,
+                )
+                .join("")
+            : empty;
+        };
+        render(
+          "modulList",
+          (x) => x.jenis === "pdf",
+          '<div class="sub">Belum ada modul tersimpan.</div>',
+        );
+        render(
+          "latihanList",
+          (x) => x.jenis === "soal" && x.tujuan !== "tryout",
+          '<div class="sub">Belum ada latihan tersimpan.</div>',
+        );
+        render(
+          "videoList",
+          (x) => x.jenis === "video",
+          '<div class="sub">Belum ada video tersimpan.</div>',
+        );
+        render(
+          "tryoutList",
+          (x) => x.jenis === "tryout" || x.tujuan === "tryout",
+          '<div class="sub">Belum ada paket soal atau tryout terjadwal.</div>',
+        );
+      }
+      function tambahItem(jenjang, item) {
+        const d = bacaMateri();
+        d[jenjang] = d[jenjang] || [];
+        d[jenjang].push({ id: idBaru(), visible: true, ...item });
+        simpanMateri(d);
+        renderKontenAdmin();
+      }
+      function simpanModul(e) {
+        e.preventDefault();
+        const f = document.getElementById("modulFile").files[0],
+          url = document.getElementById("modulUrl").value.trim();
+        const add = (pdfUrl) => {
+          tambahItem(document.getElementById("modulJenjang").value, {
+            jenis: "pdf",
+            topik: document.getElementById("modulTopik").value.trim(),
+            judul: document.getElementById("modulJudul").value.trim(),
+            pdfUrl,
+          });
+          notifikasi(e.target, "Modul disimpan.");
+          e.target.reset();
+        };
+        if (f) {
+          if (f.size > 1400000) {
+            alert(
+              "File PDF terlalu besar untuk versi uji coba browser. Gunakan link PDF atau file maksimal 1,4 MB.",
+            );
+            return;
+          }
+          const r = new FileReader();
+          r.onload = () => add(r.result);
+          r.readAsDataURL(f);
+        } else add(url);
+      }
+      function bukaMode(studio, mode, btn) {
+        ["manual", "word", "ai"].forEach((x) => document.getElementById(studio + "-" + x).classList.toggle("show", x === mode));
+        document.querySelectorAll('[data-studio="' + studio + '"] button').forEach((x) => x.classList.remove("active"));
+        btn.classList.add("active");
+      }
+      function aturTipeManual(mode) {
+        const c = mode === "latihan" ? { tipe:"latihanTipe", opsi:"latihanOpsi", kunci:"latihanKunciWrap", prefix:"opsi", key:"latihanKunci", keyText:"latihanJawabanTeks" } : { tipe:"tryoutSoalTipe", opsi:"tryoutOpsi", kunci:"tryoutKunciWrap", prefix:"toOpsi", key:"tryoutSoalKunci", keyText:"tryoutJawabanTeks" };
+        const tipe=document.getElementById(c.tipe).value, o=document.getElementById(c.opsi), k=document.getElementById(c.kunci);
+        if(tipe === "pg4" || tipe === "pg5") { const n=tipe === "pg5" ? 5 : 4; o.style.display="grid"; o.innerHTML=Array.from({length:n},(_,i)=>'<div><label>Opsi '+"ABCDE"[i]+'</label><input id="'+c.prefix+i+'" required></div>').join(""); k.innerHTML='<label>Jawaban benar</label><select id="'+c.key+'">'+Array.from({length:n},(_,i)=>'<option value="'+i+'">'+"ABCDE"[i]+'</option>').join("")+'</select>'; }
+        else { o.style.display="none"; o.innerHTML=""; k.innerHTML='<label>'+(tipe === "isian" ? "Kunci jawaban" : "Pedoman penilaian")+'</label><input id="'+c.keyText+'" required>'; }
+      }
+      function ambilManual(mode) {
+        const latihan=mode === "latihan", tipe=document.getElementById(latihan ? "latihanTipe" : "tryoutSoalTipe").value, opsi=[];
+        if(tipe === "pg4" || tipe === "pg5") for(let i=0;i<(tipe === "pg5" ? 5 : 4);i++) opsi.push(document.getElementById((latihan ? "opsi" : "toOpsi")+i).value.trim());
+        const kunci=tipe === "pg4" || tipe === "pg5" ? Number(document.getElementById(latihan ? "latihanKunci" : "tryoutSoalKunci").value) : document.getElementById(latihan ? "latihanJawabanTeks" : "tryoutJawabanTeks").value.trim();
+        return latihan ? {jenjang:latihanJenjang.value,topik:latihanTopik.value.trim(),judul:latihanJudul.value.trim(),soal:latihanSoal.value.trim(),pembahasan:latihanBahas.value.trim(),tipe,opsi,kunci} : {jenjang:tryoutSoalJenjang.value,topik:tryoutSoalTopik.value.trim(),judul:tryoutSoalPaket.value.trim()+" · Soal",soal:tryoutSoalTeks.value.trim(),pembahasan:tryoutSoalBahas.value.trim(),tipe,opsi,kunci,paket:tryoutSoalPaket.value.trim()};
+      }
+      function simpanLatihan(e) { e.preventDefault(); const x=ambilManual("latihan"); tambahItem(x.jenjang,{jenis:"soal",...x}); notifikasi(e.target,"Latihan disimpan."); e.target.reset(); aturTipeManual("latihan"); }
+      function simpanSoalTryout(e) { e.preventDefault(); const x=ambilManual("tryout"); tambahItem(x.jenjang,{jenis:"soal",tujuan:"tryout",...x}); notifikasi(e.target,"Soal masuk ke paket tryout."); e.target.reset(); aturTipeManual("tryout"); muatPilihanPaket(); }
+      function bacaTeksWord(file) {
+        return new Promise((resolve, reject) => { const r=new FileReader(); r.onerror=()=>reject(new Error("File tidak dapat dibaca.")); r.onload=async()=>{ try { if(file.name.toLowerCase().endsWith(".txt")) return resolve(String(r.result)); if(!window.mammoth) throw new Error("Mesin impor Word belum termuat. Periksa koneksi internet lalu coba lagi."); const out=await mammoth.extractRawText({arrayBuffer:r.result}); resolve(out.value || ""); } catch(err) { reject(err); } }; file.name.toLowerCase().endsWith(".txt") ? r.readAsText(file) : r.readAsArrayBuffer(file); });
+      }
+      function parseWordSoal(teks) {
+        return String(teks).replace(/\r/g,"").split(/(?=^\s*(?:soal\s*)?\d+\s*[.)])/im).filter(x=>/\S/.test(x)).map((b,no)=>{ const tipeRaw=((b.match(/TIPE\s*:\s*([^\n]+)/i)||[])[1]||"PG4").toLowerCase(), opsi=[]; for(const h of "ABCDE"){const m=b.match(new RegExp("^\\s*"+h+"[.)]\\s*(.+)$","im"));if(m)opsi.push(m[1].trim());} const km=(b.match(/KUNCI\s*:\s*([^\n]+)/i)||[])[1]||"", pm=(b.match(/PEMBAHASAN\s*:\s*([\s\S]*)$/i)||[])[1]||""; const soal=b.replace(/^\s*(?:soal\s*)?\d+\s*[.)]\s*/i,"").replace(/^\s*TIPE\s*:[^\n]*$/gim,"").replace(/^\s*[A-E][.)].*$/gim,"").replace(/^\s*KUNCI\s*:.*$/gim,"").replace(/^\s*PEMBAHASAN\s*:[\s\S]*$/im,"").trim(); const tipe=tipeRaw.includes("esai")?"esai":tipeRaw.includes("isian")?"isian":opsi.length===5?"pg5":"pg4"; return {tipe,soal,opsi,kunci:tipe.startsWith("pg")?Math.max(0,"ABCDE".indexOf(km.trim().charAt(0).toUpperCase())):km.trim(),pembahasan:pm.trim(),no:no+1}; }).filter(x=>x.soal);
+      }
+      async function imporWord(e,mode) {
+        e.preventDefault(); const latihan=mode === "latihan", file=document.getElementById(latihan ? "wordLatihanFile" : "wordTryoutFile").files[0];
+        try { const list=parseWordSoal(await bacaTeksWord(file)); if(!list.length) throw new Error("Format soal belum terbaca. Pastikan nomor soal ditulis 1., 2., dan seterusnya."); const jenjang=document.getElementById(latihan ? "wordLatihanJenjang" : "wordTryoutJenjang").value, topik=document.getElementById(latihan ? "wordLatihanTopik" : "wordTryoutTopik").value.trim(), paket=latihan ? "" : document.getElementById("wordTryoutPaket").value.trim(); list.forEach(x=>tambahItem(jenjang,{jenis:"soal",topik,judul:(latihan ? "Latihan" : "Paket "+paket)+" · Soal "+x.no,...x,...(latihan ? {} : {tujuan:"tryout",paket})})); notifikasi(e.target,list.length+" soal berhasil diimpor."); e.target.reset(); muatPilihanPaket(); } catch(err) { alert("Impor gagal: "+err.message); }
+      }
+      function buatDraftAI(e,mode) {
+        e.preventDefault(); const latihan=mode === "latihan", jenjang=document.getElementById(latihan ? "aiLatihanJenjang" : "aiTryoutJenjang").value, topik=document.getElementById(latihan ? "aiLatihanTopik" : "aiTryoutTopik").value.trim(), tipe=document.getElementById(latihan ? "aiLatihanTipe" : "aiTryoutTipe").value, instruksi=document.getElementById(latihan ? "aiLatihanInstruksi" : "aiTryoutInstruksi").value.trim(), paket=latihan ? "" : document.getElementById("aiTryoutPaket").value.trim(), n=tipe === "pg5" ? 5 : 4, opsi=tipe.startsWith("pg") ? Array.from({length:n},(_,i)=>i===1?"Jawaban yang benar":"Pilihan "+"ABCDE"[i]) : [];
+        tambahItem(jenjang,{jenis:"soal",topik,judul:(latihan ? "Latihan AI" : "Paket "+paket)+" · Draf AI",soal:"[Draf AI] Pada topik "+topik+", tentukan jawaban yang tepat berdasarkan konsep fisika yang sesuai. "+(instruksi || "Gunakan konteks sederhana dan data yang cukup."),tipe,opsi,kunci:tipe.startsWith("pg") ? 1 : "Jawaban contoh / pedoman perlu diperiksa",pembahasan:"Diketahui: data pada soal.\nDitanya: besaran yang diminta.\nKonsep: gunakan prinsip "+topik+".\nPenyelesaian: substitusikan data secara sistematis hingga diperoleh jawaban.",...(latihan ? {} : {tujuan:"tryout",paket})});
+        const out=document.getElementById(latihan ? "aiLatihanOutput" : "aiTryoutOutput"); out.style.display="block"; out.textContent="Draf soal telah dibuat dan disimpan. Klik Ubah pada daftar soal untuk memeriksa data, kunci, dan pembahasan sebelum dipublikasikan."; if(!latihan) muatPilihanPaket();
+      }
+      function muatPilihanPaket() { const s=document.getElementById("tryoutPaket"); if(!s)return; const lama=s.value, paket=[...new Set(semuaMateri().filter(x=>x.tujuan === "tryout" && x.paket).map(x=>x.paket))]; s.innerHTML='<option value="">Pilih paket tryout…</option>'+paket.map(x=>'<option>'+escMember(x)+"</option>").join(""); s.value=paket.includes(lama) ? lama : ""; }
+      function simpanVideo(e) {
+        e.preventDefault();
+        tambahItem(document.getElementById("videoJenjang").value, {
+          jenis: "video",
+          topik: videoTopik.value.trim(),
+          judul: videoJudul.value.trim(),
+          youtube: videoUrl.value.trim(),
+        });
+        notifikasi(e.target, "Video disimpan.");
+        e.target.reset();
+      }
+      function simpanTryout(e) {
+        e.preventDefault();
+        tambahItem(document.getElementById("tryoutJenjang").value, {
+          jenis: "tryout",
+          topik: "Tryout Mingguan",
+          judul: tryoutJudul.value.trim(),
+          tanggal: tryoutTanggal.value,
+          paket: tryoutPaket.value,
+          catatan: tryoutCatatan.value.trim(),
+        });
+        notifikasi(e.target, "Tryout dijadwalkan.");
+        e.target.reset();
+      }
+      function cariItem(id) {
+        const d = bacaMateri();
+        for (const jenjang of Object.keys(d)) {
+          const i = (d[jenjang] || []).findIndex((x) => x.id === id);
+          if (i >= 0) return { d, jenjang, i, item: d[jenjang][i] };
+        }
+        return null;
+      }
+      function toggleKonten(id) {
+        const r = cariItem(id);
+        if (!r) return;
+        r.item.visible = r.item.visible === false;
+        r.d[r.jenjang][r.i] = r.item;
+        simpanMateri(r.d);
+        renderKontenAdmin();
+      }
+      function hapusKonten(id) {
+        const r = cariItem(id);
+        if (!r) return;
+        if (
+          !confirm(
+            'Hapus "' + r.item.judul + '"? Data ini tidak dapat dipulihkan.',
+          )
+        )
+          return;
+        r.d[r.jenjang].splice(r.i, 1);
+        simpanMateri(r.d);
+        renderKontenAdmin();
+      }
+      function editKonten(id) {
+        const r = cariItem(id);
+        if (!r) return;
+        const x = r.item;
+        const topik = prompt("Topik:", x.topik || "");
+        if (topik === null) return;
+        const judul = prompt("Judul:", x.judul || "");
+        if (judul === null) return;
+        x.topik = topik.trim();
+        x.judul = judul.trim();
+        if (x.jenis === "pdf") {
+          const u = prompt("Link PDF:", x.pdfUrl || "");
+          if (u === null) return;
+          x.pdfUrl = u.trim();
+        }
+        if (x.jenis === "video") {
+          const u = prompt("Link video:", x.youtube || "");
+          if (u === null) return;
+          x.youtube = u.trim();
+        }
+        if (x.jenis === "tryout") {
+          const c = prompt("Catatan untuk member:", x.catatan || "");
+          if (c === null) return;
+          x.catatan = c.trim();
+        }
+        if (x.jenis === "soal") {
+          const s = prompt("Teks soal:", x.soal || "");
+          if (s === null) return;
+          const k = prompt("Kunci jawaban / pedoman:", x.tipe && x.tipe.startsWith("pg") ? "ABCDE"[Number(x.kunci) || 0] : (x.kunci ?? ""));
+          if (k === null) return;
+          const p = prompt("Pembahasan:", x.pembahasan || "");
+          if (p === null) return;
+          x.soal = s.trim();
+          x.kunci = x.tipe && x.tipe.startsWith("pg") ? Math.max(0, "ABCDE".indexOf(k.trim().charAt(0).toUpperCase())) : k.trim();
+          x.pembahasan = p.trim();
+          if (x.tipe && x.tipe.startsWith("pg")) {
+            for (let i = 0; i < (x.opsi || []).length; i++) {
+              const o = prompt("Opsi " + "ABCDE"[i] + ":", x.opsi[i]);
+              if (o === null) return;
+              x.opsi[i] = o.trim();
+            }
+          }
+        }
+        r.d[r.jenjang][r.i] = x;
+        simpanMateri(r.d);
+        renderKontenAdmin();
+      }
+      document.addEventListener("DOMContentLoaded", () => {
+        renderMemberAdmin();
+        renderKontenAdmin();
+        aturTipeManual("latihan");
+        aturTipeManual("tryout");
+        muatPilihanPaket();
+      });
+    </script>
+  </body>
+</html>
