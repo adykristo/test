@@ -1,1 +1,35 @@
-[]
+[
+  {
+    "id": "web-1789091338923-95",
+    "title": "Latihan Hukum Newton",
+    "topik": "Hukum Newton",
+    "tanggal": "2026-09-11",
+    "jenjang": "sd",
+    "displayMode": "web",
+    "webQuestions": [
+      {
+        "tipe": "pg4",
+        "pertanyaan": "Sebuah mobil mainan dengan massa $1\\text{ kg}$ bergerak lurus di atas lantai yang licin. Mobil tersebut didorong oleh dua orang dengan gaya searah. Orang pertama mendorong dengan gaya $10\\text{ N}$ ke arah timur dan orang kedua dengan gaya $5\\text{ N}$ ke arah timur. Namun, tiba-tiba orang ketiga muncul dan menarik mobil tersebut dengan gaya $12\\text{ N}$ ke arah barat. Bagaimana pergerakan mobil mainan setelah ketiga gaya tersebut bekerja?",
+        "gambar": "",
+        "pilihan": {
+          "A": "Mobil tetap diam karena resultan gayanya nol.",
+          "B": "Mobil bergerak ke barat dengan percepatan $3\\text{ m/s}^2$",
+          "C": "Mobil bergerak ke timur dengan percepatan $27\\text{ m/s}^2$",
+          "D": "Mobil bergerak ke timur dengan percepatan $3\\text{ m/s}^2$"
+        },
+        "pilihan_gambar": {},
+        "statements": [],
+        "category_labels": [
+          "Benar",
+          "Salah"
+        ],
+        "jawabanLatihan": "D",
+        "pembahasan": "Diketahui:\n- Massa mobil ($m$) = $1\\text{ kg}$\n- Gaya ke timur ($F_1$) = $10\\text{ N}$\n- Gaya ke timur ($F_2$) = $5\\text{ N}$\n- Gaya ke barat ($F_3$) = $12\\text{ N}$\n\nDitanya:\nBagaimana pergerakan mobil mainan setelah ketiga gaya bekerja?\n\nKonsep/Rumus:\n1. Hukum I dan II Newton ($\\Sigma F = m \\cdot a$)\n2. Penjumlahan vektor gaya segaris (arah timur bernilai positif, arah barat bernilai negatif).\n\nPenyelesaian:\n- Menghitung resultan gaya ($\\Sigma F$):\n  $\\Sigma F = F_1 + F_2 - F_3$\n  $\\Sigma F = 10\\text{ N} + 5\\text{ N} - 12\\text{ N}$\n  $\\Sigma F = 15\\text{ N} - 12\\text{ N} = +3\\text{ N}$\n  (Karena bernilai positif, maka resultan gaya adalah $3\\text{ N}$ ke arah timur).\n\n- Menghitung percepatan ($a$):\n  $a = \\frac{\\Sigma F}{m}$\n  $a = \\frac{3\\text{ N}}{1\\text{ kg}} = 3\\text{ m/s}^2$\n\nJawaban Akhir:\nMobil bergerak ke timur dengan percepatan $3\\text{ m/s}^2$ (Opsi D).",
+        "pembahasan_gambar": ""
+      }
+    ],
+    "youtubeLink": "",
+    "showYoutube": false,
+    "statusDokumen": "terbit"
+  }
+]
