@@ -10977,7 +10977,9 @@ document.addEventListener('DOMContentLoaded',function(){
   const box=document.createElement('div'); box.className='box'; box.id='memberAreaSetting';
   const aktif=localStorage.getItem('kf_member_area_enabled')!=='false';
   box.innerHTML='<h2>🎓 Member Area (Database Terpisah)</h2><p class="note">Mengatur menu Member pada halaman utama. Data Member memakai ruang penyimpanan khusus dan tidak bercampur dengan data CBT/tryout utama.</p><label class="checkbox-row"><input id="setMemberAreaAktif" type="checkbox" '+(aktif?'checked':'')+'> <strong>Tampilkan Member Area di halaman utama</strong></label><p><a class="btn btn-outline" href="member/admin.html">Buka Admin Member Area</a></p>';
-  host.appendChild(box); document.getElementById('setMemberAreaAktif').addEventListener('change',function(){localStorage.setItem('kf_member_area_enabled',this.checked?'true':'false');alert(this.checked?'Member Area ditampilkan di halaman utama.':'Member Area disembunyikan dari halaman utama.');});
+  host.appendChild(box); document.getElementById('setMemberAreaAktif').addEventListener('change',function(){localStorage.setItem('kf_member_area_enabled',this.checked?'true':'false');const b=document.getElementById('btnToggleMemberCepat');if(b)b.textContent=this.checked?'Sembunyikan Member':'Tampilkan Member';alert(this.checked?'Member Area ditampilkan di halaman utama.':'Member Area disembunyikan dari halaman utama.');});
+  const top=document.querySelector('.admin-topbar');
+  if(top&&!document.getElementById('btnAdminMemberCepat'))top.insertAdjacentHTML('beforeend','<div style="margin-left:auto;display:flex;gap:8px;align-items:center"><button id="btnToggleMemberCepat" type="button" class="btn btn-outline" style="padding:7px 10px" onclick="document.getElementById(\'setMemberAreaAktif\').click()">'+(aktif?'Sembunyikan Member':'Tampilkan Member')+'</button><a id="btnAdminMemberCepat" class="btn btn-primary" style="padding:8px 11px;text-decoration:none" href="member/admin.html">🎓 Admin Member</a></div>');
 });
 </script>
 </html>
