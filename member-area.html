@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Member Area · KlinikFisikapku</title>
+    <style>
+      :root {
+        --u: #402065;
+        --u2: #822bd9;
+        --p: #f34ea5;
+        --bg: #faf6ff;
+        --ink: #28143c;
+        --line: #e7d8f5;
+        --ok: #1c9c5a;
+        --bad: #e0466a;
+        --card: #fff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.5;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding: 16px 6%;
+        background: linear-gradient(100deg, var(--u), var(--u2), var(--p));
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 14px rgba(64, 32, 101, 0.25);
+      }
+      header .brand {
+        font-weight: bold;
+        font-size: 17px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      header .brand span.dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #fff;
+        opacity: 0.85;
+      }
+      header .nav button {
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        color: #fff;
+        padding: 9px 16px;
+        border-radius: 99px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-left: 8px;
+        font-size: 13px;
+      }
+      header .nav button:hover {
+        background: rgba(255, 255, 255, 0.28);
+      }
+      .page {
+        display: none;
+        max-width: 900px;
+        margin: auto;
+        padding: 34px 20px 60px;
+      }
+      .page.show {
+        display: block;
+        animation: fade 0.25s ease;
+      }
+      @keyframes fade {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .hero {
+        text-align: center;
+        padding: 30px 10px;
+      }
+      .hero h1 {
+        font-size: 28px;
+        margin: 0 0 10px;
+      }
+      .hero p {
+        color: #5b4374;
+        max-width: 520px;
+        margin: 0 auto 22px;
+      }
+      .btn {
+        border: 0;
+        border-radius: 10px;
+        padding: 12px 18px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .btn-main {
+        background: linear-gradient(100deg, var(--u2), var(--p));
+        color: #fff;
+        box-shadow: 0 6px 16px rgba(130, 43, 217, 0.28);
+      }
+      .btn-ghost {
+        background: #fff;
+        border: 1px solid var(--line);
+        color: var(--u);
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 22px;
+        margin: 16px 0;
+        box-shadow: 0 2px 10px rgba(64, 32, 101, 0.05);
+      }
+      label {
+        display: block;
+        font-weight: bold;
+        font-size: 12px;
+        margin: 12px 0 5px;
+        color: var(--u);
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 11px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        font-size: 14px;
+        font-family: inherit;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 70px;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+      .toolbar input[type="search"] {
+        flex: 1;
+        min-width: 180px;
+      }
+      .chip {
+        border: 1px solid var(--line);
+        background: #fff;
+        padding: 8px 14px;
+        border-radius: 99px;
+        font-size: 13px;
+        font-weight: bold;
+        color: var(--u);
+        cursor: pointer;
+      }
+      .chip.active {
+        background: linear-gradient(100deg, var(--u2), var(--p));
+        color: #fff;
+        border-color: transparent;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      @media (max-width: 640px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .mcard {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+        cursor: pointer;
+        transition: 0.15s;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .mcard:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(64, 32, 101, 0.12);
+        border-color: var(--u2);
+      }
+      .mcard .ic {
+        font-size: 22px;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f4eafe;
+        flex: none;
+      }
+      .mcard .topik {
+        font-size: 11px;
+        color: #8a6bab;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+      .mcard .judul {
+        font-weight: bold;
+        margin: 2px 0 6px;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: bold;
+        padding: 4px 9px;
+        border-radius: 99px;
+      }
+      .tag.pdf {
+        background: #e6f0ff;
+        color: #245bb0;
+      }
+      .tag.soal {
+        background: #fff2d9;
+        color: #a4700b;
+      }
+      .tag.video {
+        background: #ffe3f1;
+        color: #a82e6e;
+      }
+
+      .backlink {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--u2);
+        font-weight: bold;
+        cursor: pointer;
+        margin-bottom: 14px;
+        font-size: 14px;
+      }
+
+      iframe.pdfview {
+        width: 100%;
+        height: 70vh;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #f3f3f3;
+      }
+      .videowrap {
+        position: relative;
+        padding-top: 56.25%;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #000;
+      }
+      .videowrap iframe {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+
+      .opt {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px;
+        margin: 8px 0;
+        cursor: pointer;
+      }
+      .opt:hover {
+        border-color: var(--u2);
+      }
+      .opt input {
+        width: auto;
+        margin-top: 3px;
+      }
+      .opt.correct {
+        background: #eafaf1;
+        border-color: var(--ok);
+      }
+      .opt.wrong {
+        background: #fdecef;
+        border-color: var(--bad);
+      }
+      .result {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 10px;
+        font-weight: bold;
+      }
+      .result.ok {
+        background: #eafaf1;
+        color: var(--ok);
+      }
+      .result.bad {
+        background: #fdecef;
+        color: var(--bad);
+      }
+      .pembahasan {
+        margin-top: 14px;
+        padding: 14px;
+        background: #f6f0fd;
+        border-radius: 10px;
+        font-size: 14px;
+        display: none;
+      }
+
+      .empty {
+        text-align: center;
+        color: #8a6bab;
+        padding: 30px 10px;
+      }
+      footer {
+        text-align: center;
+        color: #9d84b8;
+        font-size: 12px;
+        padding: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="dot"></span> KlinikFisikapku · Member Area
+      </div>
+      <div class="nav" id="navBtns">
+        <button onclick="buka('daftar')">Daftar</button>
+        <button onclick="buka('login')">Masuk</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="home" class="page show">
+        <div class="hero">
+          <h1>Ruang Belajar Khusus Member 🎓</h1>
+          <p>
+            Modul PDF, latihan soal lengkap dengan kunci jawaban, dan video
+            pembahasan — semua tersusun rapi sesuai jenjang pendaftaran kamu.
+          </p>
+          <button class="btn btn-main" onclick="buka('daftar')">
+            Daftar Member
+          </button>
+          <button class="btn btn-ghost" onclick="buka('login')">
+            Sudah punya akun? Masuk
+          </button>
+        </div>
+      </section>
+
+      <section id="daftar" class="page">
+        <form class="card" onsubmit="daftar(event)">
+          <h2>📋 Registrasi Member</h2>
+          <label>Nama Lengkap</label><input id="nama" required />
+          <label>No WhatsApp</label><input id="wa" required />
+          <label>Email</label
+          ><input
+            id="email"
+            type="email"
+            required
+            placeholder="nama@email.com"
+          />
+          <label>Nama Akun / Username</label
+          ><input
+            id="usernameDaftar"
+            required
+            minlength="4"
+            placeholder="Minimal 4 karakter"
+          />
+          <label>Password</label
+          ><input
+            id="passwordDaftar"
+            type="password"
+            required
+            minlength="6"
+            placeholder="Minimal 6 karakter"
+          />
+          <label>Jenjang</label>
+          <select id="kelas" required>
+            <option value="">Pilih jenjang</option>
+            <option value="sd">SD</option>
+            <option value="smp">SMP</option>
+            <option value="sma">SMA</option>
+          </select>
+          <label>Asal Sekolah</label><input id="sekolah" required />
+          <button class="btn btn-main" style="margin-top: 16px; width: 100%">
+            Kirim Pendaftaran
+          </button>
+        </form>
+      </section>
+
+      <section id="login" class="page">
+        <form class="card" onsubmit="login(event)">
+          <h2>🔑 Masuk Member</h2>
+          <label>Username</label><input id="user" required />
+          <label>Password</label><input id="pass" type="password" required />
+          <button class="btn btn-main" style="margin-top: 16px; width: 100%">
+            Masuk Dashboard
+          </button>
+        </form>
+      </section>
+
+      <section id="dash" class="page">
+        <h1>Halo, <span id="namaDash">Member</span> 👋</h1>
+        <p id="sub" style="color: #5b4374"></p>
+
+        <div class="toolbar">
+          <input
+            type="search"
+            id="cari"
+            placeholder="Cari topik atau judul materi…"
+            oninput="renderList()"
+          />
+          <span
+            class="chip active"
+            data-f="semua"
+            onclick="filterJenis('semua', this)"
+            >Semua</span
+          >
+          <span class="chip" data-f="pdf" onclick="filterJenis('pdf', this)"
+            >📄 Modul PDF</span
+          >
+          <span class="chip" data-f="soal" onclick="filterJenis('soal', this)"
+            >📝 Latihan Soal</span
+          >
+          <span class="chip" data-f="video" onclick="filterJenis('video', this)"
+            >🎥 Video</span
+          >
+        </div>
+
+        <div class="grid" id="list"></div>
+        <div class="empty" id="emptyMsg" style="display: none">
+          Belum ada materi untuk jenjang / filter ini.
+        </div>
+      </section>
+
+      <section id="detail" class="page">
+        <div class="backlink" onclick="buka('dash')">
+          ← Kembali ke daftar materi
+        </div>
+        <div class="card" id="detailBody"></div>
+      </section>
+    </main>
+
+    <footer>© KlinikFisikapku — belajar fisika lebih terarah.</footer>
+
+    <script>
+      const K = "kf_member_materials_v1",
+        P = "kf_member_profile",
+        AKUN = "kf_member_accounts_v1";
+      let jenjangAktif = "sd",
+        filterAktif = "semua",
+        dataMateri = [],
+        detailAktif = -1;
+      const PROGRES = "kf_member_topic_progress_v1";
+
+      const dflt = {
+        sd: [
+          {
+            topik: "Energi",
+            judul: "Usaha dan Energi",
+            jenis: "pdf",
+            pdfUrl: "",
+          },
+        ],
+        smp: [
+          {
+            topik: "Kinematika",
+            judul: "Gerak Lurus dan Grafik",
+            jenis: "soal",
+            soal: "Sebuah mobil bergerak lurus beraturan dengan kecepatan 20 m/s selama 5 sekon. Berapa jarak yang ditempuh?",
+            opsi: ["50 m", "100 m", "150 m", "200 m"],
+            kunci: 1,
+            pembahasan: "Jarak = kecepatan × waktu = 20 × 5 = 100 m.",
+          },
+        ],
+        sma: [
+          {
+            topik: "Kinematika",
+            judul: "Gerak Parabola",
+            jenis: "video",
+            youtube: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          },
+        ],
+      };
+
+      function buka(i) {
+        document
+          .querySelectorAll(".page")
+          .forEach((x) => x.classList.toggle("show", x.id === i));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function daftar(e) {
+        e.preventDefault();
+        const akun = JSON.parse(localStorage.getItem(AKUN) || "[]");
+        const username = usernameDaftar.value.trim().toLowerCase(),
+          emailDaftar = email.value.trim().toLowerCase();
+        if (akun.some((a) => a.username === username)) {
+          alert("Nama akun sudah dipakai. Gunakan nama akun lain.");
+          return;
+        }
+        if (akun.some((a) => a.email === emailDaftar)) {
+          alert("Email sudah terdaftar. Silakan masuk.");
+          return;
+        }
+        const peserta = {
+          nama: nama.value.trim(),
+          kelas: kelas.value,
+          wa: wa.value.trim(),
+          sekolah: sekolah.value.trim(),
+          email: emailDaftar,
+          username,
+          password: passwordDaftar.value,
+          aktif: false,
+        };
+        akun.push(peserta);
+        localStorage.setItem(AKUN, JSON.stringify(akun));
+        localStorage.setItem(P, JSON.stringify(peserta));
+        alert(
+          "✓ Pendaftaran berhasil. Akun menunggu verifikasi pembayaran oleh admin sebelum dapat masuk.",
+        );
+        buka("login");
+      }
+
+      function login(e) {
+        e.preventDefault();
+        const akun = JSON.parse(localStorage.getItem(AKUN) || "[]");
+        const p = akun.find(
+          (a) =>
+            a.username === user.value.trim().toLowerCase() &&
+            a.password === pass.value,
+        );
+        if (!p) {
+          alert("Username atau password salah.");
+          return;
+        }
+        if (!p.aktif) {
+          alert("Akun belum aktif. Tunggu verifikasi pembayaran oleh admin.");
+          return;
+        }
+        localStorage.setItem(P, JSON.stringify(p));
+        masukPeserta(p);
+      }
+
+      function masukPeserta(p) {
+        jenjangAktif = p.kelas || "sd";
+        const d = JSON.parse(localStorage.getItem(K) || "null") || dflt;
+        dataMateri = d[jenjangAktif] || [];
+        document.getElementById("namaDash").textContent = p.nama || user.value;
+        document.getElementById("sub").textContent =
+          "Materi khusus jenjang " + jenjangAktif.toUpperCase();
+        document.getElementById("navBtns").innerHTML =
+          '<button onclick="buka(\'dash\')">Dashboard</button><button onclick="keluar()">Keluar</button>';
+        renderList();
+        buka("dash");
+      }
+
+      function keluar() {
+        localStorage.removeItem(P);
+        dataMateri = [];
+        detailAktif = -1;
+        document.getElementById("navBtns").innerHTML =
+          "<button onclick=\"buka('daftar')\">Daftar</button><button onclick=\"buka('login')\">Masuk</button>";
+        buka("home");
+      }
+
+      function filterJenis(f, el) {
+        filterAktif = f;
+        document
+          .querySelectorAll(".chip")
+          .forEach((c) => c.classList.remove("active"));
+        el.classList.add("active");
+        renderList();
+      }
+
+      function daftarTopik() {
+        return [
+          ...new Set(dataMateri.map((x) => String(x.topik || "Tanpa Topik"))),
+        ];
+      }
+      function bacaProgres() {
+        try {
+          const p =
+            JSON.parse(localStorage.getItem(PROGRES + "_" + jenjangAktif)) ||
+            {};
+          return {
+            soal: p.soal || {},
+            latihanSelesai: p.latihanSelesai || [],
+            tryoutSelesai: p.tryoutSelesai || [],
+          };
+        } catch (e) {
+          return { soal: {}, latihanSelesai: [], tryoutSelesai: [] };
+        }
+      }
+      function simpanProgres(p) {
+        localStorage.setItem(PROGRES + "_" + jenjangAktif, JSON.stringify(p));
+      }
+      function tujuanItem(x) {
+        return x.tujuan || "latihan";
+      }
+      function adaTryout(topik) {
+        return dataMateri.some(
+          (x) =>
+            x.jenis === "soal" &&
+            tujuanItem(x) === "tryout" &&
+            String(x.topik || "Tanpa Topik") === topik,
+        );
+      }
+      function bolehBuka(item) {
+        const urut = daftarTopik(),
+          topik = String(item.topik || "Tanpa Topik"),
+          pos = urut.indexOf(topik),
+          p = bacaProgres();
+        return pos <= 0 || p.latihanSelesai.includes(urut[pos - 1]);
+      }
+      function statusTopik(topik) {
+        return bacaProgres().latihanSelesai.includes(
+          String(topik || "Tanpa Topik"),
+        );
+      }
+
+      const ICON = { pdf: "📄", soal: "📝", video: "🎥" };
+      const LABEL = {
+        pdf: "Modul PDF",
+        soal: "Latihan Soal",
+        video: "Video Pembahasan",
+      };
+
+      function renderList() {
+        const q = (document.getElementById("cari").value || "").toLowerCase();
+        const items = dataMateri.filter(
+          (x) =>
+            x.visible !== false &&
+            x.jenis !== "tryout" &&
+            tujuanItem(x) !== "tryout" &&
+            (filterAktif === "semua" || x.jenis === filterAktif) &&
+            ((x.judul || "").toLowerCase().includes(q) ||
+              (x.topik || "").toLowerCase().includes(q)),
+        );
+        document.getElementById("list").innerHTML = items
+          .map((x) => {
+            const terkunci = !bolehBuka(x),
+              selesai = statusTopik(x.topik),
+              tryout = false;
+            return `<div class="mcard ${terkunci ? "locked" : ""}" onclick="${terkunci ? "alert('Selesaikan seluruh latihan topik sebelumnya terlebih dahulu.')" : "bukaDetail(" + dataMateri.indexOf(x) + ")"}">
+      <div class="ic">${ICON[x.jenis] || "📁"}</div>
+      <div>
+        <div class="topik">${x.topik || ""}</div>
+        <div class="judul">${terkunci ? "🔒 " : ""}${x.judul || ""}</div>
+        <span class="tag ${x.jenis}">${tryout ? "🏆 Tryout Topik" : LABEL[x.jenis] || x.jenis}</span>
+        ${selesai ? '<span class="tag" style="margin-left:5px">✓ Latihan selesai</span>' : ""}
+      </div>
+    </div>`;
+          })
+          .join("");
+        document.getElementById("emptyMsg").style.display = items.length
+          ? "none"
+          : "block";
+        renderTryoutMingguan();
+      }
+
+      function renderTryoutMingguan() {
+        let box = document.getElementById("tryoutMingguanBox");
+        if (!box) {
+          box = document.createElement("div");
+          box.id = "tryoutMingguanBox";
+          box.className = "card";
+          document.getElementById("list").parentNode.appendChild(box);
+        }
+        const list = dataMateri.filter(
+          (x) =>
+            x.visible !== false &&
+            (tujuanItem(x) === "tryout" || x.jenis === "tryout"),
+        );
+        box.innerHTML =
+          '<h2 style="margin-top:0">🏆 Tryout Mingguan</h2><p style="color:#5b4374">Terpisah dari progres topik. Member dapat mengerjakan langsung tanpa Token.</p>' +
+          (list.length
+            ? list
+                .map(
+                  (x) =>
+                    `<div class="mcard" onclick="bukaDetail(${dataMateri.indexOf(x)})"><div class="ic">🏆</div><div><div class="topik">${x.topik || "Tryout Mingguan"}</div><div class="judul">${x.judul || "Tryout"}</div><span class="tag soal">Lihat Jadwal</span></div></div>`,
+                )
+                .join("")
+            : '<div class="empty">Belum ada Tryout Mingguan yang dijadwalkan admin.</div>');
+      }
+
+      function ytId(url) {
+        if (!url) return "";
+        const m = url.match(/(?:youtu\.be\/|v=|embed\/)([A-Za-z0-9_-]{6,})/);
+        return m ? m[1] : "";
+      }
+
+      function bukaDetail(i) {
+        const x = dataMateri[i];
+        if (
+          x.jenis !== "tryout" &&
+          tujuanItem(x) !== "tryout" &&
+          !bolehBuka(x)
+        ) {
+          alert("🔒 Selesaikan latihan topik sebelumnya terlebih dahulu.");
+          return;
+        }
+        detailAktif = i;
+        let html = `<div class="topik">${x.topik || ""}</div><h2 style="margin-top:4px">${x.judul || ""}</h2>`;
+
+        if (x.jenis === "pdf") {
+          html += `<p style="color:#5b4374">Modul dalam format PDF — bisa dibaca langsung di sini atau diunduh.</p>`;
+          if (x.pdfUrl) {
+            const sumberPdf = String(x.pdfUrl).startsWith(
+              "data:application/pdf",
+            )
+              ? x.pdfUrl
+              : `https://docs.google.com/viewer?url=${encodeURIComponent(x.pdfUrl)}&embedded=true`;
+            html += `<iframe class="pdfview" src="${sumberPdf}"></iframe>
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn btn-main" style="text-decoration:none" href="${x.pdfUrl}" target="_blank">⬇ Unduh PDF</a>
+          <a class="btn btn-ghost" style="text-decoration:none" href="${x.pdfUrl}" target="_blank">Buka di Tab Baru</a>
+        </div>`;
+          } else {
+            html += `<div class="empty">Link PDF belum diisi admin.</div>`;
+          }
+        } else if (x.jenis === "soal") {
+          const huruf = ["A", "B", "C", "D", "E"];
+          const tipe=x.tipe || "pg4";
+          html += `<div class="card" style="margin-top:14px"><p style="font-weight:bold;white-space:pre-line">${x.soal || ""}</p>`;
+          if(tipe === "pg4" || tipe === "pg5") {
+            html += '<div id="opsiWrap">';
+            (x.opsi || []).forEach((op, idx) => { html += `<label class="opt" id="opt${idx}"><input type="radio" name="jawab" value="${idx}"><span><b>${huruf[idx]}.</b> ${op}</span></label>`; });
+            html += `</div><button class="btn btn-main" style="margin-top:10px" onclick="cekJawaban(${Number(x.kunci) || 0})">Cek Jawaban</button>`;
+          } else if(tipe === "isian") {
+            html += `<label>Jawaban Anda</label><input id="jawabanTeks" placeholder="Ketik jawaban singkat…"><button class="btn btn-main" style="margin-top:10px" onclick="cekJawabanTeks('${encodeURIComponent(String(x.kunci || ""))}')">Periksa Jawaban</button>`;
+          } else {
+            html += `<label>Jawaban Esai</label><textarea id="jawabanEsai" placeholder="Tuliskan jawaban Anda secara sistematis…"></textarea><button class="btn btn-main" style="margin-top:10px" onclick="simpanJawabanEsai()">Simpan Jawaban</button>`;
+          }
+          html += `<div id="hasilJawab"></div><div class="pembahasan" id="pembahasanBox"><b>Pembahasan:</b><br>${(x.pembahasan || "Tidak ada pembahasan teks.").replace(/\n/g, "<br>")}${x.youtube ? `<br><br><a class="btn btn-ghost" style="text-decoration:none" href="${x.youtube}" target="_blank">🎥 Tonton video pembahasan</a>` : ""}</div></div>`;
+        } else if (x.jenis === "video") {
+          const id = ytId(x.youtube);
+          html += `<p style="color:#5b4374">Video pembahasan soal.</p>`;
+          if (id) {
+            html += `<div class="videowrap"><iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe></div>
+      <a class="btn btn-ghost" style="text-decoration:none;display:inline-block;margin-top:12px" href="${x.youtube}" target="_blank">Tonton di YouTube</a>`;
+          } else {
+            html += `<div class="empty">Link YouTube belum diisi admin.</div>`;
+          }
+        } else if (x.jenis === "tryout") {
+          html += `<p style="color:#5b4374">Tryout mingguan khusus member aktif.</p>
+      <div class="result ok"><b>Jadwal:</b> ${x.tanggal ? new Date(x.tanggal).toLocaleString("id-ID") : "Belum ditentukan"}<br>
+      <b>Paket:</b> ${x.paket || "Belum dipilih"}${x.catatan ? "<br><br>" + x.catatan.replace(/\n/g, "<br>") : ""}</div>
+      <p style="color:#5b4374">Soal tryout akan terbuka sesuai paket yang dipilih admin.</p>`;
+        }
+
+        document.getElementById("detailBody").innerHTML = html;
+        buka("detail");
+      }
+
+      function cekJawaban(kunci) {
+        const chosen = document.querySelector('input[name="jawab"]:checked');
+        const wrap = document.getElementById("opsiWrap");
+        wrap.querySelectorAll(".opt").forEach((o, idx) => {
+          o.classList.remove("correct", "wrong");
+          if (idx === kunci) o.classList.add("correct");
+        });
+        const hasil = document.getElementById("hasilJawab");
+        if (!chosen) {
+          hasil.innerHTML =
+            '<div class="result bad">Pilih salah satu jawaban dulu ya.</div>';
+          return;
+        }
+        const val = parseInt(chosen.value);
+        if (val !== kunci) {
+          document.getElementById("opt" + val).classList.add("wrong");
+        }
+        hasil.innerHTML =
+          val === kunci
+            ? '<div class="result ok">✓ Benar! Jawabanmu tepat.</div>'
+            : '<div class="result bad">✗ Belum tepat. Jawaban benar ditandai hijau.</div>';
+        document.getElementById("pembahasanBox").style.display = "block";
+        if (val === kunci && detailAktif >= 0) {
+          const p = bacaProgres(),
+            item = dataMateri[detailAktif],
+            topik = String(item.topik || "Tanpa Topik"),
+            tujuan = tujuanItem(item);
+          p.soal[detailAktif] = true;
+          const semuaSoal = dataMateri
+            .map((x, i) =>
+              x.jenis === "soal" &&
+              String(x.topik || "Tanpa Topik") === topik &&
+              tujuanItem(x) === tujuan
+                ? i
+                : null,
+            )
+            .filter((i) => i !== null);
+          if (semuaSoal.length && semuaSoal.every((i) => p.soal[i])) {
+            if (tujuan === "tryout") {
+              if (!p.tryoutSelesai.includes(topik)) p.tryoutSelesai.push(topik);
+              hasil.innerHTML +=
+                '<div class="result ok">🎉 Tryout Mingguan selesai. Hasil Anda sudah tersimpan pada perangkat ini.</div>';
+            } else {
+              if (!p.latihanSelesai.includes(topik))
+                p.latihanSelesai.push(topik);
+              hasil.innerHTML += adaTryout(topik)
+                ? '<div class="result ok">✓ Semua latihan selesai. Tryout topik ini sekarang terbuka.</div>'
+                : '<div class="result ok">✓ Semua latihan selesai. Topik berikutnya sekarang terbuka.</div>';
+            }
+          }
+          simpanProgres(p);
+        }
+      }
+
+      function cekJawabanTeks(kunciTerenkode) {
+        const jawaban=(document.getElementById("jawabanTeks").value || "").trim().toLowerCase(), kunci=decodeURIComponent(kunciTerenkode).trim().toLowerCase(), hasil=document.getElementById("hasilJawab");
+        if(!jawaban){hasil.innerHTML='<div class="result bad">Tuliskan jawaban terlebih dahulu.</div>';return;}
+        hasil.innerHTML=jawaban === kunci ? '<div class="result ok">✓ Benar! Jawabanmu tepat.</div>' : '<div class="result bad">✗ Belum tepat. Pelajari pembahasan berikut.</div>';
+        document.getElementById("pembahasanBox").style.display="block";
+      }
+      function simpanJawabanEsai() {
+        const jawaban=(document.getElementById("jawabanEsai").value || "").trim(), hasil=document.getElementById("hasilJawab");
+        if(!jawaban){hasil.innerHTML='<div class="result bad">Tuliskan jawaban terlebih dahulu.</div>';return;}
+        hasil.innerHTML='<div class="result ok">✓ Jawaban esai tersimpan untuk latihan Anda. Cocokkan dengan pembahasan atau kirimkan ke pengajar saat sistem penilaian esai terhubung.</div>';
+        document.getElementById("pembahasanBox").style.display="block";
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        try {
+          const p = JSON.parse(localStorage.getItem(P) || "null");
+          if (p && p.aktif) masukPeserta(p);
+        } catch (e) {}
+      });
+    </script>
+  </body>
+</html>
