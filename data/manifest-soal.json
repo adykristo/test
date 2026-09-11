@@ -31,5 +31,38 @@
     "youtubeLink": "",
     "showYoutube": false,
     "statusDokumen": "terbit"
+  },
+  {
+    "id": "web-1789091455923-4519",
+    "title": "Latihan Energi",
+    "topik": "Energi",
+    "tanggal": "2026-09-11",
+    "jenjang": "sd",
+    "displayMode": "web",
+    "webQuestions": [
+      {
+        "tipe": "pg4",
+        "pertanyaan": "Sebuah benda bermassa $2\\text{ kg}$ dilempar vertikal ke atas dengan kecepatan awal $v_0$. Benda tersebut mencapai ketinggian maksimum $h$. Bagaimana hubungan antara energi kinetik awal dan energi potensial di ketinggian maksimum?",
+        "gambar": "",
+        "pilihan": {
+          "A": "Energi kinetik awal lebih besar dari energi potensial di ketinggian maksimum.",
+          "B": "Tidak ada hubungan antara energi kinetik awal dan energi potensial.",
+          "C": "Energi kinetik awal lebih kecil dari energi potensial di ketinggian maksimum.",
+          "D": "Energi kinetik awal sama dengan energi potensial di ketinggian maksimum."
+        },
+        "pilihan_gambar": {},
+        "statements": [],
+        "category_labels": [
+          "Benar",
+          "Salah"
+        ],
+        "jawabanLatihan": "D",
+        "pembahasan": "Diketahui: Massa benda $m = 2\\text{ kg}$, kecepatan awal $v_0$, ketinggian maksimum $h$.\nDitanya: Hubungan antara energi kinetik awal dan energi potensial di ketinggian maksimum.\nKonsep/Rumus: Berdasarkan Hukum Kekekalan Energi Mekanik, energi mekanik di titik awal sama dengan energi mekanik di titik tertinggi (ketinggian maksimum).\n$EM_1 = EM_2$\n$EK_1 + EP_1 = EK_2 + EP_2$\nKarena saat awal benda dilempar dari tanah, kita asumsikan $EP_1 = 0$, dan saat di ketinggian maksimum kecepatan benda adalah nol ($v_2 = 0$) sehingga $EK_2 = 0$.\nPenyelesaian: $EK_{awal} + 0 = 0 + EP_{maksimum}$, maka $EK_{awal} = EP_{maksimum}$.\nJawaban Akhir: D",
+        "pembahasan_gambar": ""
+      }
+    ],
+    "youtubeLink": "",
+    "showYoutube": false,
+    "statusDokumen": "terbit"
   }
 ]
