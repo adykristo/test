@@ -92,5 +92,38 @@
     "youtubeLink": "",
     "showYoutube": false,
     "statusDokumen": "terbit"
+  },
+  {
+    "id": "web-1789097733725-4237",
+    "title": "Latihan Gelombang Bunyi",
+    "topik": "Gelombang Bunyi",
+    "tanggal": "2026-09-11",
+    "jenjang": "smp",
+    "displayMode": "web",
+    "webQuestions": [
+      {
+        "tipe": "pg4",
+        "pertanyaan": "Batang tengkorak dinosaurus Parasaurolophus memiliki rongga hidung yang membentuk tabung panjang yang terbuka di salah satu ujungnya. Dinosaurus diyakini menghasilkan suara dengan melewatkan udara melalui rongga dan mengatur mode dasar di dalamnya. Dengan memodelkan rongga tersebut sebagai sebuah tabung yang salah satu ujungnya terbuka dan panjangnya $2{}50\\text{ m}$. Jika kecepatan bunyi di udara adalah $340\\text{ m/s}$, frekuensi nada dasar dan nada atas pertama yang dapat dihasilkan adalah dikeluarkannya bunyi sebesar ...",
+        "gambar": "",
+        "pilihan": {
+          "A": "136 Hz, 272 Hz",
+          "B": "34 Hz, 138 Hz",
+          "C": "34 Hz, 102 Hz",
+          "D": "68 Hz, 102 Hz"
+        },
+        "pilihan_gambar": {},
+        "statements": [],
+        "category_labels": [
+          "Benar",
+          "Salah"
+        ],
+        "jawabanLatihan": "C",
+        "pembahasan": "Diketahui:\n- Panjang tabung ($L$) = $2{}50\\text{ m}$\n- Kecepatan bunyi di udara ($v$) = $340\\text{ m/s}$\n- Jenis pipa organa: Ujung satu terbuka (pipa organa tertutup)\n\nDitanya:\n- Frekuensi nada dasar ($f_0$) dan nada atas pertama ($f_1$)\n\nKonsep/Rumus:\nPipa organa tertutup memiliki persamaan frekuensi ke-$n$ ($n = 0, 1, 2, 3, \\dots$):\n$f_n = (2n + 1) \\frac{v}{4L}$\n- Nada dasar ($n = 0$): $f_0 = \\frac{v}{4L}$\n- Nada atas pertama ($n = 1$): $f_1 = \\frac{3v}{4L} = 3f_0$\n\nPenyelesaian:\n1. Menghitung frekuensi nada dasar ($f_0$):\n   $f_0 = \\frac{340}{4 \\times 2{}50}$\n   $f_0 = \\frac{340}{10} = 34\\text{ Hz}$\n\n2. Menghitung frekuensi nada atas pertama ($f_1$):\n   $f_1 = 3 \\times f_0$\n   $f_1 = 3 \\times 34\\text{ Hz} = 102\\text{ Hz}$\n\nJawaban Akhir:\nFrekuensi nada dasar dan nada atas pertama adalah $34\\text{ Hz}$ dan $102\\text{ Hz}$. (Pilihan C)",
+        "pembahasan_gambar": ""
+      }
+    ],
+    "youtubeLink": "",
+    "showYoutube": false,
+    "statusDokumen": "terbit"
   }
 ]
