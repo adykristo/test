@@ -1873,7 +1873,7 @@ function renderJenjang(jenjang) {
     const walker=document.createTreeWalker(wrap,NodeFilter.SHOW_TEXT);
     const hapus=[]; let node;
     while(node=walker.nextNode()) if(/^\s*lihat\s+pembahasan\s*[:.!-]*\s*$/i.test(node.nodeValue||'')) hapus.push(node);
-    hapus.forEach(node=>node.parentNode&&node.parentNode.removeChild(node));
+    hapus.forEach(node=>{const parent=node.parentNode;if(!parent)return;if(parent===wrap){parent.removeChild(node);return;}const teksInduk=(parent.textContent||'').replace(/\s+/g,' ').trim();if(/^lihat\s+pembahasan\s*[:.!-]*$/i.test(teksInduk))parent.remove();else parent.removeChild(node);});
   });
   listEl.querySelectorAll('.soal-content-collapsed .pdf-reader').forEach(el => aktifkanPdfReader(el));
   renderKatexIn(listEl);
@@ -1913,11 +1913,6 @@ async function aktifkanPdfReader(reader) {
 async function toggleSolusi(uid, jenjang) {
   const wrap = document.getElementById('solusi-' + uid);
   const btn = wrap.previousElementSibling;
-  if (!wrap.classList.contains('show')) {
-    const token=localStorage.getItem('kf_training_session')||'';
-    let aktif=false; try { const s=await apiPelatihan('cekAksesPelatihan',{token:token}); aktif=!!s.aktif; } catch(e) {}
-    if (!aktif) { let sid=localStorage.getItem('kf_free_sid'); if(!sid){sid='kf'+Date.now().toString(36)+Math.random().toString(36).slice(2);localStorage.setItem('kf_free_sid',sid);} try { const a=await apiPelatihan('aksesGratis',{sid:sid,jenis:'soal',jenjang:jenjang}); if(!a.diizinkan){await appAlert('Batas pembahasan gratis sudah tercapai. Hubungi admin untuk mendapatkan akses berikutnya.','ℹ️');gotoPage('kontak');return;} } catch(e){} }
-  }
   const showing = wrap.classList.toggle('show');
   btn.textContent = showing ? 'Sembunyikan Pembahasan' : 'Lihat Pembahasan';
   if (showing) {
@@ -2279,26 +2274,22 @@ async function loadTryoutManifest() {
 function renderPaketList() {
   const box = document.getElementById('paketList');
   const riwayat=bacaRiwayatTryout();
-  const items = tryoutManifest.filter(p => {
-    const premium=!!(p.premium||p.pelatihan||p.akses==='pelatihan'||p.gratis===false);
-    const cocokMode=currentTryoutMode==='semua'||(currentTryoutMode==='gratis'?!premium:premium);
-    return String(p.jenjang || '').toLowerCase() === currentTryoutJenjang && p.aktif !== false && cocokMode;
-  });
+  const items = tryoutManifest.filter(p => String(p.jenjang || '').toLowerCase() === currentTryoutJenjang && p.aktif !== false);
   if (!items.length) {
     box.innerHTML = '<div class="empty">Belum ada paket tryout untuk jenjang ini. Cek lagi nanti ya!</div>';
     return;
   }
-  box.innerHTML = items.map(p => { const premium=!!(p.premium||p.pelatihan||p.akses==='pelatihan'||p.gratis===false); const selesai=riwayat.find(x=>x.paketId===p.id); const jadwal=p.jadwal||p.jadwal_mulai||p.mulai||''; return `
+  box.innerHTML = items.map(p => { const selesai=riwayat.find(x=>x.paketId===p.id); const jadwal=p.jadwal||p.jadwal_mulai||p.mulai||''; return `
     <div class="paket-card">
       <div>
-        <span class="tryout-card-badge ${premium?'premium':'gratis'}">${premium?'Token':'Gratis'}</span>
+        <span class="tryout-card-badge premium">Nomor Peserta</span>
         <h3>${p.title}</h3>
         <div class="meta">
           <span>📚 ${p.topik || 'Campuran'}</span>
           <span>📝 ${p.jumlah_soal} soal</span>
           <span>⏱️ ${p.durasi_menit} menit</span>
         </div>
-        <div class="tryout-card-info">${jadwal?'🗓️ Jadwal: <b>'+escAttr(jadwal)+'</b> · ':''}${premium?'Akses penuh peserta pelatihan':'Dapat dicoba sesuai kuota gratis'}</div>
+        <div class="tryout-card-info">${jadwal?'🗓️ Jadwal: <b>'+escAttr(jadwal)+'</b> · ':''}Masukkan nomor peserta yang diberikan admin untuk memulai.</div>
         <div class="tryout-status ${selesai?'done':''}">${selesai?'✓ Sudah dikerjakan · Nilai '+escAttr(selesai.nilai):'○ Belum dikerjakan'}</div>
       </div>
       <button class="mulai-btn" onclick="startTryout('${p.id}')">${selesai?'Kerjakan lagi':'Mulai Tryout'}</button>
@@ -2322,12 +2313,6 @@ async function startTryout(paketId) {
   if (meta.aktif === false) {
     appAlert('Paket tryout ini sedang tidak aktif / disembunyikan oleh admin.', '🚫');
     return;
-  }
-  // Paket yang ditandai uji coba/gratis dibatasi dari server; paket ber-token tidak terpengaruh.
-  if (meta.gratis === true || meta.uji_coba === true) {
-    let sid = localStorage.getItem('kf_free_sid');
-    if (!sid) { sid='kf'+Date.now().toString(36)+Math.random().toString(36).slice(2); localStorage.setItem('kf_free_sid',sid); }
-    try { const akses=await apiPelatihan('aksesGratis',{sid:sid,jenis:'tryout',jenjang:meta.jenjang||''}); if (!akses.diizinkan) { await appAlert('Kuota tryout gratis Anda sudah habis. Hubungi admin untuk token atau akses tryout berikutnya.','ℹ️'); gotoPage('kontak'); return; } } catch(e) {}
   }
   const box = document.getElementById('paketList');
   try {
