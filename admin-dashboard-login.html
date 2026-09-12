@@ -11063,7 +11063,36 @@ window.downloadPaketWord=async function(id){
 };
 </script>
 <script>
-/* Kembalikan PDF ke generator awal (jsPDF) yang digunakan sebelum perubahan tampilan cetak. */
-window.downloadPaketPDF=function(id){return downloadPaketPDFAwal(id);};
+/* PDF rapi: HTML dirender lebih dahulu (termasuk MathJax), kemudian disimpan menjadi PDF asli. */
+function kfMuatHtml2Pdf(){
+  if(window.html2pdf)return Promise.resolve(window.html2pdf);
+  return new Promise((resolve,reject)=>{const lama=document.getElementById('kfHtml2PdfLibrary');if(lama){lama.addEventListener('load',()=>resolve(window.html2pdf));lama.addEventListener('error',()=>reject(Error('Pustaka PDF tidak dapat dimuat.')));return;}const s=document.createElement('script');s.id='kfHtml2PdfLibrary';s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';s.onload=()=>window.html2pdf?resolve(window.html2pdf):reject(Error('Pustaka PDF tidak tersedia.'));s.onerror=()=>reject(Error('Pustaka PDF tidak dapat dimuat. Periksa koneksi internet.'));document.head.appendChild(s);});
+}
+function kfMuatMathPdf(){
+  if(window.MathJax&&window.MathJax.typesetPromise)return Promise.resolve(window.MathJax);
+  return new Promise((resolve,reject)=>{const lama=document.getElementById('kfMathPdfLibrary');if(lama){lama.addEventListener('load',()=>resolve(window.MathJax));lama.addEventListener('error',()=>reject(Error('Mesin rumus tidak dapat dimuat.')));return;}window.MathJax={tex:{inlineMath:[['$','$']],displayMath:[['$$','$$']]},svg:{fontCache:'global'}};const s=document.createElement('script');s.id='kfMathPdfLibrary';s.src='https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js';s.onload=()=>resolve(window.MathJax);s.onerror=()=>reject(Error('Mesin rumus tidak dapat dimuat.'));document.head.appendChild(s);});
+}
+window.downloadPaketPDF=async function(id){
+  const meta=manifestCache.content.find(p=>p.id===id);if(!meta)return;
+  const btn=document.getElementById('btnPdf-'+id),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='Merender rumus & PDF…';}
+  let area=null;
+  try{
+    const r=await ghGetFile(meta.file);if(!r)throw Error('File paket tidak ditemukan.');const p=r.content;
+    const esc=x=>String(x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const teks=x=>esc(x).replace(/\r?\n/g,'<br>');
+    const bersih=(h,v)=>String(v||'').replace(new RegExp('^\\s*'+h+'\\s*[\\.\\)\\:]\\s*','i'),'');
+    const gambar=x=>x?'<div class="kf-pdf-gambar"><img crossorigin="anonymous" src="'+esc(x)+'" alt="Gambar soal"></div>':'';
+    const daftarGambar=x=>(Array.isArray(x)?x:[x]).filter(Boolean).map(gambar).join('');
+    const daftar=(p.soal||[]).map((s,i)=>{const opsi=Object.entries(s.pilihan||{}).map(([h,v])=>'<div class="kf-pdf-opsi '+(s.jawaban_benar===h?'benar':'')+'"><b>'+esc(h)+'.</b><span>'+teks(bersih(h,v))+'</span></div>').join('');const pembahasan=s.pembahasan?'<section class="kf-pdf-pembahasan"><h3>Pembahasan</h3><div>'+teks(s.pembahasan)+'</div>'+daftarGambar(s.pembahasan_gambar)+'</section>':'';return '<section class="kf-pdf-question"><div class="kf-pdf-qhead"><b>SOAL '+(i+1)+'</b>'+(s.jawaban_benar?'<span>Kunci: '+esc(s.jawaban_benar)+'</span>':'')+'</div><div class="kf-pdf-pertanyaan">'+teks(s.pertanyaan||'')+'</div>'+gambar(s.gambar)+opsi+pembahasan+'</section>';}).join('');
+    area=document.createElement('div');area.id='kfPdfRenderArea';area.innerHTML='<div class="kf-pdf-kop">KLINIKFISIKAPKU</div><div class="kf-pdf-sub">Persiapan OSN Fisika</div><h1 class="kf-pdf-title">'+esc(p.title||meta.title||'Paket Soal')+'</h1><div class="kf-pdf-meta">'+esc(String(p.jenjang||'').toUpperCase())+' · '+esc(p.topik||'Tanpa topik')+' · '+(p.soal||[]).length+' soal</div>'+daftar;
+    area.style.cssText='position:fixed;left:0;top:0;z-index:-1;width:794px;padding:38px 46px;background:#fff;opacity:.01;pointer-events:none;box-sizing:border-box;color:#21162c;font-family:Arial,sans-serif;font-size:14px;line-height:1.58;';document.body.appendChild(area);
+    const style=document.createElement('style');style.id='kfPdfRenderStyle';style.textContent='.kf-pdf-kop{background:#5a227f;color:#fff;text-align:center;padding:15px;letter-spacing:4px;font-size:17px;font-weight:700}.kf-pdf-sub{text-align:center;color:#7d548d;font-size:12px;margin:8px 0 18px}.kf-pdf-title{text-align:center;color:#4b197c;font-size:25px;line-height:1.25;margin:0;padding:0 0 12px;border-bottom:3px solid #f253a9}.kf-pdf-meta{text-align:center;color:#765c84;margin:10px 0 20px}.kf-pdf-question{break-inside:avoid;page-break-inside:avoid;border-bottom:1px solid #eadcf5;padding:15px 0 20px}.kf-pdf-qhead{display:flex;gap:10px;align-items:center;margin-bottom:10px}.kf-pdf-qhead b{background:#5a227f;color:#fff;padding:4px 10px;border-radius:8px;font-size:12px;letter-spacing:.4px}.kf-pdf-qhead span{color:#167a3d;background:#e9f9ef;border:1px solid #35a85f;padding:3px 9px;border-radius:7px;font-size:12px;font-weight:700}.kf-pdf-pertanyaan{text-align:justify}.kf-pdf-gambar img{display:block;max-width:100%;max-height:350px;margin:13px 0}.kf-pdf-opsi{display:flex;gap:8px;padding:5px 10px;margin:3px 0;border-radius:6px}.kf-pdf-opsi.benar{background:#e9f9ef;border:1px solid #35a85f}.kf-pdf-opsi b{min-width:18px}.kf-pdf-pembahasan{break-inside:avoid;page-break-inside:avoid;margin-top:15px;padding:12px 13px;background:#fff8fd;border:1px solid #f2c7df;border-radius:8px}.kf-pdf-pembahasan h3{color:#5a227f;margin:0 0 7px;font-size:14px}#kfPdfRenderArea mjx-container{max-width:100%;overflow:visible}';document.head.appendChild(style);
+    const math=await kfMuatMathPdf();await math.typesetPromise([area]);
+    await Promise.all([...area.querySelectorAll('img')].map(im=>im.complete?Promise.resolve():new Promise(ok=>{im.onload=im.onerror=ok;})));
+    const pembuat=await kfMuatHtml2Pdf();const nama=String(p.title||meta.title||'Paket-Soal').replace(/[^a-z0-9-_]+/gi,'-')+'.pdf';
+    await pembuat().set({margin:[10,10,12,10],filename:nama,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy'],avoid:['.kf-pdf-question','.kf-pdf-pembahasan']}}).from(area).save();
+  }catch(e){alert('Gagal membuat PDF: '+(e.message||e));}
+  finally{document.getElementById('kfPdfRenderStyle')?.remove();area?.remove();if(btn){btn.disabled=false;btn.textContent=old;}}
+};
 </script>
 </html>
