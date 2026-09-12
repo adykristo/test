@@ -6450,7 +6450,7 @@ function pdfHeaderFooter(doc, judulPaket) {
   }
 }
 
-async function downloadPaketPDF(id) {
+async function downloadPaketPDFAwal(id) {
   const meta = manifestCache.content.find(p => p.id === id);
   if (!meta) return;
   const btn = document.getElementById('btnPdf-' + id);
@@ -6617,7 +6617,9 @@ async function downloadPaketPDF(id) {
         if (!adaTeks && !gambarOpsi) continue;
         const isBenar = s.jawaban_benar === h;
         const kontenOpsi = pdfEkstrakKonten(s.pilihan[h]);
-        const isi = kontenOpsi.teks;
+        // Huruf opsi sudah dicetak oleh generator (A., B., dst.), jadi hapus
+        // label yang mungkin ikut terbawa dari impor Word agar tidak menjadi “A. A.”.
+        const isi = kontenOpsi.teks.replace(new RegExp('^\\s*' + h + '\\s*[\\.\\)\\:]\\s*', 'i'), '');
         const teksOpsi = h + '.  ' + isi;
         const opsiLines = doc.splitTextToSize(teksOpsi, contentW - 28);
         const boxH = Math.max(18, opsiLines.length * 13 + 8);
@@ -11059,5 +11061,9 @@ window.downloadPaketWord=async function(id){
   }catch(e){alert('Gagal membuat DOCX: '+(e.message||e));}
   finally{if(btn){btn.disabled=false;btn.textContent=old;}}
 };
+</script>
+<script>
+/* Kembalikan PDF ke generator awal (jsPDF) yang digunakan sebelum perubahan tampilan cetak. */
+window.downloadPaketPDF=function(id){return downloadPaketPDFAwal(id);};
 </script>
 </html>
