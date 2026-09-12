@@ -11,5 +11,20 @@
     "kode_akses": "",
     "mode_hasil": "nilai",
     "arsip": false
+  },
+  {
+    "id": "soal-mtxn261r",
+    "title": "Soal",
+    "jenjang": "sma",
+    "topik": "Momen Inersia",
+    "durasi_menit": 60,
+    "jumlah_soal": 1,
+    "file": "data/tryout/soal-mtxn261r.json",
+    "aktif": true,
+    "kode_akses": "",
+    "mode_hasil": "lengkap",
+    "mulai_ujian": "",
+    "selesai_ujian": "",
+    "arsip": false
   }
 ]
