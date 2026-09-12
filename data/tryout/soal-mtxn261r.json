@@ -1,0 +1,30 @@
+{
+  "id": "soal-mtxn261r",
+  "title": "Soal",
+  "jenjang": "sma",
+  "topik": "Momen Inersia",
+  "durasi_menit": 60,
+  "kode_akses": "",
+  "mode_hasil": "lengkap",
+  "mulai_ujian": "",
+  "selesai_ujian": "",
+  "soal": [
+    {
+      "id": "q1789172206478-1",
+      "tipe": "pg5",
+      "pertanyaan": "Sebuah bola pejal dengan jari-jari $R$ memiliki momen inersia $I$ terhadap sumbu geometrisnya. Bola tersebut dilebur menjadi sebuah cakram tipis dengan jari-jari $r$ dan ketebalan $t$. Jika momen inersianya terhadap sumbu tangensial (yang tegak lurus terhadap bidang cakram) juga sama dengan $I$, maka nilai $r$ sama dengan",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1789172272313-paste-1789172272307.png",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$\\frac{2}{\\sqrt{15}}R$",
+        "B": "$\\frac{2}{\\sqrt{5}}R$",
+        "C": "$\\frac{3}{\\sqrt{15}}R$",
+        "D": "$\\frac{\\sqrt{3}}{\\sqrt{15}}R$",
+        "E": "$\\frac{\\sqrt{2}}{\\sqrt{5}}R$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    }
+  ]
+}
