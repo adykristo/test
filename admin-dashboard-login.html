@@ -2938,7 +2938,7 @@ Pembahasan: $\sum F=ma$</pre>
         <button type="button" class="btn btn-primary" onclick="bukaBankStudioManual()">+ Soal Manual</button>
         <button type="button" class="btn btn-outline" onclick="bukaBankStudioAi()">✨ Buat Soal AI</button>
         <button type="button" class="btn btn-outline" onclick="muatBankSoal(true).then(renderBankAdminList)">🔄 Muat Ulang</button>
-        <button type="button" class="btn btn-outline" onclick="bankUnduhTerpilih('word')">📝 Unduh Word Terpilih</button>
+        <button type="button" class="btn btn-outline" onclick="bankUnduhTerpilihDocx(this)">📝 Unduh Word (.docx) Terpilih</button>
         <button type="button" class="btn btn-outline" onclick="bankUnduhTerpilih('pdf')">🖨️ PDF Tampilan Peserta</button>
         <button type="button" class="btn btn-outline" onclick="bankKirimTerpilihKePaket()">＋ Kumpulkan ke Tryout</button>
         <button type="button" class="btn btn-outline" onclick="bankExportJson()">⬇ Export JSON</button>
@@ -7207,6 +7207,106 @@ function bankUnduhTerpilih(mode) {
   const w=window.open('','_blank'); if(!w){alert('Izinkan pop-up browser untuk membuat PDF.');return;} w.document.write(dok+'<script>MathJax.startup.promise.then(()=>setTimeout(()=>window.print(),500));<\\/script>'); w.document.close();
 }
 
+/* ==== Unduh Bank Soal sebagai Word (.docx) asli — rapi, opsi tidak dobel, pembahasan lengkap ==== */
+async function bankBangunDocx(items) {
+  const D = await kfMuatDocx();
+  const bersih = (h, v) => String(v || '').replace(new RegExp('^\\s*' + h + '\\s*[\\.\\)\\:]\\s*', 'i'), '');
+  const isi = [
+    new D.Table({ width: { size: 100, type: D.WidthType.PERCENTAGE }, rows: [new D.TableRow({ children: [new D.TableCell({ shading: { fill: '5A227F' }, children: [new D.Paragraph({ alignment: D.AlignmentType.CENTER, children: [new D.TextRun({ text: 'KLINIKFISIKAPKU', bold: true, color: 'FFFFFF', size: 30, characterSpacing: 140 })] })] })] })] }),
+    new D.Paragraph({ alignment: D.AlignmentType.CENTER, spacing: { after: 220 }, children: [new D.TextRun({ text: 'Bank Soal · Persiapan OSN Fisika', color: '7D548D', size: 18 })] }),
+    new D.Paragraph({ alignment: D.AlignmentType.CENTER, spacing: { after: 330 }, border: { bottom: { color: 'F253A9', space: 8, style: D.BorderStyle.SINGLE, size: 18 } }, children: [new D.TextRun({ text: items.length === 1 ? 'Soal Terpilih' : 'Kumpulan Soal Terpilih', bold: true, color: '4B197C', size: 32 })] }),
+  ];
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i], s = item.soal || {};
+    const kunci = s.jawaban_benar || s.kunci_isian || '';
+
+    isi.push(new D.Paragraph({ spacing: { before: 220, after: 40 }, children: [new D.TextRun({ text: 'Soal ' + (i + 1), bold: true, color: '7828D5', size: 26 })] }));
+    isi.push(new D.Paragraph({ spacing: { after: 120 }, children: [new D.TextRun({ text: String(item.jenjang || '-').toUpperCase() + ' · ' + (item.topik || 'Tanpa topik') + (kunci ? '   |   Kunci: ' + kunci : ''), italics: true, color: '7D548D', size: 20 })] }));
+
+    isi.push(new D.Paragraph({ spacing: { after: 100 }, children: await kfRunsDocx(s.pertanyaan || '', D, 11) }));
+
+    if (s.gambar) {
+      try {
+        const g = await kfDataGambarDocx(Array.isArray(s.gambar) ? s.gambar[0] : s.gambar);
+        isi.push(new D.Paragraph({ spacing: { after: 100 }, children: [new D.ImageRun({ data: g.data, transformation: { width: g.w, height: g.h } })] }));
+      } catch (e) { isi.push(new D.Paragraph({ children: [new D.TextRun({ text: '[Gambar soal tidak dapat dimuat]', italics: true, color: '888888' })] })); }
+    }
+
+    for (const h of Object.keys(s.pilihan || {}).sort()) {
+      const teksOpsi = bersih(h, s.pilihan[h]);
+      isi.push(new D.Paragraph({ indent: { left: 360 }, spacing: { after: 45 }, children: [new D.TextRun({ text: h + '. ', bold: true }), ...(await kfRunsDocx(teksOpsi, D, 16))] }));
+      const gOpsi = s.pilihan_gambar && s.pilihan_gambar[h];
+      if (gOpsi) {
+        try {
+          const g = await kfDataGambarDocx(Array.isArray(gOpsi) ? gOpsi[0] : gOpsi);
+          isi.push(new D.Paragraph({ indent: { left: 360 }, spacing: { after: 80 }, children: [new D.ImageRun({ data: g.data, transformation: { width: g.w, height: g.h } })] }));
+        } catch (e) { /* lewati jika gambar opsi gagal dimuat */ }
+      }
+    }
+
+    if (Array.isArray(s.statements) && s.statements.length) {
+      for (let si = 0; si < s.statements.length; si++) {
+        const st = s.statements[si];
+        isi.push(new D.Paragraph({ indent: { left: 360 }, spacing: { after: 45 }, children: [new D.TextRun({ text: (si + 1) + '. ', bold: true }), ...(await kfRunsDocx(st.text || '', D, 16))] }));
+      }
+    }
+
+    if (s.pembahasan || s.pembahasan_gambar) {
+      const shadingPembahasan = { fill: 'FDF8FF' };
+      const borderPembahasan = { left: { color: 'D439AD', space: 8, style: D.BorderStyle.SINGLE, size: 24 } };
+      isi.push(new D.Paragraph({ spacing: { before: 180, after: 80 }, shading: shadingPembahasan, border: borderPembahasan, children: [new D.TextRun({ text: 'Pembahasan', bold: true, color: '5A227F', size: 22 })] }));
+      if (s.pembahasan) {
+        isi.push(new D.Paragraph({ spacing: { after: 100 }, shading: shadingPembahasan, border: borderPembahasan, children: await kfRunsDocx(s.pembahasan, D, 11) }));
+      }
+      if (s.pembahasan_gambar) {
+        try {
+          const g = await kfDataGambarDocx(Array.isArray(s.pembahasan_gambar) ? s.pembahasan_gambar[0] : s.pembahasan_gambar);
+          isi.push(new D.Paragraph({ spacing: { after: 140 }, shading: shadingPembahasan, border: borderPembahasan, children: [new D.ImageRun({ data: g.data, transformation: { width: g.w, height: g.h } })] }));
+        } catch (e) { /* lewati jika gambar pembahasan gagal dimuat */ }
+      }
+    }
+
+    if (i < items.length - 1) {
+      isi.push(new D.Paragraph({ spacing: { before: 120, after: 100 }, border: { bottom: { color: 'EADCF5', space: 8, style: D.BorderStyle.SINGLE, size: 6 } }, children: [] }));
+    }
+  }
+
+  return new D.Document({ sections: [{ properties: { page: { margin: { top: 900, right: 1050, bottom: 900, left: 1050 } } }, children: isi }] });
+}
+
+async function bankUnduhSoalDocx(items, namaFile, btn) {
+  if (!items.length) { alert('Tidak ada soal untuk diunduh.'); return; }
+  const old = btn && btn.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+  try {
+    const dok = await bankBangunDocx(items);
+    const blob = await window.docx.Packer.toBlob(dok);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = namaFile;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  } catch (e) {
+    alert('Gagal membuat file Word: ' + (e.message || e));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = old; }
+  }
+}
+
+async function bankUnduhSatuDocx(id, btn) {
+  const item = (bankSoalCache.content || []).find(x => x.id === id);
+  if (!item) { alert('Soal tidak ditemukan.'); return; }
+  const namaTopik = String(item.topik || 'soal').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  await bankUnduhSoalDocx([item], `soal-${namaTopik || 'klinikfisikapku'}.docx`, btn);
+}
+
+async function bankUnduhTerpilihDocx(btn) {
+  const items = bankSoalTerpilihUntukUnduh();
+  if (!items.length) { alert('Centang minimal satu soal pada daftar Bank Soal.'); return; }
+  await bankUnduhSoalDocx(items, 'bank-soal-klinikfisikapku-' + new Date().toISOString().slice(0, 10) + '.docx', btn);
+}
+
 async function bankImportJson(event) {
   const file = event.target.files && event.target.files[0];
   event.target.value = '';
@@ -10895,7 +10995,7 @@ async function prosesPdfDenganGemini(){const el=document.getElementById('pdfSoal
 let bankAdminPage=1; const BANK_ADMIN_PER_PAGE=50;
 function toggleHasilConfig(){const box=document.getElementById('hasilConfigBox'),btn=document.getElementById('toggleHasilConfig');if(!box)return;const open=box.style.display!=='none';box.style.display=open?'none':'block';btn.textContent=open?'⚙ Tampilkan Konfigurasi':'✕ Sembunyikan Konfigurasi';}
 function bankListTersaring(){const q=(document.getElementById('bankAdminSearch')?.value||'').trim().toLowerCase(),tipe=document.getElementById('bankAdminTipe')?.value||'',jenjang=(document.getElementById('bankAdminJenjang')?.value||'').toLowerCase(),status=document.getElementById('bankAdminWorkflow')?.value||'';return (bankSoalCache.content||[]).filter(x=>{const s=x.soal||{},blob=[x.id,x.topik,x.jenjang,x.tingkat,x.statusWorkflow,s.pertanyaan,s.pembahasan,JSON.stringify(s.pilihan||{})].join(' ').toLowerCase();return(!q||blob.includes(q))&&(!tipe||s.tipe===tipe)&&(!jenjang||String(x.jenjang||'').toLowerCase()===jenjang)&&(!status||String(x.statusWorkflow||'draf')===status);}).sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));}
-function renderBankAdminList(){const box=document.getElementById('bankAdminList'),stats=document.getElementById('bankAdminStats');if(!box)return;const list=bankListTersaring(),pages=Math.max(1,Math.ceil(list.length/BANK_ADMIN_PER_PAGE));bankAdminPage=Math.min(bankAdminPage,pages);const start=(bankAdminPage-1)*BANK_ADMIN_PER_PAGE,rows=list.slice(start,start+BANK_ADMIN_PER_PAGE);if(stats)stats.textContent=`${list.length} soal ditemukan · halaman ${bankAdminPage}/${pages}`;if(!rows.length){box.innerHTML='<p class="help">Soal tidak ditemukan. Ubah kata kunci atau filter.</p>';return;}box.innerHTML=`<div class="bank-table-wrap"><table class="bank-table"><thead><tr><th><input type="checkbox" onchange="bankPilihHalaman(this.checked)" aria-label="Pilih halaman"></th><th>No.</th><th>Jenis</th><th>Jenjang · Topik</th><th>Soal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${rows.map((x,i)=>{const s=x.soal||{},id=escAttr(x.id),t=(s.pertanyaan||'(soal bergambar)').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();return `<tr><td><input type="checkbox" class="bank-web-check" value="${id}" aria-label="Pilih soal"></td><td>${start+i+1}</td><td><span class="bank-badge">${escHtmlTeks(bankLabelTipe(s.tipe||''))}</span></td><td>${escHtmlTeks(String(x.jenjang||'-').toUpperCase())}<br><small>${escHtmlTeks(x.topik||'Tanpa topik')}</small></td><td><div class="bank-question" title="${escAttr(t)}">${escHtmlTeks(t)}</div></td><td><small>${escHtmlTeks(x.statusWorkflow||'draf')}</small></td><td><div class="bank-actions"><button class="btn btn-outline" title="Preview peserta" onclick="bankPreviewPeserta('${id}')">👁</button><button class="btn btn-outline" title="Edit" onclick="bankEditItem('${id}')">✎</button><button class="btn btn-outline" title="Tambah ke tryout" onclick="bankKirimItemKePaket('${id}')">＋</button><button class="btn btn-outline" title="Duplikat" onclick="bankDuplikatItem('${id}')">⧉</button><button class="btn btn-outline" style="color:#c22d57" title="Hapus soal" onclick="hapusDariBank('${id}')">🗑</button></div></td></tr>`;}).join('')}</tbody></table></div><div class="soal-pagination"><span>${start+1}–${Math.min(start+BANK_ADMIN_PER_PAGE,list.length)} dari ${list.length} soal</span><div class="pager-actions"><button class="btn btn-outline" ${bankAdminPage===1?'disabled':''} onclick="bankAdminPage--;renderBankAdminList()">‹ Sebelumnya</button><button class="btn btn-outline" ${bankAdminPage===pages?'disabled':''} onclick="bankAdminPage++;renderBankAdminList()">Berikutnya ›</button></div></div>`;}
+function renderBankAdminList(){const box=document.getElementById('bankAdminList'),stats=document.getElementById('bankAdminStats');if(!box)return;const list=bankListTersaring(),pages=Math.max(1,Math.ceil(list.length/BANK_ADMIN_PER_PAGE));bankAdminPage=Math.min(bankAdminPage,pages);const start=(bankAdminPage-1)*BANK_ADMIN_PER_PAGE,rows=list.slice(start,start+BANK_ADMIN_PER_PAGE);if(stats)stats.textContent=`${list.length} soal ditemukan · halaman ${bankAdminPage}/${pages}`;if(!rows.length){box.innerHTML='<p class="help">Soal tidak ditemukan. Ubah kata kunci atau filter.</p>';return;}box.innerHTML=`<div class="bank-table-wrap"><table class="bank-table"><thead><tr><th><input type="checkbox" onchange="bankPilihHalaman(this.checked)" aria-label="Pilih halaman"></th><th>No.</th><th>Jenis</th><th>Jenjang · Topik</th><th>Soal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${rows.map((x,i)=>{const s=x.soal||{},id=escAttr(x.id),t=(s.pertanyaan||'(soal bergambar)').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();return `<tr><td><input type="checkbox" class="bank-web-check" value="${id}" aria-label="Pilih soal"></td><td>${start+i+1}</td><td><span class="bank-badge">${escHtmlTeks(bankLabelTipe(s.tipe||''))}</span></td><td>${escHtmlTeks(String(x.jenjang||'-').toUpperCase())}<br><small>${escHtmlTeks(x.topik||'Tanpa topik')}</small></td><td><div class="bank-question" title="${escAttr(t)}">${escHtmlTeks(t)}</div></td><td><small>${escHtmlTeks(x.statusWorkflow||'draf')}</small></td><td><div class="bank-actions"><button class="btn btn-outline" title="Preview peserta" onclick="bankPreviewPeserta('${id}')">👁</button><button class="btn btn-outline" title="Edit" onclick="bankEditItem('${id}')">✎</button><button class="btn btn-outline" title="Tambah ke tryout" onclick="bankKirimItemKePaket('${id}')">＋</button><button class="btn btn-outline" title="Duplikat" onclick="bankDuplikatItem('${id}')">⧉</button><button class="btn btn-outline" title="Download Word (.docx)" onclick="bankUnduhSatuDocx('${id}', this)">⬇</button><button class="btn btn-outline" style="color:#c22d57" title="Hapus soal" onclick="hapusDariBank('${id}')">🗑</button></div></td></tr>`;}).join('')}</tbody></table></div><div class="soal-pagination"><span>${start+1}–${Math.min(start+BANK_ADMIN_PER_PAGE,list.length)} dari ${list.length} soal</span><div class="pager-actions"><button class="btn btn-outline" ${bankAdminPage===1?'disabled':''} onclick="bankAdminPage--;renderBankAdminList()">‹ Sebelumnya</button><button class="btn btn-outline" ${bankAdminPage===pages?'disabled':''} onclick="bankAdminPage++;renderBankAdminList()">Berikutnya ›</button></div></div>`;}
 function bankPilihHalaman(checked){document.querySelectorAll('#bankAdminList .bank-web-check').forEach(x=>x.checked=checked)}
 function bankKirimTerpilihKePaket(){const ids=[...document.querySelectorAll('#bankAdminList .bank-web-check:checked')].map(x=>x.value);if(!ids.length){alert('Centang soal yang ingin dikumpulkan terlebih dahulu.');return;}const chosen=(bankSoalCache.content||[]).filter(x=>ids.includes(x.id)).map(x=>JSON.parse(JSON.stringify(x.soal||{})));navigateAdmin('panelTryout','tryoutPackages');setTimeout(()=>{chosen.forEach((s,i)=>{s.id='q'+Date.now()+'-'+i;tambahSoal(s)});renumberSoal?.();updateSoalCountBadge?.();alert('✓ '+chosen.length+' soal telah dikumpulkan ke editor paket tryout. Periksa, susun urutan, lalu simpan paket.');},250);}
 
