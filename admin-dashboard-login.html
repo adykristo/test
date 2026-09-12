@@ -11021,4 +11021,43 @@ window.downloadPaketWord=async function(id){
   finally{if(btn){btn.disabled=false;btn.textContent=old;}}
 };
 </script>
+<script>
+/* Cetak PDF dan DOCX asli: satu sumber tampilan, pilihan tidak ganda, rumus dan gambar siap cetak. */
+window.downloadPaketPDF=async function(id){
+  const meta=manifestCache.content.find(p=>p.id===id); if(!meta)return;
+  const btn=document.getElementById('btnPdf-'+id),old=btn&&btn.textContent;
+  if(btn){btn.disabled=true;btn.textContent='Menyiapkan PDF…';}
+  try{
+    const r=await ghGetFile(meta.file); if(!r)throw Error('File paket tidak ditemukan.');
+    const p=r.content,esc=x=>String(x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const bersih=(h,v)=>String(v||'').replace(new RegExp('^\\s*'+h+'\\s*[\\.\\)\\:]\\s*','i'),'');
+    const soal=(p.soal||[]).map((s,i)=>{const opsi=Object.entries(s.pilihan||{}).map(([h,v])=>'<tr><td class="huruf">'+esc(h)+'.</td><td>'+esc(bersih(h,v))+'</td></tr>').join('');return '<article class="q"><h2>Soal '+(i+1)+'</h2><div class="teks">'+esc(s.pertanyaan||'').replace(/\n/g,'<br>')+'</div>'+(s.gambar?'<div class="gambar"><img src="'+esc(s.gambar)+'" alt="Gambar soal"></div>':'')+(opsi?'<table class="opsi"><tbody>'+opsi+'</tbody></table>':'')+'</article>';}).join('');
+    const title=esc(p.title||meta.title||'Paket Soal'),w=window.open('','_blank');
+    if(!w)throw Error('Izinkan pop-up untuk mencetak PDF.');
+    const halaman='<!doctype html><html><head><meta charset="utf-8"><title>'+title+'</title><script>window.MathJax={tex:{inlineMath:[["$","$"]],displayMath:[["$$","$$"]]},svg:{fontCache:"global"}};<\\/script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\\/script><style>@page{size:A4;margin:17mm 18mm}body{font-family:Arial,sans-serif;color:#21162c;max-width:760px;margin:0 auto;line-height:1.65;font-size:11pt}.kop{background:#5a227f;color:#fff;text-align:center;padding:15px;letter-spacing:4px;font-size:15pt;font-weight:700}.sub{text-align:center;color:#7d548d;font-size:9pt;margin:7px 0 21px}.judul{text-align:center;color:#4b197c;font-size:19pt;margin:0 0 24px;padding-bottom:12px;border-bottom:3px solid #f253a9}.q{break-inside:avoid;border-bottom:1px solid #eadcf5;padding:13px 0 18px}.q h2{color:#7828d5;font-size:14pt;margin:0 0 10px}.teks{text-align:justify}.gambar img{display:block;max-width:100%;max-height:420px;margin:13px 0}.opsi{border-collapse:collapse;margin:11px 0 0 8px}.opsi td{padding:2px 0;vertical-align:top}.opsi .huruf{width:25px;font-weight:700}mjx-container{max-width:100%;overflow:visible}@media print{body{max-width:none}.q{break-inside:avoid}}</style></head><body><div class="kop">KLINIKFISIKAPKU</div><p class="sub">Persiapan OSN Fisika</p><h1 class="judul">'+title+'</h1>'+soal+'<script>(async()=>{try{if(window.MathJax)await MathJax.startup.promise;const gambar=[...document.images];await Promise.all(gambar.map(x=>x.complete?Promise.resolve():new Promise(ok=>{x.onload=x.onerror=ok;})));await new Promise(r=>setTimeout(r,350));window.focus();window.print();}catch(e){window.print();}})();<\\/script></body></html>';
+    w.document.open();w.document.write(halaman);w.document.close();
+  }catch(e){alert('Gagal menyiapkan PDF: '+(e.message||e));}
+  finally{if(btn){btn.disabled=false;btn.textContent=old;}}
+};
+
+function kfMuatDocx(){
+  if(window.docx&&window.docx.Document)return Promise.resolve(window.docx);
+  return new Promise((resolve,reject)=>{const lama=document.getElementById('kfDocxLibrary');if(lama){lama.addEventListener('load',()=>resolve(window.docx));lama.addEventListener('error',()=>reject(Error('Pustaka DOCX tidak dapat dimuat.')));return;}const s=document.createElement('script');s.id='kfDocxLibrary';s.src='https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js';s.onload=()=>window.docx?resolve(window.docx):reject(Error('Pustaka DOCX tidak tersedia.'));s.onerror=()=>reject(Error('Pustaka DOCX tidak dapat dimuat. Periksa koneksi internet.'));document.head.appendChild(s);});
+}
+async function kfDataGambarDocx(url){const res=await fetch(url);if(!res.ok)throw Error('Gambar tidak dapat diambil.');const data=await res.arrayBuffer(),blob=new Blob([data]),ref=URL.createObjectURL(blob);try{const ukuran=await new Promise((ok,fail)=>{const im=new Image();im.onload=()=>ok({w:im.naturalWidth||500,h:im.naturalHeight||250});im.onerror=fail;im.src=ref;}),maxW=500,maxH=310,skala=Math.min(maxW/ukuran.w,maxH/ukuran.h,1);return {data,w:Math.max(40,Math.round(ukuran.w*skala)),h:Math.max(24,Math.round(ukuran.h*skala))};}finally{URL.revokeObjectURL(ref);}}
+async function kfRunRumusDocx(tex,D){try{const img=await kfDataGambarDocx('https://latex.codecogs.com/png.image?'+encodeURIComponent('\\dpi{150} \\displaystyle '+tex));return new D.ImageRun({data:img.data,transformation:{width:img.w,height:img.h}});}catch(e){return new D.TextRun({text:tex.replace(/\\text\{([^}]*)\}/g,'$1').replace(/\\,/g,' ').replace(/\\/g,''),italics:true});}}
+async function kfRunsDocx(text,D){const bagian=String(text||'').split(/(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)/g),out=[];for(const x of bagian){if(!x)continue;if(x.startsWith('$$')&&x.endsWith('$$')){out.push(await kfRunRumusDocx(x.slice(2,-2),D));continue;}if(x.startsWith('$')&&x.endsWith('$')){out.push(await kfRunRumusDocx(x.slice(1,-1),D));continue;}const baris=x.split('\n');baris.forEach((b,i)=>{if(b)out.push(new D.TextRun({text:b}));if(i<baris.length-1)out.push(new D.TextRun({break:1}));});}return out;}
+window.downloadPaketWord=async function(id){
+  const meta=manifestCache.content.find(p=>p.id===id);if(!meta)return;
+  const btn=document.getElementById('btnWord-'+id),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='Menyiapkan DOCX…';}
+  try{
+    const r=await ghGetFile(meta.file);if(!r)throw Error('File paket tidak ditemukan.');const p=r.content,D=await kfMuatDocx();
+    const bersih=(h,v)=>String(v||'').replace(new RegExp('^\\s*'+h+'\\s*[\\.\\)\\:]\\s*','i'),'');
+    const isi=[new D.Table({width:{size:100,type:D.WidthType.PERCENTAGE},rows:[new D.TableRow({children:[new D.TableCell({shading:{fill:'5A227F'},children:[new D.Paragraph({alignment:D.AlignmentType.CENTER,children:[new D.TextRun({text:'KLINIKFISIKAPKU',bold:true,color:'FFFFFF',size:30,characterSpacing:140})]})]})]})]}),new D.Paragraph({alignment:D.AlignmentType.CENTER,spacing:{after:220},children:[new D.TextRun({text:'Persiapan OSN Fisika',color:'7D548D',size:18})]}),new D.Paragraph({alignment:D.AlignmentType.CENTER,spacing:{after:330},border:{bottom:{color:'F253A9',space:8,style:D.BorderStyle.SINGLE,size:18}},children:[new D.TextRun({text:p.title||meta.title||'Paket Soal',bold:true,color:'4B197C',size:32})]})];
+    for(let i=0;i<(p.soal||[]).length;i++){const s=p.soal[i];isi.push(new D.Paragraph({spacing:{before:170,after:110},children:[new D.TextRun({text:'Soal '+(i+1),bold:true,color:'7828D5',size:26})]}));isi.push(new D.Paragraph({spacing:{after:100},children:await kfRunsDocx(s.pertanyaan||'',D)}));if(s.gambar){try{const g=await kfDataGambarDocx(s.gambar);isi.push(new D.Paragraph({spacing:{after:100},children:[new D.ImageRun({data:g.data,transformation:{width:g.w,height:g.h}})]}));}catch(e){isi.push(new D.Paragraph({children:[new D.TextRun({text:'[Gambar soal tidak dapat dimuat]',italics:true,color:'888888'})]}));}}for(const [h,v] of Object.entries(s.pilihan||{})){isi.push(new D.Paragraph({indent:{left:360},spacing:{after:45},children:[new D.TextRun({text:h+'. ',bold:true}),...(await kfRunsDocx(bersih(h,v),D))]}));}isi.push(new D.Paragraph({border:{bottom:{color:'EADCF5',space:8,style:D.BorderStyle.SINGLE,size:6}},children:[]}));}
+    const dok=new D.Document({sections:[{properties:{page:{margin:{top:900,right:1050,bottom:900,left:1050}}},children:isi}]});const blob=await D.Packer.toBlob(dok),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=String(p.title||meta.title||'Paket-Soal').replace(/[^a-z0-9-_]+/gi,'-')+'.docx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  }catch(e){alert('Gagal membuat DOCX: '+(e.message||e));}
+  finally{if(btn){btn.disabled=false;btn.textContent=old;}}
+};
+</script>
 </html>
