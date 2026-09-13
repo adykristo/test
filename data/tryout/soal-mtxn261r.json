@@ -104,6 +104,230 @@
       "pilihan_gambar": {},
       "category_labels": [],
       "statements": []
+    },
+    {
+      "id": "q1789308226495-7",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah bola pejal yang homogen menggelinding turun pada bidang miring licin dari ketinggian $h$. Kecepatan yang dicapai oleh bola ketika mencapai dasar bidang miring adalah $v$. Jika bola tersebut sekarang dilempar vertikal ke atas dengan kecepatan awal yang sama $v$, ketinggian maksimum yang dapat dicapai oleh bola tersebut adalah ...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$5h/8$",
+        "B": "$3h/5$",
+        "C": "$5h/7$",
+        "D": "$7h/9$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789308523181-8",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah batang seragam dengan panjang $l$ bebas berputar pada bidang vertikal terhadap poros horizontal tetap yang melalui $B$. Batang mulai berputar dari keadaan diam dari posisi kesetimbangan tidak stabilnya. Ketika batang telah berputar sebesar sudut $\\theta$, kecepatan sudutnya $\\omega$ dirumuskan oleh ... \n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789308521572-kf_img_1.png)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$\\sqrt{\\left(\\frac{6g}{l}\\right)} \\sin \\frac{\\theta}{2}$",
+        "B": "$\\sqrt{\\left(\\frac{6g}{l}\\right)} \\cos \\frac{\\theta}{2}$",
+        "C": "$\\sqrt{\\left(\\frac{6g}{l}\\right)} \\sin \\theta$",
+        "D": "$\\sqrt{\\left(\\frac{6g}{l}\\right)} \\cos \\theta$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789308527160-9",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah batang homogen dengan panjang $l$ bebas berputar pada bidang vertikal terhadap poros horizontal tetap melalui $B$. Batang mulai berputar dari keadaan diam pada posisi kesetimbangan tidak stabilnya. Ketika batang telah berputar sebesar sudut $\\theta$, kecepatan sudutnya $\\omega$ dinyatakan oleh...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789308525799-kf_img_1.png)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$\\sqrt{\\left(\\frac{6g}{l}\\right)}\\sin\\frac{\\theta}{2}$",
+        "B": "$\\sqrt{\\left(\\frac{6g}{l}\\right)}\\cos\\frac{\\theta}{2}$",
+        "C": "$\\sqrt{\\left(\\frac{6g}{l}\\right)}\\sin\\theta$",
+        "D": "$\\sqrt{\\left(\\frac{6g}{l}\\right)}\\cos\\theta$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789308608286-10",
+      "tipe": "pg4",
+      "pertanyaan": "Dua buah piringan dengan momen inersia yang sama berputar menggilas sumbu simetri mereka yang melalui pusat dan tegak lurus terhadap bidang piringan dengan kelajuan sudut $\\omega_1$ dan $\\omega_2$. Keduanya disatukan saling berhadapan dengan sumbu rotasi yang berimpit. Ungkapan untuk kehilangan energi selama proses ini adalah ...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$\\frac{1}{2}I(\\omega_1+\\omega_2)^2$",
+        "B": "$\\frac{1}{4}I(\\omega_1-\\omega_2)^2$",
+        "C": "$I(\\omega_1-\\omega_2)^2$",
+        "D": "$\\frac{I}{8}(\\omega_1-\\omega_2)^2$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789309474929-13",
+      "tipe": "pg4",
+      "pertanyaan": "Momen kelembaman dari dua massa yang sama masing-masing bermassa $m$ dengan jarak pisah $L$ yang dihubungkan oleh sebuah batang bermassa $M$, terhadap sumbu yang melalui pusat dan tegak lurus terhadap panjang batang adalah",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "\\(\\frac{(M + 3m)L^2}{12}\\)",
+        "B": "\\(\\frac{(M + 6m)L^2}{12}\\)",
+        "C": "\\(\\frac{ML^2}{4}\\)",
+        "D": "\\(\\frac{ML^2}{12}\\)"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789309661071-14",
+      "tipe": "pg4",
+      "pertanyaan": "Tiga buah benda yang memiliki massa $5\\text{ kg}$, $4\\text{ kg}$, dan $2\\text{ kg}$ bergerak dengan kecepatan masing-masing $5\\text{ ms}^{-1}$, $4\\text{ ms}^{-1}$, dan $2\\text{ ms}^{-1}$ sepanjang sumbu-$X$. Besarnya kecepatan pusat massa adalah...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$1,0\\text{ ms}^{-1}$",
+        "B": "$4\\text{ ms}^{-1}$",
+        "C": "$0,9\\text{ ms}^{-1}$",
+        "D": "$1,3\\text{ ms}^{-1}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789310060425-15",
+      "tipe": "pg4",
+      "pertanyaan": "Balok $A$ bermasa $m$ dan balok $B$ bermasa $2m$ ditempatkan pada bidang miring segitiga tetap menggunakan seutas tali ringan yang tak dapat bertambah panjang dan katrol licin seperti ditunjukkan pada gambar. Bidang miring memiliki sudut kemiringan $45^\\circ$ terhadap horizontal pada kedua sisinya. Jika koefisien gesek antara balok $A$ dan bidang miring adalah $\\frac{2}{3}$ dan antara balok $B$ dan bidang miring adalah $\\frac{1}{3}$, serta kedua sistem $A$ dan $B$ dilepaskan dari keadaan diam, maka percepatan $A$ adalah...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789310058949-kf_img_2.png).",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$-1$",
+        "B": "$1,2$",
+        "C": "$0,2$",
+        "D": "Nol"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789310173683-16",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah balok bermassa $m$ diletakkan di atas balok lain bermassa $M$ yang berada di atas permukaan horizontal. Koefisien gesekan antara kedua balok adalah $\\mu_1$ dan koefisien gesekan antara balok bermassa $M$ dan permukaan horizontal adalah $\\mu_2$. Berapakah gaya horizontal maksimum yang dapat diberikan pada balok bawah agar kedua balok bergerak bersama-sama tanpa tergelincir (bergeser relatif satu sama lain)? \n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789310172443-kf_img_2.png)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$(M + m)(\\mu_2 - \\mu_1)g$",
+        "B": "$(M - m)(\\mu_2 - \\mu_1)g$",
+        "C": "$(M - m)(\\mu_2 + \\mu_1)g$",
+        "D": "$(M + m)(\\mu_2 + \\mu_1)g$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789310690399-17",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah proyektil ditembakkan dengan kecepatan $u$ tegak lurus pada bidang miring yang memiliki sudut kemiringan $\\theta$ terhadap bidang horizontal. Ekspresi untuk jarak jangkau pada bidang miring $R$ adalah...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789310688988-kf_img_2.png)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$\\frac{2u^2}{g}\\tan\\theta$",
+        "B": "$\\frac{2u^2}{g}\\sec\\theta$",
+        "C": "$\\frac{u^2}{g}\\tan^2\\theta$",
+        "D": "$\\frac{2u^2}{g}\\tan\\theta\\sec\\theta$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789311090576-18",
+      "tipe": "pg4",
+      "pertanyaan": "Pada susunan katrol yang ditunjukkan, katrol $P_2$ dapat bergerak (bergerak bebas). Dengan asumsi koefisien gesekan antara $m$ dan permukaan adalah $\\mu$, nilai minimum dari $M$ agar $m$ diam adalah ...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789311089207-kf_img_2.png)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$M = \\frac{\\mu m}{2}$",
+        "B": "$m = \\frac{\\mu M}{2}$",
+        "C": "$M = \\frac{m}{2\\mu}$",
+        "D": "$m = \\frac{M}{2\\mu}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789311423564-19",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah batang homogen dengan panjang $6a$ dan massa $8m$ terletak di atas meja horizontal yang licin. Dua massa titik $m$ dan $2m$ yang bergerak pada bidang horizontal yang sama dengan kelajuan berturut-turut $2v$ dan $v$, menumbuk batang seperti ditunjukkan pada gambar dan menempel padanya setelah tumbukan. Menyatakan kecepatan sudut (terhadap pusat massa), energi total, dan kecepatan pusat massa berturut-turut dengan $\\omega$, $E$, dan $V_c$, manakah pernyataan yang benar setelah tumbukan? \n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789311422235-kf_img_2.png)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$V_c = 0$",
+        "B": "$\\omega = \\frac{3v}{5a}$",
+        "C": "$\\omega = \\frac{v}{5a}$",
+        "D": "$E = \\frac{3mv^2}{5}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789311577723-20",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah balok bermassa $m$ meluncur menuruni baji miring dengan massa yang sama $m$ seperti ditunjukkan pada gambar. Gesekan diabaikan di semua bagian. Percepatan pusat massa sistem balok dan baji adalah...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789311576430-kf_img_2.png)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "NOL",
+        "B": "\\(\\frac{g \\cos^2 \\theta}{(1 + \\sin^2 \\theta)}\\)",
+        "C": "\\(\\frac{g \\sin^2 \\theta}{(1 + \\sin^2 \\theta)}\\)",
+        "D": "\\(\\frac{g \\sin \\theta}{(1 + \\cos \\theta)}\\)"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789311803221-21",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah balok kecil bergeser dengan kecepatan $v_0 = \\frac{1}{2}\\sqrt{gr}$ pada permukaan horizontal yang licin seperti pada gambar. Balok tersebut meninggalkan permukaan pada titik $C$. Sudut $\\theta$ pada gambar adalah....\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789311801943-kf_img_2.png)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$\\cos^{-1}\\left(\\frac{4}{9}\\right)$",
+        "B": "$\\cos^{-1}\\left(\\frac{3}{4}\\right)$",
+        "C": "$\\cos^{-1}\\left(\\frac{1}{2}\\right)$",
+        "D": "Tidak ada di atas"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789312098253-22",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah batang seragam $AB$ dengan panjang $L$ dan massa $m$ terletak di atas meja licin. Sebuah partikel kecil bermassa $m$ menumbuk batang dengan kecepatan $v_0$ pada titik $C$, sejauh $x$ dari pusat $O$. Partikel tersebut diam setelah tumbukan. Nilai $x$ agar titik $n$ (titik $A$) pada batang tetap diam tepat setelah tumbukan adalah.... \n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789312096954-kf_img_2.png)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$ \\tfrac{L}{3}$",
+        "B": "$ \\tfrac{L}{6}$",
+        "C": "$ \\tfrac{L}{4}$",
+        "D": "$ \\tfrac{L}{12}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
     }
   ]
 }
