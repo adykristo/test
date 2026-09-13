@@ -72,6 +72,38 @@
       "pilihan_gambar": {},
       "category_labels": [],
       "statements": []
+    },
+    {
+      "id": "q1789307780063-5",
+      "tipe": "pg4",
+      "pertanyaan": "Periode osilasi dari sebuah bandul sederhana dengan panjang $l$ yang digantungkan pada atap sebuah kendaraan, yang bergerak tanpa gesekan menuruni bidang miring dengan kemiringan $\\alpha$, dinyatakan oleh ....",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$2\\pi \\sqrt{\\frac{l}{g \\cos \\alpha}}$",
+        "B": "$2\\pi \\sqrt{\\frac{l}{g \\sin \\alpha}}$",
+        "C": "$2\\pi \\sqrt{\\frac{l}{g}}$",
+        "D": "$2\\pi \\sqrt{\\frac{l}{g \\tan \\alpha}}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789308020119-6",
+      "tipe": "pg4",
+      "pertanyaan": "Dua benda bermassa $m_1$ dan $m_2$ mula-mula diam pada jarak tak hingga satu sama lain. Keduanya kemudian dibiarkan bergerak saling mendekati akibat gaya tarik gravitasi bersama. Kecepatan relatif pendekatan keduanya pada jarak pemisah $r$ adalah...",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$\\left[2G\\frac{(m_1-m_2)}{r}\\right]^{1/2}$",
+        "B": "$\\left[\\frac{2G}{r}(m_1+m_2)\\right]^{1/2}$",
+        "C": "$\\left[\\frac{r}{2G(m_1m_2)}\\right]^{1/2}$",
+        "D": "$\\left[\\frac{2G}{r}m_1m_2\\right]^{1/2}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
     }
   ]
 }
