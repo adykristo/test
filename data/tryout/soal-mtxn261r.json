@@ -138,22 +138,6 @@
       "statements": []
     },
     {
-      "id": "q1789308527160-9",
-      "tipe": "pg4",
-      "pertanyaan": "Sebuah batang homogen dengan panjang $l$ bebas berputar pada bidang vertikal terhadap poros horizontal tetap melalui $B$. Batang mulai berputar dari keadaan diam pada posisi kesetimbangan tidak stabilnya. Ketika batang telah berputar sebesar sudut $\\theta$, kecepatan sudutnya $\\omega$ dinyatakan oleh...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789308525799-kf_img_1.png)",
-      "gambar": "",
-      "pdf_soal": "",
-      "pilihan": {
-        "A": "$\\sqrt{\\left(\\frac{6g}{l}\\right)}\\sin\\frac{\\theta}{2}$",
-        "B": "$\\sqrt{\\left(\\frac{6g}{l}\\right)}\\cos\\frac{\\theta}{2}$",
-        "C": "$\\sqrt{\\left(\\frac{6g}{l}\\right)}\\sin\\theta$",
-        "D": "$\\sqrt{\\left(\\frac{6g}{l}\\right)}\\cos\\theta$"
-      },
-      "pilihan_gambar": {},
-      "category_labels": [],
-      "statements": []
-    },
-    {
       "id": "q1789308608286-10",
       "tipe": "pg4",
       "pertanyaan": "Dua buah piringan dengan momen inersia yang sama berputar menggilas sumbu simetri mereka yang melalui pusat dan tegak lurus terhadap bidang piringan dengan kelajuan sudut $\\omega_1$ dan $\\omega_2$. Keduanya disatukan saling berhadapan dengan sumbu rotasi yang berimpit. Ungkapan untuk kehilangan energi selama proses ini adalah ...",
