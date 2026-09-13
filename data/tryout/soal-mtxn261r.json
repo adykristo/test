@@ -328,6 +328,22 @@
       "pilihan_gambar": {},
       "category_labels": [],
       "statements": []
+    },
+    {
+      "id": "q1789313608604-21",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah balok kubus dengan sisi $a$ bergerak dengan kecepatan $v$ pada bidang datar licin seperti ditunjukkan pada Gambar. Balok tersebut menumbuk sebuah halang rintang di titik $O$. Jika momen inersia balok terhadap sumbu yang melalui pusat beratnya adalah $\\frac{1}{6}ma^2$, maka kecepatan sudut balok setelah menumbuk $O$ adalah...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789313607291-kf_img_2.png)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$\\frac{3v}{4a}$",
+        "B": "$\\frac{3v}{2a}$",
+        "C": "$\\sqrt{\\frac{3}{2}}\\frac{v}{a}$",
+        "D": "NOL"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
     }
   ]
 }
