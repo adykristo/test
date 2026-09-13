@@ -5,7 +5,7 @@
   "topik": "MEKANIKA",
   "durasi_menit": 120,
   "kode_akses": "",
-  "mode_hasil": "lengkap",
+  "mode_hasil": "nilai",
   "mulai_ujian": "",
   "selesai_ujian": "",
   "soal": [
@@ -42,16 +42,32 @@
       "statements": []
     },
     {
-      "id": "q1789258237036-3",
+      "id": "q1789257974724-3",
       "tipe": "pg4",
-      "pertanyaan": "Sebuah lintasan licin $ABCD$ berujung pada sebuah loop setengah lingkaran dengan jari-jari $R$. Sebuah benda meluncur menuruni lintasan dari titik $A$ yang berada pada ketinggian $h = 5 \\text{ cm}$. Nilai maksimum $R$ agar benda berhasil menyelesaikan loop tersebut adalah...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789258232701-kf_img_1.png)",
+      "pertanyaan": "Seorang pekerja menaikkan dirinya beserta peti tempat ia berdiri dengan percepatan $5\\text{ ms}^{-2}$ menggunakan susunan tali dan katrol tanpa massa. Massa pekerja adalah $100\\text{ kg}$ dan massa peti adalah $50\\text{ kg}$. Jika $T$ adalah tegangan tali dan $F$ adalah gaya kontak antara pekerja dan lantai peti, serta percepatan gravitasi $g = 10\\text{ ms}^{-2}$, maka nilai $T$ dan $F$ berturut-turut adalah...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789257968014-kf_img_1.png)",
       "gambar": "",
       "pdf_soal": "",
       "pilihan": {
-        "A": "$5 \\text{ cm}$",
-        "B": "$\\frac{15}{4} \\text{ cm}$",
-        "C": "$\\frac{10}{3} \\text{ cm}$",
-        "D": "$2 \\text{ cm}$"
+        "A": "$T = 2250\\text{ N}, F = 1125\\text{ N}$",
+        "B": "$T = 1125\\text{ N}, F = 2250\\text{ N}$",
+        "C": "$T = 1125\\text{ N}, F = 375\\text{ N}$",
+        "D": "$T = 1125\\text{ N}, F = 750\\text{ N}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789258498465-4",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah tabung melingkar bermassa $M$ ditempatkan secara vertikal pada permukaan horizontal seperti pada gambar. Dua bola kecil, masing-masing bermassa $m$, yang pas di dalam tabung, dilepaskan dari puncak. Jika $\\theta$ menyatakan sudut antara vektor posisi masing-masing bola dengan garis vertikal, maka pada nilai berapakah rasio $\\frac{M}{m}$ agar tabung terlepas kontaknya dengan lantai saat $\\theta = 60^{\\circ}$? (Abaikan semua gesekan).",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1789258967619-paste-1789258967612.png",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$\\tfrac{1}{2}$",
+        "B": "$\\tfrac{2}{3}$",
+        "C": "$\\tfrac{\\sqrt{3 }}{2}$",
+        "D": "Tidak ada yang benar"
       },
       "pilihan_gambar": {},
       "category_labels": [],
