@@ -5,13 +5,13 @@
   "topik": "MEKANIKA",
   "durasi_menit": 120,
   "kode_akses": "",
-  "mode_hasil": "lengkap",
+  "mode_hasil": "nilai",
   "mulai_ujian": "",
   "selesai_ujian": "",
   "soal": [
     {
       "id": "q1789172206478-1",
-      "tipe": "pg5",
+      "tipe": "pg4",
       "pertanyaan": "Sebuah bola pejal dengan jari-jari $R$ memiliki momen inersia $I$ terhadap sumbu geometrisnya. Bola tersebut dilebur menjadi sebuah cakram tipis dengan jari-jari $r$ dan ketebalan $t$. Jika momen inersianya terhadap sumbu tangensial (yang tegak lurus terhadap bidang cakram) juga sama dengan $I$, maka nilai $r$ sama dengan",
       "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1789172272313-paste-1789172272307.png",
       "pdf_soal": "",
@@ -19,8 +19,7 @@
         "A": "$\\frac{2}{\\sqrt{15}}R$",
         "B": "$\\frac{2}{\\sqrt{5}}R$",
         "C": "$\\frac{3}{\\sqrt{15}}R$",
-        "D": "$\\frac{\\sqrt{3}}{\\sqrt{15}}R$",
-        "E": "$\\frac{\\sqrt{2}}{\\sqrt{5}}R$"
+        "D": "$\\frac{\\sqrt{3}}{\\sqrt{15}}R$"
       },
       "pilihan_gambar": {},
       "category_labels": [],
@@ -37,6 +36,22 @@
         "B": "$\\sqrt{\\frac{2l}{g}}$",
         "C": "$\\sqrt{\\frac{2l}{g\\sin\\theta}}$",
         "D": "$\\sqrt{\\frac{2l}{\\sin\\theta}}$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789257974724-3",
+      "tipe": "pg4",
+      "pertanyaan": "Seorang pekerja menaikkan dirinya beserta peti tempat ia berdiri dengan percepatan $5\\text{ ms}^{-2}$ menggunakan susunan tali dan katrol tanpa massa. Massa pekerja adalah $100\\text{ kg}$ dan massa peti adalah $50\\text{ kg}$. Jika $T$ adalah tegangan tali dan $F$ adalah gaya kontak antara pekerja dan lantai peti, serta percepatan gravitasi $g = 10\\text{ ms}^{-2}$, maka nilai $T$ dan $F$ berturut-turut adalah...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789257968014-kf_img_1.png)",
+      "gambar": "",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$T = 2250\\text{ N}, F = 1125\\text{ N}$",
+        "B": "$T = 1125\\text{ N}, F = 2250\\text{ N}$",
+        "C": "$T = 1125\\text{ N}, F = 375\\text{ N}$",
+        "D": "$T = 1125\\text{ N}, F = 750\\text{ N}$"
       },
       "pilihan_gambar": {},
       "category_labels": [],
