@@ -18,11 +18,11 @@
     "jenjang": "sma",
     "topik": "MEKANIKA",
     "durasi_menit": 120,
-    "jumlah_soal": 3,
+    "jumlah_soal": 4,
     "file": "data/tryout/soal-mtxn261r.json",
     "aktif": false,
     "kode_akses": "",
-    "mode_hasil": "lengkap",
+    "mode_hasil": "nilai",
     "mulai_ujian": "",
     "selesai_ujian": "",
     "arsip": false
