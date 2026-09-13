@@ -5,7 +5,7 @@
   "topik": "MEKANIKA",
   "durasi_menit": 120,
   "kode_akses": "",
-  "mode_hasil": "nilai",
+  "mode_hasil": "lengkap",
   "mulai_ujian": "",
   "selesai_ujian": "",
   "soal": [
@@ -42,16 +42,16 @@
       "statements": []
     },
     {
-      "id": "q1789257974724-3",
+      "id": "q1789258237036-3",
       "tipe": "pg4",
-      "pertanyaan": "Seorang pekerja menaikkan dirinya beserta peti tempat ia berdiri dengan percepatan $5\\text{ ms}^{-2}$ menggunakan susunan tali dan katrol tanpa massa. Massa pekerja adalah $100\\text{ kg}$ dan massa peti adalah $50\\text{ kg}$. Jika $T$ adalah tegangan tali dan $F$ adalah gaya kontak antara pekerja dan lantai peti, serta percepatan gravitasi $g = 10\\text{ ms}^{-2}$, maka nilai $T$ dan $F$ berturut-turut adalah...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789257968014-kf_img_1.png)",
+      "pertanyaan": "Sebuah lintasan licin $ABCD$ berujung pada sebuah loop setengah lingkaran dengan jari-jari $R$. Sebuah benda meluncur menuruni lintasan dari titik $A$ yang berada pada ketinggian $h = 5 \\text{ cm}$. Nilai maksimum $R$ agar benda berhasil menyelesaikan loop tersebut adalah...\n![Gambar](https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/word-ai-1789258232701-kf_img_1.png)",
       "gambar": "",
       "pdf_soal": "",
       "pilihan": {
-        "A": "$T = 2250\\text{ N}, F = 1125\\text{ N}$",
-        "B": "$T = 1125\\text{ N}, F = 2250\\text{ N}$",
-        "C": "$T = 1125\\text{ N}, F = 375\\text{ N}$",
-        "D": "$T = 1125\\text{ N}, F = 750\\text{ N}$"
+        "A": "$5 \\text{ cm}$",
+        "B": "$\\frac{15}{4} \\text{ cm}$",
+        "C": "$\\frac{10}{3} \\text{ cm}$",
+        "D": "$2 \\text{ cm}$"
       },
       "pilihan_gambar": {},
       "category_labels": [],
