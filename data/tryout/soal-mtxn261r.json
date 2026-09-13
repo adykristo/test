@@ -1,9 +1,9 @@
 {
   "id": "soal-mtxn261r",
-  "title": "Soal",
+  "title": "SELEKSI CALON PESERTA OSK 2027",
   "jenjang": "sma",
-  "topik": "Momen Inersia",
-  "durasi_menit": 60,
+  "topik": "MEKANIKA",
+  "durasi_menit": 120,
   "kode_akses": "",
   "mode_hasil": "lengkap",
   "mulai_ujian": "",
@@ -21,6 +21,22 @@
         "C": "$\\frac{3}{\\sqrt{15}}R$",
         "D": "$\\frac{\\sqrt{3}}{\\sqrt{15}}R$",
         "E": "$\\frac{\\sqrt{2}}{\\sqrt{5}}R$"
+      },
+      "pilihan_gambar": {},
+      "category_labels": [],
+      "statements": []
+    },
+    {
+      "id": "q1789257502859-2",
+      "tipe": "pg4",
+      "pertanyaan": "Sebuah balok $A$ dapat meluncur pada bidang miring licin dengan sudut kemiringan $\\theta$ dan panjang $l$, yang berada di dalam sebuah lift yang bergerak naik dengan kecepatan tetap $v$ .  Waktu yang dibutuhkan oleh balok untuk meluncur sepanjang bidang miring tersebut, jika dilepaskan dari keadaan diam adalah ...",
+      "gambar": "https://raw.githubusercontent.com/adykristo/test/main/data/tryout-gambar/1789257662954-paste-1789257662947.png",
+      "pdf_soal": "",
+      "pilihan": {
+        "A": "$\\sqrt{\\frac{2l}{(g+a)\\sin\\theta}}$",
+        "B": "$\\sqrt{\\frac{2l}{g}}$",
+        "C": "$\\sqrt{\\frac{2l}{g\\sin\\theta}}$",
+        "D": "$\\sqrt{\\frac{2l}{\\sin\\theta}}$"
       },
       "pilihan_gambar": {},
       "category_labels": [],
