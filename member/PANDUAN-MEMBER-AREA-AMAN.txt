@@ -1,0 +1,20 @@
+MEMBER AREA AMAN — SETUP DATABASE TERPISAH
+
+1. Buat Google Spreadsheet BARU bernama: KlinikFisikapku Member Database.
+2. Buat proyek Google Apps Script BARU dari spreadsheet tersebut.
+3. Salin isi file Member-Code.gs ke proyek baru itu.
+4. Di Project Settings > Script Properties, buat:
+   MEMBER_SHEET_ID = ID spreadsheet baru
+   MEMBER_ADMIN_KEY = kode rahasia panjang milik admin
+5. Deploy > New deployment > Web app:
+   Execute as: Me
+   Who has access: Anyone
+6. Salin URL /exec. URL ini khusus Member Area, jangan memakai URL CBT utama.
+
+Keamanan:
+- Password disimpan sebagai hash SHA-256, bukan teks biasa.
+- Sesi login menggunakan token 12 jam.
+- Status aktif hanya dapat diubah dengan MEMBER_ADMIN_KEY.
+- Sheet dan Apps Script Member harus berbeda dari Sheet/Apps Script CBT.
+
+Catatan: URL API dan admin key tidak boleh diletakkan di index.html publik. Untuk menghubungkan halaman Member secara penuh, masukkan URL API ke konfigurasi Member Area dan gunakan kunci admin hanya pada halaman admin setelah login admin utama.
