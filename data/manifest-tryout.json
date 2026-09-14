@@ -20,7 +20,7 @@
     "durasi_menit": 120,
     "jumlah_soal": 20,
     "file": "data/tryout/soal-mtxn261r.json",
-    "aktif": true,
+    "aktif": false,
     "kode_akses": "",
     "mode_hasil": "nilai",
     "mulai_ujian": "",
