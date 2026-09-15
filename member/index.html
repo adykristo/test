@@ -443,6 +443,7 @@
       .google-g { display:inline-grid; place-items:center; width:20px; height:20px; margin-right:7px; border-radius:50%; font-weight:900; color:#4285f4; }
       .terms-row { display:flex!important; justify-content:flex-start!important; align-items:flex-start!important; margin-top:14px; font-weight:500!important; }
       .terms-row input { width:auto; margin-top:4px; }
+      .terms-row a { color:#7628c8; font-weight:700; }
       .auth-foot { text-align:center; margin:17px 0 0; font-size:13px; }
       .auth-notice { display:none; margin:14px 0 0; padding:11px 13px; border-radius:10px; font-size:13px; }
       .auth-notice.show { display:block; }
@@ -496,7 +497,7 @@
           <div class="field"><label for="sekolah">Asal Sekolah</label><input id="sekolah" required placeholder="Nama sekolah" /></div>
           <div class="field"><label for="paketDaftar">Pilih Paket</label><select id="paketDaftar" required onchange="tampilkanDeskripsiPaket()"><option value="">Memuat daftar paket…</option></select></div>
           <div id="paketInfo" class="card" style="background:#f6f0fd;margin:14px 0;padding:14px;display:none"></div>
-          <label class="terms-row"><input id="setujuSyarat" type="checkbox" required /> Saya menyetujui syarat layanan dan kebijakan privasi KlinikFisikapku.</label>
+          <label class="terms-row"><input id="setujuSyarat" type="checkbox" required /> <span>Saya menyetujui <a href="terms.html" target="_blank" rel="noopener">Syarat Layanan</a> dan <a href="privacy.html" target="_blank" rel="noopener">Kebijakan Privasi</a> KlinikFisikapku.</span></label>
           <button class="btn btn-main" style="margin-top:16px;width:100%">Daftar Sekarang 🚀</button>
           <div id="daftarNotice" class="auth-notice" role="status"></div>
           <div class="auth-divider">ATAU</div>
