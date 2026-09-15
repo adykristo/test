@@ -1,3 +1,11 @@
+MEMBER AREA KLINIKFISIKAPKU — VERSI SUPABASE
+
+PENTING: Panduan Apps Script di bawah ini adalah panduan versi lama.
+Untuk versi pendaftaran email, login Google, reset password email, dan database
+siswa terbaru, gunakan file PANDUAN-SUPABASE-MEMBER.md dan supabase-setup.sql.
+
+ARSIP PANDUAN LAMA:
+
 MEMBER AREA GEMINI — KLINIKFISIKAPKU
 
 File yang dipakai

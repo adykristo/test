@@ -425,6 +425,33 @@
         .kf-wa-float span { display: none; }
       }
 
+      .auth-page { padding: 34px 16px 54px; background: radial-gradient(circle at 75% 55%,rgba(92,221,207,.22),transparent 34%),linear-gradient(135deg,#eef2ff 0%,#f8f5ff 50%,#effcf9 100%); min-height: calc(100vh - 145px); }
+      .auth-heading { text-align:center; margin:0 0 20px; color:#211231; }
+      .auth-card { width:min(430px,100%); margin:0 auto; padding:25px; border:1px solid rgba(91,56,124,.16); border-radius:18px; background:rgba(255,255,255,.9); box-shadow:0 16px 42px rgba(55,30,86,.14); }
+      .auth-card h2 { margin:0 0 5px; text-align:center; }
+      .auth-sub { margin:0 0 18px; text-align:center; color:#6b5680; font-size:13px; }
+      .auth-card label { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+      .auth-card input,.auth-card select { background:#fff; }
+      .auth-card .field { margin-top:12px; }
+      .auth-password { position:relative; }
+      .auth-password input { padding-right:46px; }
+      .toggle-pass { position:absolute; right:8px; bottom:7px; width:34px; border:0; background:transparent; color:#57307e; cursor:pointer; font-size:16px; }
+      .forgot-link,.auth-switch { color:#6e34e8; text-decoration:none; font-weight:700; cursor:pointer; }
+      .auth-divider { display:flex; align-items:center; gap:10px; margin:18px 0; color:#826d95; font-size:11px; }
+      .auth-divider::before,.auth-divider::after { content:""; height:1px; flex:1; background:#d9cce5; }
+      .google-btn { width:100%; padding:12px; border:1px solid #cfc1dc; border-radius:11px; background:#fff; color:#2f213b; font-weight:700; cursor:pointer; }
+      .google-g { display:inline-grid; place-items:center; width:20px; height:20px; margin-right:7px; border-radius:50%; font-weight:900; color:#4285f4; }
+      .terms-row { display:flex!important; justify-content:flex-start!important; align-items:flex-start!important; margin-top:14px; font-weight:500!important; }
+      .terms-row input { width:auto; margin-top:4px; }
+      .auth-foot { text-align:center; margin:17px 0 0; font-size:13px; }
+      .auth-notice { display:none; margin:14px 0 0; padding:11px 13px; border-radius:10px; font-size:13px; }
+      .auth-notice.show { display:block; }
+      .auth-notice.ok { background:#e8f8ef; color:#147343; }
+      .auth-notice.err { background:#fff0f3; color:#b4284f; }
+      .auth-notice.info { background:#f2ecff; color:#5a2c88; }
+      .config-banner { display:none; max-width:760px; margin:14px auto 0; padding:12px 15px; border-radius:12px; background:#fff2c7; color:#704e00; font-size:13px; }
+      .config-banner.show { display:block; }
+
     </style>
   </head>
   <body>
@@ -455,66 +482,59 @@
         </div>
       </section>
 
-      <section id="daftar" class="page">
-        <form class="card" onsubmit="daftar(event)">
-          <h2>📋 Registrasi Member</h2>
-          <label>Nama Lengkap</label><input id="nama" required />
-          <label>No WhatsApp</label><input id="wa" required />
-          <label>Email</label
-          ><input
-            id="email"
-            type="email"
-            required
-            placeholder="nama@email.com"
-          />
-          <label>Nama Akun / Username</label
-          ><input
-            id="usernameDaftar"
-            required
-            minlength="4"
-            placeholder="Minimal 4 karakter"
-          />
-          <label>Password</label
-          ><input
-            id="passwordDaftar"
-            type="password"
-            required
-            minlength="6"
-            placeholder="Minimal 6 karakter"
-          />
-          <label>Jenjang</label>
-          <select id="kelas" required>
-            <option value="">Pilih jenjang</option>
-            <option value="sd">SD</option>
-            <option value="smp">SMP</option>
-            <option value="sma">SMA</option>
-          </select>
-          <label>Asal Sekolah</label><input id="sekolah" required />
-          <label>Pilih Paket</label>
-          <select id="paketDaftar" required onchange="tampilkanDeskripsiPaket()">
-            <option value="">Memuat daftar paket…</option>
-          </select>
+      <section id="daftar" class="page auth-page">
+        <h1 class="auth-heading">Buat Akun Member 🚀</h1>
+        <form class="auth-card" onsubmit="daftar(event)">
+          <h2>Daftar Akun</h2>
+          <p class="auth-sub">Gunakan email aktif agar verifikasi dan reset password dapat diterima.</p>
+          <div class="field"><label for="nama">Nama Lengkap</label><input id="nama" autocomplete="name" required placeholder="Masukkan nama lengkap" /></div>
+          <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" required placeholder="alamat@email.com" /></div>
+          <div class="field auth-password"><label for="passwordDaftar">Password</label><input id="passwordDaftar" type="password" autocomplete="new-password" required minlength="8" placeholder="Minimal 8 karakter" /><button class="toggle-pass" type="button" onclick="togglePassword('passwordDaftar',this)" aria-label="Tampilkan password">◉</button></div>
+          <div class="field auth-password"><label for="passwordKonfirmasi">Konfirmasi Password</label><input id="passwordKonfirmasi" type="password" autocomplete="new-password" required minlength="8" placeholder="Ulangi password" /><button class="toggle-pass" type="button" onclick="togglePassword('passwordKonfirmasi',this)" aria-label="Tampilkan password">◉</button></div>
+          <div class="field"><label for="wa">Nomor WhatsApp</label><input id="wa" inputmode="tel" required placeholder="08xxxxxxxxxx" /></div>
+          <div class="field"><label for="kelas">Jenjang</label><select id="kelas" required><option value="">Pilih jenjang</option><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div>
+          <div class="field"><label for="sekolah">Asal Sekolah</label><input id="sekolah" required placeholder="Nama sekolah" /></div>
+          <div class="field"><label for="paketDaftar">Pilih Paket</label><select id="paketDaftar" required onchange="tampilkanDeskripsiPaket()"><option value="">Memuat daftar paket…</option></select></div>
           <div id="paketInfo" class="card" style="background:#f6f0fd;margin:14px 0;padding:14px;display:none"></div>
-          <div class="card" style="background:#f6f0fd;margin:14px 0;padding:14px">
-            <b>Cara pembayaran:</b> Transfer sesuai harga paket di atas ke rekening yang tertera (hubungi admin via WhatsApp untuk nomor rekening), lalu unggah bukti transfer di bawah ini. Akun akan diaktifkan admin setelah bukti diverifikasi.
-          </div>
-          <label>Upload Bukti Pembayaran (opsional saat daftar, bisa menyusul)</label>
-          <input id="buktiDaftar" type="file" accept="image/*,application/pdf" />
-          <button class="btn btn-main" style="margin-top: 16px; width: 100%">
-            Kirim Pendaftaran
-          </button>
+          <label class="terms-row"><input id="setujuSyarat" type="checkbox" required /> Saya menyetujui syarat layanan dan kebijakan privasi KlinikFisikapku.</label>
+          <button class="btn btn-main" style="margin-top:16px;width:100%">Daftar Sekarang 🚀</button>
+          <div id="daftarNotice" class="auth-notice" role="status"></div>
+          <div class="auth-divider">ATAU</div>
+          <button class="google-btn" type="button" onclick="masukGoogle()"><span class="google-g">G</span>Daftar dengan Google</button>
+          <p class="auth-foot">Sudah punya akun? <a class="auth-switch" onclick="buka('login')">Masuk di sini</a></p>
+        </form>
+        <div id="supabaseConfigDaftar" class="config-banner"></div>
+      </section>
+
+      <section id="login" class="page auth-page">
+        <h1 class="auth-heading">Halo, Selamat Datang 👋</h1>
+        <form class="auth-card" onsubmit="login(event)">
+          <h2>Masuk</h2>
+          <p class="auth-sub">Masukkan email dan password untuk masuk ke akun.</p>
+          <div class="field"><label for="user">Email</label><input id="user" type="email" autocomplete="email" required placeholder="nama@email.com" /></div>
+          <div class="field auth-password"><label for="pass">Password <a class="forgot-link" onclick="kirimResetPassword()">Lupa password?</a></label><input id="pass" type="password" autocomplete="current-password" required placeholder="Masukkan password" /><button class="toggle-pass" type="button" onclick="togglePassword('pass',this)" aria-label="Tampilkan password">◉</button></div>
+          <button class="btn btn-main" style="margin-top:16px;width:100%">Masuk</button>
+          <div id="loginNotice" class="auth-notice" role="status"></div>
+          <div class="auth-divider">ATAU</div>
+          <button class="google-btn" type="button" onclick="masukGoogle()"><span class="google-g">G</span>Masuk dengan Google</button>
+          <p class="auth-foot">Belum punya akun? <a class="auth-switch" onclick="buka('daftar')">Daftar sekarang</a></p>
+        </form>
+        <div id="supabaseConfigLogin" class="config-banner"></div>
+      </section>
+
+      <section id="reset" class="page auth-page">
+        <h1 class="auth-heading">Buat Password Baru 🔐</h1>
+        <form class="auth-card" onsubmit="simpanPasswordBaru(event)">
+          <h2>Reset Password</h2><p class="auth-sub">Masukkan password baru untuk akun Member Anda.</p>
+          <div class="field auth-password"><label for="passwordBaru">Password Baru</label><input id="passwordBaru" type="password" minlength="8" required placeholder="Minimal 8 karakter" /><button class="toggle-pass" type="button" onclick="togglePassword('passwordBaru',this)">◉</button></div>
+          <div class="field auth-password"><label for="passwordBaru2">Konfirmasi Password</label><input id="passwordBaru2" type="password" minlength="8" required placeholder="Ulangi password baru" /><button class="toggle-pass" type="button" onclick="togglePassword('passwordBaru2',this)">◉</button></div>
+          <button class="btn btn-main" style="margin-top:16px;width:100%">Simpan Password Baru</button>
+          <div id="resetNotice" class="auth-notice" role="status"></div>
         </form>
       </section>
 
-      <section id="login" class="page">
-        <form class="card" onsubmit="login(event)">
-          <h2>🔑 Masuk Member</h2>
-          <label>Username</label><input id="user" required />
-          <label>Password</label><input id="pass" type="password" required />
-          <button class="btn btn-main" style="margin-top: 16px; width: 100%">
-            Masuk Dashboard
-          </button>
-        </form>
+      <section id="pending" class="page auth-page">
+        <div class="auth-card" style="text-align:center"><div style="font-size:48px">⏳</div><h2>Akun Menunggu Aktivasi</h2><p class="auth-sub" id="pendingText">Email sudah terverifikasi. Admin akan mengaktifkan akses setelah data dan pembayaran diperiksa.</p><a class="btn btn-main" href="https://wa.me/6281365657020" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Hubungi Admin</a><button class="btn btn-ghost" type="button" onclick="keluar()" style="margin-top:10px">Keluar</button></div>
       </section>
 
       <section id="dash" class="page">
@@ -617,7 +637,9 @@
       async function muatPaketDaftar() {
         const sel = document.getElementById("paketDaftar");
         try {
-          const res = await apiGet({ action: "listPaket" });
+          const res = window.KFMemberAuth
+            ? await window.KFMemberAuth.listPaket()
+            : await apiGet({ action: "listPaket" });
           PAKET_CACHE = res.data || [];
           sel.innerHTML =
             '<option value="">Pilih paket akses</option>' +
@@ -717,7 +739,9 @@
           '<div class="empty">Memuat materi…</div>';
         buka("dash");
         try {
-          const res = await apiGet({ action: "kontenMember", jenjang: jenjangAktif });
+          const res = window.KFMemberAuth
+            ? await window.KFMemberAuth.kontenMember(jenjangAktif)
+            : await apiGet({ action: "kontenMember", jenjang: jenjangAktif });
           dataMateri = res.data || [];
         } catch (err) {
           dataMateri = [];
@@ -1000,5 +1024,8 @@
         } catch (e) {}
       });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-auth.js"></script>
   </body>
 </html>

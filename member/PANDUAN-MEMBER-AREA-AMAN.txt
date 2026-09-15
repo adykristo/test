@@ -1,4 +1,10 @@
-MEMBER AREA AMAN — SETUP DATABASE TERPISAH
+MEMBER AREA AMAN — PANDUAN APPS SCRIPT LAMA
+
+Untuk versi terbaru dengan pendaftaran email dan reset password, ikuti
+PANDUAN-SUPABASE-MEMBER.md. Dokumen ini dipertahankan hanya sebagai arsip
+untuk integrasi Apps Script lama.
+
+SETUP DATABASE TERPISAH (VERSI LAMA)
 
 1. Buat Google Spreadsheet BARU bernama: KlinikFisikapku Member Database.
 2. Buat proyek Google Apps Script BARU dari spreadsheet tersebut.

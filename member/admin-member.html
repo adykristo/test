@@ -282,12 +282,10 @@
       <div class="brand">
         <b>KlinikFisikapku</b><small>Admin Member Area</small>
       </div>
-      <button
-        class="btn ghost"
-        onclick="alert('Halaman ini nanti digabung ke login admin utama.')"
-      >
-        Keluar
-      </button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn ghost" onclick="location.href='../admin-dashboard-login.html'">← Admin Utama</button>
+        <button class="btn ghost" onclick="KFLogoutAdminMember()">Keluar Member</button>
+      </div>
     </header>
     <div class="layout">
       <aside>
@@ -309,10 +307,10 @@
           <h1>Ringkasan Member Area</h1>
           <p class="sub">Kelola peserta dan konten belajar dari satu tempat.</p>
           <div class="stats">
-            <div class="stat"><b>128</b>Member aktif</div>
-            <div class="stat"><b>7</b>Pendaftaran menunggu</div>
-            <div class="stat"><b>16</b>Topik tersedia</div>
-            <div class="stat"><b>2</b>Tryout minggu ini</div>
+            <div class="stat"><b id="statMemberAktif">0</b>Member aktif</div>
+            <div class="stat"><b id="statMemberPending">0</b>Pendaftaran menunggu</div>
+            <div class="stat"><b id="statTopik">0</b>Topik tersedia</div>
+            <div class="stat"><b id="statTryout">0</b>Tryout tersedia</div>
           </div>
           <div class="grid">
             <div class="card">
@@ -323,35 +321,26 @@
                 </button>
               </div>
               <table>
-                <tr>
+                <thead><tr>
                   <th>Nama</th>
                   <th>Kelas</th>
                   <th>Status</th>
-                </tr>
-                <tr>
-                  <td>Nadia Putri</td>
-                  <td>SMA 11</td>
-                  <td><span class="tag">Menunggu</span></td>
-                </tr>
-                <tr>
-                  <td>Raka Pratama</td>
-                  <td>SMP</td>
-                  <td><span class="tag">Menunggu</span></td>
-                </tr>
+                </tr></thead>
+                <tbody id="recentMemberList"><tr><td colspan="3">Memuat data…</td></tr></tbody>
               </table>
             </div>
             <div class="card">
-              <h2>Aktivitas Admin</h2>
-              <p>✓ Modul Listrik Dinamis diperbarui</p>
-              <p>✓ Video Gerak Parabola ditambahkan</p>
-              <p>◷ Tryout Mingguan #04 dijadwalkan</p>
+              <h2>Alur Pengelolaan</h2>
+              <p>1. Periksa pendaftaran dan data sekolah.</p>
+              <p>2. Cocokkan paket atau pembayaran peserta.</p>
+              <p>3. Aktifkan akun dan tentukan masa akses.</p>
             </div>
           </div>
         </section>
         <section id="pendaftaran" class="panel">
           <h1>Pendaftaran Baru</h1>
           <p class="sub">
-            Verifikasi data, buatkan username/password, lalu aktifkan member.
+            Verifikasi data siswa dan paket, lalu aktifkan akses member.
           </p>
           <div class="card">
             <table>
@@ -636,6 +625,9 @@
       </main>
     </div>
     <script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-admin.js"></script>
     <script>
       function openPanel(id, b) {
         document
@@ -666,6 +658,9 @@
       let KONTEN_CACHE = [];
 
       async function adminApi(action, payload) {
+        if (window.KFSupabaseAdmin && window.KFSupabaseAdmin.configured) {
+          return window.KFSupabaseAdmin.api(action, payload || {});
+        }
         const res = await fetch(SCRIPT_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -674,6 +669,26 @@
         const data = await res.json();
         if (!data.ok) throw new Error(data.error || "Terjadi kesalahan.");
         return data;
+      }
+
+      function backendMemberSiap() {
+        return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/i.test(SCRIPT_URL);
+      }
+
+      function tampilkanPetunjukBackend() {
+        document.querySelector('.layout').innerHTML = `
+          <main style="width:min(760px,calc(100% - 32px));margin:42px auto;">
+            <div class="card" style="padding:28px;">
+              <h1 style="margin-top:0;">Hubungkan Database Member</h1>
+              <p>Perpindahan dari Admin KlinikFisikapku sudah berhasil. Agar data peserta, paket, materi, dan tryout dapat dikelola, masukkan URL Web App Apps Script khusus Member pada konstanta <code>SCRIPT_URL</code> di dua file berikut:</p>
+              <ol style="line-height:1.8;">
+                <li><code>member/index.html</code></li>
+                <li><code>member/admin.html</code></li>
+              </ol>
+              <p>URL harus berakhir dengan <code>/exec</code>. Jangan memasukkan password admin atau API key ke file HTML publik.</p>
+              <button class="btn" onclick="location.href='../admin-dashboard-login.html'">Kembali ke Admin Utama</button>
+            </div>
+          </main>`;
       }
 
       async function loginAdminLoop() {
@@ -762,22 +777,23 @@
         try {
           const res = await adminApi("adminListMember", {});
           MEMBER_CACHE = res.data || [];
+          const aktifStat=document.getElementById("statMemberAktif"), pendingStat=document.getElementById("statMemberPending");
+          if(aktifStat) aktifStat.textContent=MEMBER_CACHE.filter(x=>x.status==="aktif").length;
+          if(pendingStat) pendingStat.textContent=MEMBER_CACHE.filter(x=>x.status==="pending").length;
         } catch (err) {
           alert("Gagal memuat data member: " + err.message);
           return;
         }
         const pending = document.getElementById("pendingMemberList"),
-          all = document.getElementById("allMemberList");
-        const buktiLink = (x) =>
-          x.buktiBayarUrl
-            ? `<a href="${x.buktiBayarUrl}" target="_blank">Lihat bukti</a>`
-            : "<i>Belum ada bukti</i>";
+          all = document.getElementById("allMemberList"), recent = document.getElementById("recentMemberList");
+        if(recent) recent.innerHTML=MEMBER_CACHE.slice(0,5).map(x=>`<tr><td><b>${escMember(x.nama)}</b><br><small>${escMember(x.email)}</small></td><td>${escMember(String(x.jenjang||"-").toUpperCase())}</td><td><span class="tag ${x.status==="aktif"?"ok":""}">${STATUS_LABEL[x.status]||x.status}</span></td></tr>`).join("")||'<tr><td colspan="3">Belum ada pendaftar.</td></tr>';
+        const buktiLink = () => "<i>Verifikasi pembayaran melalui admin</i>";
         if (pending)
           pending.innerHTML =
             MEMBER_CACHE.filter((x) => x.status === "pending")
               .map(
                 (x) =>
-                  `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username)}</small><br>${escMember(x.wa)}</td><td>${escMember(x.email)}</td><td>${escMember(String(x.jenjang || "").toUpperCase())}<br>${escMember(x.sekolah)}<br><span class="tag">${escMember(x.paket || "Paket belum dipilih")}</span><br>${buktiLink(x)}</td><td><div class="row-actions"><button class="btn small" onclick="aktifkanMember('${x.id}')">Aktifkan</button><button class="btn danger small" onclick="tolakMember('${x.id}')">Tolak</button></div></td></tr>`,
+                  `<tr><td><b>${escMember(x.nama)}</b><br><small>${escMember(x.email)}</small><br>${escMember(x.wa)}</td><td>${escMember(x.email)}</td><td>${escMember(String(x.jenjang || "").toUpperCase())}<br>${escMember(x.sekolah)}<br><span class="tag">${escMember(x.paket || "Paket belum dipilih")}</span><br>${buktiLink(x)}</td><td><div class="row-actions"><button class="btn small" onclick="aktifkanMember('${x.id}')">Aktifkan</button><button class="btn danger small" onclick="tolakMember('${x.id}')">Tolak</button></div></td></tr>`,
               )
               .join("") ||
             '<tr><td colspan="4">Tidak ada peserta yang menunggu aktivasi.</td></tr>';
@@ -785,7 +801,7 @@
           (document.getElementById("memberCari") || {}).value || ""
         ).toLowerCase();
         const tersaring = MEMBER_CACHE.filter((x) =>
-          [x.nama, x.username, x.wa, x.email, x.jenjang, x.sekolah, x.paket]
+          [x.nama, x.wa, x.email, x.jenjang, x.sekolah, x.paket]
             .join(" ")
             .toLowerCase()
             .includes(q),
@@ -795,7 +811,7 @@
             tersaring
               .map((x) => {
                 const berakhir = x.berakhir ? new Date(x.berakhir).toLocaleDateString("id-ID") : "-";
-                return `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username)}</small></td><td>${escMember(String(x.jenjang || "").toUpperCase())}<br><small>${escMember(x.paket || "")}</small></td><td><span class="tag ${x.status === "aktif" ? "ok" : ""}">${STATUS_LABEL[x.status] || x.status}</span><br><small>s.d. ${berakhir}</small></td><td><div class="row-actions">${x.status === "aktif" ? `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',false)">Nonaktifkan</button>` : `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',true)">Aktifkan</button>`}<button class="btn danger small" onclick="hapusMember('${x.id}')">Hapus</button></div></td></tr>`;
+                return `<tr><td><b>${escMember(x.nama)}</b><br><small>${escMember(x.email)}</small><br>${escMember(x.wa)}</td><td>${escMember(String(x.jenjang || "").toUpperCase())}<br><small>${escMember(x.paket || "")}</small></td><td><span class="tag ${x.status === "aktif" ? "ok" : ""}">${STATUS_LABEL[x.status] || x.status}</span><br><small>s.d. ${berakhir}</small></td><td><div class="row-actions">${x.status === "aktif" ? `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',false)">Nonaktifkan</button>` : `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',true)">Aktifkan</button>`}<button class="btn danger small" onclick="hapusMember('${x.id}')">Hapus</button></div></td></tr>`;
               })
               .join("") ||
             '<tr><td colspan="4">Tidak ada member yang sesuai.</td></tr>';
@@ -847,6 +863,9 @@
         try {
           const res = await adminApi("adminListKonten", {});
           KONTEN_CACHE = res.data || [];
+          const topikStat=document.getElementById("statTopik"), tryoutStat=document.getElementById("statTryout");
+          if(topikStat) topikStat.textContent=new Set(KONTEN_CACHE.map(x=>x.topik).filter(Boolean)).size;
+          if(tryoutStat) tryoutStat.textContent=KONTEN_CACHE.filter(x=>x.jenis==="tryout").length;
         } catch (err) {
           alert("Gagal memuat konten: " + err.message);
           return;
@@ -1104,6 +1123,21 @@
         await simpanKontenBackend(x);
       }
       document.addEventListener("DOMContentLoaded", async () => {
+        if (window.KFSupabaseAdmin) {
+          const boleh = await window.KFSupabaseAdmin.ensureAdmin();
+          if (!boleh) return;
+          await renderMemberAdmin();
+          await renderKontenAdmin();
+          await renderPaketAdmin();
+          aturTipeManual("latihan");
+          aturTipeManual("tryout");
+          muatPilihanPaket();
+          return;
+        }
+        if (!backendMemberSiap()) {
+          tampilkanPetunjukBackend();
+          return;
+        }
         await loginAdminLoop();
         await renderMemberAdmin();
         await renderKontenAdmin();
