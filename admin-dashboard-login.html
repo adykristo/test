@@ -24,6 +24,7 @@ window.MathJax = {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root{
@@ -51,6 +52,21 @@ window.MathJax = {
   }
   a{color:var(--pink); text-decoration:none;}
   a:hover{text-decoration:underline;}
+
+  /* ===== ANALISIS BUTIR SOAL ===== */
+  .analisis-butir-panel{margin-top:18px;border:1px solid #e6d6f4;border-radius:18px;background:linear-gradient(145deg,#fff 0%,#fdf8ff 58%,#fff5fa 100%);box-shadow:0 12px 30px rgba(61,26,99,.08);overflow:hidden}
+  .analisis-butir-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 20px;color:#fff;background:linear-gradient(120deg,#4b176f,#7b2ff7 58%,#f857a6)}
+  .analisis-butir-head h3{margin:0;font-size:17px}.analisis-butir-head p{margin:4px 0 0;font-size:12px;opacity:.9}
+  .analisis-butir-badge{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.18);font-size:11px;font-weight:800;white-space:nowrap}
+  .analisis-butir-body{padding:18px}
+  .analisis-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(125px,1fr));gap:10px;margin-bottom:16px}
+  .analisis-kpi{padding:13px 14px;border:1px solid #eadff2;border-radius:13px;background:#fff}.analisis-kpi small{display:block;color:var(--abu);font-size:10.5px;font-weight:700}.analisis-kpi strong{display:block;margin-top:4px;color:var(--ungu-tua);font-size:20px}
+  .analisis-table-wrap{overflow:auto;border:1px solid #eadff2;border-radius:13px;background:#fff;max-height:520px}
+  .analisis-table{width:100%;min-width:930px;border-collapse:separate;border-spacing:0;font-size:12px}
+  .analisis-table th{position:sticky;top:0;z-index:2;padding:9px 10px;color:#fff;background:#4b176f;text-align:center;white-space:nowrap}.analisis-table td{padding:8px 10px;border-bottom:1px solid #f0e8f6;text-align:center}.analisis-table td.soal-ringkas{text-align:left;max-width:300px}.analisis-table tbody tr:hover{background:#fcf7ff}
+  .level-pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800}.level-mudah{color:#176c3c;background:#e7f8ee}.level-sedang{color:#8a5a00;background:#fff4d6}.level-sukar{color:#a42c45;background:#ffe5eb}.level-baik{color:#176c3c;background:#e7f8ee}.level-cukup{color:#7a5a00;background:#fff1c8}.level-lemah{color:#a42c45;background:#ffe5eb}
+  .analisis-note{margin:12px 0 0;color:var(--abu);font-size:11px;line-height:1.6}
+  @media(max-width:760px){.analisis-butir-head{flex-direction:column}.analisis-kpi-grid{grid-template-columns:1fr 1fr}.analisis-butir-body{padding:13px}}
 
   /* ===== EDITOR TRYOUT TERPADU V2 ===== */
   .editor-v2-banner{
@@ -2890,7 +2906,7 @@ Pembahasan: $\sum F=ma$</pre>
     <p class="help">
       Fitur ini mengambil data hasil tryout dari Google Sheet lewat Apps Script.
       Isi URL Apps Script &amp; Kode Rahasia Admin (harus sama dengan <code>ADMIN_KEY</code> di Apps Script).
-      Setelah data tampil: unduh <b>PDF rekap</b>, <b>Excel (.csv)</b>, atau <b>sertifikat</b> (per peserta / semua dalam 1 file ZIP — cepat).
+      Setelah data tampil: lihat <b>analisis butir</b>, unduh <b>PDF rekap</b>, <b>Excel (.xlsx)</b>, atau <b>sertifikat</b> (per peserta / semua dalam 1 file ZIP — cepat).
     </p>
     <button class="btn btn-outline" type="button" id="toggleHasilConfig" onclick="toggleHasilConfig()">⚙ Tampilkan Konfigurasi</button>
     <div id="hasilConfigBox" style="display:none;margin-top:12px">
@@ -2908,13 +2924,15 @@ Pembahasan: $\sum F=ma$</pre>
     <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
     <button class="btn btn-primary" onclick="ambilHasilPeserta()">📋 Ambil Hasil</button>
       <button class="btn btn-outline" onclick="tampilRankingTryout()">🏆 Ranking Paket</button>
+      <button class="btn btn-outline" id="btnAnalisisButir" style="display:none; border-color:#7b2ff7; color:#5b2092;" onclick="tampilkanAnalisisButir()">🔎 Analisis Butir Soal</button>
       <button class="btn btn-hijau" id="btnUnduhPdfHasil" style="display:none;" onclick="unduhHasilPesertaPDF()">📥 Unduh PDF</button>
-      <button class="btn btn-hijau" id="btnUnduhExcelHasil" style="display:none; background:#1d6f42;" onclick="unduhHasilPesertaExcel()">📊 Unduh Excel</button>
+      <button class="btn btn-hijau" id="btnUnduhExcelHasil" style="display:none; background:#1d6f42;" onclick="unduhHasilPesertaExcel()">📊 Unduh Excel Lengkap</button>
       <button class="btn btn-hijau" id="btnUnduhSemuaSertifikat" style="display:none; background:linear-gradient(90deg,#f857a6,#7b2ff7);" onclick="unduhSemuaSertifikatPeserta()">📜 Unduh Semua Sertifikat (ZIP)</button>
     </div>
     <div id="statusHasilPeserta" class="status-bar"></div>
     <div id="rankingTryoutArea" style="margin-top:12px;"></div>
     <div id="hasilPesertaPreview" style="display:none; margin-top:16px;"></div>
+    <div id="analisisButirArea" style="display:none;"></div>
   </div>
 
 </main>
@@ -9388,6 +9406,40 @@ async function ambilHasilDariScript(kunciPaket) {
   return Array.isArray(data) ? data : [];
 }
 
+function parseJsonLuwes_(value) {
+  if (value && typeof value === 'object') return value;
+  const text = String(value == null ? '' : value).trim();
+  if (!text) return null;
+  try { return JSON.parse(text); } catch (e) {}
+  try { return JSON.parse(decodeURIComponent(text)); } catch (e) {}
+  return null;
+}
+
+function ambilJawabanMentah_(row) {
+  const candidates = ['jawaban','Jawaban','answers','Answers','jawabanPeserta','Jawaban Peserta','detailJawaban','Detail Jawaban'];
+  for (const key of candidates) {
+    if (row[key] === undefined || row[key] === null || row[key] === '') continue;
+    const parsed = parseJsonLuwes_(row[key]);
+    if (parsed && typeof parsed === 'object') {
+      return parsed.jawaban && typeof parsed.jawaban === 'object' ? parsed.jawaban : parsed;
+    }
+  }
+  const reviewKeys = ['review','Review','detail','Detail'];
+  for (const key of reviewKeys) {
+    const review = parseJsonLuwes_(row[key]);
+    if (!Array.isArray(review)) continue;
+    const map = {};
+    review.forEach((item, index) => {
+      if (!item || typeof item !== 'object') return;
+      const opsi = item.opsi || {};
+      const id = item.soalId || item.id || String(index + 1);
+      map[id] = opsi.user !== undefined ? opsi.user : (item.user !== undefined ? item.user : item.jawaban);
+    });
+    if (Object.keys(map).length) return map;
+  }
+  return {};
+}
+
 // Normalisasi baris hasil dari Sheet (nama kolom bisa beda-beda)
 function normalisasiBarisHasil(r) {
   const get = (...keys) => {
@@ -9413,7 +9465,9 @@ function normalisasiBarisHasil(r) {
     kosong: get('kosong', 'Kosong'),
     waktu: get('waktu', 'Waktu', 'timestamp', 'time'),
     jenjang: get('jenjang', 'Jenjang'),
-    topik: get('topik', 'Topik')
+    topik: get('topik', 'Topik'),
+    jawabanMentah: ambilJawabanMentah_(r),
+    _raw: r
   };
 }
 
@@ -9433,7 +9487,28 @@ function cocokPaket(row, meta) {
 }
 
 // Cache hasil yang sedang ditampilkan di admin (untuk unduh PDF)
-let hasilPesertaCache = { meta: null, data: [] };
+let hasilPesertaCache = { meta: null, data: [], paket: null, analisis: null };
+
+async function muatPaketUntukAnalisis_(meta) {
+  const result = await ghGetFile(meta.file);
+  if (!result || !result.content) throw new Error('File soal paket tidak ditemukan.');
+  const paket = JSON.parse(JSON.stringify(result.content));
+  let kunciMap = {};
+  const keyRes = await fetch(hasilScriptUrl, {
+    method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({action:'ambilKunciAdmin',key:hasilAdminKey,paketId:meta.id})
+  });
+  const keyData = await keyRes.json();
+  if (!keyData || keyData.status !== 'ok') throw new Error((keyData && keyData.message) || 'Kunci privat tidak dapat diambil dari Apps Script.');
+  kunciMap = keyData.kunci || {};
+  paket.soal = (paket.soal || []).map(s => ({...s,...(kunciMap[s.id] || {})}));
+  const tanpaKunci = paket.soal.map((s,i)=>({s,i})).filter(x => {
+    const tipe = tipeAnalisisButir_(x.s);
+    return tipe && !kunciButir_(x.s, tipe);
+  }).map(x => x.i + 1);
+  if (tanpaKunci.length) throw new Error('Kunci belum tersedia untuk soal nomor ' + tanpaKunci.slice(0,10).join(', ') + (tanpaKunci.length > 10 ? ', dan lainnya.' : '.'));
+  return paket;
+}
 
 async function ambilHasilPeserta() {
   if (!hasilScriptUrl || !hasilAdminKey) {
@@ -9447,13 +9522,17 @@ async function ambilHasilPeserta() {
   const preview = document.getElementById('hasilPesertaPreview');
   const btnPdf = document.getElementById('btnUnduhPdfHasil');
   const btnExcel = document.getElementById('btnUnduhExcelHasil');
+  const btnAnalisis = document.getElementById('btnAnalisisButir');
   const btnSertAll = document.getElementById('btnUnduhSemuaSertifikat');
+  const analisisArea = document.getElementById('analisisButirArea');
   preview.style.display = 'none';
   preview.innerHTML = '';
   btnPdf.style.display = 'none';
   if (btnExcel) btnExcel.style.display = 'none';
+  if (btnAnalisis) btnAnalisis.style.display = 'none';
   if (btnSertAll) btnSertAll.style.display = 'none';
-  hasilPesertaCache = { meta: null, data: [] };
+  if (analisisArea) { analisisArea.style.display = 'none'; analisisArea.innerHTML = ''; }
+  hasilPesertaCache = { meta: null, data: [], paket: null, analisis: null };
 
   setStatus('statusHasilPeserta', 'Mengambil data hasil dari Google Sheet…', 'loading');
   try {
@@ -9500,15 +9579,21 @@ async function ambilHasilPeserta() {
 
     // Urutkan nilai tertinggi dulu
     data = data.slice().sort((a, b) => (Number(b.nilai) || 0) - (Number(a.nilai) || 0));
-    hasilPesertaCache = { meta, data };
+    let paket = null;
+    try { paket = await muatPaketUntukAnalisis_(meta); }
+    catch (ePaket) { console.warn('Analisis butir belum dapat memuat soal/kunci:', ePaket); }
+    hasilPesertaCache = { meta, data, paket, analisis: null };
 
     updateStatusPengerjaanDashboard(meta, data);
 
     tampilkanHasilPeserta(meta, data);
     btnPdf.style.display = 'inline-flex';
-    if (btnExcel) btnExcel.style.display = 'inline-flex';
+    if (btnExcel) btnExcel.style.display = paket ? 'inline-flex' : 'none';
+    if (btnAnalisis && paket) btnAnalisis.style.display = 'inline-flex';
     if (btnSertAll) btnSertAll.style.display = 'inline-flex';
-    setStatus('statusHasilPeserta', `✓ Ditemukan ${data.length} peserta. Siap unduh PDF, Excel, atau sertifikat.`, 'ok');
+    setStatus('statusHasilPeserta', paket
+      ? `✓ Ditemukan ${data.length} peserta. Analisis butir dan Excel lengkap siap digunakan.`
+      : `✓ Ditemukan ${data.length} peserta. Rekap tersedia, tetapi soal/kunci privat belum berhasil dimuat untuk analisis.`, 'ok');
   } catch (e) {
     setStatus('statusHasilPeserta', 'Gagal: ' + e.message, 'err');
   }
@@ -9599,77 +9684,241 @@ function unduhHasilPesertaPDF() {
   }
 }
 
-/** Unduh hasil tryout sebagai file Excel-compatible (.csv, UTF-8 BOM). */
+function tipeAnalisisButir_(soal) {
+  const tipe = String((soal || {}).tipe || 'pg5').toLowerCase();
+  return ['pg4','pg5','pg','multiple_choice','isian','short_answer','pgk_mcma'].includes(tipe) ? tipe : '';
+}
+
+function labelTipeAnalisis_(tipe) {
+  if (tipe === 'isian' || tipe === 'short_answer') return 'Isian Singkat';
+  if (tipe === 'pgk_mcma') return 'PG Kompleks';
+  return 'Pilihan Ganda';
+}
+
+function ringkasTeksAnalisis_(value, max) {
+  const text = String(value == null ? '' : value)
+    .replace(/<[^>]+>/g, ' ').replace(/!\[[^\]]*\]\([^)]*\)/g, '[gambar]')
+    .replace(/\s+/g, ' ').trim();
+  return text.length > (max || 160) ? text.slice(0, (max || 160) - 1) + '…' : text;
+}
+
+function kunciButir_(soal, tipe) {
+  if (tipe === 'isian' || tipe === 'short_answer') return String(soal.kunci_isian || soal.jawaban_benar || '').trim();
+  if (tipe === 'pgk_mcma') {
+    const arr = Array.isArray(soal.correct_indexes) ? soal.correct_indexes : String(soal.jawaban_benar || '').toUpperCase().match(/[A-E]/g) || [];
+    return [...new Set(arr.map(String).map(x => x.toUpperCase()))].sort().join(',');
+  }
+  return String(soal.jawaban_benar || soal.kunci || '').trim().toUpperCase();
+}
+
+function jawabanButirPeserta_(peserta, soal, nomor) {
+  const map = peserta.jawabanMentah && typeof peserta.jawabanMentah === 'object' ? peserta.jawabanMentah : {};
+  const id = String(soal.id == null ? '' : soal.id);
+  const keys = [id, String(nomor), 'soal_' + nomor, 'soal' + nomor, 'jawaban_' + nomor, 'jawaban' + nomor];
+  for (const k of keys) if (k && Object.prototype.hasOwnProperty.call(map, k)) return map[k];
+  const raw = peserta._raw || {};
+  const rawKeys = ['Jawaban ' + nomor, 'jawaban ' + nomor, 'Soal ' + nomor, 'soal ' + nomor, 'J' + nomor];
+  for (const k of rawKeys) if (Object.prototype.hasOwnProperty.call(raw, k)) return raw[k];
+  return '';
+}
+
+function kosongJawabanButir_(value) {
+  if (value === undefined || value === null) return true;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === 'object') return Object.keys(value).length === 0;
+  return String(value).trim() === '';
+}
+
+function teksJawabanButir_(value) {
+  if (kosongJawabanButir_(value)) return '';
+  if (Array.isArray(value)) return value.map(String).sort().join(',');
+  if (typeof value === 'object') {
+    if (value.user !== undefined) return teksJawabanButir_(value.user);
+    if (value.teks !== undefined) return String(value.teks || '').trim();
+    return JSON.stringify(value);
+  }
+  return String(value).trim();
+}
+
+function normalIsianAnalisis_(value) {
+  return String(value == null ? '' : value).toLowerCase().trim()
+    .replace(/\\\(|\\\)|\$|\s+/g, '').replace(/,/g, '.');
+}
+
+function statusJawabanButir_(value, kunci, tipe) {
+  if (kosongJawabanButir_(value)) return 'Kosong';
+  const user = teksJawabanButir_(value);
+  if (tipe === 'isian' || tipe === 'short_answer') {
+    const diterima = String(kunci || '').split('|').map(normalIsianAnalisis_).filter(Boolean);
+    return diterima.includes(normalIsianAnalisis_(user)) ? 'Benar' : 'Salah';
+  }
+  if (tipe === 'pgk_mcma') {
+    const u = (Array.isArray(value) ? value : String(user).toUpperCase().match(/[A-E]/g) || []).map(String).sort().join(',');
+    return u === String(kunci || '').split(',').map(x => x.trim().toUpperCase()).filter(Boolean).sort().join(',') ? 'Benar' : 'Salah';
+  }
+  return user.toUpperCase() === String(kunci || '').toUpperCase() ? 'Benar' : 'Salah';
+}
+
+function klasifikasiKesukaran_(p) {
+  if (p >= .70) return 'Mudah';
+  if (p >= .30) return 'Sedang';
+  return 'Sukar';
+}
+
+function klasifikasiDayaBeda_(d) {
+  if (d >= .40) return 'Sangat Baik';
+  if (d >= .30) return 'Baik';
+  if (d >= .20) return 'Cukup';
+  if (d >= 0) return 'Lemah';
+  return 'Negatif';
+}
+
+function buatAnalisisButir_(meta, data, paket) {
+  const semuaSoal = (paket && paket.soal || []).map((soal, index) => ({soal, nomor:index + 1, tipe:tipeAnalisisButir_(soal)})).filter(x => x.tipe);
+  if (!semuaSoal.length) throw new Error('Paket ini belum memiliki soal pilihan ganda atau isian singkat.');
+  const peserta = data.map((row, index) => ({...row, _urutan:index + 1}));
+  const perPeserta = peserta.map(row => ({
+    peserta:row,
+    butir:semuaSoal.map(item => {
+      const jawaban = jawabanButirPeserta_(row, item.soal, item.nomor);
+      const kunci = kunciButir_(item.soal, item.tipe);
+      const status = statusJawabanButir_(jawaban, kunci, item.tipe);
+      return {...item, jawaban:teksJawabanButir_(jawaban), kunci, status};
+    })
+  }));
+  const adaDetailJawaban = perPeserta.some(p => p.butir.some(x => x.jawaban !== ''));
+  if (!adaDetailJawaban) throw new Error('Data hasil belum memuat jawaban per soal. Pastikan Apps Script mengembalikan kolom jawaban (JSON), lalu Deploy ulang sebagai New version.');
+  const urutNilai = perPeserta.slice().sort((a,b) => (Number(b.peserta.nilai)||0) - (Number(a.peserta.nilai)||0));
+  const jumlahKelompok = Math.max(1, Math.ceil(urutNilai.length * .27));
+  const atas = urutNilai.slice(0, jumlahKelompok);
+  const bawah = urutNilai.slice(Math.max(jumlahKelompok, urutNilai.length - jumlahKelompok));
+  const butir = semuaSoal.map((item, index) => {
+    const hasil = perPeserta.map(p => p.butir[index]);
+    const benar = hasil.filter(x => x.status === 'Benar').length;
+    const salah = hasil.filter(x => x.status === 'Salah').length;
+    const kosong = hasil.filter(x => x.status === 'Kosong').length;
+    const p = peserta.length ? benar / peserta.length : 0;
+    const benarAtas = atas.filter(x => x.butir[index].status === 'Benar').length;
+    const benarBawah = bawah.filter(x => x.butir[index].status === 'Benar').length;
+    const dayaBeda = jumlahKelompok ? (benarAtas / jumlahKelompok) - (benarBawah / jumlahKelompok) : 0;
+    const sebaran = {};
+    hasil.forEach(x => { const key = x.status === 'Kosong' ? '(Kosong)' : (x.jawaban || '(Kosong)'); sebaran[key] = (sebaran[key] || 0) + 1; });
+    return {
+      nomor:item.nomor, id:item.soal.id || '', tipe:item.tipe, labelTipe:labelTipeAnalisis_(item.tipe),
+      pertanyaan:ringkasTeksAnalisis_(item.soal.pertanyaan || '', 220), kunci:kunciButir_(item.soal,item.tipe),
+      benar, salah, kosong, persenBenar:p, tingkat:klasifikasiKesukaran_(p),
+      kelompokAtas:benarAtas, kelompokBawah:benarBawah, dayaBeda, kualitas:klasifikasiDayaBeda_(dayaBeda), sebaran
+    };
+  });
+  return {meta, peserta:perPeserta, butir, jumlahKelompok};
+}
+
+function dapatkanAnalisisButir_() {
+  const cache = hasilPesertaCache;
+  if (!cache.meta || !cache.data || !cache.data.length || !cache.paket) throw new Error('Ambil hasil paket terlebih dahulu.');
+  if (!cache.analisis) cache.analisis = buatAnalisisButir_(cache.meta, cache.data, cache.paket);
+  return cache.analisis;
+}
+
+function tampilkanAnalisisButir() {
+  const area = document.getElementById('analisisButirArea');
+  try {
+    const analisis = dapatkanAnalisisButir_();
+    const rataP = analisis.butir.reduce((sum,x) => sum + x.persenBenar, 0) / analisis.butir.length;
+    const perluTinjau = analisis.butir.filter(x => x.dayaBeda < .20 || x.persenBenar < .30).length;
+    const rows = analisis.butir.map(x => {
+      const levelCls = x.tingkat === 'Mudah' ? 'level-mudah' : (x.tingkat === 'Sedang' ? 'level-sedang' : 'level-sukar');
+      const dayaCls = x.dayaBeda >= .30 ? 'level-baik' : (x.dayaBeda >= .20 ? 'level-cukup' : 'level-lemah');
+      return `<tr><td><b>${x.nomor}</b></td><td>${x.labelTipe}</td><td class="soal-ringkas">${String(x.pertanyaan).replace(/</g,'&lt;')}</td><td><b>${String(x.kunci || '-').replace(/</g,'&lt;')}</b></td><td>${x.benar}</td><td>${x.salah}</td><td>${x.kosong}</td><td>${(x.persenBenar*100).toFixed(1)}%</td><td><span class="level-pill ${levelCls}">${x.tingkat}</span></td><td>${x.dayaBeda.toFixed(2)}</td><td><span class="level-pill ${dayaCls}">${x.kualitas}</span></td></tr>`;
+    }).join('');
+    area.innerHTML = `<section class="analisis-butir-panel"><div class="analisis-butir-head"><div><h3>Analisis Butir Soal</h3><p>Pilihan ganda dan isian singkat · jawaban, kunci, benar, salah, dan kosong per peserta tersedia di Excel.</p></div><span class="analisis-butir-badge">${analisis.butir.length} butir dianalisis</span></div><div class="analisis-butir-body"><div class="analisis-kpi-grid"><div class="analisis-kpi"><small>Peserta</small><strong>${analisis.peserta.length}</strong></div><div class="analisis-kpi"><small>Rata-rata benar</small><strong>${(rataP*100).toFixed(1)}%</strong></div><div class="analisis-kpi"><small>Butir perlu ditinjau</small><strong>${perluTinjau}</strong></div><div class="analisis-kpi"><small>Kelompok atas/bawah</small><strong>${analisis.jumlahKelompok}</strong></div></div><div class="analisis-table-wrap"><table class="analisis-table"><thead><tr><th>No.</th><th>Jenis</th><th>Ringkasan soal</th><th>Kunci</th><th>Benar</th><th>Salah</th><th>Kosong</th><th>% Benar</th><th>Kesukaran</th><th>Daya beda</th><th>Kualitas</th></tr></thead><tbody>${rows}</tbody></table></div><p class="analisis-note"><b>Indeks kesukaran</b> memakai persentase peserta yang benar: Mudah ≥70%, Sedang 30–69,9%, Sukar &lt;30%. <b>Daya beda</b> membandingkan proporsi benar kelompok nilai atas dan bawah (masing-masing 27%). Nilai negatif menandakan butir/kunci perlu diperiksa.</p></div></section>`;
+    area.style.display = 'block';
+    area.scrollIntoView({behavior:'smooth',block:'start'});
+  } catch (e) {
+    setStatus('statusHasilPeserta', 'Analisis belum tersedia: ' + e.message, 'err');
+  }
+}
+
+/** Unduh analisis hasil tryout sebagai workbook Excel asli (.xlsx). */
 function unduhHasilPesertaExcel() {
-  const { meta, data } = hasilPesertaCache;
-  if (!meta || !data || !data.length) {
+  const { meta, data, paket } = hasilPesertaCache;
+  if (!meta || !data || !data.length || !paket) {
     setStatus('statusHasilPeserta', 'Ambil hasil dulu sebelum mengunduh Excel.', 'err');
     return;
   }
   try {
-    buatExcelHasilPeserta(meta, data);
-    setStatus('statusHasilPeserta', `✓ Excel berhasil diunduh (${data.length} peserta). Buka file dengan Microsoft Excel / Google Sheets.`, 'ok');
+    const analisis = dapatkanAnalisisButir_();
+    buatExcelHasilPeserta(meta, data, analisis);
+    setStatus('statusHasilPeserta', `✓ Excel lengkap berhasil diunduh: ${data.length} peserta dan ${analisis.butir.length} butir soal.`, 'ok');
   } catch (e) {
     setStatus('statusHasilPeserta', 'Gagal membuat Excel: ' + e.message, 'err');
   }
 }
 
-function escapeCsvCell_(val) {
-  const s = String(val == null ? '' : val);
-  // Escape quote & bungkus jika ada koma/quote/newline
-  if (/[",\n\r]/.test(s)) {
-    return '"' + s.replace(/"/g, '""') + '"';
-  }
-  return s;
+function aturLebarSheet_(sheet, widths) {
+  sheet['!cols'] = widths.map(w => ({wch:w}));
 }
 
-function buatExcelHasilPeserta(meta, data) {
-  const sorted = data.slice().sort((a, b) => (Number(b.nilai) || 0) - (Number(a.nilai) || 0));
+function buatExcelHasilPeserta(meta, data, analisis) {
+  if (!window.XLSX) throw new Error('Modul Excel belum siap. Periksa koneksi internet lalu refresh halaman.');
+  const sorted = data.slice().sort((a,b) => (Number(b.nilai)||0) - (Number(a.nilai)||0));
   const nilaiArr = sorted.map(d => Number(d.nilai) || 0);
   const rata = (nilaiArr.reduce((a, b) => a + b, 0) / nilaiArr.length).toFixed(1);
   const tertinggi = Math.max(...nilaiArr);
   const terendah = Math.min(...nilaiArr);
 
-  const lines = [];
-  // Info header
-  lines.push(['Hasil Tryout Peserta — KlinikFisikapku'].map(escapeCsvCell_).join(','));
-  lines.push(['Paket', meta.title || ''].map(escapeCsvCell_).join(','));
-  lines.push(['Jenjang', String(meta.jenjang || '').toUpperCase()].map(escapeCsvCell_).join(','));
-  lines.push(['Jumlah Peserta', sorted.length].map(escapeCsvCell_).join(','));
-  lines.push(['Rata-rata', rata].map(escapeCsvCell_).join(','));
-  lines.push(['Nilai Tertinggi', tertinggi].map(escapeCsvCell_).join(','));
-  lines.push(['Nilai Terendah', terendah].map(escapeCsvCell_).join(','));
-  lines.push(''); // baris kosong
+  const ringkasan = [
+    ['ANALISIS HASIL TRYOUT — KLINIKFISIKAPKU'],
+    ['Paket', meta.title || ''], ['Jenjang', String(meta.jenjang || '').toUpperCase()],
+    ['Jumlah peserta', sorted.length], ['Jumlah butir dianalisis', analisis.butir.length],
+    ['Rata-rata nilai', Number(rata)], ['Nilai tertinggi', tertinggi], ['Nilai terendah', terendah], [],
+    ['Peringkat','Nama','No. Ujian','Nilai','Benar','Salah','Kosong','Waktu Submit']
+  ];
+  sorted.forEach((d,i) => ringkasan.push([i+1,d.nama||'-',d.noUjian||'-',Number(d.nilai)||0,Number(d.benar)||0,Number(d.salah)||0,Number(d.kosong)||0,d.waktu ? new Date(d.waktu).toLocaleString('id-ID') : '-']));
+  const wsRingkasan = XLSX.utils.aoa_to_sheet(ringkasan);
+  aturLebarSheet_(wsRingkasan,[10,30,22,12,10,10,10,24]);
+  wsRingkasan['!autofilter']={ref:`A10:H${ringkasan.length}`};
 
-  // Header tabel
-  lines.push(['No', 'Nama', 'No. Ujian', 'Nilai', 'Benar', 'Salah', 'Kosong', 'Waktu Submit'].map(escapeCsvCell_).join(','));
-
-  sorted.forEach((d, i) => {
-    const waktu = d.waktu ? new Date(d.waktu).toLocaleString('id-ID') : '-';
-    lines.push([
-      i + 1,
-      d.nama || '-',
-      d.noUjian || '-',
-      d.nilai,
-      d.benar,
-      d.salah,
-      d.kosong,
-      waktu
-    ].map(escapeCsvCell_).join(','));
+  const matriksHeader1 = ['No','Nama','No. Ujian','Nilai','Benar','Salah','Kosong','Waktu Submit'];
+  analisis.butir.forEach(x => { matriksHeader1.push(`Soal ${x.nomor} - Jawaban`, `Soal ${x.nomor} - Status`); });
+  const matriks = [matriksHeader1];
+  analisis.peserta.slice().sort((a,b)=>(Number(b.peserta.nilai)||0)-(Number(a.peserta.nilai)||0)).forEach((entry,i) => {
+    const p=entry.peserta, row=[i+1,p.nama||'-',p.noUjian||'-',Number(p.nilai)||0,Number(p.benar)||0,Number(p.salah)||0,Number(p.kosong)||0,p.waktu?new Date(p.waktu).toLocaleString('id-ID'):'-'];
+    entry.butir.forEach(x => row.push(x.jawaban || '', x.status));
+    matriks.push(row);
   });
+  const wsMatriks = XLSX.utils.aoa_to_sheet(matriks);
+  aturLebarSheet_(wsMatriks,[7,28,20,10,9,9,9,22,...analisis.butir.flatMap(()=>[18,11])]);
+  wsMatriks['!autofilter']={ref:`A1:${XLSX.utils.encode_col(matriksHeader1.length-1)}${matriks.length}`};
 
-  // UTF-8 BOM supaya Excel Windows membaca karakter Indonesia dengan benar
-  const bom = '\uFEFF';
-  const csvContent = bom + lines.join('\r\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `Hasil-${slugify(meta.title)}-KlinikFisikapku.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const analisisRows = [['No.','ID Soal','Jenis','Ringkasan Soal','Kunci','Benar','Salah','Kosong','Persen Benar','Kesukaran','Benar Kelompok Atas','Benar Kelompok Bawah','Indeks Daya Beda','Kualitas Daya Beda','Sebaran Jawaban']];
+  analisis.butir.forEach(x => analisisRows.push([x.nomor,x.id,x.labelTipe,x.pertanyaan,x.kunci,x.benar,x.salah,x.kosong,x.persenBenar,x.tingkat,x.kelompokAtas,x.kelompokBawah,x.dayaBeda,x.kualitas,Object.entries(x.sebaran).map(([k,v])=>`${k}: ${v}`).join(' | ')]));
+  const wsAnalisis = XLSX.utils.aoa_to_sheet(analisisRows);
+  aturLebarSheet_(wsAnalisis,[7,20,18,55,20,9,9,9,14,14,20,20,18,20,48]);
+  wsAnalisis['!autofilter']={ref:`A1:O${analisisRows.length}`};
+  for(let r=2;r<=analisisRows.length;r++){ if(wsAnalisis['I'+r]) wsAnalisis['I'+r].z='0.0%'; if(wsAnalisis['M'+r]) wsAnalisis['M'+r].z='0.00'; }
+
+  const kunciRows=[['No.','ID Soal','Jenis','Soal','Kunci / Jawaban Diterima','Pilihan Jawaban']];
+  (hasilPesertaCache.paket.soal||[]).forEach((s,i)=>{
+    const tipe=tipeAnalisisButir_(s); if(!tipe)return;
+    const pilihan=Object.entries(s.pilihan||{}).map(([h,v])=>`${h}. ${ringkasTeksAnalisis_(v,120)}`).join(' | ');
+    kunciRows.push([i+1,s.id||'',labelTipeAnalisis_(tipe),ringkasTeksAnalisis_(s.pertanyaan||'',500),kunciButir_(s,tipe),pilihan]);
+  });
+  const wsKunci=XLSX.utils.aoa_to_sheet(kunciRows);
+  aturLebarSheet_(wsKunci,[7,20,18,70,28,75]);
+  wsKunci['!autofilter']={ref:`A1:F${kunciRows.length}`};
+
+  const petunjuk=[['KETERANGAN ANALISIS'],['Status','Benar = sesuai kunci; Salah = terisi tetapi tidak sesuai; Kosong = tidak dijawab.'],['Indeks kesukaran','Mudah ≥ 0,70; Sedang 0,30–0,699; Sukar < 0,30.'],['Daya beda','Proporsi benar kelompok atas dikurangi proporsi benar kelompok bawah. Masing-masing kelompok memakai 27% peserta berdasarkan nilai.'],['Interpretasi daya beda','Sangat Baik ≥ 0,40; Baik 0,30–0,399; Cukup 0,20–0,299; Lemah 0–0,199; Negatif < 0.'],['Catatan isian','Beberapa kunci yang dipisahkan tanda | dianggap sebagai variasi jawaban benar. Huruf besar/kecil, spasi, serta koma/titik desimal dinormalisasi.']];
+  const wsPetunjuk=XLSX.utils.aoa_to_sheet(petunjuk); aturLebarSheet_(wsPetunjuk,[24,115]);
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,wsRingkasan,'Ringkasan');
+  XLSX.utils.book_append_sheet(wb,wsMatriks,'Jawaban Peserta');
+  XLSX.utils.book_append_sheet(wb,wsAnalisis,'Analisis Butir');
+  XLSX.utils.book_append_sheet(wb,wsKunci,'Kunci Jawaban');
+  XLSX.utils.book_append_sheet(wb,wsPetunjuk,'Keterangan');
+  wb.Props={Title:'Analisis Hasil Tryout '+(meta.title||''),Subject:'Analisis butir soal pilihan ganda dan isian singkat',Author:'KlinikFisikapku',CreatedDate:new Date()};
+  XLSX.writeFile(wb,`Analisis-Butir-${slugify(meta.title)}-KlinikFisikapku.xlsx`,{compression:true});
 }
 
 function buatPdfHasilPeserta(meta, data) {
@@ -11095,17 +11344,22 @@ window.downloadPaketPDF=async function(id){
   const meta=manifestCache.content.find(p=>p.id===id);if(!meta)return;
   const btn=document.getElementById('btnPdf-'+id),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='Menyusun PDF…';}
   try{
-    const r=await ghGetFile(meta.file);if(!r)throw Error('File paket tidak ditemukan.');const paket=r.content,{jsPDF}=window.jspdf,doc=new jsPDF({unit:'pt',format:'a4'}),pageW=doc.internal.pageSize.getWidth(),pageH=doc.internal.pageSize.getHeight(),margin=42,lebar=pageW-margin*2;
+    const r=await ghGetFile(meta.file);if(!r)throw Error('File paket tidak ditemukan.');
+    const paket=r.content,daftarSoal=Array.isArray(paket.soal)?paket.soal:[];
+    if(!daftarSoal.length)throw Error('Paket terbaca, tetapi daftar soalnya kosong. Buka Edit Paket lalu simpan kembali.');
+    if(!window.jspdf||!window.jspdf.jsPDF)throw Error('Modul PDF belum termuat. Refresh halaman lalu coba lagi.');
+    if(btn)btn.textContent='Menyusun '+daftarSoal.length+' soal…';
+    const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'pt',format:'a4'}),pageW=doc.internal.pageSize.getWidth(),pageH=doc.internal.pageSize.getHeight(),margin=42,lebar=pageW-margin*2;
     let y=76;const escBersih=(h,v)=>String(v||'').replace(new RegExp('^\\s*'+h+'\\s*[\\.\\)\\:]\\s*','i'),'');
     const halaman=(h=24)=>{if(y+h>pageH-54){doc.addPage();y=76;}};
     const gaya=(ukuran,warna,bold)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(ukuran);doc.setTextColor(...warna);};
     const gambar=async(url,opsi={})=>{if(!url)return;try{const im=await pdfLoadImageDataURL(url),maxW=opsi.maxW||lebar,maxH=opsi.maxH||210,sc=Math.min(maxW/im.w,maxH/im.h,1),w=im.w*sc,h=im.h*sc;halaman(h+12);doc.addImage(im.dataUrl,'PNG',margin+(opsi.indent||0),y,w,h);y+=h+10;}catch(e){gaya(9,PDF_WARNA.abu,false);halaman(16);doc.text('[Gambar tidak dapat dimuat]',margin,y+10);y+=16;}};
     const teks=async(value,opsi={})=>{const ukuran=opsi.ukuran||10.5,x=opsi.x||margin,w=opsi.w||lebar,warna=opsi.warna||[35,28,48],bold=!!opsi.bold,sumber=String(value||'');const bagian=sumber.includes('$')?sumber.split(/(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)/g):[sumber];for(const b of bagian){if(!b)continue;const mentah=b.trim();const rumus=(b.startsWith('$$')&&b.endsWith('$$'))?b.slice(2,-2):(b.startsWith('$')&&b.endsWith('$')?b.slice(1,-1):(/^\\(?:frac|dfrac|tfrac|sqrt|vec|overline|alpha|beta|gamma|theta|pi|sin|cos|tan|log|ln|mathrm|text|left|right|sum|int|Delta)\b/.test(mentah)?mentah:null));if(rumus!==null){try{const im=await pdfLoadImageDataURL('https://latex.codecogs.com/png.image?'+encodeURIComponent('\\dpi{160} \\displaystyle '+rumus)),sc=Math.min((w*.74)/im.w,42/im.h,1),iw=im.w*sc,ih=im.h*sc;halaman(ih+10);doc.addImage(im.dataUrl,'PNG',x+(opsi.rumusTengah?(w-iw)/2:0),y,iw,ih);y+=ih+7;}catch(e){gaya(ukuran,warna,bold);const l=doc.splitTextToSize(kfPdfTeksCadangan(rumus),w);halaman(l.length*(ukuran+3)+6);doc.text(l,x,y);y+=l.length*(ukuran+3)+6;}continue;}gaya(ukuran,warna,bold);const l=doc.splitTextToSize(b.replace(/\r?\n/g,' '),w);halaman(l.length*(ukuran+3)+6);doc.text(l,x,y);y+=l.length*(ukuran+3)+6;}};
-    gaya(19,PDF_WARNA.unguTua,true);const judul=doc.splitTextToSize(String(paket.title||'Paket Soal'),lebar);doc.text(judul,margin,y);y+=judul.length*22+6;doc.setFillColor(250,246,255);doc.setDrawColor(...PDF_WARNA.pinkMuda);doc.roundedRect(margin,y-4,lebar,34,6,6,'FD');gaya(10,PDF_WARNA.abu,false);doc.text('Jenjang: '+String(paket.jenjang||'-').toUpperCase()+'   |   Topik: '+(paket.topik||'-')+'   |   Jumlah Soal: '+(paket.soal||[]).length,margin+12,y+16);y+=47;
-    for(let i=0;i<(paket.soal||[]).length;i++){const s=paket.soal[i];halaman(60);doc.setFillColor(...PDF_WARNA.unguTua);doc.roundedRect(margin,y,63,18,4,4,'F');gaya(10,[255,255,255],true);doc.text('SOAL '+(i+1),margin+31.5,y+12.5,{align:'center'});if(s.jawaban_benar){doc.setFillColor(232,248,237);doc.setDrawColor(46,160,90);doc.roundedRect(margin+74,y,62,18,4,4,'FD');gaya(9,[22,120,60],true);doc.text('Kunci: '+s.jawaban_benar,margin+105,y+12.5,{align:'center'});}y+=30;
+    gaya(19,PDF_WARNA.unguTua,true);const judul=doc.splitTextToSize(String(paket.title||'Paket Soal'),lebar);doc.text(judul,margin,y);y+=judul.length*22+6;doc.setFillColor(250,246,255);doc.setDrawColor(...PDF_WARNA.pinkMuda);doc.roundedRect(margin,y-4,lebar,34,6,6,'FD');gaya(10,PDF_WARNA.abu,false);doc.text('Jenjang: '+String(paket.jenjang||'-').toUpperCase()+'   |   Topik: '+(paket.topik||'-')+'   |   Jumlah Soal: '+daftarSoal.length,margin+12,y+16);y+=47;
+    for(let i=0;i<daftarSoal.length;i++){const s=daftarSoal[i];halaman(60);doc.setFillColor(...PDF_WARNA.unguTua);doc.roundedRect(margin,y,63,18,4,4,'F');gaya(10,[255,255,255],true);doc.text('SOAL '+(i+1),margin+31.5,y+12.5,{align:'center'});if(s.jawaban_benar){doc.setFillColor(232,248,237);doc.setDrawColor(46,160,90);doc.roundedRect(margin+74,y,62,18,4,4,'FD');gaya(9,[22,120,60],true);doc.text('Kunci: '+s.jawaban_benar,margin+105,y+12.5,{align:'center'});}y+=30;
       const kp=pdfEkstrakKonten(s.pertanyaan||'');await teks(kp.teks,{ukuran:11,warna:[28,22,40]});for(const u of pdfGabungUrlGambar(s.gambar,kp.gambar))await gambar(u);
       for(const h of ['A','B','C','D','E']){const ada=s.pilihan&&s.pilihan[h]!==undefined&&s.pilihan[h]!=='';const gp=s.pilihan_gambar&&s.pilihan_gambar[h];if(!ada&&!gp)continue;const ko=pdfEkstrakKonten(s.pilihan[h]||'');const benar=s.jawaban_benar===h,isiOpsi=escBersih(h,ko.teks),warnaOpsi=benar?[22,110,55]:[55,50,65],rumusOpsi=/^\\(?:frac|dfrac|tfrac|sqrt|vec|overline|alpha|beta|gamma|theta|pi|sin|cos|tan|log|ln|mathrm|text|left|right|sum|int|Delta)\b/.test(isiOpsi.trim());if(benar){doc.setFillColor(236,250,240);doc.setDrawColor(46,160,90);doc.roundedRect(margin,y-2,lebar,19,4,4,'FD');}if(rumusOpsi){gaya(10.5,warnaOpsi,benar);halaman(28);doc.text(h+'.',margin+10,y+12);await teks(isiOpsi,{x:margin+31,w:lebar-41,ukuran:10.5,warna:warnaOpsi,bold:benar});}else await teks(h+'.  '+isiOpsi,{x:margin+10,w:lebar-20,ukuran:10.5,warna:warnaOpsi,bold:benar});for(const u of pdfGabungUrlGambar(gp,ko.gambar))await gambar(u,{indent:28,maxW:lebar-50,maxH:135});}
-      const kb=pdfEkstrakKonten(s.pembahasan||'');if(kb.teks){halaman(45);doc.setFillColor(252,248,255);doc.setDrawColor(...PDF_WARNA.pinkMuda);doc.roundedRect(margin,y,lebar,22,5,5,'FD');gaya(10,PDF_WARNA.unguTua,true);doc.text('Pembahasan',margin+10,y+14);y+=29;await teks(kb.teks,{x:margin+10,w:lebar-20,ukuran:10,warna:[55,40,75]});}for(const u of pdfGabungUrlGambar(s.pembahasan_gambar,kb.gambar))await gambar(u,{indent:10,maxW:lebar-20,maxH:180});if(i<(paket.soal||[]).length-1){halaman(20);doc.setDrawColor(230,220,240);doc.line(margin,y+4,pageW-margin,y+4);y+=18;}}
+      const kb=pdfEkstrakKonten(s.pembahasan||'');if(kb.teks){halaman(45);doc.setFillColor(252,248,255);doc.setDrawColor(...PDF_WARNA.pinkMuda);doc.roundedRect(margin,y,lebar,22,5,5,'FD');gaya(10,PDF_WARNA.unguTua,true);doc.text('Pembahasan',margin+10,y+14);y+=29;await teks(kb.teks,{x:margin+10,w:lebar-20,ukuran:10,warna:[55,40,75]});}for(const u of pdfGabungUrlGambar(s.pembahasan_gambar,kb.gambar))await gambar(u,{indent:10,maxW:lebar-20,maxH:180});if(i<daftarSoal.length-1){halaman(20);doc.setDrawColor(230,220,240);doc.line(margin,y+4,pageW-margin,y+4);y+=18;}}
     pdfHeaderFooter(doc,paket.title||'Paket Soal');doc.save('Soal-'+slugify(paket.title||'Paket-Soal')+'-KlinikFisikapku.pdf');
   }catch(e){alert('Gagal membuat PDF: '+(e.message||e));}finally{if(btn){btn.disabled=false;btn.textContent=old;}}
 };
@@ -11120,6 +11374,89 @@ function kfHtmlCetakPeserta(paket,meta){
   const soal=(paket.soal||[]).map((s,i)=>{const pilihan=Object.entries(s.pilihan||{}).map(([h,v])=>'<div class="pilihan-item"><span class="huruf">'+esc(h)+'</span><div class="teks">'+fmt(opsiRumus(bersih(h,v)))+'</div></div>').join('');const pemb=s.pembahasan?'<section class="pembahasan"><h4>📘 Pembahasan</h4><div>'+fmt(s.pembahasan)+'</div>'+(s.pembahasan_gambar?'<img class="inline-image" src="'+esc(s.pembahasan_gambar)+'">':'')+'</section>':'';return '<article class="soal-card"><div class="nomor">SOAL '+(i+1)+'</div><div class="pertanyaan">'+fmt(s.pertanyaan||'')+'</div>'+(s.gambar?'<img class="gambar-soal" src="'+esc(s.gambar)+'" alt="Gambar soal">':'')+'<div class="pilihan-list">'+pilihan+'</div>'+pemb+'</article>';}).join('');
   return '<!doctype html><html><head><meta charset="utf-8"><title>'+esc(paket.title||meta.title||'Paket Soal')+'</title><script>window.MathJax={tex:{inlineMath:[["$","$"]],displayMath:[["$$","$$"]]},svg:{fontCache:"global"}};<\\/script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\\/script><style>@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#241433;line-height:1.6;font-size:11pt}.kop{background:#55217f;color:#fff;text-align:center;padding:14px;font-weight:800;letter-spacing:4px}.sub{text-align:center;color:#7d548d;margin:8px 0 18px;font-size:10pt}.judul{text-align:center;color:#4b197c;margin:0 0 20px;padding-bottom:12px;border-bottom:3px solid #f253a9;font-size:20pt}.soal-card{break-inside:avoid;page-break-inside:avoid;padding:14px 0 20px;border-bottom:1px dashed #e7d8f6}.nomor{display:inline-block;background:#55217f;color:#fff;border-radius:8px;padding:4px 11px;font-weight:800;font-size:10pt;margin-bottom:10px}.pertanyaan{text-align:justify}.gambar-soal,.inline-image{display:block;max-width:100%;max-height:360px;object-fit:contain;margin:13px auto}.pilihan-list{margin-top:10px}.pilihan-item{display:flex;gap:10px;align-items:flex-start;padding:5px 9px;margin:2px 0;border-radius:7px}.huruf{width:22px;height:22px;flex:0 0 22px;border-radius:50%;background:#f0e4fa;color:#55217f;text-align:center;line-height:22px;font-weight:800;font-size:10pt}.teks{padding-top:1px}.pembahasan{margin-top:14px;padding:13px 15px;border:1px solid #eadcf5;border-radius:12px;background:#fdfaff;break-inside:avoid}.pembahasan h4{margin:0 0 8px;color:#55217f}mjx-container{max-width:100%;overflow:visible} @media print{body{margin:0}}</style></head><body><div class="kop">KLINIKFISIKAPKU</div><div class="sub">Persiapan OSN Fisika</div><h1 class="judul">'+esc(paket.title||meta.title||'Paket Soal')+'</h1>'+soal+'<script>(async()=>{try{await MathJax.startup.promise;await Promise.all([...document.images].map(x=>x.complete?Promise.resolve():new Promise(ok=>{x.onload=x.onerror=ok;})));setTimeout(()=>window.print(),400);}catch(e){window.print();}})();<\\/script></body></html>';
 }
-window.downloadPaketPDF=async function(id){const meta=manifestCache.content.find(p=>p.id===id);if(!meta)return;const btn=document.getElementById('btnPdf-'+id),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='Menyiapkan tampilan peserta…';}try{const r=await ghGetFile(meta.file);if(!r)throw Error('File paket tidak ditemukan.');const w=window.open('','_blank');if(!w)throw Error('Izinkan pop-up untuk membuat PDF.');w.document.open();w.document.write(kfHtmlCetakPeserta(r.content,meta));w.document.close();}catch(e){alert('Gagal menyiapkan PDF: '+(e.message||e));}finally{if(btn){btn.disabled=false;btn.textContent=old;}}};
+/* PDF akhir: gunakan kartu dan renderer rumus yang sama dengan halaman peserta.
+   Area dibuat nyata sementara agar html2canvas tidak menghasilkan halaman putih,
+   lalu langsung diunduh tanpa pop-up atau dialog cetak. */
+window.downloadPaketPDF=async function(id){
+  const meta=manifestCache.content.find(p=>p.id===id);if(!meta)return;
+  const btn=document.getElementById('btnPdf-'+id),teksAwal=btn&&btn.textContent;
+  let area=null,style=null;
+  if(btn){btn.disabled=true;btn.textContent='Memuat soal…';}
+  try{
+    const hasil=await ghGetFile(meta.file);if(!hasil||!hasil.content)throw Error('File paket tidak ditemukan.');
+    const paket=hasil.content,daftar=Array.isArray(paket.soal)?paket.soal:[];
+    if(!daftar.length)throw Error('Paket terbaca, tetapi daftar soalnya kosong. Buka Edit Paket lalu simpan kembali.');
+    const esc=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const fmt=x=>typeof formatTeksDenganLatex==='function'?formatTeksDenganLatex(x):esc(x).replace(/\r?\n/g,'<br>');
+    const tipe=s=>{const t=String((s||{}).tipe||'').toLowerCase();if(['isian','esai','pg4','pg5','pgk_mcma','pgk_kategori'].includes(t))return t;if(t==='pg')return 'pg5';const k=Object.keys((s||{}).pilihan||{});return k.length&&!k.includes('E')?'pg4':'pg5';};
+    const label=t=>({pg4:'Pilihan Ganda (4 opsi)',pg5:'Pilihan Ganda (5 opsi)',pgk_mcma:'PGK · MCMA',pgk_kategori:'PGK · Kategori',isian:'Isian Singkat',esai:'Esai'})[t]||'Pilihan Ganda';
+    const gambar=(url,kelas,alt)=>{const list=(Array.isArray(url)?url:[url]).filter(Boolean);return list.map(u=>'<img crossorigin="anonymous" class="'+kelas+'" src="'+esc(u)+'" alt="'+esc(alt)+'">').join('');};
+    const bersih=(h,v)=>String(v||'').replace(new RegExp('^\\s*'+h+'\\s*[\\.\\)\\:]\\s*','i'),'');
+    const isiPilihan=(s,h)=>{const teks=s.pilihan&&s.pilihan[h]!==undefined?bersih(h,s.pilihan[h]):'';return (teks?'<span class="opsi-teks">'+fmt(teks)+'</span>':'')+gambar(s.pilihan_gambar&&s.pilihan_gambar[h],'opsi-img','Gambar opsi '+h);};
+    const kartu=daftar.map((s,i)=>{
+      const t=tipe(s),huruf=t==='pg4'?['A','B','C','D']:['A','B','C','D','E'];
+      let jawaban='';
+      if(t==='isian'){
+        jawaban='<div class="isian-box"><p class="pilihan-label-hint">Jawaban singkat</p><div class="isian-placeholder">Ketik jawabanmu di sini (boleh angka, teks, atau rumus)…</div></div>';
+      }else if(t==='esai'){
+        jawaban='<div class="esai-box"><b>📎 Pengumpulan jawaban esai</b><div class="upload-placeholder">Upload jawaban dalam format PDF atau foto JPG/PNG</div><small>File jawaban dikirim melalui halaman peserta.</small></div>';
+      }else if(t==='pgk_kategori'){
+        const labels=Array.isArray(s.category_labels)&&s.category_labels.length?s.category_labels:['Benar','Salah'];
+        const statements=Array.isArray(s.statements)?s.statements:[];
+        jawaban='<div class="pgk-instruction">Pilih tepat satu kategori untuk setiap pernyataan.</div><div class="category-answer" style="--category-count:'+labels.length+'"><div class="category-answer-head"><span>Pernyataan</span>'+labels.map(x=>'<span>'+esc(x)+'</span>').join('')+'</div>'+statements.map((st,n)=>{const item=st&&typeof st==='object'?st:{text:String(st||''),image:''};return '<div class="category-answer-row"><div class="category-statement-content"><b>'+(n+1)+'.</b><span>'+fmt(item.text||'')+'</span>'+gambar(item.image,'statement-img','Gambar pernyataan '+(n+1))+'</div>'+labels.map(()=>'<span class="category-circle"></span>').join('')+'</div>';}).join('')+'</div>';
+      }else{
+        const multi=t==='pgk_mcma',opsi=huruf.filter(h=>(s.pilihan&&Object.prototype.hasOwnProperty.call(s.pilihan,h))||(s.pilihan_gambar&&s.pilihan_gambar[h]));
+        jawaban='<p class="'+(multi?'pgk-instruction':'pilihan-label-hint')+'">'+(multi?'Pilih semua opsi yang benar. Jawaban dapat lebih dari satu.':'Pilih satu jawaban')+'</p><div class="pilihan-list">'+opsi.map(h=>'<div class="pilihan-item '+(multi?'multi':'')+'"><span class="huruf">'+h+'</span><span class="teks">'+(isiPilihan(s,h)||'<span class="opsi-teks">-</span>')+'</span></div>').join('')+'</div>';
+      }
+      const pertanyaan=fmt(s.pertanyaan||'')+gambar(s.gambar,'gambar-soal','Gambar Soal '+(i+1));
+      const pdfInfo=s.pdf_soal?'<div class="pdf-attachment" data-pdf-url="'+esc(s.pdf_soal)+'"><div class="pdf-file-note">📄 Memuat lampiran soal PDF…</div></div>':'';
+      return '<article class="kf-print-soal"><div class="soal-toolbar"><span class="tipe-badge">'+label(t)+'</span><span class="nomor">Soal '+(i+1)+'</span></div><div class="'+(t==='esai'?'esai-kertas':'pertanyaan-card')+'"><div class="pertanyaan">'+pertanyaan+'</div>'+pdfInfo+'</div>'+jawaban+'</article>';
+    }).join('');
+
+    area=document.createElement('div');area.id='kfPdfPesertaArea';
+    area.innerHTML='<header class="pdf-cover"><div class="pdf-brand">KLINIKFISIKAPKU</div><div class="pdf-sub">Persiapan OSN Fisika</div><h1>'+esc(paket.title||meta.title||'Paket Soal')+'</h1><p>'+esc(String(paket.jenjang||meta.jenjang||'').toUpperCase())+' · '+esc(paket.topik||meta.topik||'')+' · '+daftar.length+' soal</p></header>'+kartu;
+    area.style.cssText='position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483646;width:794px;padding:34px 44px;background:#f8f5fc;color:#2b1a3d;font-family:"Plus Jakarta Sans",Arial,sans-serif;font-size:14px;line-height:1.55;box-sizing:border-box;box-shadow:0 16px 55px rgba(35,12,56,.35);';
+    style=document.createElement('style');style.id='kfPdfPesertaStyle';style.textContent=`
+      #kfPdfPesertaArea *{box-sizing:border-box}#kfPdfPesertaArea .pdf-cover{padding:0 0 24px;text-align:center;page-break-after:avoid}#kfPdfPesertaArea .pdf-brand{padding:14px;color:#fff;background:linear-gradient(110deg,#4b176f,#7b2ff7,#f857a6);border-radius:16px;font-size:18px;font-weight:800;letter-spacing:3px}#kfPdfPesertaArea .pdf-sub{margin:8px 0 16px;color:#7d548d;font-size:11px}#kfPdfPesertaArea .pdf-cover h1{margin:0;color:#3d1a63;font-size:25px;line-height:1.3}#kfPdfPesertaArea .pdf-cover p{margin:8px 0 0;color:#6b6478;font-size:12px}
+      #kfPdfPesertaArea .kf-print-soal{position:relative;margin:0 0 18px;padding:19px 20px 20px;overflow:hidden;border:1px solid #efe6f8;border-radius:22px;background:#fff;box-shadow:0 8px 24px rgba(123,47,247,.07);break-inside:avoid;page-break-inside:avoid}#kfPdfPesertaArea .kf-print-soal:before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#f857a6,#7b2ff7)}
+      #kfPdfPesertaArea .soal-toolbar{display:flex;align-items:center;gap:9px;margin-bottom:13px}#kfPdfPesertaArea .nomor,#kfPdfPesertaArea .tipe-badge{display:inline-flex;align-items:center;border-radius:999px;font-weight:800}#kfPdfPesertaArea .nomor{padding:6px 13px;color:#fff;background:linear-gradient(135deg,#7b2ff7,#9b5cf0);font-size:11px;box-shadow:0 3px 9px rgba(123,47,247,.22)}#kfPdfPesertaArea .tipe-badge{padding:5px 11px;color:#3d1a63;background:linear-gradient(135deg,#ffe8f4,#f0e6ff);border:1px solid #f0d4ec;font-size:10px}
+      #kfPdfPesertaArea .pertanyaan-card,#kfPdfPesertaArea .esai-kertas{margin-bottom:15px;padding:16px;border:1.5px solid #f0e8fa;border-radius:16px;background:linear-gradient(180deg,#fdfbff,#faf6ff)}#kfPdfPesertaArea .pertanyaan{color:#2b1a3d;font-size:14px;line-height:1.72;text-align:justify;word-break:break-word}#kfPdfPesertaArea .gambar-soal,#kfPdfPesertaArea .inline-image{display:block;max-width:100%;max-height:320px;object-fit:contain;margin:13px auto 0;border:1px solid #f0e8fa;border-radius:12px;background:#fff}#kfPdfPesertaArea .pilihan-label-hint{margin:0 0 9px;color:#6b6478;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+      #kfPdfPesertaArea .pilihan-list{display:grid;gap:9px}#kfPdfPesertaArea .pilihan-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid #ebe3f5;border-radius:14px;background:#fff;break-inside:avoid}#kfPdfPesertaArea .pilihan-item .huruf{display:flex;flex:0 0 30px;width:30px;height:30px;align-items:center;justify-content:center;border-radius:10px;color:#fff;background:linear-gradient(145deg,#4a2878,#3d1a63);font-size:12px;font-weight:800;box-shadow:0 3px 8px rgba(61,26,99,.18)}#kfPdfPesertaArea .pilihan-item.multi .huruf{border-radius:8px;color:#3d1a63;background:#eee6f6;box-shadow:none}#kfPdfPesertaArea .pilihan-item .teks{flex:1;padding-top:4px;color:#2b1a3d;font-size:13px;line-height:1.55}#kfPdfPesertaArea .opsi-img{display:block;max-width:100%;max-height:190px;object-fit:contain;margin-top:9px;padding:5px;border:1px solid #f0e8fa;border-radius:11px;background:#faf8fc}
+      #kfPdfPesertaArea .pgk-instruction{margin:0 0 10px;padding:9px 11px;border-radius:11px;color:#5d267d;background:#f4eafd;font-size:11px;font-weight:750}#kfPdfPesertaArea .category-answer{display:grid;gap:8px;overflow:visible}#kfPdfPesertaArea .category-answer-head,#kfPdfPesertaArea .category-answer-row{display:grid;grid-template-columns:minmax(245px,1fr) repeat(var(--category-count,2),64px);gap:7px;align-items:center}#kfPdfPesertaArea .category-answer-head{color:#6b6478;font-size:9px;font-weight:800;text-align:center}#kfPdfPesertaArea .category-answer-head span:first-child{text-align:left}#kfPdfPesertaArea .category-answer-row{padding:10px;border:1.5px solid #ebe3f5;border-radius:13px;background:#fff;break-inside:avoid}#kfPdfPesertaArea .category-statement-content{display:grid;grid-template-columns:auto 1fr;gap:7px;font-size:12px;line-height:1.5}#kfPdfPesertaArea .statement-img{grid-column:1/-1;display:block;max-width:100%;max-height:180px;object-fit:contain;border-radius:9px}#kfPdfPesertaArea .category-circle{display:block;justify-self:center;width:30px;height:30px;border:1.5px solid #d8cce1;border-radius:50%;background:#fff}
+      #kfPdfPesertaArea .isian-placeholder,#kfPdfPesertaArea .upload-placeholder{min-height:78px;padding:13px 15px;border:1.5px solid #ebe3f5;border-radius:14px;color:#9a93a8;background:#fdfbff;font-size:12px}#kfPdfPesertaArea .esai-box{padding:16px;border:1.5px solid #f0e2fa;border-radius:16px;background:linear-gradient(180deg,#fdfbff,#faf6ff)}#kfPdfPesertaArea .esai-box b{display:block;margin-bottom:9px;color:#3d1a63;font-size:12px}#kfPdfPesertaArea .upload-placeholder{min-height:auto;border-style:dashed;background:#fff}#kfPdfPesertaArea .esai-box small{display:block;margin-top:7px;color:#6b6478}#kfPdfPesertaArea .pdf-file-note{margin-top:12px;padding:10px;border:1px dashed #d7c4e8;border-radius:10px;color:#5d267d;background:#fff;font-size:10px;word-break:break-all}#kfPdfPesertaArea .pdf-attachment-page{display:block;width:100%;height:auto;margin:12px auto;border:1px solid #e4d7ef;border-radius:8px;background:#fff;break-inside:avoid;page-break-inside:avoid}
+      #kfPdfPesertaArea mjx-container{max-width:100%;overflow:visible}#kfPdfPesertaArea mjx-container[display="true"]{margin:.65em 0!important;overflow:visible!important}
+    `;
+    document.head.appendChild(style);document.body.appendChild(area);
+    const lampiranPdf=[...area.querySelectorAll('.pdf-attachment[data-pdf-url]')];
+    for(let li=0;li<lampiranPdf.length;li++){
+      const box=lampiranPdf[li],url=box.dataset.pdfUrl;
+      try{
+        if(typeof pdfjsLib==='undefined')throw Error('pdf.js belum termuat');
+        if(btn)btn.textContent='Merender lampiran PDF '+(li+1)+'/'+lampiranPdf.length+'…';
+        const pdf=await pdfjsLib.getDocument(url).promise,frag=document.createDocumentFragment();
+        for(let pn=1;pn<=pdf.numPages;pn++){
+          const page=await pdf.getPage(pn),viewport=page.getViewport({scale:1.55}),canvas=document.createElement('canvas');
+          canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+          await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+          const img=document.createElement('img');img.className='pdf-attachment-page';img.alt='Lampiran soal halaman '+pn;img.src=canvas.toDataURL('image/jpeg',.94);frag.appendChild(img);
+        }
+        box.innerHTML='';box.appendChild(frag);
+      }catch(e){box.innerHTML='<div class="pdf-file-note">Lampiran PDF tidak dapat dirender otomatis. Buka dari halaman peserta: '+esc(url)+'</div>';}
+    }
+    if(btn)btn.textContent='Merender rumus seperti peserta…';
+    if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+    if(window.MathJax&&MathJax.typesetPromise){if(MathJax.typesetClear){try{MathJax.typesetClear([area]);}catch(e){}}await MathJax.typesetPromise([area]);}
+    const semuaGambar=[...area.querySelectorAll('img')];
+    for(let i=0;i<semuaGambar.length;i++){
+      const img=semuaGambar[i];
+      if(/^https?:/i.test(img.src)){try{const konversi=await pdfLoadImageDataURL(img.src);img.removeAttribute('crossorigin');img.src=konversi.dataUrl;}catch(e){img.replaceWith(Object.assign(document.createElement('span'),{textContent:'[Gambar tidak dapat dimuat]'}));}}
+    }
+    await Promise.all([...area.querySelectorAll('img')].map(img=>img.complete?Promise.resolve():new Promise(ok=>{img.onload=img.onerror=ok;})));
+    if(btn)btn.textContent='Menyimpan PDF…';
+    const html2pdf=await kfMuatHtml2Pdf(),nama='Soal-'+slugify(paket.title||meta.title||'Paket-Soal')+'-KlinikFisikapku.pdf';
+    await html2pdf().set({margin:[8,8,10,8],filename:nama,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#f8f5fc',logging:false,scrollX:0,scrollY:-window.scrollY},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy'],avoid:['.kf-print-soal','.pilihan-item','.category-answer-row']}}).from(area).save();
+  }catch(e){alert('Gagal membuat PDF: '+(e.message||e));}
+  finally{if(window.MathJax&&MathJax.typesetClear&&area){try{MathJax.typesetClear([area]);}catch(e){}}if(style)style.remove();if(area)area.remove();if(btn){btn.disabled=false;btn.textContent=teksAwal;}}
+};
 </script>
 </html>
