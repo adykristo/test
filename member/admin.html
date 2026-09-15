@@ -282,11 +282,8 @@
       <div class="brand">
         <b>KlinikFisikapku</b><small>Admin Member Area</small>
       </div>
-      <button
-        class="btn ghost"
-        onclick="alert('Halaman ini nanti digabung ke login admin utama.')"
-      >
-        Keluar
+      <button class="btn ghost" onclick="location.href='../admin-dashboard-login.html'">
+        ← Admin Utama
       </button>
     </header>
     <div class="layout">
@@ -296,7 +293,8 @@
           ⌂ Ringkasan</button
         ><button onclick="openPanel('pendaftaran', this)">
           ◷ Pendaftaran Baru</button
-        ><button onclick="openPanel('member', this)">♙ Daftar Member</button>
+        ><button onclick="openPanel('member', this)">♙ Daftar Member</button
+        ><button onclick="openPanel('paket', this)">💳 Paket &amp; Harga</button>
         <div class="label">KONTEN BELAJAR</div>
         <button onclick="openPanel('modul', this)">▤ Modul & Topik</button
         ><button onclick="openPanel('latihan', this)">✎ Soal Latihan</button
@@ -384,6 +382,11 @@
             </table>
           </div>
         </section>
+        <section id="paket" class="panel">
+          <h1>Paket &amp; Harga</h1>
+          <p class="sub">Atur harga dan durasi tiap paket. Perubahan langsung berlaku untuk pendaftar baru.</p>
+          <div class="card" id="paketList"></div>
+        </section>
         <section id="modul" class="panel">
           <h1>Modul & Topik</h1>
           <p class="sub">
@@ -438,13 +441,13 @@
         </section>
         <section id="latihan" class="panel">
           <h1>Soal Latihan</h1>
-          <p class="sub">Studio soal seperti Admin KlinikFisikapku: manual, impor Word, atau Bantuan AI. Semua soal dapat diedit dan dikelola setelah disimpan.</p>
+          <p class="sub">Studio soal khusus Member Area: input manual, impor Word, atau Gemini AI. Soal disimpan terpisah dari Bank Soal KlinikFisikapku utama dan dapat dirapikan lagi oleh Gemini sebelum dipublikasikan.</p>
           <div class="card">
             <h2>Studio Soal Latihan</h2>
             <div class="mode-tabs" data-studio="latihan">
               <button class="active" type="button" onclick="bukaMode('latihan','manual',this)">✎ Input Manual</button>
               <button type="button" onclick="bukaMode('latihan','word',this)">⇧ Impor Word</button>
-              <button type="button" onclick="bukaMode('latihan','ai',this)">✦ Buat dengan AI</button>
+              <button type="button" onclick="bukaMode('latihan','ai',this)">✦ Buat dengan Gemini</button>
             </div>
             <div id="latihan-manual" class="mode-pane show">
             <form class="form" onsubmit="simpanLatihan(event)">
@@ -504,10 +507,10 @@
             </div>
             <div id="latihan-word" class="mode-pane">
               <div class="import-guide"><b>Format Word yang didukung:</b> nomor soal <code>1.</code>, opsi <code>A.</code>–<code>E.</code>, lalu <code>KUNCI:</code> dan <code>PEMBAHASAN:</code>. Untuk tipe lain gunakan <code>TIPE: ISIAN</code> atau <code>TIPE: ESAI</code>. Rumus dapat ditulis dengan LaTeX, misalnya <code>$v=s/t$</code>.</div>
-              <form class="form" style="margin-top:12px" onsubmit="imporWord(event,'latihan')"><div><label>Jenjang</label><select id="wordLatihanJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Topik</label><input id="wordLatihanTopik" required placeholder="Contoh: Kinematika" /></div><div class="wide"><label>File Word / teks</label><input id="wordLatihanFile" type="file" accept=".docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required /></div><div class="wide"><button class="btn">Impor ke Latihan</button><div class="notice"></div></div></form>
+              <form class="form" style="margin-top:12px" onsubmit="imporWord(event,'latihan')"><div><label>Jenjang</label><select id="wordLatihanJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Topik</label><input id="wordLatihanTopik" required placeholder="Contoh: Kinematika" /></div><div class="wide"><label>File Word / teks</label><input id="wordLatihanFile" type="file" accept=".docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required /><label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:600"><input id="wordLatihanGemini" type="checkbox" checked style="width:auto" /> Gemini rapikan, terjemahkan, kenali rumus dan pembahasan sebelum impor</label></div><div class="wide"><button class="btn">Impor ke Latihan</button><div class="notice"></div></div></form>
             </div>
             <div id="latihan-ai" class="mode-pane">
-              <form class="form" onsubmit="buatDraftAI(event,'latihan')"><div><label>Jenjang</label><select id="aiLatihanJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Topik</label><input id="aiLatihanTopik" required placeholder="Contoh: Energi" /></div><div><label>Tipe</label><select id="aiLatihanTipe"><option value="pg4">PG 4 opsi</option><option value="pg5">PG 5 opsi</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label>Tingkat kesulitan</label><select id="aiLatihanSulit"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div><div class="wide"><label>Instruksi untuk AI</label><textarea id="aiLatihanInstruksi" placeholder="Contoh: Buat soal konteks kehidupan sehari-hari, sertakan pembahasan sistematis."></textarea></div><div class="wide"><button class="btn">✦ Buat Draf Soal</button><div id="aiLatihanOutput" class="ai-output" style="display:none"></div></div></form>
+              <form class="form" onsubmit="buatDraftAI(event,'latihan')"><div><label>Jenjang</label><select id="aiLatihanJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Topik</label><input id="aiLatihanTopik" required placeholder="Contoh: Energi" /></div><div><label>Tipe</label><select id="aiLatihanTipe"><option value="pg4">PG 4 opsi</option><option value="pg5">PG 5 opsi</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label>Tingkat kesulitan</label><select id="aiLatihanSulit"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div><div><label>Jumlah soal (1-20)</label><input id="aiLatihanJumlah" type="number" min="1" max="20" value="3" required></div><div class="wide"><label>Instruksi Gemini</label><textarea id="aiLatihanInstruksi" placeholder="Contoh: Buat soal konteks kehidupan sehari-hari, sertakan data, rumus LaTeX, pengecoh yang masuk akal, dan pembahasan sistematis."></textarea></div><div class="wide"><button class="btn">✦ Buat Draf dengan Gemini</button><div id="aiLatihanOutput" class="ai-output" style="display:none"></div></div></form>
             </div>
             <div id="latihanList" class="manage-list"></div>
           </div>
@@ -515,7 +518,7 @@
         <section id="video" class="panel">
           <h1>Video Pembahasan</h1>
           <p class="sub">
-            Tambahkan video YouTube atau video privat per topik.
+            Tambahkan video per topik. Pada halaman member video ditampilkan sebagai pemutar; URL YouTube tidak akan ditampilkan.
           </p>
           <form id="videoForm" class="card form" onsubmit="simpanVideo(event)">
             <div>
@@ -539,7 +542,7 @@
               />
             </div>
             <div class="wide">
-              <label>Link YouTube / Video</label
+              <label>URL sumber video (disimpan privat)</label
               ><input
                 id="videoUrl"
                 required
@@ -567,7 +570,7 @@
             <div class="mode-tabs" data-studio="tryout">
               <button class="active" type="button" onclick="bukaMode('tryout','manual',this)">✎ Input Manual</button>
               <button type="button" onclick="bukaMode('tryout','word',this)">⇧ Impor Word</button>
-              <button type="button" onclick="bukaMode('tryout','ai',this)">✦ Buat dengan AI</button>
+              <button type="button" onclick="bukaMode('tryout','ai',this)">✦ Buat dengan Gemini</button>
             </div>
             <div id="tryout-manual" class="mode-pane show">
               <form class="form" onsubmit="simpanSoalTryout(event)">
@@ -580,8 +583,8 @@
                 <div class="wide"><button class="btn">Simpan Soal ke Paket Tryout</button><div class="notice"></div></div>
               </form>
             </div>
-            <div id="tryout-word" class="mode-pane"><div class="import-guide"><b>Impor Word tryout:</b> gunakan format yang sama dengan Bank Soal KlinikFisikapku: nomor soal, A.–E., KUNCI:, PEMBAHASAN:, serta TIPE: ISIAN/ESAI bila diperlukan.</div><form class="form" style="margin-top:12px" onsubmit="imporWord(event,'tryout')"><div><label>Jenjang</label><select id="wordTryoutJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Nama paket</label><input id="wordTryoutPaket" required placeholder="Contoh: TO Kinematika #01" /></div><div><label>Topik</label><input id="wordTryoutTopik" required placeholder="Kinematika" /></div><div class="wide"><label>File Word / teks</label><input id="wordTryoutFile" type="file" accept=".docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required /></div><div class="wide"><button class="btn">Impor ke Paket Tryout</button><div class="notice"></div></div></form></div>
-            <div id="tryout-ai" class="mode-pane"><form class="form" onsubmit="buatDraftAI(event,'tryout')"><div><label>Jenjang</label><select id="aiTryoutJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Nama paket</label><input id="aiTryoutPaket" required placeholder="Contoh: TO Kinematika #01" /></div><div><label>Topik</label><input id="aiTryoutTopik" required placeholder="Kinematika" /></div><div><label>Tipe</label><select id="aiTryoutTipe"><option value="pg4">PG 4 opsi</option><option value="pg5">PG 5 opsi</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div class="wide"><label>Instruksi untuk AI</label><textarea id="aiTryoutInstruksi" placeholder="Contoh: Buat soal OSN tingkat sedang dengan pembahasan diketahui, ditanya, konsep, dan penyelesaian."></textarea></div><div class="wide"><button class="btn">✦ Buat Draf Soal Tryout</button><div id="aiTryoutOutput" class="ai-output" style="display:none"></div></div></form></div>
+            <div id="tryout-word" class="mode-pane"><div class="import-guide"><b>Impor Word tryout:</b> gunakan format yang sama dengan Bank Soal KlinikFisikapku: nomor soal, A.–E., KUNCI:, PEMBAHASAN:, serta TIPE: ISIAN/ESAI bila diperlukan.</div><form class="form" style="margin-top:12px" onsubmit="imporWord(event,'tryout')"><div><label>Jenjang</label><select id="wordTryoutJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Nama paket</label><input id="wordTryoutPaket" required placeholder="Contoh: TO Kinematika #01" /></div><div><label>Topik</label><input id="wordTryoutTopik" required placeholder="Kinematika" /></div><div class="wide"><label>File Word / teks</label><input id="wordTryoutFile" type="file" accept=".docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required /><label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:600"><input id="wordTryoutGemini" type="checkbox" checked style="width:auto" /> Gemini rapikan, terjemahkan, dan buat pembahasan bila tersedia</label></div><div class="wide"><button class="btn">Impor ke Paket Tryout</button><div class="notice"></div></div></form></div>
+            <div id="tryout-ai" class="mode-pane"><form class="form" onsubmit="buatDraftAI(event,'tryout')"><div><label>Jenjang</label><select id="aiTryoutJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Nama paket</label><input id="aiTryoutPaket" required placeholder="Contoh: TO Kinematika #01" /></div><div><label>Topik</label><input id="aiTryoutTopik" required placeholder="Kinematika" /></div><div><label>Tipe</label><select id="aiTryoutTipe"><option value="pg4">PG 4 opsi</option><option value="pg5">PG 5 opsi</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label>Tingkat kesulitan</label><select id="aiTryoutSulit"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div><div><label>Jumlah soal (1-20)</label><input id="aiTryoutJumlah" type="number" min="1" max="20" value="3" required></div><div class="wide"><label>Instruksi Gemini</label><textarea id="aiTryoutInstruksi" placeholder="Contoh: Buat paket OSN bertingkat, rumus LaTeX, pengecoh valid, serta pembahasan Diketahui–Ditanya–Konsep–Penyelesaian."></textarea></div><div class="wide"><button class="btn">✦ Buat Draf Tryout dengan Gemini</button><div id="aiTryoutOutput" class="ai-output" style="display:none"></div></div></form></div>
           </div>
           <form
             id="tryoutForm"
@@ -653,20 +656,59 @@
         n.style.display = "block";
         e.target.reset();
       }
-      const AKUN_MEMBER = "kf_member_accounts_v1";
-      const MATERI_MEMBER = "kf_member_materials_v1";
-      const enc = (v) => encodeURIComponent(String(v || ""));
-      const dec = (v) => decodeURIComponent(v);
-      function akunMember() {
-        try {
-          return JSON.parse(localStorage.getItem(AKUN_MEMBER)) || [];
-        } catch (e) {
-          return [];
+      // TEMPEL URL WEB APP APPS SCRIPT DI SINI (diakhiri /exec)
+      const SCRIPT_URL = "GANTI_DENGAN_URL_WEB_APP_APPS_SCRIPT";
+      let ADMIN_PASS = "";
+      let MEMBER_CACHE = [];
+      let KONTEN_CACHE = [];
+
+      async function adminApi(action, payload) {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action, adminPass: ADMIN_PASS, ...payload }),
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || "Terjadi kesalahan.");
+        return data;
+      }
+
+      function backendMemberSiap() {
+        return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/i.test(SCRIPT_URL);
+      }
+
+      function tampilkanPetunjukBackend() {
+        document.querySelector('.layout').innerHTML = `
+          <main style="width:min(760px,calc(100% - 32px));margin:42px auto;">
+            <div class="card" style="padding:28px;">
+              <h1 style="margin-top:0;">Hubungkan Database Member</h1>
+              <p>Perpindahan dari Admin KlinikFisikapku sudah berhasil. Agar data peserta, paket, materi, dan tryout dapat dikelola, masukkan URL Web App Apps Script khusus Member pada konstanta <code>SCRIPT_URL</code> di dua file berikut:</p>
+              <ol style="line-height:1.8;">
+                <li><code>member/index.html</code></li>
+                <li><code>member/admin.html</code></li>
+              </ol>
+              <p>URL harus berakhir dengan <code>/exec</code>. Jangan memasukkan password admin atau API key ke file HTML publik.</p>
+              <button class="btn" onclick="location.href='../admin-dashboard-login.html'">Kembali ke Admin Utama</button>
+            </div>
+          </main>`;
+      }
+
+      async function loginAdminLoop() {
+        while (true) {
+          const p = prompt("Masukkan password admin Member Area:");
+          if (p === null) continue;
+          ADMIN_PASS = p;
+          try {
+            await adminApi("adminLogin", {});
+            return;
+          } catch (err) {
+            alert(err.message);
+          }
         }
       }
-      function simpanAkunMember(x) {
-        localStorage.setItem(AKUN_MEMBER, JSON.stringify(x));
-      }
+
+      const enc = (v) => encodeURIComponent(String(v || ""));
+      const dec = (v) => decodeURIComponent(v);
       function escMember(v) {
         return String(v || "").replace(
           /[&<>"']/g,
@@ -680,63 +722,44 @@
             })[c],
         );
       }
-      function materiAwal() {
-        return {
-          sd: [
-            {
-              id: "m-sd-1",
-              topik: "Energi",
-              judul: "Usaha dan Energi",
-              jenis: "pdf",
-              pdfUrl: "",
-              visible: true,
-            },
-          ],
-          smp: [
-            {
-              id: "m-smp-1",
-              topik: "Kinematika",
-              judul: "Gerak Lurus dan Grafik",
-              jenis: "soal",
-              soal: "Sebuah mobil bergerak lurus beraturan dengan kecepatan 20 m/s selama 5 sekon. Berapa jarak yang ditempuh?",
-              opsi: ["50 m", "100 m", "150 m", "200 m"],
-              kunci: 1,
-              pembahasan: "Jarak = kecepatan × waktu = 20 × 5 = 100 m.",
-              visible: true,
-            },
-          ],
-          sma: [
-            {
-              id: "m-sma-1",
-              topik: "Kinematika",
-              judul: "Gerak Parabola",
-              jenis: "video",
-              youtube: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-              visible: true,
-            },
-          ],
-        };
-      }
-      function bacaMateri() {
+      async function renderPaketAdmin() {
+        const box = document.getElementById("paketList");
+        if (!box) return;
+        box.innerHTML = "Memuat…";
         try {
-          return (
-            JSON.parse(localStorage.getItem(MATERI_MEMBER)) || materiAwal()
-          );
-        } catch (e) {
-          return materiAwal();
+          const res = await adminApi("adminListPaket", {});
+          const list = res.data || [];
+          box.innerHTML = list
+            .map(
+              (p, i) => `<form class="form" style="border-bottom:1px solid #f0e7f7;padding-bottom:16px;margin-bottom:16px" onsubmit="simpanPaket(event,'${escMember(p.nama)}')">
+              <div class="wide"><h2 style="margin:0 0 6px">${escMember(p.nama)}</h2></div>
+              <div><label>Durasi (hari)</label><input id="paketDurasi${i}" type="number" min="1" value="${Number(p.durasiHari) || 30}" required></div>
+              <div><label>Harga (Rp)</label><input id="paketHarga${i}" type="number" min="0" step="1000" value="${Number(p.harga) || 0}" required></div>
+              <div class="wide"><label>Deskripsi singkat (tampil di halaman pendaftaran)</label><input id="paketDeskripsi${i}" value="${escMember(p.deskripsi || "")}"></div>
+              <div class="wide"><button class="btn small">Simpan ${escMember(p.nama)}</button><div class="notice"></div></div>
+            </form>`,
+            )
+            .join("");
+        } catch (err) {
+          box.innerHTML = '<div class="sub">Gagal memuat data paket: ' + escMember(err.message) + "</div>";
         }
       }
-      function simpanMateri(d) {
-        localStorage.setItem(MATERI_MEMBER, JSON.stringify(d));
-      }
-      function idBaru() {
-        return "m-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7);
-      }
-      function semuaMateri() {
-        const d = bacaMateri();
-        return Object.entries(d).flatMap(([jenjang, list]) =>
-          (list || []).map((x) => ({ ...x, jenjang })),
-        );
+      async function simpanPaket(e, nama) {
+        e.preventDefault();
+        const idx = Array.from(document.querySelectorAll("#paketList form")).findIndex((f) => f === e.target);
+        try {
+          await adminApi("adminSimpanPaket", {
+            item: {
+              nama,
+              durasiHari: document.getElementById("paketDurasi" + idx).value,
+              harga: document.getElementById("paketHarga" + idx).value,
+              deskripsi: document.getElementById("paketDeskripsi" + idx).value.trim(),
+            },
+          });
+          notifikasi(e.target, "Paket diperbarui.");
+        } catch (err) {
+          alert("Gagal menyimpan paket: " + err.message);
+        }
       }
       function notifikasi(form, msg) {
         const n = form.querySelector(".notice");
@@ -745,25 +768,41 @@
           n.style.display = "block";
         }
       }
-      function renderMemberAdmin() {
-        const akun = akunMember(),
-          pending = document.getElementById("pendingMemberList"),
+      const STATUS_LABEL = {
+        pending: "Menunggu verifikasi",
+        aktif: "Aktif",
+        ditolak: "Ditolak",
+        nonaktif: "Dinonaktifkan",
+        expired: "Masa aktif habis",
+      };
+      async function renderMemberAdmin() {
+        try {
+          const res = await adminApi("adminListMember", {});
+          MEMBER_CACHE = res.data || [];
+        } catch (err) {
+          alert("Gagal memuat data member: " + err.message);
+          return;
+        }
+        const pending = document.getElementById("pendingMemberList"),
           all = document.getElementById("allMemberList");
+        const buktiLink = (x) =>
+          x.buktiBayarUrl
+            ? `<a href="${x.buktiBayarUrl}" target="_blank">Lihat bukti</a>`
+            : "<i>Belum ada bukti</i>";
         if (pending)
           pending.innerHTML =
-            akun
-              .filter((x) => !x.aktif)
+            MEMBER_CACHE.filter((x) => x.status === "pending")
               .map(
                 (x) =>
-                  `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username)}</small><br>${escMember(x.wa)}</td><td>${escMember(x.email)}</td><td>${escMember(String(x.kelas || "").toUpperCase())}<br>${escMember(x.sekolah)}</td><td><div class="row-actions"><button class="btn small" onclick="aktifkanMember('${enc(x.username)}')">Aktifkan</button><button class="btn danger small" onclick="hapusMember('${enc(x.username)}')">Hapus</button></div></td></tr>`,
+                  `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username)}</small><br>${escMember(x.wa)}</td><td>${escMember(x.email)}</td><td>${escMember(String(x.jenjang || "").toUpperCase())}<br>${escMember(x.sekolah)}<br><span class="tag">${escMember(x.paket || "Paket belum dipilih")}</span><br>${buktiLink(x)}</td><td><div class="row-actions"><button class="btn small" onclick="aktifkanMember('${x.id}')">Aktifkan</button><button class="btn danger small" onclick="tolakMember('${x.id}')">Tolak</button></div></td></tr>`,
               )
               .join("") ||
             '<tr><td colspan="4">Tidak ada peserta yang menunggu aktivasi.</td></tr>';
         const q = (
           (document.getElementById("memberCari") || {}).value || ""
         ).toLowerCase();
-        const tersaring = akun.filter((x) =>
-          [x.nama, x.username, x.wa, x.email, x.kelas, x.sekolah]
+        const tersaring = MEMBER_CACHE.filter((x) =>
+          [x.nama, x.username, x.wa, x.email, x.jenjang, x.sekolah, x.paket]
             .join(" ")
             .toLowerCase()
             .includes(q),
@@ -771,40 +810,65 @@
         if (all)
           all.innerHTML =
             tersaring
-              .map(
-                (x) =>
-                  `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username)}</small></td><td>${escMember(String(x.kelas || "").toUpperCase())}</td><td><span class="tag ${x.aktif ? "ok" : ""}">${x.aktif ? "Aktif" : "Menunggu pembayaran"}</span></td><td><div class="row-actions"><button class="btn ghost small" onclick="ubahAktifMember('${enc(x.username)}',${x.aktif ? "false" : "true"})">${x.aktif ? "Nonaktifkan" : "Aktifkan"}</button><button class="btn danger small" onclick="hapusMember('${enc(x.username)}')">Hapus</button></div></td></tr>`,
-              )
+              .map((x) => {
+                const berakhir = x.berakhir ? new Date(x.berakhir).toLocaleDateString("id-ID") : "-";
+                return `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username)}</small></td><td>${escMember(String(x.jenjang || "").toUpperCase())}<br><small>${escMember(x.paket || "")}</small></td><td><span class="tag ${x.status === "aktif" ? "ok" : ""}">${STATUS_LABEL[x.status] || x.status}</span><br><small>s.d. ${berakhir}</small></td><td><div class="row-actions">${x.status === "aktif" ? `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',false)">Nonaktifkan</button>` : `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',true)">Aktifkan</button>`}<button class="btn danger small" onclick="hapusMember('${x.id}')">Hapus</button></div></td></tr>`;
+              })
               .join("") ||
             '<tr><td colspan="4">Tidak ada member yang sesuai.</td></tr>';
       }
-      function aktifkanMember(username) {
-        ubahAktifMember(username, true);
-        alert("✓ Peserta aktif dan sudah dapat masuk ke Member Area.");
+      async function aktifkanMember(id) {
+        const m = MEMBER_CACHE.find((x) => x.id === id);
+        const paket = prompt(
+          "Paket yang diverifikasi (menentukan masa aktif):",
+          (m && m.paket) || "Paket 1 Bulan",
+        );
+        if (paket === null) return;
+        try {
+          await adminApi("adminVerifikasi", { id, paket: paket.trim() });
+          alert("✓ Peserta aktif dan sudah dapat masuk ke Member Area.");
+          renderMemberAdmin();
+        } catch (err) {
+          alert("Gagal mengaktifkan: " + err.message);
+        }
       }
-      function ubahAktifMember(username, status) {
-        username = dec(username);
-        const a = akunMember(),
-          p = a.find((x) => x.username === username);
-        if (!p) return;
-        p.aktif = status;
-        simpanAkunMember(a);
-        renderMemberAdmin();
+      async function tolakMember(id) {
+        const catatan = prompt("Alasan penolakan (opsional):", "") || "";
+        try {
+          await adminApi("adminTolak", { id, catatan });
+          renderMemberAdmin();
+        } catch (err) {
+          alert("Gagal menolak: " + err.message);
+        }
       }
-      function hapusMember(username) {
-        username = dec(username);
-        const a = akunMember(),
-          p = a.find((x) => x.username === username);
+      async function ubahAktifMember(id, jadiAktif) {
+        try {
+          await adminApi(jadiAktif ? "adminAktifkanKembali" : "adminNonaktifkan", { id });
+          renderMemberAdmin();
+        } catch (err) {
+          alert("Gagal mengubah status: " + err.message);
+        }
+      }
+      async function hapusMember(id) {
+        const p = MEMBER_CACHE.find((x) => x.id === id);
         if (!p) return;
-        if (
-          !confirm("Hapus peserta " + p.nama + "? Akun tidak dapat dipulihkan.")
-        )
+        if (!confirm("Hapus peserta " + p.nama + "? Akun tidak dapat dipulihkan.")) return;
+        try {
+          await adminApi("adminHapusMember", { id });
+          renderMemberAdmin();
+        } catch (err) {
+          alert("Gagal menghapus: " + err.message);
+        }
+      }
+      async function renderKontenAdmin() {
+        try {
+          const res = await adminApi("adminListKonten", {});
+          KONTEN_CACHE = res.data || [];
+        } catch (err) {
+          alert("Gagal memuat konten: " + err.message);
           return;
-        simpanAkunMember(a.filter((x) => x.username !== username));
-        renderMemberAdmin();
-      }
-      function renderKontenAdmin() {
-        const all = semuaMateri();
+        }
+        const all = KONTEN_CACHE;
         const render = (target, filter, empty) => {
           const box = document.getElementById(target);
           if (!box) return;
@@ -813,7 +877,7 @@
             ? rows
                 .map(
                   (x) =>
-                    `<div class="manage-item ${x.visible === false ? "muted-item" : ""}"><div><b>${escMember(x.judul || x.topik || "Tanpa judul")}</b><p>${escMember(x.jenjang.toUpperCase())} · ${escMember(x.topik || "Tanpa topik")}${x.visible === false ? " · Disembunyikan" : ""}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editKonten('${x.id}')">Ubah</button><button class="btn ghost small" onclick="toggleKonten('${x.id}')">${x.visible === false ? "Tampilkan" : "Sembunyikan"}</button><button class="btn danger small" onclick="hapusKonten('${x.id}')">Hapus</button></div></div>`,
+                    `<div class="manage-item ${x.visible === false || x.visible === "FALSE" ? "muted-item" : ""}"><div><b>${escMember(x.judul || x.topik || "Tanpa judul")}</b><p>${escMember(String(x.jenjang || "").toUpperCase())} · ${escMember(x.topik || "Tanpa topik")}${x.visible === false || x.visible === "FALSE" ? " · Disembunyikan" : ""}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editKonten('${x.id}')">Ubah</button>${x.jenis === "soal" ? `<button class="btn ghost small" onclick="rapikanSoalGemini('${x.id}')">✦ Gemini</button>` : ""}<button class="btn ghost small" onclick="toggleKonten('${x.id}')">${x.visible === false || x.visible === "FALSE" ? "Tampilkan" : "Sembunyikan"}</button><button class="btn danger small" onclick="hapusKonten('${x.id}')">Hapus</button></div></div>`,
                 )
                 .join("")
             : empty;
@@ -839,12 +903,13 @@
           '<div class="sub">Belum ada paket soal atau tryout terjadwal.</div>',
         );
       }
-      function tambahItem(jenjang, item) {
-        const d = bacaMateri();
-        d[jenjang] = d[jenjang] || [];
-        d[jenjang].push({ id: idBaru(), visible: true, ...item });
-        simpanMateri(d);
-        renderKontenAdmin();
+      async function tambahItem(jenjang, item) {
+        try {
+          await adminApi("adminSimpanKonten", { item: { jenjang, visible: true, ...item } });
+          await renderKontenAdmin();
+        } catch (err) {
+          alert("Gagal menyimpan: " + err.message);
+        }
       }
       function simpanModul(e) {
         e.preventDefault();
@@ -889,8 +954,8 @@
         const kunci=tipe === "pg4" || tipe === "pg5" ? Number(document.getElementById(latihan ? "latihanKunci" : "tryoutSoalKunci").value) : document.getElementById(latihan ? "latihanJawabanTeks" : "tryoutJawabanTeks").value.trim();
         return latihan ? {jenjang:latihanJenjang.value,topik:latihanTopik.value.trim(),judul:latihanJudul.value.trim(),soal:latihanSoal.value.trim(),pembahasan:latihanBahas.value.trim(),tipe,opsi,kunci} : {jenjang:tryoutSoalJenjang.value,topik:tryoutSoalTopik.value.trim(),judul:tryoutSoalPaket.value.trim()+" · Soal",soal:tryoutSoalTeks.value.trim(),pembahasan:tryoutSoalBahas.value.trim(),tipe,opsi,kunci,paket:tryoutSoalPaket.value.trim()};
       }
-      function simpanLatihan(e) { e.preventDefault(); const x=ambilManual("latihan"); tambahItem(x.jenjang,{jenis:"soal",...x}); notifikasi(e.target,"Latihan disimpan."); e.target.reset(); aturTipeManual("latihan"); }
-      function simpanSoalTryout(e) { e.preventDefault(); const x=ambilManual("tryout"); tambahItem(x.jenjang,{jenis:"soal",tujuan:"tryout",...x}); notifikasi(e.target,"Soal masuk ke paket tryout."); e.target.reset(); aturTipeManual("tryout"); muatPilihanPaket(); }
+      async function simpanLatihan(e) { e.preventDefault(); const x=ambilManual("latihan"); await tambahItem(x.jenjang,{jenis:"soal",...x}); notifikasi(e.target,"Latihan disimpan."); e.target.reset(); aturTipeManual("latihan"); }
+      async function simpanSoalTryout(e) { e.preventDefault(); const x=ambilManual("tryout"); await tambahItem(x.jenjang,{jenis:"soal",tujuan:"tryout",...x}); notifikasi(e.target,"Soal masuk ke paket tryout."); e.target.reset(); aturTipeManual("tryout"); muatPilihanPaket(); }
       function bacaTeksWord(file) {
         return new Promise((resolve, reject) => { const r=new FileReader(); r.onerror=()=>reject(new Error("File tidak dapat dibaca.")); r.onload=async()=>{ try { if(file.name.toLowerCase().endsWith(".txt")) return resolve(String(r.result)); if(!window.mammoth) throw new Error("Mesin impor Word belum termuat. Periksa koneksi internet lalu coba lagi."); const out=await mammoth.extractRawText({arrayBuffer:r.result}); resolve(out.value || ""); } catch(err) { reject(err); } }; file.name.toLowerCase().endsWith(".txt") ? r.readAsText(file) : r.readAsArrayBuffer(file); });
       }
@@ -898,15 +963,54 @@
         return String(teks).replace(/\r/g,"").split(/(?=^\s*(?:soal\s*)?\d+\s*[.)])/im).filter(x=>/\S/.test(x)).map((b,no)=>{ const tipeRaw=((b.match(/TIPE\s*:\s*([^\n]+)/i)||[])[1]||"PG4").toLowerCase(), opsi=[]; for(const h of "ABCDE"){const m=b.match(new RegExp("^\\s*"+h+"[.)]\\s*(.+)$","im"));if(m)opsi.push(m[1].trim());} const km=(b.match(/KUNCI\s*:\s*([^\n]+)/i)||[])[1]||"", pm=(b.match(/PEMBAHASAN\s*:\s*([\s\S]*)$/i)||[])[1]||""; const soal=b.replace(/^\s*(?:soal\s*)?\d+\s*[.)]\s*/i,"").replace(/^\s*TIPE\s*:[^\n]*$/gim,"").replace(/^\s*[A-E][.)].*$/gim,"").replace(/^\s*KUNCI\s*:.*$/gim,"").replace(/^\s*PEMBAHASAN\s*:[\s\S]*$/im,"").trim(); const tipe=tipeRaw.includes("esai")?"esai":tipeRaw.includes("isian")?"isian":opsi.length===5?"pg5":"pg4"; return {tipe,soal,opsi,kunci:tipe.startsWith("pg")?Math.max(0,"ABCDE".indexOf(km.trim().charAt(0).toUpperCase())):km.trim(),pembahasan:pm.trim(),no:no+1}; }).filter(x=>x.soal);
       }
       async function imporWord(e,mode) {
-        e.preventDefault(); const latihan=mode === "latihan", file=document.getElementById(latihan ? "wordLatihanFile" : "wordTryoutFile").files[0];
-        try { const list=parseWordSoal(await bacaTeksWord(file)); if(!list.length) throw new Error("Format soal belum terbaca. Pastikan nomor soal ditulis 1., 2., dan seterusnya."); const jenjang=document.getElementById(latihan ? "wordLatihanJenjang" : "wordTryoutJenjang").value, topik=document.getElementById(latihan ? "wordLatihanTopik" : "wordTryoutTopik").value.trim(), paket=latihan ? "" : document.getElementById("wordTryoutPaket").value.trim(); list.forEach(x=>tambahItem(jenjang,{jenis:"soal",topik,judul:(latihan ? "Latihan" : "Paket "+paket)+" · Soal "+x.no,...x,...(latihan ? {} : {tujuan:"tryout",paket})})); notifikasi(e.target,list.length+" soal berhasil diimpor."); e.target.reset(); muatPilihanPaket(); } catch(err) { alert("Impor gagal: "+err.message); }
+        e.preventDefault();
+        const latihan=mode === "latihan", file=document.getElementById(latihan ? "wordLatihanFile" : "wordTryoutFile").files[0];
+        const tombol=e.target.querySelector("button"), semula=tombol.textContent;
+        try {
+          tombol.disabled=true; tombol.textContent="Membaca & merapikan Word…";
+          const text=await bacaTeksWord(file);
+          const jenjang=document.getElementById(latihan ? "wordLatihanJenjang" : "wordTryoutJenjang").value;
+          const topik=document.getElementById(latihan ? "wordLatihanTopik" : "wordTryoutTopik").value.trim();
+          const paket=latihan ? "" : document.getElementById("wordTryoutPaket").value.trim();
+          const gunakanGemini=document.getElementById(latihan ? "wordLatihanGemini" : "wordTryoutGemini").checked;
+          let list;
+          if(gunakanGemini) {
+            const hasil=await adminApi("adminAnalisisWordGemini",{text,tipe:"pg4"});
+            list=(hasil.data||[]).map((x,i)=>({...x,no:i+1}));
+          } else list=parseWordSoal(text);
+          if(!list.length) throw new Error("Format soal belum terbaca. Pastikan nomor soal ditulis 1., 2., dan seterusnya.");
+          for(const x of list) await adminApi("adminSimpanKonten",{item:{jenjang,visible:true,jenis:"soal",topik,judul:(latihan ? "Latihan" : "Paket "+paket)+" · Soal "+x.no,...x,...(latihan ? {} : {tujuan:"tryout",paket})}});
+          await renderKontenAdmin(); notifikasi(e.target,list.length+" soal berhasil diimpor"+(gunakanGemini?" dan dirapikan Gemini.":".")); e.target.reset(); muatPilihanPaket();
+        } catch(err) { alert("Impor gagal: "+err.message); }
+        finally { tombol.disabled=false; tombol.textContent=semula; }
       }
-      function buatDraftAI(e,mode) {
-        e.preventDefault(); const latihan=mode === "latihan", jenjang=document.getElementById(latihan ? "aiLatihanJenjang" : "aiTryoutJenjang").value, topik=document.getElementById(latihan ? "aiLatihanTopik" : "aiTryoutTopik").value.trim(), tipe=document.getElementById(latihan ? "aiLatihanTipe" : "aiTryoutTipe").value, instruksi=document.getElementById(latihan ? "aiLatihanInstruksi" : "aiTryoutInstruksi").value.trim(), paket=latihan ? "" : document.getElementById("aiTryoutPaket").value.trim(), n=tipe === "pg5" ? 5 : 4, opsi=tipe.startsWith("pg") ? Array.from({length:n},(_,i)=>i===1?"Jawaban yang benar":"Pilihan "+"ABCDE"[i]) : [];
-        tambahItem(jenjang,{jenis:"soal",topik,judul:(latihan ? "Latihan AI" : "Paket "+paket)+" · Draf AI",soal:"[Draf AI] Pada topik "+topik+", tentukan jawaban yang tepat berdasarkan konsep fisika yang sesuai. "+(instruksi || "Gunakan konteks sederhana dan data yang cukup."),tipe,opsi,kunci:tipe.startsWith("pg") ? 1 : "Jawaban contoh / pedoman perlu diperiksa",pembahasan:"Diketahui: data pada soal.\nDitanya: besaran yang diminta.\nKonsep: gunakan prinsip "+topik+".\nPenyelesaian: substitusikan data secara sistematis hingga diperoleh jawaban.",...(latihan ? {} : {tujuan:"tryout",paket})});
-        const out=document.getElementById(latihan ? "aiLatihanOutput" : "aiTryoutOutput"); out.style.display="block"; out.textContent="Draf soal telah dibuat dan disimpan. Klik Ubah pada daftar soal untuk memeriksa data, kunci, dan pembahasan sebelum dipublikasikan."; if(!latihan) muatPilihanPaket();
+      async function buatDraftAI(e, mode) {
+        e.preventDefault();
+        const latihan = mode === "latihan",
+          jenjang = document.getElementById(latihan ? "aiLatihanJenjang" : "aiTryoutJenjang").value,
+          topik = document.getElementById(latihan ? "aiLatihanTopik" : "aiTryoutTopik").value.trim(),
+          tipe = document.getElementById(latihan ? "aiLatihanTipe" : "aiTryoutTipe").value,
+          sulit = document.getElementById(latihan ? "aiLatihanSulit" : "aiTryoutSulit").value,
+          jumlah = document.getElementById(latihan ? "aiLatihanJumlah" : "aiTryoutJumlah").value,
+          instruksi = document.getElementById(latihan ? "aiLatihanInstruksi" : "aiTryoutInstruksi").value.trim(),
+          paket = latihan ? "" : document.getElementById("aiTryoutPaket").value.trim();
+        const out = document.getElementById(latihan ? "aiLatihanOutput" : "aiTryoutOutput");
+        out.style.display = "block";
+        out.textContent = "✦ AI sedang menyusun soal, mohon tunggu (bisa 10-30 detik)…";
+        try {
+          const res = await adminApi("adminBuatSoalGemini", {
+            jenjang, topik, tipe, sulit, jumlah, instruksi,
+            untukTryout: !latihan, paket,
+          });
+          out.textContent =
+            "✓ " + res.jumlah + " soal berhasil dibuat Gemini dan disimpan. Klik Gemini untuk merapikan lagi, atau Ubah untuk koreksi manual sebelum dipublikasikan.";
+          if (!latihan) muatPilihanPaket();
+          await renderKontenAdmin();
+        } catch (err) {
+          out.textContent = "✗ Gagal membuat soal: " + err.message;
+        }
       }
-      function muatPilihanPaket() { const s=document.getElementById("tryoutPaket"); if(!s)return; const lama=s.value, paket=[...new Set(semuaMateri().filter(x=>x.tujuan === "tryout" && x.paket).map(x=>x.paket))]; s.innerHTML='<option value="">Pilih paket tryout…</option>'+paket.map(x=>'<option>'+escMember(x)+"</option>").join(""); s.value=paket.includes(lama) ? lama : ""; }
+      function muatPilihanPaket() { const s=document.getElementById("tryoutPaket"); if(!s)return; const lama=s.value, paket=[...new Set(KONTEN_CACHE.filter(x=>x.tujuan === "tryout" && x.paket).map(x=>x.paket))]; s.innerHTML='<option value="">Pilih paket tryout…</option>'+paket.map(x=>'<option>'+escMember(x)+"</option>").join(""); s.value=paket.includes(lama) ? lama : ""; }
       function simpanVideo(e) {
         e.preventDefault();
         tambahItem(document.getElementById("videoJenjang").value, {
@@ -932,38 +1036,48 @@
         e.target.reset();
       }
       function cariItem(id) {
-        const d = bacaMateri();
-        for (const jenjang of Object.keys(d)) {
-          const i = (d[jenjang] || []).findIndex((x) => x.id === id);
-          if (i >= 0) return { d, jenjang, i, item: d[jenjang][i] };
+        return KONTEN_CACHE.find((x) => x.id === id) || null;
+      }
+      async function simpanKontenBackend(item) {
+        try {
+          await adminApi("adminSimpanKonten", { item });
+          await renderKontenAdmin();
+        } catch (err) {
+          alert("Gagal menyimpan: " + err.message);
         }
-        return null;
       }
-      function toggleKonten(id) {
-        const r = cariItem(id);
-        if (!r) return;
-        r.item.visible = r.item.visible === false;
-        r.d[r.jenjang][r.i] = r.item;
-        simpanMateri(r.d);
-        renderKontenAdmin();
+      async function toggleKonten(id) {
+        const x = cariItem(id);
+        if (!x) return;
+        await simpanKontenBackend({ ...x, visible: x.visible === false || x.visible === "FALSE" });
       }
-      function hapusKonten(id) {
-        const r = cariItem(id);
-        if (!r) return;
-        if (
-          !confirm(
-            'Hapus "' + r.item.judul + '"? Data ini tidak dapat dipulihkan.',
-          )
-        )
-          return;
-        r.d[r.jenjang].splice(r.i, 1);
-        simpanMateri(r.d);
-        renderKontenAdmin();
+      async function hapusKonten(id) {
+        const x = cariItem(id);
+        if (!x) return;
+        if (!confirm('Hapus "' + x.judul + '"? Data ini tidak dapat dipulihkan.')) return;
+        try {
+          await adminApi("adminHapusKonten", { id });
+          renderKontenAdmin();
+        } catch (err) {
+          alert("Gagal menghapus: " + err.message);
+        }
       }
-      function editKonten(id) {
-        const r = cariItem(id);
-        if (!r) return;
-        const x = r.item;
+      async function rapikanSoalGemini(id) {
+        const x = cariItem(id);
+        if (!x) return;
+        if (!confirm("Gemini akan merapikan bahasa, menerjemahkan bagian asing, memeriksa opsi/kunci, rumus LaTeX, dan membuat pembahasan lebih sistematis. Lanjutkan?")) return;
+        try {
+          const res = await adminApi("adminRapikanSoalGemini", { tipe: x.tipe || "pg4", item: x });
+          const hasil = res.item || {};
+          const preview = "SOAL:\n" + (hasil.soal || "") + "\n\nKUNCI: " + (x.tipe && x.tipe.startsWith("pg") ? "ABCDE"[Number(hasil.kunci) || 0] : (hasil.kunci || "")) + "\n\nPEMBAHASAN:\n" + (hasil.pembahasan || "");
+          if (!confirm("Tinjau hasil Gemini berikut. Simpan hasil ini?\n\n" + preview.slice(0, 1600))) return;
+          await simpanKontenBackend({ ...x, ...hasil, opsi: hasil.opsi || x.opsi || [] });
+          alert("✓ Soal telah dirapikan Gemini. Periksa sekali lagi sebelum ditampilkan ke member.");
+        } catch (err) { alert("Gemini gagal merapikan soal: " + err.message); }
+      }
+      async function editKonten(id) {
+        const x = { ...cariItem(id) };
+        if (!x.id) return;
         const topik = prompt("Topik:", x.topik || "");
         if (topik === null) return;
         const judul = prompt("Judul:", x.judul || "");
@@ -995,21 +1109,26 @@
           x.soal = s.trim();
           x.kunci = x.tipe && x.tipe.startsWith("pg") ? Math.max(0, "ABCDE".indexOf(k.trim().charAt(0).toUpperCase())) : k.trim();
           x.pembahasan = p.trim();
+          x.opsi = x.opsi || [];
           if (x.tipe && x.tipe.startsWith("pg")) {
-            for (let i = 0; i < (x.opsi || []).length; i++) {
+            for (let i = 0; i < x.opsi.length; i++) {
               const o = prompt("Opsi " + "ABCDE"[i] + ":", x.opsi[i]);
               if (o === null) return;
               x.opsi[i] = o.trim();
             }
           }
         }
-        r.d[r.jenjang][r.i] = x;
-        simpanMateri(r.d);
-        renderKontenAdmin();
+        await simpanKontenBackend(x);
       }
-      document.addEventListener("DOMContentLoaded", () => {
-        renderMemberAdmin();
-        renderKontenAdmin();
+      document.addEventListener("DOMContentLoaded", async () => {
+        if (!backendMemberSiap()) {
+          tampilkanPetunjukBackend();
+          return;
+        }
+        await loginAdminLoop();
+        await renderMemberAdmin();
+        await renderKontenAdmin();
+        await renderPaketAdmin();
         aturTipeManual("latihan");
         aturTipeManual("tryout");
         muatPilihanPaket();
