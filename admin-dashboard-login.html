@@ -11340,7 +11340,7 @@ window.downloadPaketPDF=async function(id){
 <script>
 /* Generator cadangan yang stabil: jsPDF langsung, tanpa halaman HTML tersembunyi. */
 function kfPdfTeksCadangan(latex){return String(latex||'').replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g,'($1)/($2)').replace(/\\sqrt\{([^{}]+)\}/g,'√($1)').replace(/\\text\{([^}]*)\}/g,'$1').replace(/\\cdot/g,'·').replace(/\\,/g,' ').replace(/\\left|\\right/g,'').replace(/\\/g,'');}
-window.downloadPaketPDF=async function(id){
+window.downloadPaketPDFVektor=async function(id){
   const meta=manifestCache.content.find(p=>p.id===id);if(!meta)return;
   const btn=document.getElementById('btnPdf-'+id),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='Menyusun PDF…';}
   try{
@@ -11476,6 +11476,15 @@ window.downloadPaketPDF=async function(id){
       if(btn)btn.textContent='Menyusun halaman '+(index+1)+'/'+elemen.length+'…';
       const canvas=await html2canvas(el,{scale:1.65,useCORS:true,allowTaint:false,backgroundColor:'#f8f5fc',logging:false,scrollX:0,scrollY:-window.scrollY,windowWidth:794});
       if(!canvas||canvas.width<10||canvas.height<10)throw Error('Kartu soal '+index+' gagal dirender.');
+      // Chrome tertentu menghasilkan kanvas berukuran benar tetapi seluruh pikselnya putih.
+      // Periksa sampel kecil sebelum gambar dimasukkan ke PDF.
+      try{
+        const probe=document.createElement('canvas');probe.width=40;probe.height=40;
+        const ctx=probe.getContext('2d');ctx.drawImage(canvas,0,0,40,40);
+        const px=ctx.getImageData(0,0,40,40).data;let warna=0;
+        for(let pi=0;pi<px.length;pi+=4){if(px[pi+3]>10&&(px[pi]<238||px[pi+1]<238||px[pi+2]<238)){warna++;if(warna>3)break;}}
+        if(warna<=3)throw Error('Kanvas halaman '+(index+1)+' terdeteksi kosong.');
+      }catch(cekErr){if(String(cekErr&&cekErr.message||cekErr).indexOf('terdeteksi kosong')!==-1)throw cekErr;}
       const tinggiJikaLebarPenuh=canvas.height*isiW/canvas.width;
 
       // Kartu normal diperkecil secukupnya agar tetap utuh pada satu halaman.
@@ -11509,10 +11518,18 @@ window.downloadPaketPDF=async function(id){
       doc.text('KlinikFisikapku - '+String(paket.title||meta.title||'Paket Soal').slice(0,80),marginX,pageH-3.8);
       doc.text('Halaman '+pn+' dari '+totalHalaman,pageW-marginX,pageH-3.8,{align:'right'});
     }
-    if(btn)btn.textContent='Mengunduh '+totalHalaman+' halaman…';
+    if(btn)btn.textContent='Memeriksa '+totalHalaman+' halaman…';
     const nama='Soal-'+slugify(paket.title||meta.title||'Paket-Soal')+'-KlinikFisikapku.pdf';
-    doc.save(nama);
-  }catch(e){alert('Gagal membuat PDF: '+(e.message||e));}
+    const pdfBlob=doc.output('blob');
+    if(!pdfBlob||pdfBlob.size<12000)throw Error('PDF hasil render terlalu kecil dan kemungkinan kosong.');
+    const pdfUrl=URL.createObjectURL(pdfBlob),a=document.createElement('a');a.href=pdfUrl;a.download=nama;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(pdfUrl),2500);
+  }catch(e){
+    console.warn('Renderer tampilan peserta gagal, memakai generator PDF vektor:',e);
+    if(style){style.remove();style=null;}if(area){area.remove();area=null;}
+    if(btn){btn.disabled=false;btn.textContent=teksAwal;}
+    if(typeof window.downloadPaketPDFVektor==='function')return await window.downloadPaketPDFVektor(id);
+    alert('Gagal membuat PDF: '+(e.message||e));
+  }
   finally{if(window.MathJax&&MathJax.typesetClear&&area){try{MathJax.typesetClear([area]);}catch(e){}}if(style)style.remove();if(area)area.remove();if(btn){btn.disabled=false;btn.textContent=teksAwal;}}
 };
 </script>
