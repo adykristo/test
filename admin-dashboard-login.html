@@ -2208,6 +2208,11 @@ table{overflow:hidden;border-radius:12px;border:1px solid #eadcf5}th{background:
       <label style="margin:0; font-weight:400;" for="setPelatihanAktif"><strong>Terbitkan Halaman Pelatihan</strong> — tampilkan menu Pelatihan kepada pengunjung</label>
     </div>
     <p class="note" style="margin:8px 0 0 30px;">Saat tidak dicentang, menu Pelatihan tidak terlihat oleh siswa. Materi, paket, dan data peserta di admin tetap tersimpan.</p>
+    <div class="checkbox-row" style="margin-top:10px;">
+      <input type="checkbox" id="setMemberAreaAktif" checked>
+      <label style="margin:0; font-weight:400;" for="setMemberAreaAktif"><strong>Aktifkan Member Area</strong> — tampilkan menu Member Area dan izinkan akses ke halaman member</label>
+    </div>
+    <p class="note" style="margin:8px 0 0 30px;">Saat tidak dicentang, menu Member Area hilang untuk semua pengunjung dan alamat langsung <code>/member/</code> menampilkan pemberitahuan nonaktif.</p>
     <button type="button" id="btnSimpanPengaturan" class="btn-primary" style="margin-top:16px;">Simpan Pengaturan</button>
     <button type="button" id="btnMuatPengaturan" class="secondary" style="margin-top:10px;">Muat Pengaturan dari GitHub</button>
     <div id="statusPengaturan" class="status"></div>
@@ -3384,7 +3389,7 @@ function getCfg() {
 /* ===== Pengaturan situs (data/pengaturan-situs.json) ===== */
 const PENGATURAN_PATH = 'data/pengaturan-situs.json';
 // Pelatihan dimulai sebagai DRAF: tidak terlihat siswa sampai Admin menerbitkannya.
-const PENGATURAN_DEFAULT = { latihanAcak: true, pelatihanAktif: false };
+const PENGATURAN_DEFAULT = { latihanAcak: true, pelatihanAktif: false, memberAreaAktif: true };
 
 async function muatPengaturanSitus() {
   const st = $('statusPengaturan');
@@ -3418,6 +3423,8 @@ function applyPengaturanForm(data) {
   if (cb) cb.checked = data.latihanAcak !== false;
   const pel = $('setPelatihanAktif');
   if (pel) pel.checked = data.pelatihanAktif !== false;
+  const member = $('setMemberAreaAktif');
+  if (member) member.checked = data.memberAreaAktif !== false;
 }
 
 async function simpanPengaturanSitus() {
@@ -3438,7 +3445,8 @@ async function simpanPengaturanSitus() {
     }
     const data = {
       latihanAcak: !!($('setLatihanAcak') && $('setLatihanAcak').checked),
-      pelatihanAktif: !!($('setPelatihanAktif') && $('setPelatihanAktif').checked)
+      pelatihanAktif: !!($('setPelatihanAktif') && $('setPelatihanAktif').checked),
+      memberAreaAktif: !!($('setMemberAreaAktif') && $('setMemberAreaAktif').checked)
     };
     const body = {
       message: 'Update pengaturan situs',
@@ -3456,7 +3464,7 @@ async function simpanPengaturanSitus() {
     }
     if (st) {
       st.className = 'status ok';
-      st.textContent = '✓ Tersimpan. Tombol Latihan Acak ' + (data.latihanAcak ? 'ditampilkan.' : 'disembunyikan.') + ' Halaman Pelatihan ' + (data.pelatihanAktif ? 'sudah diterbitkan untuk siswa.' : 'masih draf dan disembunyikan dari siswa.');
+      st.textContent = '✓ Tersimpan. Tombol Latihan Acak ' + (data.latihanAcak ? 'ditampilkan.' : 'disembunyikan.') + ' Halaman Pelatihan ' + (data.pelatihanAktif ? 'sudah diterbitkan.' : 'disembunyikan.') + ' Member Area ' + (data.memberAreaAktif ? 'diaktifkan untuk semua pengunjung.' : 'dinonaktifkan untuk semua pengunjung.');
     }
   } catch (e) {
     if (st) { st.className = 'status err'; st.textContent = 'Gagal: ' + e.message; }
@@ -11215,17 +11223,6 @@ const _fetchPasteAi=window.fetch.bind(window);window.fetch=function(url,opt){try
 async function prosesPasteSoalDenganAi(){const el=document.getElementById('pasteAiArea'),st=document.getElementById('pasteAiStatus');if(!el)return;const dok=buatDokumenWordUntukAI(el.innerHTML);if(!dok.text){setStatus('pasteAiStatus','Tempel teks soal terlebih dahulu.','err');return;}if(!hasilScriptUrl||!hasilAdminKey){setStatus('pasteAiStatus','Buka Konfigurasi pada Hasil Tryout lalu isi URL Apps Script dan Kode Rahasia Admin terlebih dahulu.','err');return;}try{setStatus('pasteAiStatus','AI sedang membaca, menerjemahkan, dan memilih gambar…','loading');const res=await fetch(hasilScriptUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'analisisWordTryout',key:hasilAdminKey,documentText:dok.text.slice(0,28000),images:asetUntukAnalisisAI(idsAsetDalamTeks(dok.text),dok.assets),translateToIndonesia:!!document.getElementById('pasteAiTranslate')?.checked,selectRelevantImages:!!document.getElementById('pasteAiRelevantImage')?.checked})});const out=await res.json();if(!out||out.status!=='ok')throw Error((out&&out.message)||'AI gagal membaca hasil tempelan.');const soal=soalDariHasilGeminiWord(out.questions||[]);if(!soal.length)throw Error('AI belum menemukan struktur soal. Pastikan setiap soal memiliki nomor dan opsi A/B/C/D.');const fallback=parseWordSoalHtml(el.innerHTML);lengkapiGambarFallbackWord(soal,fallback,dok.refDariSrc);setStatus('pasteAiStatus','Mengunggah dan memasang gambar…','loading');const urls=await unggahAsetWordAi(dok.assets);soal.forEach(s=>terapkanGambarWordKeSoal(s,urls));for(let i=0;i<soal.length;i++)await unggahDataUrlTambahanWordAi(soal[i],i+1);soal.forEach(s=>tambahSoal(s));bersihkanSoalKosong();updateSoalCountBadge();setStatus('pasteAiStatus','✓ '+soal.length+' draf soal masuk ke editor. Periksa hasil AI sebelum publish.','ok');el.innerHTML='';updatePasteAiSummary();document.getElementById('soalContainer').scrollIntoView({behavior:'smooth',block:'start'});}catch(e){setStatus('pasteAiStatus','Gagal membaca tempelan: '+(e.message||e),'err');}}
 </script>
 </body>
-<script>
-document.addEventListener('DOMContentLoaded',function(){
-  const host=document.querySelector('#panelBank main')||document.querySelector('main'); if(!host||document.getElementById('memberAreaSetting'))return;
-  const box=document.createElement('div'); box.className='box'; box.id='memberAreaSetting';
-  const aktif=localStorage.getItem('kf_member_area_enabled')!=='false';
-  box.innerHTML='<h2>🎓 Member Area (Database Terpisah)</h2><p class="note">Mengatur menu Member pada halaman utama. Data Member memakai ruang penyimpanan khusus dan tidak bercampur dengan data CBT/tryout utama.</p><label class="checkbox-row"><input id="setMemberAreaAktif" type="checkbox" '+(aktif?'checked':'')+'> <strong>Tampilkan Member Area di halaman utama</strong></label><p><a class="btn btn-outline" href="member/admin.html">Buka Admin Member Area</a></p>';
-  host.appendChild(box); document.getElementById('setMemberAreaAktif').addEventListener('change',function(){localStorage.setItem('kf_member_area_enabled',this.checked?'true':'false');const b=document.getElementById('btnToggleMemberCepat');if(b)b.textContent=this.checked?'Sembunyikan Member':'Tampilkan Member';alert(this.checked?'Member Area ditampilkan di halaman utama.':'Member Area disembunyikan dari halaman utama.');});
-  const top=document.querySelector('.admin-topbar');
-  if(top&&!document.getElementById('btnAdminMemberCepat'))top.insertAdjacentHTML('beforeend','<div style="margin-left:auto;display:flex;gap:8px;align-items:center"><button id="btnToggleMemberCepat" type="button" class="btn btn-outline" style="padding:7px 10px" onclick="document.getElementById(\'setMemberAreaAktif\').click()">'+(aktif?'Sembunyikan Member':'Tampilkan Member')+'</button><a id="btnAdminMemberCepat" class="btn btn-primary" style="padding:8px 11px;text-decoration:none" href="member/admin.html">🎓 Admin Member</a></div>');
-});
-</script>
 <script>
 /* Perbaikan PDF: daftar <ol type=A> sudah memberi huruf A–E, jadi isi opsi tidak boleh diberi label kedua. */
 window.downloadPaketPDF=async function(id){const meta=manifestCache.content.find(p=>p.id===id);if(!meta)return;const btn=document.getElementById('btnPdf-'+id),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='Menyiapkan tampilan cetak…'}try{const r=await ghGetFile(meta.file);if(!r)throw Error('File paket tidak ditemukan.');const p=r.content,esc=x=>String(x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'),bersih=(h,v)=>String(v||'').replace(new RegExp('^\\s*'+h+'\\s*[\\.\\)\\:]\\s*','i'),'');const isi=(p.soal||[]).map((s,i)=>{const opsi=Object.entries(s.pilihan||{}).map(([h,v])=>'<li>'+esc(bersih(h,v))+'</li>').join('');return '<article class="q"><h3>Soal '+(i+1)+'</h3><div class="teks">'+esc(s.pertanyaan||'')+'</div>'+(s.gambar?'<img src="'+esc(s.gambar)+'">':'')+(opsi?'<ol type="A">'+opsi+'</ol>':'')+'</article>';}).join('');const w=window.open('','_blank');if(!w)throw Error('Izinkan pop-up untuk mencetak PDF.');w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(p.title||meta.title||'Soal')+'</title><script>window.MathJax={tex:{inlineMath:[["$","$"]],displayMath:[["$$","$$"]]}};<\\/script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"><\\/script><style>body{font-family:Arial,sans-serif;color:#21162c;margin:28px auto;max-width:760px;line-height:1.7}h1{color:#4b197c;border-bottom:3px solid #f253a9;padding-bottom:10px}.q{break-inside:avoid;border-bottom:1px solid #eadcf5;padding:14px 0}.q h3{color:#7b2ff7}.q img{max-width:100%;max-height:400px;display:block;margin:12px 0}ol{padding-left:28px}.teks{white-space:pre-wrap;text-align:justify}@media print{body{margin:16mm}.q{break-inside:avoid}}</style></head><body><h1>'+esc(p.title||meta.title||'Paket Soal')+'</h1>'+isi+'<script>MathJax.startup.promise.then(()=>setTimeout(()=>window.print(),500));<\\/script></body></html>');w.document.close()}catch(e){alert('Gagal menyiapkan PDF: '+e.message)}finally{if(btn){btn.disabled=false;btn.textContent=old}}};
