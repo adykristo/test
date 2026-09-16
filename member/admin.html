@@ -158,6 +158,169 @@
         gap: 6px;
         flex-wrap: wrap;
       }
+      .member-summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(130px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .member-mini-stat {
+        position: relative;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        padding: 15px 16px;
+        box-shadow: 0 8px 24px #4f22730b;
+      }
+      .member-mini-stat::after {
+        content: "";
+        position: absolute;
+        right: -17px;
+        bottom: -23px;
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #8a2be222, #f44ca833);
+      }
+      .member-mini-stat span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .member-mini-stat b {
+        display: block;
+        margin-top: 3px;
+        color: var(--u);
+        font-size: 24px;
+      }
+      .member-toolbar {
+        display: grid;
+        grid-template-columns: minmax(230px, 1fr) 180px 140px auto;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .member-export {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .btn.excel {
+        background: #168653;
+      }
+      .btn.pdf {
+        background: #c73762;
+      }
+      .table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid #f0e7f7;
+        border-radius: 12px;
+      }
+      .table-wrap table {
+        min-width: 1040px;
+      }
+      .table-wrap th {
+        background: #fbf7ff;
+        white-space: nowrap;
+      }
+      .member-name {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 175px;
+      }
+      .member-avatar {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 11px;
+        color: #fff;
+        font-weight: 900;
+        background: linear-gradient(135deg, #6f24bd, #f44ca8);
+      }
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 800;
+        background: #f2edf7;
+        color: #665572;
+      }
+      .status-pill.aktif { background:#e5faed; color:#087a42; }
+      .status-pill.pending { background:#fff4d8; color:#916100; }
+      .status-pill.ditolak,
+      .status-pill.nonaktif,
+      .status-pill.expired { background:#ffe8ee; color:#b52652; }
+      .member-result-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      dialog.member-dialog {
+        width: min(620px, calc(100% - 28px));
+        border: 0;
+        padding: 0;
+        border-radius: 20px;
+        color: var(--ink);
+        box-shadow: 0 24px 90px #28103f55;
+      }
+      dialog.member-dialog::backdrop {
+        background: #24123899;
+        backdrop-filter: blur(3px);
+      }
+      .dialog-head {
+        padding: 20px 22px;
+        color: #fff;
+        background: linear-gradient(105deg, #3d1b66, #942bdb, #f34ea5);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .dialog-head button {
+        border: 1px solid #ffffff88;
+        background: #ffffff22;
+        color: #fff;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+      }
+      .dialog-body { padding: 22px; }
+      .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .detail-item {
+        background: #fbf8ff;
+        border: 1px solid #eee1fa;
+        border-radius: 12px;
+        padding: 11px 13px;
+        overflow-wrap: anywhere;
+      }
+      .detail-item span {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        margin-bottom: 4px;
+      }
       .manage-list {
         margin-top: 16px;
       }
@@ -270,6 +433,21 @@
         .stats {
           grid-template-columns: 1fr 1fr;
         }
+        .member-summary {
+          grid-template-columns: 1fr 1fr;
+        }
+        .member-toolbar {
+          grid-template-columns: 1fr;
+        }
+        .member-export {
+          justify-content: stretch;
+        }
+        .member-export .btn {
+          flex: 1;
+        }
+        .detail-grid {
+          grid-template-columns: 1fr;
+        }
         .grid,
         .form {
           grid-template-columns: 1fr;
@@ -355,23 +533,55 @@
           </div>
         </section>
         <section id="member" class="panel">
-          <h1>Daftar Member</h1>
-          <p class="sub">Cari, ubah status, atau reset password member.</p>
+          <h1>Data Peserta Member</h1>
+          <p class="sub">Data yang diisi peserta saat mendaftar tampil otomatis di sini.</p>
+          <div class="member-summary">
+            <div class="member-mini-stat"><span>Seluruh peserta</span><b id="memberTotal">0</b></div>
+            <div class="member-mini-stat"><span>Member aktif</span><b id="memberAktif">0</b></div>
+            <div class="member-mini-stat"><span>Menunggu verifikasi</span><b id="memberPending">0</b></div>
+            <div class="member-mini-stat"><span>Nonaktif / lainnya</span><b id="memberLainnya">0</b></div>
+          </div>
           <div class="card">
-            <input
-              id="memberCari"
-              placeholder="Cari nama, WhatsApp, kelas, atau sekolah…"
-              oninput="renderMemberAdmin()"
-            />
-            <table>
-              <tr>
-                <th>Member</th>
-                <th>Kelas</th>
-                <th>Status</th>
-                <th>Aksi</th>
-              </tr>
-              <tbody id="allMemberList"></tbody>
-            </table>
+            <div class="member-toolbar">
+              <input id="memberCari" placeholder="Cari nama, email, WhatsApp, sekolah, atau paket…" oninput="renderTabelMember()" />
+              <select id="memberStatusFilter" onchange="renderTabelMember()">
+                <option value="">Semua status</option>
+                <option value="pending">Menunggu verifikasi</option>
+                <option value="aktif">Aktif</option>
+                <option value="nonaktif">Dinonaktifkan</option>
+                <option value="expired">Masa aktif habis</option>
+                <option value="ditolak">Ditolak</option>
+              </select>
+              <select id="memberJenjangFilter" onchange="renderTabelMember()">
+                <option value="">Semua jenjang</option>
+                <option value="sd">SD</option>
+                <option value="smp">SMP</option>
+                <option value="sma">SMA</option>
+              </select>
+              <div class="member-export">
+                <button class="btn excel" onclick="downloadMemberExcel()">⬇ Excel</button>
+                <button class="btn pdf" onclick="downloadMemberPDF()">⬇ PDF</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr>
+                  <th>No.</th>
+                  <th>Peserta</th>
+                  <th>WhatsApp</th>
+                  <th>Sekolah</th>
+                  <th>Jenjang & Paket</th>
+                  <th>Status & Masa Aktif</th>
+                  <th>Tanggal Daftar</th>
+                  <th>Aksi</th>
+                </tr></thead>
+                <tbody id="allMemberList"></tbody>
+              </table>
+            </div>
+            <div class="member-result-info">
+              <span id="memberHasilInfo">0 peserta ditampilkan</span>
+              <span>Ekspor mengikuti hasil pencarian dan filter.</span>
+            </div>
           </div>
         </section>
         <section id="paket" class="panel">
@@ -624,7 +834,17 @@
         </section>
       </main>
     </div>
+    <dialog id="memberDetailDialog" class="member-dialog">
+      <div class="dialog-head">
+        <div><b style="font-size:18px">Detail Peserta</b><small style="display:block;opacity:.8">Data pendaftaran Member Area</small></div>
+        <button onclick="document.getElementById('memberDetailDialog').close()" aria-label="Tutup">×</button>
+      </div>
+      <div id="memberDetailBody" class="dialog-body"></div>
+    </dialog>
     <script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="supabase-admin.js"></script>
@@ -773,48 +993,135 @@
         nonaktif: "Dinonaktifkan",
         expired: "Masa aktif habis",
       };
+      function formatTanggalMember(value, denganWaktu = false) {
+        if (!value) return "-";
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return "-";
+        return d.toLocaleString("id-ID", denganWaktu
+          ? { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }
+          : { day:"2-digit", month:"short", year:"numeric" });
+      }
+      function statusEfektifMember(x) {
+        if (x.status === "aktif" && x.berakhir && new Date(x.berakhir).getTime() <= Date.now()) return "expired";
+        return x.status || "pending";
+      }
+      function dataMemberTersaring() {
+        const q = String((document.getElementById("memberCari") || {}).value || "").trim().toLowerCase();
+        const status = String((document.getElementById("memberStatusFilter") || {}).value || "");
+        const jenjang = String((document.getElementById("memberJenjangFilter") || {}).value || "");
+        return MEMBER_CACHE.filter((x) => {
+          const cocokCari = !q || [x.nama,x.email,x.wa,x.sekolah,x.jenjang,x.paket,x.catatan_admin]
+            .join(" ").toLowerCase().includes(q);
+          return cocokCari && (!status || statusEfektifMember(x) === status) && (!jenjang || x.jenjang === jenjang);
+        });
+      }
+      function perbaruiRingkasanMember() {
+        const jumlah = (status) => MEMBER_CACHE.filter((x) => statusEfektifMember(x) === status).length;
+        const isi = (id, nilai) => { const el=document.getElementById(id); if(el) el.textContent=nilai; };
+        isi("statMemberAktif", jumlah("aktif"));
+        isi("statMemberPending", jumlah("pending"));
+        isi("memberTotal", MEMBER_CACHE.length);
+        isi("memberAktif", jumlah("aktif"));
+        isi("memberPending", jumlah("pending"));
+        isi("memberLainnya", MEMBER_CACHE.length - jumlah("aktif") - jumlah("pending"));
+      }
+      function renderPendaftaranMember() {
+        const pending=document.getElementById("pendingMemberList"), recent=document.getElementById("recentMemberList");
+        if (recent) recent.innerHTML=MEMBER_CACHE.slice(0,5).map((x)=>{
+          const s=statusEfektifMember(x);
+          return `<tr><td><b>${escMember(x.nama)}</b><br><small>${escMember(x.email)}</small></td><td>${escMember(String(x.jenjang||"-").toUpperCase())}</td><td><span class="status-pill ${s}">${escMember(STATUS_LABEL[s]||s)}</span></td></tr>`;
+        }).join("") || '<tr><td colspan="3">Belum ada pendaftar.</td></tr>';
+        if (pending) pending.innerHTML=MEMBER_CACHE.filter((x)=>x.status==="pending").map((x)=>
+          `<tr><td><b>${escMember(x.nama)}</b><br><small>${escMember(x.email)}</small><br>${escMember(x.wa)}</td><td>${escMember(x.email)}</td><td>${escMember(String(x.jenjang||"").toUpperCase())}<br>${escMember(x.sekolah)}<br><span class="tag">${escMember(x.paket||"Paket belum dipilih")}</span><br><i>Verifikasi pembayaran melalui admin</i></td><td><div class="row-actions"><button class="btn small" onclick="aktifkanMember('${x.id}')">Aktifkan</button><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn danger small" onclick="tolakMember('${x.id}')">Tolak</button></div></td></tr>`
+        ).join("") || '<tr><td colspan="4">Tidak ada peserta yang menunggu aktivasi.</td></tr>';
+      }
+      function renderTabelMember() {
+        const all=document.getElementById("allMemberList");
+        if (!all) return;
+        const tersaring=dataMemberTersaring();
+        all.innerHTML=tersaring.map((x,i)=>{
+          const s=statusEfektifMember(x), nama=String(x.nama||"Member").trim(), inisial=(nama.charAt(0)||"M").toUpperCase();
+          const aksi=s==="aktif"
+            ? `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',false)">Nonaktifkan</button>`
+            : `<button class="btn small" onclick="aktifkanMember('${x.id}')">Aktifkan</button>`;
+          return `<tr>
+            <td>${i+1}</td>
+            <td><div class="member-name"><div class="member-avatar">${escMember(inisial)}</div><div><b>${escMember(nama)}</b><br><small>${escMember(x.email||"-")}</small></div></div></td>
+            <td>${escMember(x.wa||"-")}</td>
+            <td>${escMember(x.sekolah||"-")}</td>
+            <td><b>${escMember(String(x.jenjang||"-").toUpperCase())}</b><br><small>${escMember(x.paket||"Paket belum dipilih")}</small></td>
+            <td><span class="status-pill ${s}">${escMember(STATUS_LABEL[s]||s)}</span><br><small>s.d. ${escMember(formatTanggalMember(x.berakhir))}</small></td>
+            <td>${escMember(formatTanggalMember(x.created_at,true))}</td>
+            <td><div class="row-actions"><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button>${aksi}<button class="btn danger small" onclick="hapusMember('${x.id}')">Hapus</button></div></td>
+          </tr>`;
+        }).join("") || '<tr><td colspan="8" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
+        const info=document.getElementById("memberHasilInfo");
+        if(info) info.textContent=`${tersaring.length} dari ${MEMBER_CACHE.length} peserta ditampilkan`;
+      }
+      function lihatDetailMember(id) {
+        const x=MEMBER_CACHE.find((m)=>m.id===id); if(!x) return;
+        const s=statusEfektifMember(x), body=document.getElementById("memberDetailBody"), dialog=document.getElementById("memberDetailDialog");
+        const item=(label,value)=>`<div class="detail-item"><span>${escMember(label)}</span><b>${escMember(value||"-")}</b></div>`;
+        body.innerHTML=`<div class="detail-grid">
+          ${item("Nama lengkap",x.nama)}${item("Email",x.email)}${item("Nomor WhatsApp",x.wa)}${item("Asal sekolah",x.sekolah)}
+          ${item("Jenjang",String(x.jenjang||"-").toUpperCase())}${item("Paket",x.paket)}${item("Status",STATUS_LABEL[s]||s)}${item("Masa aktif",formatTanggalMember(x.berakhir))}
+          ${item("Tanggal pendaftaran",formatTanggalMember(x.created_at,true))}${item("Terakhir diperbarui",formatTanggalMember(x.updated_at,true))}
+          <div class="detail-item" style="grid-column:1/-1"><span>Catatan admin</span><b>${escMember(x.catatan_admin||"Belum ada catatan")}</b></div>
+        </div>`;
+        if(dialog.showModal) dialog.showModal(); else dialog.setAttribute("open","");
+      }
+      function dataEksporMember() {
+        return dataMemberTersaring().map((x,i)=>({
+          no:i+1,nama:String(x.nama||""),email:String(x.email||""),wa:String(x.wa||""),sekolah:String(x.sekolah||""),
+          jenjang:String(x.jenjang||"").toUpperCase(),paket:String(x.paket||""),status:STATUS_LABEL[statusEfektifMember(x)]||statusEfektifMember(x),
+          berakhir:formatTanggalMember(x.berakhir),daftar:formatTanggalMember(x.created_at,true),catatan:String(x.catatan_admin||"")
+        }));
+      }
+      function namaFileMember(ext) {
+        const d=new Date(), pad=(n)=>String(n).padStart(2,"0");
+        return `data-peserta-klinikfisikapku-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.${ext}`;
+      }
+      function downloadMemberExcel() {
+        const data=dataEksporMember();
+        if(!data.length){alert("Tidak ada data peserta untuk diekspor.");return;}
+        if(!window.XLSX){alert("Mesin Excel belum termuat. Periksa koneksi internet lalu muat ulang halaman.");return;}
+        const aman=(v)=>typeof v==="string" && /^[=+\-@]/.test(v) ? "'"+v : v;
+        const header=["No.","Nama Lengkap","Email","WhatsApp","Asal Sekolah","Jenjang","Paket","Status","Masa Aktif Berakhir","Tanggal Daftar","Catatan Admin"];
+        const baris=data.map((x)=>[x.no,x.nama,x.email,x.wa,x.sekolah,x.jenjang,x.paket,x.status,x.berakhir,x.daftar,x.catatan].map(aman));
+        const ws=XLSX.utils.aoa_to_sheet([["DATA PESERTA MEMBER AREA KLINIKFISIKAPKU"],["Diekspor",new Date().toLocaleString("id-ID")],[],header,...baris]);
+        ws["!merges"]=[XLSX.utils.decode_range("A1:K1")];
+        ws["!autofilter"]={ref:`A4:K${4+baris.length}`};
+        ws["!cols"]=[{wch:6},{wch:24},{wch:29},{wch:17},{wch:28},{wch:10},{wch:22},{wch:21},{wch:20},{wch:22},{wch:28}];
+        ws["!freeze"]={xSplit:0,ySplit:4,topLeftCell:"A5",activePane:"bottomLeft",state:"frozen"};
+        const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Data Peserta");
+        XLSX.writeFile(wb,namaFileMember("xlsx"),{compression:true});
+      }
+      function downloadMemberPDF() {
+        const data=dataEksporMember();
+        if(!data.length){alert("Tidak ada data peserta untuk diekspor.");return;}
+        if(!window.jspdf || !window.jspdf.jsPDF){alert("Mesin PDF belum termuat. Periksa koneksi internet lalu muat ulang halaman.");return;}
+        const {jsPDF}=window.jspdf, doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+        doc.setFillColor(82,33,127); doc.rect(0,0,297,31,"F");
+        doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(17); doc.text("Data Peserta Member Area",14,13);
+        doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.text("KlinikFisikapku - diekspor "+new Date().toLocaleString("id-ID"),14,21);
+        doc.setTextColor(65,43,78); doc.setFontSize(9); doc.text(`Total hasil: ${data.length} peserta`,14,38);
+        doc.autoTable({
+          startY:42, margin:{left:10,right:10,bottom:14},
+          head:[["No.","Nama","Email / WhatsApp","Sekolah","Jenjang","Paket","Status","Masa Aktif"]],
+          body:data.map((x)=>[x.no,x.nama,[x.email,x.wa].filter(Boolean).join("\n"),x.sekolah,x.jenjang,x.paket,x.status,x.berakhir]),
+          theme:"grid", styles:{font:"helvetica",fontSize:7.2,cellPadding:2.1,valign:"middle",overflow:"linebreak"},
+          headStyles:{fillColor:[122,40,196],textColor:255,fontStyle:"bold"}, alternateRowStyles:{fillColor:[249,245,253]},
+          columnStyles:{0:{cellWidth:10,halign:"center"},1:{cellWidth:35},2:{cellWidth:48},3:{cellWidth:51},4:{cellWidth:16,halign:"center"},5:{cellWidth:40},6:{cellWidth:33},7:{cellWidth:24}},
+          didDrawPage:()=>{const n=doc.internal.getNumberOfPages();doc.setFontSize(7.5);doc.setTextColor(110);doc.text(`Halaman ${n}`,287,203,{align:"right"});}
+        });
+        doc.save(namaFileMember("pdf"));
+      }
       async function renderMemberAdmin() {
         try {
-          const res = await adminApi("adminListMember", {});
-          MEMBER_CACHE = res.data || [];
-          const aktifStat=document.getElementById("statMemberAktif"), pendingStat=document.getElementById("statMemberPending");
-          if(aktifStat) aktifStat.textContent=MEMBER_CACHE.filter(x=>x.status==="aktif").length;
-          if(pendingStat) pendingStat.textContent=MEMBER_CACHE.filter(x=>x.status==="pending").length;
-        } catch (err) {
-          alert("Gagal memuat data member: " + err.message);
-          return;
-        }
-        const pending = document.getElementById("pendingMemberList"),
-          all = document.getElementById("allMemberList"), recent = document.getElementById("recentMemberList");
-        if(recent) recent.innerHTML=MEMBER_CACHE.slice(0,5).map(x=>`<tr><td><b>${escMember(x.nama)}</b><br><small>${escMember(x.email)}</small></td><td>${escMember(String(x.jenjang||"-").toUpperCase())}</td><td><span class="tag ${x.status==="aktif"?"ok":""}">${STATUS_LABEL[x.status]||x.status}</span></td></tr>`).join("")||'<tr><td colspan="3">Belum ada pendaftar.</td></tr>';
-        const buktiLink = () => "<i>Verifikasi pembayaran melalui admin</i>";
-        if (pending)
-          pending.innerHTML =
-            MEMBER_CACHE.filter((x) => x.status === "pending")
-              .map(
-                (x) =>
-                  `<tr><td><b>${escMember(x.nama)}</b><br><small>${escMember(x.email)}</small><br>${escMember(x.wa)}</td><td>${escMember(x.email)}</td><td>${escMember(String(x.jenjang || "").toUpperCase())}<br>${escMember(x.sekolah)}<br><span class="tag">${escMember(x.paket || "Paket belum dipilih")}</span><br>${buktiLink(x)}</td><td><div class="row-actions"><button class="btn small" onclick="aktifkanMember('${x.id}')">Aktifkan</button><button class="btn danger small" onclick="tolakMember('${x.id}')">Tolak</button></div></td></tr>`,
-              )
-              .join("") ||
-            '<tr><td colspan="4">Tidak ada peserta yang menunggu aktivasi.</td></tr>';
-        const q = (
-          (document.getElementById("memberCari") || {}).value || ""
-        ).toLowerCase();
-        const tersaring = MEMBER_CACHE.filter((x) =>
-          [x.nama, x.wa, x.email, x.jenjang, x.sekolah, x.paket]
-            .join(" ")
-            .toLowerCase()
-            .includes(q),
-        );
-        if (all)
-          all.innerHTML =
-            tersaring
-              .map((x) => {
-                const berakhir = x.berakhir ? new Date(x.berakhir).toLocaleDateString("id-ID") : "-";
-                return `<tr><td><b>${escMember(x.nama)}</b><br><small>${escMember(x.email)}</small><br>${escMember(x.wa)}</td><td>${escMember(String(x.jenjang || "").toUpperCase())}<br><small>${escMember(x.paket || "")}</small></td><td><span class="tag ${x.status === "aktif" ? "ok" : ""}">${STATUS_LABEL[x.status] || x.status}</span><br><small>s.d. ${berakhir}</small></td><td><div class="row-actions">${x.status === "aktif" ? `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',false)">Nonaktifkan</button>` : `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',true)">Aktifkan</button>`}<button class="btn danger small" onclick="hapusMember('${x.id}')">Hapus</button></div></td></tr>`;
-              })
-              .join("") ||
-            '<tr><td colspan="4">Tidak ada member yang sesuai.</td></tr>';
+          const res=await adminApi("adminListMember",{});
+          MEMBER_CACHE=(res.data||[]).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+          perbaruiRingkasanMember(); renderPendaftaranMember(); renderTabelMember();
+        } catch(err) { alert("Gagal memuat data member: "+err.message); }
       }
       async function aktifkanMember(id) {
         const m = MEMBER_CACHE.find((x) => x.id === id);
