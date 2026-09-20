@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src https://www.youtube-nocookie.com https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>Member Area · KlinikFisikapku</title>
     <script>
       document.documentElement.classList.add('kf-member-checking');
@@ -344,6 +346,12 @@
         background: #fdecef;
         border-color: var(--bad);
       }
+      .question-image { display:block; max-width:100%; max-height:420px; object-fit:contain; margin:14px auto; border-radius:10px; }
+      .category-question { padding:12px; margin:9px 0; border:1px solid var(--line); border-radius:10px; }
+      .category-question p { margin:0 0 8px; }
+      .category-options { display:flex; flex-wrap:wrap; gap:9px; }
+      .category-options label { display:flex; gap:5px; align-items:center; margin:0; padding:6px 9px; border:1px solid var(--line); border-radius:8px; cursor:pointer; }
+      .category-options input { width:auto; }
       .result {
         margin-top: 14px;
         padding: 14px;
@@ -453,6 +461,30 @@
       .config-banner { display:none; max-width:760px; margin:14px auto 0; padding:12px 15px; border-radius:12px; background:#fff2c7; color:#704e00; font-size:13px; }
       .config-banner.show { display:block; }
 
+      .summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:18px 0; }
+      .dash-welcome { position:relative; overflow:hidden; padding:28px 24px; border-radius:20px; color:#fff; background:linear-gradient(135deg,#6e2ca5,#822bd9 48%,#f34ea5); box-shadow:0 12px 32px rgba(110,44,165,.28); }
+      .dash-welcome::after { content:""; position:absolute; width:170px; height:170px; border-radius:50%; right:-45px; top:-55px; background:rgba(255,255,255,.12); }
+      .dash-welcome h1 { position:relative; z-index:1; margin:0 0 5px; }
+      .dash-welcome #sub { position:relative; z-index:1; margin:0; color:#fff!important; opacity:.92; }
+      .badge-paket { position:relative; z-index:1; display:inline-block; margin-top:12px; padding:6px 14px; border:1px solid rgba(255,255,255,.35); border-radius:99px; background:rgba(255,255,255,.2); font-size:12px; font-weight:800; }
+      .summary-card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:15px; }
+      .summary-card small { display:block; color:#806b91; font-weight:700; }
+      .summary-card strong { display:block; margin-top:4px; font-size:21px; color:var(--u); }
+      .progress-track { height:9px; overflow:hidden; border-radius:99px; background:#e9ddf2; margin-top:9px; }
+      .progress-fill { height:100%; width:0; border-radius:inherit; background:linear-gradient(90deg,var(--u2),var(--p)); transition:width .35s ease; }
+      .dashboard-actions { display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 20px; }
+      .bookmark-btn { margin-left:auto; border:1px solid var(--line); background:var(--card); color:var(--u); border-radius:9px; padding:7px 10px; cursor:pointer; }
+      .bookmark-btn.active { background:#fff0b8; border-color:#e7b629; }
+      .history-list { display:grid; gap:8px; }
+      .history-row { display:flex; justify-content:space-between; gap:14px; padding:11px 0; border-bottom:1px solid var(--line); }
+      .notice-expiry { padding:11px 14px; border-radius:11px; background:#fff3cf; color:#765600; margin:10px 0; display:none; }
+      body.dark { --bg:#17121d; --ink:#f6effc; --line:#493b55; --card:#241b2c; --u:#d7adff; }
+      body.dark header { box-shadow:none; }
+      body.dark .mcard,body.dark .chip,body.dark input,body.dark select,body.dark textarea,body.dark .btn-ghost,body.dark .bookmark-btn { background:#241b2c; color:#f6effc; }
+      body.dark .hero p,body.dark #sub,body.dark .auth-sub,body.dark .empty { color:#bdaec9!important; }
+      body.dark .pembahasan { background:#342440; }
+      @media(max-width:720px){ .summary-grid{grid-template-columns:1fr 1fr}.summary-card strong{font-size:18px} }
+
     </style>
   </head>
   <body>
@@ -461,6 +493,7 @@
         <span class="dot"></span> KlinikFisikapku · Member Area
       </div>
       <div class="nav" id="navBtns">
+        <button type="button" onclick="toggleDark()" aria-label="Ganti tema">◐ Tema</button>
         <button onclick="buka('daftar')">Daftar</button>
         <button onclick="buka('login')">Masuk</button>
       </div>
@@ -518,6 +551,7 @@
           <div id="loginNotice" class="auth-notice" role="status"></div>
           <div class="auth-divider">ATAU</div>
           <button class="google-btn" type="button" onclick="masukGoogle()"><span class="google-g">G</span>Masuk dengan Google</button>
+          <button class="google-btn" style="margin-top:9px" type="button" onclick="kirimMagicLink()">✉ Kirim Magic Link ke Email</button>
           <p class="auth-foot">Belum punya akun? <a class="auth-switch" onclick="buka('daftar')">Daftar sekarang</a></p>
         </form>
         <div id="supabaseConfigLogin" class="config-banner"></div>
@@ -535,12 +569,24 @@
       </section>
 
       <section id="pending" class="page auth-page">
-        <div class="auth-card" style="text-align:center"><div style="font-size:48px">⏳</div><h2>Akun Menunggu Aktivasi</h2><p class="auth-sub" id="pendingText">Email sudah terverifikasi. Admin akan mengaktifkan akses setelah data dan pembayaran diperiksa.</p><a class="btn btn-main" href="https://wa.me/6281365657020" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Hubungi Admin</a><button class="btn btn-ghost" type="button" onclick="keluar()" style="margin-top:10px">Keluar</button></div>
+        <div class="auth-card" style="text-align:center"><div style="font-size:48px">⏳</div><h2>Akun Menunggu Aktivasi</h2><p class="auth-sub" id="pendingText">Email sudah terverifikasi. Admin akan mengaktifkan akses setelah data dan pembayaran diperiksa.</p><div style="text-align:left;background:#f6f0fd;border-radius:12px;padding:15px;margin:15px 0;font-size:13px;color:#4a3560"><b>Cara aktivasi:</b><ol style="margin:7px 0 0;padding-left:18px"><li>Pilih pembayaran otomatis di bawah, atau transfer manual.</li><li>Untuk transfer manual, kirim bukti melalui WhatsApp.</li><li>Sertakan nama dan email pendaftaran.</li></ol></div><div id="paymentActions" style="display:none;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-main" type="button" onclick="mulaiPembayaran('midtrans')">Bayar via Midtrans</button><button class="btn btn-main" type="button" onclick="mulaiPembayaran('xendit')">Bayar via Xendit</button></div><div id="paymentNotice" class="auth-notice" role="status"></div><a class="btn btn-main" href="https://wa.me/6281365657020?text=Halo%20Admin%20KlinikFisikapku%2C%20saya%20ingin%20konfirmasi%20pembayaran%20Member%20Area." target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Kirim Bukti via WhatsApp</a><button class="btn btn-ghost" type="button" onclick="keluar()" style="margin-top:10px">Keluar</button></div>
       </section>
 
       <section id="dash" class="page">
-        <h1>Halo, <span id="namaDash">Member</span> 👋</h1>
-        <p id="sub" style="color: #5b4374"></p>
+        <div class="dash-welcome"><h1>Halo, <span id="namaDash">Member</span> 👋</h1><p id="sub"></p><span id="badgePaket" class="badge-paket">Paket Member</span></div>
+        <div id="expiryNotice" class="notice-expiry"></div>
+        <div class="summary-grid" aria-label="Ringkasan belajar">
+          <div class="summary-card"><small>Progress belajar</small><strong id="statProgress">0%</strong><div class="progress-track"><div id="progressFill" class="progress-fill"></div></div></div>
+          <div class="summary-card"><small>Materi selesai</small><strong id="statSelesai">0 / 0</strong></div>
+          <div class="summary-card"><small>Sisa akses</small><strong id="statHari">—</strong></div>
+          <div class="summary-card"><small>Tryout terakhir</small><strong id="statSkor">—</strong></div>
+        </div>
+        <div class="dashboard-actions">
+          <button id="lanjutBtn" class="btn btn-main" type="button" onclick="lanjutBelajar()">▶ Lanjutkan belajar</button>
+          <button class="btn btn-ghost" type="button" onclick="toggleRiwayat()">📈 Riwayat &amp; Sertifikat</button>
+          <button class="btn btn-ghost" type="button" onclick="toggleBookmarkFilter(this)">★ Materi tersimpan</button>
+        </div>
+        <div id="riwayatPanel" class="card" style="display:none"></div>
 
         <div class="toolbar">
           <input
@@ -589,7 +635,7 @@
     <script>
       window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }, svg: { fontCache: 'global' } };
     </script>
-    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
     <script>
       // TEMPEL URL WEB APP APPS SCRIPT DI SINI (diakhiri /exec)
       const SCRIPT_URL = "GANTI_DENGAN_URL_WEB_APP_APPS_SCRIPT";
@@ -630,6 +676,27 @@
         dataMateri = [],
         detailAktif = -1;
       const PROGRES = "kf_member_topic_progress_v1";
+      let profilAktif = null;
+      let dataBelajarAktif = { progress:[], bookmarks:[], attempts:[], orders:[], certificates:[] };
+      let hanyaBookmark = false;
+
+      function esc(v) {
+        return String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+      }
+      function safeImageUrl(v) {
+        const s=String(v||"").trim();
+        if(/^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/i.test(s))return s;
+        try{const u=new URL(s);return u.protocol==="https:"?u.href:"";}catch{return "";}
+      }
+      function safePdfUrl(v) {
+        const s=String(v||"").trim();
+        if(/^data:application\/pdf;base64,[A-Za-z0-9+/=]+$/i.test(s))return s;
+        try{const u=new URL(s);return u.protocol==="https:"?u.href:"";}catch{return "";}
+      }
+      function safeDownloadUrl(v) {
+        try{const u=new URL(String(v||""));return u.protocol==="https:"?u.href:"";}catch{return "";}
+      }
+      function textWithBreaks(v){return esc(v).replace(/\n/g,"<br>");}
 
       let PAKET_CACHE = [];
       function formatRupiah(n) {
@@ -645,7 +712,7 @@
           sel.innerHTML =
             '<option value="">Pilih paket akses</option>' +
             PAKET_CACHE.map(
-              (p) => `<option value="${p.nama}">${p.nama} — ${formatRupiah(p.harga)}</option>`,
+              (p) => `<option value="${esc(p.nama)}">${esc(p.nama)} — ${formatRupiah(p.harga)}</option>`,
             ).join("");
         } catch (err) {
           sel.innerHTML = '<option value="">Gagal memuat paket, muat ulang halaman</option>';
@@ -657,7 +724,7 @@
         const p = PAKET_CACHE.find((x) => x.nama === nama);
         if (!p) { box.style.display = "none"; return; }
         box.style.display = "block";
-        box.innerHTML = `<b>${p.nama} — ${formatRupiah(p.harga)}</b><br>${p.deskripsi || ""}`;
+        box.innerHTML = `<b>${esc(p.nama)} — ${formatRupiah(p.harga)}</b><br>${esc(p.deskripsi || "")}`;
       }
 
       function buka(i) {
@@ -727,6 +794,7 @@
       }
 
       async function masukPeserta(p) {
+        profilAktif = p;
         jenjangAktif = p.jenjang || "sd";
         document.getElementById("namaDash").textContent = p.nama || "Member";
         const berakhir = p.berakhir
@@ -734,8 +802,9 @@
           : "-";
         document.getElementById("sub").textContent =
           "Materi jenjang " + jenjangAktif.toUpperCase() + " · " + (p.paket || "") + " · aktif s.d. " + berakhir;
+        document.getElementById("badgePaket").textContent=(p.paket||"Paket Member")+" ✓";
         document.getElementById("navBtns").innerHTML =
-          '<button onclick="buka(\'dash\')">Dashboard</button><button onclick="keluar()">Keluar</button>';
+          '<button type="button" onclick="toggleDark()">◐ Tema</button><button onclick="buka(\'dash\')">Dashboard</button><button onclick="keluar()">Keluar</button>';
         document.getElementById("list").innerHTML =
           '<div class="empty">Memuat materi…</div>';
         buka("dash");
@@ -744,19 +813,28 @@
             ? await window.KFMemberAuth.kontenMember(jenjangAktif)
             : await apiGet({ action: "kontenMember", jenjang: jenjangAktif });
           dataMateri = res.data || [];
+          if (window.KFMemberAuth && window.KFMemberAuth.dataBelajar) {
+            try { dataBelajarAktif = await window.KFMemberAuth.dataBelajar(); }
+            catch (sinkronError) { console.warn("Data belajar memakai salinan lokal:", sinkronError); }
+          }
         } catch (err) {
           dataMateri = [];
           alert("Gagal memuat materi: " + err.message);
         }
+        gabungkanProgresDatabase();
+        renderRingkasan();
         renderList();
       }
 
       function keluar() {
+        if (window.KFMemberAuth && window.KFMemberAuth.client) { window.KFMemberAuth.client.auth.signOut(); }
         localStorage.removeItem(P);
         dataMateri = [];
+        profilAktif = null;
+        dataBelajarAktif = { progress:[], bookmarks:[], attempts:[], orders:[], certificates:[] };
         detailAktif = -1;
         document.getElementById("navBtns").innerHTML =
-          "<button onclick=\"buka('daftar')\">Daftar</button><button onclick=\"buka('login')\">Masuk</button>";
+          "<button type=\"button\" onclick=\"toggleDark()\">◐ Tema</button><button onclick=\"buka('daftar')\">Daftar</button><button onclick=\"buka('login')\">Masuk</button>";
         buka("home");
       }
 
@@ -790,6 +868,64 @@
       }
       function simpanProgres(p) {
         localStorage.setItem(PROGRES + "_" + jenjangAktif, JSON.stringify(p));
+      }
+      function gabungkanProgresDatabase() {
+        const p=bacaProgres();
+        (dataBelajarAktif.progress||[]).forEach((row)=>{
+          if(row.selesai) p.soal[row.content_id]=true;
+        });
+        daftarTopik().forEach((topik)=>{
+          const latihan=dataMateri.filter(x=>x.jenis==="soal"&&tujuanItem(x)!=="tryout"&&String(x.topik||"Tanpa Topik")===topik);
+          const tryout=dataMateri.filter(x=>x.jenis==="soal"&&tujuanItem(x)==="tryout"&&String(x.topik||"Tanpa Topik")===topik);
+          if(latihan.length&&latihan.every(x=>p.soal[x.id])) { if(!p.latihanSelesai.includes(topik))p.latihanSelesai.push(topik); }
+          if(tryout.length&&tryout.every(x=>p.soal[x.id])) { if(!p.tryoutSelesai.includes(topik))p.tryoutSelesai.push(topik); }
+        });
+        simpanProgres(p);
+      }
+      function selesaiItem(x) { return !!bacaProgres().soal[x.id]; }
+      function bookmarked(id) { return (dataBelajarAktif.bookmarks||[]).some(x=>x.content_id===id); }
+      async function toggleBookmark(event,id) {
+        event.stopPropagation();
+        const aktif=!bookmarked(id);
+        dataBelajarAktif.bookmarks = aktif
+          ? [...(dataBelajarAktif.bookmarks||[]),{content_id:id}]
+          : (dataBelajarAktif.bookmarks||[]).filter(x=>x.content_id!==id);
+        renderList();
+        try { if(window.KFMemberAuth&&window.KFMemberAuth.setBookmark) await window.KFMemberAuth.setBookmark(id,aktif); }
+        catch(err){ alert("Bookmark belum tersinkron: "+err.message); }
+      }
+      function toggleBookmarkFilter(btn){ hanyaBookmark=!hanyaBookmark; btn.classList.toggle("btn-main",hanyaBookmark); renderList(); }
+      function toggleDark(){
+        document.body.classList.toggle("dark");
+        localStorage.setItem("kf_member_dark",document.body.classList.contains("dark")?"1":"0");
+      }
+      function renderRingkasan(){
+        const bahan=dataMateri.filter(x=>x.visible!==false&&x.jenis!=="tryout");
+        const selesai=bahan.filter(selesaiItem).length;
+        const persen=bahan.length?Math.round(selesai/bahan.length*100):0;
+        document.getElementById("statProgress").textContent=persen+"%";
+        document.getElementById("progressFill").style.width=persen+"%";
+        document.getElementById("statSelesai").textContent=selesai+" / "+bahan.length;
+        const akhir=profilAktif&&profilAktif.berakhir?new Date(profilAktif.berakhir):null;
+        const hari=akhir?Math.max(0,Math.ceil((akhir-Date.now())/86400000)):null;
+        document.getElementById("statHari").textContent=hari===null?"—":hari+" hari";
+        const notice=document.getElementById("expiryNotice");
+        if(hari!==null&&hari<=7){notice.style.display="block";notice.textContent=hari?"Paket Anda akan berakhir dalam "+hari+" hari. Hubungi admin untuk memperpanjang akses.":"Masa akses telah berakhir. Hubungi admin untuk memperpanjang paket.";}else notice.style.display="none";
+        const last=(dataBelajarAktif.attempts||[])[0];
+        document.getElementById("statSkor").textContent=last?Math.round(Number(last.skor||0))+"":"—";
+      }
+      function lanjutBelajar(){
+        const progres=(dataBelajarAktif.progress||[]).slice().sort((a,b)=>new Date(b.last_opened_at)-new Date(a.last_opened_at));
+        let idx=progres.length?dataMateri.findIndex(x=>x.id===progres[0].content_id):-1;
+        if(idx<0) idx=dataMateri.findIndex(x=>x.visible!==false&&!selesaiItem(x)&&x.jenis!=="tryout"&&tujuanItem(x)!=="tryout");
+        if(idx>=0)bukaDetail(idx);else alert("Semua materi yang tersedia sudah selesai. Hebat!");
+      }
+      function toggleRiwayat(){
+        const box=document.getElementById("riwayatPanel"), tampil=box.style.display==="none";
+        if(!tampil){box.style.display="none";return;}
+        const attempts=dataBelajarAktif.attempts||[], certs=dataBelajarAktif.certificates||[];
+        box.innerHTML='<h2 style="margin-top:0">Riwayat Belajar</h2>'+(attempts.length?'<div class="history-list">'+attempts.map(x=>`<div class="history-row"><span><b>${esc(x.paket_tryout||x.topik||"Tryout")}</b><br><small>${esc(new Date(x.selesai_at).toLocaleString("id-ID"))}</small></span><strong>${Math.round(Number(x.skor||0))}</strong></div>`).join("")+'</div>':'<p class="empty">Belum ada riwayat tryout.</p>')+'<h3>Sertifikat</h3>'+(certs.length?certs.map(x=>{const url=safeDownloadUrl(x.file_url);return `<p>🏅 <b>${esc(x.judul)}</b> · ${esc(x.nomor)}${url?` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Unduh</a>`:""}</p>`;}).join(""):'<p class="empty">Sertifikat akan tampil setelah diterbitkan.</p>');
+        box.style.display="block";
       }
       function tujuanItem(x) {
         return x.tujuan || "latihan";
@@ -829,6 +965,7 @@
             x.visible !== false &&
             x.jenis !== "tryout" &&
             tujuanItem(x) !== "tryout" &&
+            (!hanyaBookmark || bookmarked(x.id)) &&
             (filterAktif === "semua" || x.jenis === filterAktif) &&
             ((x.judul || "").toLowerCase().includes(q) ||
               (x.topik || "").toLowerCase().includes(q)),
@@ -836,16 +973,17 @@
         document.getElementById("list").innerHTML = items
           .map((x) => {
             const terkunci = !bolehBuka(x),
-              selesai = statusTopik(x.topik),
+              selesai = selesaiItem(x) || statusTopik(x.topik),
               tryout = false;
             return `<div class="mcard ${terkunci ? "locked" : ""}" onclick="${terkunci ? "alert('Selesaikan seluruh latihan topik sebelumnya terlebih dahulu.')" : "bukaDetail(" + dataMateri.indexOf(x) + ")"}">
       <div class="ic">${ICON[x.jenis] || "📁"}</div>
       <div>
-        <div class="topik">${x.topik || ""}</div>
-        <div class="judul">${terkunci ? "🔒 " : ""}${x.judul || ""}</div>
-        <span class="tag ${x.jenis}">${tryout ? "🏆 Tryout Topik" : LABEL[x.jenis] || x.jenis}</span>
+        <div class="topik">${esc(x.topik || "")}</div>
+        <div class="judul">${terkunci ? "🔒 " : ""}${esc(x.judul || "")}</div>
+        <span class="tag ${["pdf","soal","video"].includes(x.jenis)?x.jenis:""}">${esc(tryout ? "🏆 Tryout Topik" : LABEL[x.jenis] || x.jenis)}</span>
         ${selesai ? '<span class="tag" style="margin-left:5px">✓ Latihan selesai</span>' : ""}
       </div>
+      <button class="bookmark-btn ${bookmarked(x.id)?"active":""}" type="button" onclick="toggleBookmark(event,'${esc(String(x.id||"").replace(/[^0-9a-f-]/gi,""))}')" aria-label="Simpan materi">${bookmarked(x.id)?"★":"☆"}</button>
     </div>`;
           })
           .join("");
@@ -874,7 +1012,7 @@
             ? list
                 .map(
                   (x) =>
-                    `<div class="mcard" onclick="bukaDetail(${dataMateri.indexOf(x)})"><div class="ic">🏆</div><div><div class="topik">${x.topik || "Tryout Mingguan"}</div><div class="judul">${x.judul || "Tryout"}</div><span class="tag soal">Lihat Jadwal</span></div></div>`,
+                    `<div class="mcard" onclick="bukaDetail(${dataMateri.indexOf(x)})"><div class="ic">🏆</div><div><div class="topik">${esc(x.topik || "Tryout Mingguan")}</div><div class="judul">${esc(x.judul || "Tryout")}</div><span class="tag soal">Lihat Jadwal</span></div></div>`,
                 )
                 .join("")
             : '<div class="empty">Belum ada Tryout Mingguan yang dijadwalkan admin.</div>');
@@ -897,20 +1035,22 @@
           return;
         }
         detailAktif = i;
-        let html = `<div class="topik">${x.topik || ""}</div><h2 style="margin-top:4px">${x.judul || ""}</h2>`;
+        if(window.KFMemberAuth&&window.KFMemberAuth.simpanProgress&&x.id) {
+          window.KFMemberAuth.simpanProgress(x.id,{selesai:selesaiItem(x)}).catch(err=>console.warn("Progress belum tersinkron:",err));
+        }
+        let html = `<div class="topik">${esc(x.topik || "")}</div><h2 style="margin-top:4px">${esc(x.judul || "")}</h2>`;
 
         if (x.jenis === "pdf") {
           html += `<p style="color:#5b4374">Modul dalam format PDF — bisa dibaca langsung di sini atau diunduh.</p>`;
-          if (x.pdfUrl) {
-            const sumberPdf = String(x.pdfUrl).startsWith(
-              "data:application/pdf",
-            )
-              ? x.pdfUrl
-              : `https://docs.google.com/viewer?url=${encodeURIComponent(x.pdfUrl)}&embedded=true`;
-            html += `<iframe class="pdfview" src="${sumberPdf}"></iframe>
+          const pdfUrl=safePdfUrl(x.pdfUrl);
+          if (pdfUrl) {
+            const sumberPdf = String(pdfUrl).startsWith("data:application/pdf")
+              ? pdfUrl
+              : `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
+            html += `<iframe class="pdfview" title="Modul PDF" src="${esc(sumberPdf)}"></iframe>
         <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-          <a class="btn btn-main" style="text-decoration:none" href="${x.pdfUrl}" target="_blank">⬇ Unduh PDF</a>
-          <a class="btn btn-ghost" style="text-decoration:none" href="${x.pdfUrl}" target="_blank">Buka di Tab Baru</a>
+          <a class="btn btn-main" style="text-decoration:none" href="${esc(pdfUrl)}" target="_blank" rel="noopener noreferrer">⬇ Unduh PDF</a>
+          <a class="btn btn-ghost" style="text-decoration:none" href="${esc(pdfUrl)}" target="_blank" rel="noopener noreferrer">Buka di Tab Baru</a>
         </div>`;
           } else {
             html += `<div class="empty">Link PDF belum diisi admin.</div>`;
@@ -918,18 +1058,26 @@
         } else if (x.jenis === "soal") {
           const huruf = ["A", "B", "C", "D", "E"];
           const tipe=x.tipe || "pg4";
-          html += `<div class="card" style="margin-top:14px"><p style="font-weight:bold;white-space:pre-line">${x.soal || ""}</p>`;
+          const imageUrl=safeImageUrl(x.gambar);
+          html += `<div class="card" style="margin-top:14px"><p style="font-weight:bold;white-space:pre-line">${esc(x.soal || "")}</p>${imageUrl?`<img class="question-image" src="${esc(imageUrl)}" alt="Gambar soal">`:""}`;
           if(tipe === "pg4" || tipe === "pg5") {
             html += '<div id="opsiWrap">';
-            (x.opsi || []).forEach((op, idx) => { html += `<label class="opt" id="opt${idx}"><input type="radio" name="jawab" value="${idx}"><span><b>${huruf[idx]}.</b> ${op}</span></label>`; });
-            html += `</div><button class="btn btn-main" style="margin-top:10px" onclick="cekJawaban(${Number(x.kunci) || 0})">Cek Jawaban</button>`;
+            (x.opsi || []).forEach((op, idx) => { html += `<label class="opt" id="opt${idx}"><input type="radio" name="jawab" value="${idx}"><span><b>${huruf[idx]}.</b> ${esc(op)}</span></label>`; });
+            html += `</div><button class="btn btn-main" style="margin-top:10px" onclick="cekJawaban()">Cek Jawaban</button>`;
+          } else if(tipe === "mcma") {
+            html += '<div id="opsiWrap">';
+            (x.opsi || []).forEach((op, idx) => { html += `<label class="opt" id="opt${idx}"><input type="checkbox" name="jawabBanyak" value="${idx}"><span><b>${huruf[idx]}.</b> ${esc(op)}</span></label>`; });
+            html += `</div><button class="btn btn-main" style="margin-top:10px" onclick="cekJawabanBanyak()">Periksa Pilihan</button>`;
+          } else if(tipe === "kategori") {
+            const labels=x.category_labels||["Benar","Salah"], statements=x.statements||[];
+            html += statements.map((st,si)=>`<div class="category-question"><p><b>${si+1}.</b> ${esc(st.text||st)}</p><div class="category-options">${labels.map((l,li)=>`<label><input type="radio" name="kategori${si}" value="${li}">${esc(l)}</label>`).join("")}</div></div>`).join("");
+            html += `<button class="btn btn-main" style="margin-top:10px" onclick="cekJawabanKategori()">Periksa Kategori</button>`;
           } else if(tipe === "isian") {
-            html += `<label>Jawaban Anda</label><input id="jawabanTeks" placeholder="Ketik jawaban singkat…"><button class="btn btn-main" style="margin-top:10px" onclick="cekJawabanTeks('${encodeURIComponent(String(x.kunci || ""))}')">Periksa Jawaban</button>`;
+            html += `<label>Jawaban Anda</label><input id="jawabanTeks" maxlength="2000" placeholder="Ketik jawaban singkat…"><button class="btn btn-main" style="margin-top:10px" onclick="cekJawabanTeks()">Periksa Jawaban</button>`;
           } else {
-            html += `<label>Jawaban Esai</label><textarea id="jawabanEsai" placeholder="Tuliskan jawaban Anda secara sistematis…"></textarea><button class="btn btn-main" style="margin-top:10px" onclick="simpanJawabanEsai()">Simpan Jawaban</button>`;
+            html += `<label>Jawaban Esai</label><textarea id="jawabanEsai" maxlength="8000" placeholder="Tuliskan jawaban Anda secara sistematis…"></textarea><button class="btn btn-main" style="margin-top:10px" onclick="simpanJawabanEsai()">Lihat pedoman setelah menyimpan</button>`;
           }
-          const idVideo = ytId(x.youtube);
-          html += `<div id="hasilJawab"></div><div class="pembahasan" id="pembahasanBox"><b>Pembahasan:</b><br>${(x.pembahasan || "Tidak ada pembahasan teks.").replace(/\n/g, "<br>")}${idVideo ? `<div class="videowrap" style="margin-top:14px"><iframe title="Video pembahasan" src="https://www.youtube-nocookie.com/embed/${idVideo}" allowfullscreen></iframe></div>` : ""}</div></div>`;
+          html += `<div id="hasilJawab"></div><div class="pembahasan" id="pembahasanBox"><b>Pembahasan akan muncul setelah jawaban dikirim.</b></div></div>`;
         } else if (x.jenis === "video") {
           const id = ytId(x.youtube);
           html += `<p style="color:#5b4374">Video pembahasan soal.</p>`;
@@ -940,8 +1088,8 @@
           }
         } else if (x.jenis === "tryout") {
           html += `<p style="color:#5b4374">Tryout mingguan khusus member aktif.</p>
-      <div class="result ok"><b>Jadwal:</b> ${x.tanggal ? new Date(x.tanggal).toLocaleString("id-ID") : "Belum ditentukan"}<br>
-      <b>Paket:</b> ${x.paket || "Belum dipilih"}${x.catatan ? "<br><br>" + x.catatan.replace(/\n/g, "<br>") : ""}</div>
+      <div class="result ok"><b>Jadwal:</b> ${esc(x.tanggal ? new Date(x.tanggal).toLocaleString("id-ID") : "Belum ditentukan")}<br>
+      <b>Paket:</b> ${esc(x.paket || "Belum dipilih")}${x.catatan ? "<br><br>" + textWithBreaks(x.catatan) : ""}</div>
       <p style="color:#5b4374">Soal tryout akan terbuka sesuai paket yang dipilih admin.</p>`;
         }
 
@@ -950,82 +1098,68 @@
         buka("detail");
       }
 
-      function cekJawaban(kunci) {
-        const chosen = document.querySelector('input[name="jawab"]:checked');
-        const wrap = document.getElementById("opsiWrap");
-        wrap.querySelectorAll(".opt").forEach((o, idx) => {
-          o.classList.remove("correct", "wrong");
-          if (idx === kunci) o.classList.add("correct");
-        });
-        const hasil = document.getElementById("hasilJawab");
-        if (!chosen) {
-          hasil.innerHTML =
-            '<div class="result bad">Pilih salah satu jawaban dulu ya.</div>';
-          return;
-        }
-        const val = parseInt(chosen.value);
-        if (val !== kunci) {
-          document.getElementById("opt" + val).classList.add("wrong");
-        }
-        hasil.innerHTML =
-          val === kunci
-            ? '<div class="result ok">✓ Benar! Jawabanmu tepat.</div>'
-            : '<div class="result bad">✗ Belum tepat. Jawaban benar ditandai hijau.</div>';
-        document.getElementById("pembahasanBox").style.display = "block";
-        if (val === kunci && detailAktif >= 0) {
-          const p = bacaProgres(),
-            item = dataMateri[detailAktif],
-            topik = String(item.topik || "Tanpa Topik"),
-            tujuan = tujuanItem(item);
-          p.soal[detailAktif] = true;
-          const semuaSoal = dataMateri
-            .map((x, i) =>
-              x.jenis === "soal" &&
-              String(x.topik || "Tanpa Topik") === topik &&
-              tujuanItem(x) === tujuan
-                ? i
-                : null,
-            )
-            .filter((i) => i !== null);
-          if (semuaSoal.length && semuaSoal.every((i) => p.soal[i])) {
-            if (tujuan === "tryout") {
-              if (!p.tryoutSelesai.includes(topik)) p.tryoutSelesai.push(topik);
-              hasil.innerHTML +=
-                '<div class="result ok">🎉 Tryout Mingguan selesai. Hasil Anda sudah tersimpan pada perangkat ini.</div>';
-            } else {
-              if (!p.latihanSelesai.includes(topik))
-                p.latihanSelesai.push(topik);
-              hasil.innerHTML += adaTryout(topik)
-                ? '<div class="result ok">✓ Semua latihan selesai. Tryout topik ini sekarang terbuka.</div>'
-                : '<div class="result ok">✓ Semua latihan selesai. Topik berikutnya sekarang terbuka.</div>';
-            }
-          }
-          simpanProgres(p);
-        }
+      async function koreksiDiServer(jawaban) {
+        const hasil=document.getElementById("hasilJawab"),item=dataMateri[detailAktif];
+        if(!item||!item.id||!window.KFMemberAuth||!window.KFMemberAuth.cekJawaban)throw new Error("Koreksi aman belum tersedia. Jalankan ulang supabase-setup.sql terbaru.");
+        hasil.innerHTML='<div class="result">Memeriksa jawaban secara aman…</div>';
+        const r=await window.KFMemberAuth.cekJawaban(item.id,jawaban);
+        const idVideo=ytId(r.youtube),box=document.getElementById("pembahasanBox");
+        box.innerHTML=r.review_locked?'<b>Mode tryout:</b><br>Kunci dan pembahasan masih dikunci. Anda memiliki maksimal 3 percobaan per jam.':('<b>Pembahasan:</b><br>'+textWithBreaks(r.pembahasan||"Belum ada pembahasan.")+(idVideo?`<div class="videowrap" style="margin-top:14px"><iframe title="Video pembahasan" src="https://www.youtube-nocookie.com/embed/${idVideo}" allowfullscreen></iframe></div>`:""));
+        box.style.display="block";
+        hasil.innerHTML=r.benar===true?'<div class="result ok">✓ Benar! Jawabanmu tepat.</div>':r.benar===false?'<div class="result bad">✗ Belum tepat. Pelajari pembahasan berikut.</div>':'<div class="result ok">✓ Jawaban tersimpan. Gunakan pedoman untuk menilai jawabanmu.</div>';
+        if(r.benar===true)catatJawabanBenarAktif(hasil);
+        return r;
       }
 
-      function cekJawabanTeks(kunciTerenkode) {
-        const jawaban=(document.getElementById("jawabanTeks").value || "").trim().toLowerCase(), kunci=decodeURIComponent(kunciTerenkode).trim().toLowerCase(), hasil=document.getElementById("hasilJawab");
-        if(!jawaban){hasil.innerHTML='<div class="result bad">Tuliskan jawaban terlebih dahulu.</div>';return;}
-        hasil.innerHTML=jawaban === kunci ? '<div class="result ok">✓ Benar! Jawabanmu tepat.</div>' : '<div class="result bad">✗ Belum tepat. Pelajari pembahasan berikut.</div>';
-        document.getElementById("pembahasanBox").style.display="block";
+      async function cekJawaban() {
+        const chosen=document.querySelector('input[name="jawab"]:checked'),hasil=document.getElementById("hasilJawab");
+        if(!chosen){hasil.innerHTML='<div class="result bad">Pilih salah satu jawaban dulu ya.</div>';return;}
+        try{
+          const r=await koreksiDiServer(Number(chosen.value));
+          if(!r.review_locked&&r.kunci!=null){const kunci=Number(r.kunci);document.querySelectorAll('#opsiWrap .opt').forEach((o,i)=>{o.classList.remove("correct","wrong");if(i===kunci)o.classList.add("correct");else if(o.querySelector("input").checked)o.classList.add("wrong");});}
+        }catch(err){hasil.innerHTML='<div class="result bad">'+esc(err.message)+'</div>';}
       }
-      function simpanJawabanEsai() {
+
+      function catatJawabanBenarAktif(hasil) {
+        if(detailAktif<0)return;const p=bacaProgres(),item=dataMateri[detailAktif],topik=String(item.topik||"Tanpa Topik"),tujuan=tujuanItem(item);p.soal[item.id||detailAktif]=true;
+        const semua=dataMateri.filter(x=>x.jenis==="soal"&&String(x.topik||"Tanpa Topik")===topik&&tujuanItem(x)===tujuan).map((x,i)=>x.id||i);
+        if(semua.length&&semua.every(id=>p.soal[id])){const key=tujuan==="tryout"?"tryoutSelesai":"latihanSelesai";if(!p[key].includes(topik))p[key].push(topik);if(hasil)hasil.innerHTML+='<div class="result ok">🎉 Semua soal pada topik ini selesai.</div>';}
+        simpanProgres(p);if(window.KFMemberAuth&&window.KFMemberAuth.simpanProgress&&item.id)window.KFMemberAuth.simpanProgress(item.id,{selesai:true,skor:100}).catch(()=>{});renderRingkasan();
+      }
+      async function cekJawabanBanyak() {
+        const pilihan=[...document.querySelectorAll('input[name="jawabBanyak"]:checked')].map(x=>Number(x.value)).sort(),hasil=document.getElementById("hasilJawab");
+        if(!pilihan.length){hasil.innerHTML='<div class="result bad">Pilih minimal satu jawaban.</div>';return;}
+        try{const r=await koreksiDiServer(pilihan);if(!r.review_locked){const benar=(Array.isArray(r.kunci)?r.kunci:[]).map(Number);document.querySelectorAll('input[name="jawabBanyak"]').forEach(x=>{const box=x.closest(".opt");box.classList.remove("correct","wrong");if(benar.includes(Number(x.value)))box.classList.add("correct");else if(x.checked)box.classList.add("wrong");});}}catch(err){hasil.innerHTML='<div class="result bad">'+esc(err.message)+'</div>';}
+      }
+      async function cekJawabanKategori() {
+        const item=dataMateri[detailAktif],labels=item.category_labels||["Benar","Salah"],jumlah=(item.statements||[]).length,hasil=document.getElementById("hasilJawab"),jawaban=[];
+        for(let i=0;i<jumlah;i++){const el=document.querySelector('input[name="kategori'+i+'"]:checked');if(!el){hasil.innerHTML='<div class="result bad">Isi kategori untuk semua pernyataan.</div>';return;}jawaban.push(String(labels[Number(el.value)]||""));}
+        try{await koreksiDiServer(jawaban);}catch(err){hasil.innerHTML='<div class="result bad">'+esc(err.message)+'</div>';}
+      }
+
+      async function cekJawabanTeks() {
+        const jawaban=(document.getElementById("jawabanTeks").value || "").trim(),hasil=document.getElementById("hasilJawab");
+        if(!jawaban){hasil.innerHTML='<div class="result bad">Tuliskan jawaban terlebih dahulu.</div>';return;}
+        try{await koreksiDiServer(jawaban);}catch(err){hasil.innerHTML='<div class="result bad">'+esc(err.message)+'</div>';}
+      }
+      async function simpanJawabanEsai() {
         const jawaban=(document.getElementById("jawabanEsai").value || "").trim(), hasil=document.getElementById("hasilJawab");
         if(!jawaban){hasil.innerHTML='<div class="result bad">Tuliskan jawaban terlebih dahulu.</div>';return;}
-        hasil.innerHTML='<div class="result ok">✓ Jawaban esai tersimpan untuk latihan Anda. Cocokkan dengan pembahasan atau kirimkan ke pengajar saat sistem penilaian esai terhubung.</div>';
-        document.getElementById("pembahasanBox").style.display="block";
+        try{await koreksiDiServer(jawaban);}catch(err){hasil.innerHTML='<div class="result bad">'+esc(err.message)+'</div>';}
       }
 
       document.addEventListener("DOMContentLoaded", () => {
+        if(localStorage.getItem("kf_member_dark")==="1") document.body.classList.add("dark");
         muatPaketDaftar();
         try {
           const p = JSON.parse(localStorage.getItem(P) || "null");
-          if (p && p.status === "aktif") masukPeserta(p);
+          // Hanya backend lama boleh memakai cache lokal. Saat Supabase aktif,
+          // sesi dan status selalu diverifikasi ulang oleh supabase-auth.js.
+          if ((!window.KFMemberAuth || !window.KFMemberAuth.configured) && p && p.status === "aktif") masukPeserta(p);
         } catch (e) {}
       });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
     <script src="supabase-auth.js"></script>
   </body>

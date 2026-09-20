@@ -32,3 +32,8 @@ Catatan keamanan
 - Gunakan Spreadsheet dan Apps Script khusus Member Area agar database terpisah.
 - Gunakan password admin yang panjang dan jangan bagikan URL admin kepada peserta.
 - Gemini dipanggil dari Apps Script, sehingga API key tidak ikut terkirim ke browser peserta.
+CATATAN KEAMANAN v4:
+- Setelah menyalin file, jalankan ulang seluruh supabase-setup.sql.
+- Deploy ulang Edge Function dan isi ALLOWED_ORIGINS dengan domain produksi.
+- Baca PANDUAN-KEAMANAN-V4.md sebelum menerima pembayaran sungguhan.
+- Aktifkan MFA admin dari menu Keamanan, CAPTCHA, Confirm Email, dan Security Advisor.

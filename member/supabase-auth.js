@@ -6,6 +6,7 @@
     !String(cfg.publishableKey || "").startsWith("GANTI_") &&
     String(cfg.publishableKey || "").length > 20;
   let db = null;
+  let currentProfile = null;
 
   if (siap && window.supabase && typeof window.supabase.createClient === "function") {
     db = window.supabase.createClient(cfg.url, cfg.publishableKey, {
@@ -132,6 +133,17 @@
     } catch (error) { notice("loginNotice", teksError(error), "err"); }
   };
 
+  window.kirimMagicLink = async function () {
+    if (!pastikanSiap("loginNotice")) return;
+    const email=($("user")&&$("user").value.trim().toLowerCase())||"";
+    if(!email){notice("loginNotice","Isi email terlebih dahulu untuk menerima Magic Link.","err");return;}
+    try{
+      const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:redirect("./"),shouldCreateUser:false}});
+      if(error)throw error;
+      notice("loginNotice","Magic Link sudah dikirim. Periksa kotak masuk dan folder spam.","ok");
+    }catch(error){notice("loginNotice",teksError(error),"err");}
+  };
+
   window.simpanPasswordBaru = async function (event) {
     event.preventDefault();
     if (!pastikanSiap("resetNotice")) return;
@@ -151,8 +163,16 @@
     window.location.href = "./";
   };
 
+  window.keluarSemuaPerangkat = async function () {
+    if (!db || !window.confirm("Keluar dari semua perangkat yang memakai akun ini?")) return;
+    const { error } = await db.auth.signOut({ scope: "global" });
+    if (error) { window.alert("Gagal mengakhiri sesi: " + teksError(error)); return; }
+    localStorage.removeItem("kf_member_profile");
+    window.location.href = "./";
+  };
+
   async function ambilProfil(user) {
-    const { data, error } = await db.from("member_profiles").select("*").eq("id", user.id).single();
+    const { data, error } = await db.from("member_profiles").select("id,email,nama,wa,sekolah,jenjang,paket,status,berakhir,created_at,updated_at").eq("id", user.id).single();
     if (error) throw error;
     return data;
   }
@@ -170,9 +190,10 @@
     try {
       await lengkapiProfilGoogle();
       const p = await ambilProfil(user);
-      localStorage.setItem("kf_member_profile", JSON.stringify(p));
+      currentProfile = p;
       const kedaluwarsa = p.berakhir && new Date(p.berakhir).getTime() <= Date.now();
       if (p.status !== "aktif" || kedaluwarsa) {
+        const actions=$("paymentActions"); if(actions) actions.style.display=p.status==="pending"?"flex":"none";
         $("pendingText").textContent = kedaluwarsa
           ? "Masa aktif akun telah berakhir. Silakan hubungi admin untuk memperpanjang paket."
           : p.status === "ditolak"
@@ -192,13 +213,66 @@
     if (error) throw error;
     return { data: (data || []).map((p) => ({ ...p, durasiHari: p.durasi_hari })) };
   }
-  async function kontenMember(jenjang) {
+  async function kontenMember() {
     if (!db) return { data: [] };
-    const { data, error } = await db.from("member_content").select("*").eq("jenjang", jenjang).eq("visible", true).order("created_at");
+    const { data, error } = await db.rpc("member_secure_content");
     if (error) throw error;
     return { data: (data || []).map((x) => ({ ...x.data, id:x.id, jenjang:x.jenjang, jenis:x.jenis, tujuan:x.tujuan, topik:x.topik, judul:x.judul, visible:x.visible })) };
   }
-  window.KFMemberAuth = { configured: siap, client: db, listPaket, kontenMember };
+  async function cekJawaban(contentId, jawaban) {
+    if (!db || !contentId) throw new Error("Soal tidak valid.");
+    const { data, error } = await db.rpc("check_member_answer", { p_content_id:contentId, p_answer:jawaban });
+    if (error) throw error;
+    return data;
+  }
+  async function userAktif() {
+    if (!db) return null;
+    const { data } = await db.auth.getUser();
+    return data && data.user ? data.user : null;
+  }
+  async function dataBelajar() {
+    const user = await userAktif();
+    if (!user) return { progress:[], bookmarks:[], attempts:[], orders:[], certificates:[] };
+    const [progress,bookmarks,attempts,orders,certificates] = await Promise.all([
+      db.from("member_progress").select("*").eq("user_id",user.id),
+      db.from("member_bookmarks").select("content_id").eq("user_id",user.id),
+      db.from("member_tryout_attempts").select("*").eq("user_id",user.id).order("selesai_at",{ascending:false}).limit(20),
+      db.from("member_orders").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(10),
+      db.from("member_certificates").select("*").eq("user_id",user.id).order("issued_at",{ascending:false})
+    ]);
+    const gagal=[progress,bookmarks,attempts,orders,certificates].find(x=>x.error);
+    if(gagal) throw gagal.error;
+    return {progress:progress.data||[],bookmarks:bookmarks.data||[],attempts:attempts.data||[],orders:orders.data||[],certificates:certificates.data||[]};
+  }
+  async function simpanProgress(contentId, perubahan) {
+    const user=await userAktif(); if(!user || !contentId) return;
+    const {error}=await db.rpc("touch_member_content",{p_content_id:contentId});
+    if(error) throw error;
+  }
+  async function setBookmark(contentId, aktif) {
+    const user=await userAktif(); if(!user || !contentId) return;
+    const q=aktif
+      ? db.from("member_bookmarks").upsert({user_id:user.id,content_id:contentId},{onConflict:"user_id,content_id"})
+      : db.from("member_bookmarks").delete().eq("user_id",user.id).eq("content_id",contentId);
+    const {error}=await q; if(error) throw error;
+  }
+  async function buatOrder(paket,provider) {
+    const {data,error}=await db.rpc("create_member_order",{p_paket:paket,p_provider:provider||"manual"});
+    if(error) throw error; return data;
+  }
+  window.mulaiPembayaran = async function(provider) {
+    if(!db) return;
+    const profil=currentProfile;
+    if(!profil||!profil.paket){notice("paymentNotice","Paket belum dipilih. Hubungi admin.","err");return;}
+    notice("paymentNotice","Menyiapkan halaman pembayaran…","info");
+    try{
+      const {data,error}=await db.functions.invoke("create-payment",{body:{paket:profil.paket,provider}});
+      if(error)throw error;
+      if(!data||!data.payment_url)throw new Error((data&&data.error)||"URL pembayaran belum tersedia");
+      location.href=data.payment_url;
+    }catch(error){notice("paymentNotice","Pembayaran otomatis belum aktif: "+teksError(error),"err");}
+  };
+  window.KFMemberAuth = { configured: siap, client: db, listPaket, kontenMember, dataBelajar, simpanProgress, setBookmark, buatOrder, cekJawaban };
 
   document.addEventListener("DOMContentLoaded", async function () {
     if (!siap) { konfigurasiBelumSiap(); return; }
