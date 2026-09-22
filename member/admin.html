@@ -501,7 +501,7 @@
           ◷ Pendaftaran Baru</button
         ><button onclick="openPanel('member', this)">♙ Daftar Member</button
         ><button onclick="openPanel('paket', this)">💳 Paket &amp; Harga</button
-        ><button onclick="openPanel('transaksi', this);muatTransaksi()">🧾 Transaksi</button
+        ><button onclick="openPanel('transaksi', this);muatPengaturanPembayaran()">🏦 Pembayaran Manual</button
         ><button onclick="openPanel('laporan', this);muatLaporan()">▥ Laporan</button
         ><button onclick="openPanel('keamanan', this);muatKeamananAdmin()">🛡 Keamanan</button>
         <div class="label">KONTEN BELAJAR</div>
@@ -620,15 +620,23 @@
           <div class="card" id="paketList"></div>
         </section>
         <section id="transaksi" class="panel">
-          <h1>Transaksi &amp; Pembayaran</h1>
-          <p class="sub">Pantau order pembayaran. Status <b>paid</b> otomatis mengaktifkan paket; webhook Midtrans/Xendit dapat memakai alur yang sama.</p>
-          <div class="card"><div class="head"><h2>Daftar transaksi</h2><button class="btn ghost" onclick="muatTransaksi()">↻ Muat ulang</button></div><div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Peserta</th><th>Paket</th><th>Jumlah</th><th>Provider</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="transaksiList"><tr><td colspan="7">Pilih menu Transaksi untuk memuat data.</td></tr></tbody></table></div></div>
+          <h1>Pengaturan Pembayaran Manual</h1>
+          <p class="sub">Informasi ini tampil pada halaman peserta yang menunggu aktivasi. Setelah bukti diterima lewat WhatsApp, periksa pembayaran lalu aktifkan member secara manual.</p>
+          <form class="card form" id="paymentSettingsForm" onsubmit="simpanPengaturanPembayaran(event)">
+            <div><label for="paymentAdminBank">Nama bank / metode</label><input id="paymentAdminBank" maxlength="80" required placeholder="Contoh: BCA"></div>
+            <div><label for="paymentAdminNumber">Nomor rekening</label><input id="paymentAdminNumber" maxlength="40" inputmode="numeric" required placeholder="Contoh: 1234567890"></div>
+            <div><label for="paymentAdminOwner">Nama pemilik rekening</label><input id="paymentAdminOwner" maxlength="100" required placeholder="Contoh: Ady Kristo N"></div>
+            <div><label for="paymentAdminWhatsapp">WhatsApp penerima bukti</label><input id="paymentAdminWhatsapp" maxlength="16" inputmode="tel" required placeholder="Contoh: 6281234567890"></div>
+            <div class="wide"><div id="paymentAdminPreview" style="padding:14px;border-radius:12px;background:#f6f0fd;color:#4a3560">Isi data rekening untuk melihat pratinjau.</div></div>
+            <div class="wide"><button class="btn" type="submit">Simpan Informasi Pembayaran</button><div class="notice"></div></div>
+          </form>
+          <div class="card"><h2>Alur verifikasi manual</h2><p>1. Peserta transfer dan mengirim bukti melalui WhatsApp.</p><p>2. Admin mencocokkan nominal, nama, email, serta paket.</p><p>3. Buka <b>Pendaftaran Baru</b>, lalu aktifkan akun peserta.</p><p class="sub">Pengaturan ini menggunakan penyimpanan paket yang sudah tersedia sehingga tidak memerlukan tabel atau SQL baru.</p></div>
         </section>
         <section id="laporan" class="panel">
           <h1>Laporan Member Area</h1>
-          <p class="sub">Ringkasan pendapatan, member, hasil tryout, dan aktivitas admin.</p>
-          <div class="stats"><div class="stat"><b id="lapPendapatan">Rp0</b>Pendapatan dibayar</div><div class="stat"><b id="lapAktif">0</b>Member aktif</div><div class="stat"><b id="lapTryout">0</b>Tryout dikerjakan</div><div class="stat"><b id="lapRataSkor">0</b>Rata-rata skor</div></div>
-          <div class="card"><div class="head"><h2>Aktivitas admin terbaru</h2><button class="btn excel" onclick="exportLaporanCSV()">⬇ CSV transaksi</button></div><div id="adminLogList" class="manage-list"></div></div>
+          <p class="sub">Ringkasan member, hasil tryout, dan aktivitas admin.</p>
+          <div class="stats"><div class="stat"><b id="lapTotalMember">0</b>Total member</div><div class="stat"><b id="lapAktif">0</b>Member aktif</div><div class="stat"><b id="lapTryout">0</b>Tryout dikerjakan</div><div class="stat"><b id="lapRataSkor">0</b>Rata-rata skor</div></div>
+          <div class="card"><div class="head"><h2>Aktivitas admin terbaru</h2></div><div id="adminLogList" class="manage-list"></div></div>
         </section>
         <section id="keamanan" class="panel">
           <h1>Pusat Keamanan</h1>
@@ -636,7 +644,7 @@
           <div class="stats"><div class="stat"><b id="securityAal">—</b>Level sesi admin</div><div class="stat"><b id="securityMfa">—</b>MFA TOTP</div><div class="stat"><b>Aktif</b>CSP &amp; anti-XSS</div><div class="stat"><b>Aktif</b>Audit &amp; RLS</div></div>
           <div class="grid">
             <div class="card"><h2>Pengamanan akun admin</h2><p id="securityMessage" class="sub">Memeriksa sesi…</p><div class="row-actions"><button class="btn" onclick="KFSetupMFAAdmin()">Aktifkan MFA Authenticator</button><button class="btn danger" onclick="KFLogoutAllAdminSessions()">Keluar semua perangkat</button></div></div>
-            <div class="card"><h2>Checklist produksi</h2><p>✓ Kunci jawaban dikoreksi di server</p><p>✓ Webhook memvalidasi signature, nominal, dan event duplikat</p><p>✓ Input AI dibatasi ukuran dan frekuensinya</p><p>□ Aktifkan CAPTCHA dan Security Advisor di Dashboard Supabase</p><p>□ Pasang header HSTS/Permissions-Policy pada hosting atau Cloudflare</p></div>
+            <div class="card"><h2>Checklist produksi</h2><p>✓ Kunci jawaban dikoreksi di server</p><p>✓ Pembayaran diverifikasi manual sebelum akun diaktifkan</p><p>✓ Input AI dibatasi ukuran dan frekuensinya</p><p>□ Aktifkan CAPTCHA dan Security Advisor di Dashboard Supabase</p><p>□ Pasang header HSTS/Permissions-Policy pada hosting atau Cloudflare</p></div>
           </div>
         </section>
         <section id="modul" class="panel">
@@ -953,36 +961,42 @@
         return data;
       }
 
-      async function muatTransaksi(){
-        const body=document.getElementById("transaksiList"); if(!body)return;
-        body.innerHTML='<tr><td colspan="7">Memuat transaksi…</td></tr>';
+      function previewPengaturanPembayaran(){
+        const bank=document.getElementById("paymentAdminBank")?.value.trim()||"Nama bank";
+        const nomor=document.getElementById("paymentAdminNumber")?.value.trim()||"Nomor rekening";
+        const pemilik=document.getElementById("paymentAdminOwner")?.value.trim()||"Nama pemilik";
+        const wa=document.getElementById("paymentAdminWhatsapp")?.value.trim()||"Nomor WhatsApp";
+        const box=document.getElementById("paymentAdminPreview");
+        if(box)box.innerHTML=`<b>${escMember(bank)}</b><br><span style="font-size:20px;font-weight:900">${escMember(nomor)}</span><br>a.n. ${escMember(pemilik)}<br><small>Bukti pembayaran dikirim ke ${escMember(wa)}</small>`;
+      }
+      async function muatPengaturanPembayaran(){
         try{
-          const res=await adminApi("adminListOrders",{}), list=res.data||[];
-          body.innerHTML=list.length?list.map(x=>`<tr><td>${new Date(x.created_at).toLocaleString("id-ID")}</td><td><b>${escMember(x.member&&x.member.nama||"Akun terhapus")}</b><br><small>${escMember(x.member&&x.member.email||"")}</small></td><td>${escMember(x.paket)}</td><td>Rp${Number(x.jumlah||0).toLocaleString("id-ID")}</td><td>${escMember(x.payment_provider)}</td><td><span class="tag ${x.status==="paid"?"ok":""}">${escMember(x.status)}</span></td><td><select onchange="ubahStatusTransaksi('${x.id}',this.value)"><option value="">Ubah…</option><option value="paid">Dibayar</option><option value="failed">Gagal</option><option value="expired">Kedaluwarsa</option><option value="refunded">Refund</option><option value="cancelled">Batalkan</option></select></td></tr>`).join(""):'<tr><td colspan="7">Belum ada transaksi.</td></tr>';
-        }catch(err){body.innerHTML='<tr><td colspan="7">Gagal: '+escMember(err.message)+'</td></tr>';}
+          const res=await adminApi("adminGetPaymentSettings",{}), p=res.data||{};
+          document.getElementById("paymentAdminBank").value=p.bank||"";
+          document.getElementById("paymentAdminNumber").value=p.nomorRekening||"";
+          document.getElementById("paymentAdminOwner").value=p.pemilikRekening||"";
+          document.getElementById("paymentAdminWhatsapp").value=p.whatsapp||"6281365657020";
+          previewPengaturanPembayaran();
+        }catch(err){alert("Pengaturan pembayaran gagal dimuat: "+err.message);}
       }
-      async function ubahStatusTransaksi(id,status){
-        if(!status||!confirm("Ubah status transaksi menjadi "+status+"?"))return;
-        try{await adminApi("adminUpdateOrder",{id,status});await muatTransaksi();await renderMemberAdmin();alert("Status transaksi diperbarui.");}catch(err){alert("Gagal: "+err.message);}
+      async function simpanPengaturanPembayaran(event){
+        event.preventDefault();
+        try{
+          await adminApi("adminSavePaymentSettings",{item:{bank:document.getElementById("paymentAdminBank").value,nomorRekening:document.getElementById("paymentAdminNumber").value,pemilikRekening:document.getElementById("paymentAdminOwner").value,whatsapp:document.getElementById("paymentAdminWhatsapp").value}});
+          previewPengaturanPembayaran();notifikasi(event.currentTarget,"Informasi pembayaran diperbarui.");
+        }catch(err){alert("Gagal menyimpan informasi pembayaran: "+err.message);}
       }
+      document.addEventListener("input",event=>{if(event.target&&event.target.closest&&event.target.closest("#paymentSettingsForm"))previewPengaturanPembayaran();});
       async function muatLaporan(){
         try{
           const res=await adminApi("adminReports",{}); LAPORAN_CACHE=res.data||{};
-          const paid=(LAPORAN_CACHE.orders||[]).filter(x=>x.status==="paid");
-          document.getElementById("lapPendapatan").textContent="Rp"+paid.reduce((n,x)=>n+Number(x.jumlah||0),0).toLocaleString("id-ID");
+          document.getElementById("lapTotalMember").textContent=(LAPORAN_CACHE.members||[]).length;
           document.getElementById("lapAktif").textContent=(LAPORAN_CACHE.members||[]).filter(x=>x.status==="aktif"&&(!x.berakhir||new Date(x.berakhir)>new Date())).length;
           const attempts=LAPORAN_CACHE.attempts||[]; document.getElementById("lapTryout").textContent=attempts.length;
           document.getElementById("lapRataSkor").textContent=attempts.length?Math.round(attempts.reduce((n,x)=>n+Number(x.skor||0),0)/attempts.length):0;
           document.getElementById("adminLogList").innerHTML=(LAPORAN_CACHE.logs||[]).map(x=>`<div class="manage-item"><div><b>${escMember(x.aksi)}</b><small>${new Date(x.created_at).toLocaleString("id-ID")} · ${escMember(x.target_type)} ${escMember(x.target_id)}</small></div></div>`).join("")||'<p class="sub">Belum ada aktivitas tercatat.</p>';
         }catch(err){alert("Laporan gagal dimuat: "+err.message);}
       }
-      function exportLaporanCSV(){
-        if(!LAPORAN_CACHE){alert("Muat laporan terlebih dahulu.");return;}
-        const rows=[["Tanggal","Order ID","Paket","Jumlah","Status"],...(LAPORAN_CACHE.orders||[]).map(x=>[x.created_at,x.id,x.paket,x.jumlah,x.status])];
-        const csv="\ufeff"+rows.map(r=>r.map(v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"').join(",")).join("\n");
-        const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="laporan-transaksi-member.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-      }
-
       function backendMemberSiap() {
         return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/i.test(SCRIPT_URL);
       }

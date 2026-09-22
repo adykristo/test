@@ -3,9 +3,9 @@
 ## Sudah siap dipakai setelah SQL diperbarui
 
 - Dashboard peserta personal: progress, materi selesai, sisa hari akses, skor tryout terakhir, lanjut belajar, riwayat, bookmark, dan mode gelap.
-- Progress, bookmark, riwayat tryout, transaksi, sertifikat, serta log admin tersimpan di Supabase dan dilindungi RLS.
-- Panel admin baru: Transaksi dan Laporan (pendapatan, member aktif, rata-rata skor, CSV, log aktivitas).
-- Aktivasi manual tetap tersedia. Mengubah transaksi menjadi `paid` dari admin akan mengaktifkan paket secara otomatis.
+- Progress, bookmark, riwayat tryout, sertifikat, serta log admin tersimpan di Supabase dan dilindungi RLS.
+- Panel admin Pembayaran Manual untuk mengubah bank, nomor rekening, nama pemilik, dan WhatsApp tanpa tabel baru.
+- Peserta melihat rekening, menyalin nomor, lalu mengirim bukti pembayaran melalui WhatsApp. Aktivasi tetap dilakukan admin setelah bukti diperiksa.
 - Studio Soal AI untuk Latihan dan Tryout: input manual, PG/MCMA/kategori/isian/esai, impor Word/PDF, template Word dinamis, tempel teks+gambar, pratinjau draf, audit, variasi, solusi, dan analisis OSN.
 
 ## Langkah pembaruan
@@ -35,17 +35,14 @@ Format yang didukung:
 - Gambar dari Word atau clipboard dapat ikut dianalisis.
 - PDF berbasis teks dapat diimpor; PDF hasil scan perlu ditempel sebagai gambar.
 
-## Mengaktifkan pembayaran otomatis
+## Mengatur pembayaran manual
 
-Template Edge Function tersedia di `supabase/functions/create-payment` dan `supabase/functions/payment-webhook`.
+1. Buka Admin Member → **Pembayaran Manual**.
+2. Isi nama bank/metode, nomor rekening, nama pemilik rekening, dan nomor WhatsApp format `62`.
+3. Tekan **Simpan Informasi Pembayaran**.
+4. Login dengan akun peserta berstatus pending untuk memeriksa tampilan dan tombol WhatsApp.
 
-1. Pilih Midtrans atau Xendit dan buat akun merchant.
-2. Simpan secret melalui Supabase Secrets: `MIDTRANS_SERVER_KEY`, atau `XENDIT_SECRET_KEY` dan `XENDIT_CALLBACK_TOKEN`.
-3. Deploy kedua Edge Function dengan Supabase CLI.
-4. Atur URL webhook provider ke `payment-webhook?provider=midtrans` atau `payment-webhook?provider=xendit`.
-5. Gunakan sandbox provider dan transaksi nominal kecil sebelum masuk produksi.
-
-Secret key tidak boleh dimasukkan ke HTML, JavaScript publik, atau GitHub. Refund tetap dilakukan dari dashboard merchant; setelah itu status order dapat diselaraskan menjadi `refunded` di Admin Member.
+Pengaturan disimpan sebagai entri internal pada tabel paket yang sudah ada. Entri tersebut disembunyikan dari pilihan paket sehingga tidak memerlukan perubahan SQL atau struktur Supabase.
 
 ## Fitur yang memerlukan layanan tambahan
 
@@ -55,4 +52,4 @@ Secret key tidak boleh dimasukkan ke HTML, JavaScript publik, atau GitHub. Refun
 - Batas perangkat perlu keputusan jumlah perangkat dan kebijakan reset perangkat sebelum diaktifkan.
 # Pembaruan keamanan v4
 
-Versi ini sekarang memakai koreksi jawaban di server, transaksi atomik, validasi webhook nominal + anti-replay, sanitasi anti-XSS, origin allowlist untuk Edge Function, MFA admin, idle timeout, dan Pusat Keamanan. Jalankan ulang `supabase-setup.sql`, deploy ulang Edge Function, lalu ikuti `PANDUAN-KEAMANAN-V4.md`.
+Versi ini sekarang memakai koreksi jawaban di server, pembayaran manual dengan audit perubahan rekening, sanitasi anti-XSS, origin allowlist untuk Edge Function Gemini, MFA admin, idle timeout, dan Pusat Keamanan. Untuk perubahan pembayaran manual ini tidak perlu menjalankan SQL ulang; unggah file web terbaru lalu isi rekening dari halaman admin.

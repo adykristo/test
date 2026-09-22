@@ -7,6 +7,8 @@
     String(cfg.publishableKey || "").length > 20;
   let db = null;
   let currentProfile = null;
+  const PAYMENT_SETTINGS_PACKAGE = "__PENGATURAN_PEMBAYARAN__";
+  const DEFAULT_PAYMENT_SETTINGS = { bank:"", nomorRekening:"", pemilikRekening:"", whatsapp:"6281365657020" };
 
   if (siap && window.supabase && typeof window.supabase.createClient === "function") {
     db = window.supabase.createClient(cfg.url, cfg.publishableKey, {
@@ -29,6 +31,44 @@
     el.textContent = pesan;
     el.className = "auth-notice show " + (jenis || "info");
   }
+  function parsePaymentSettings(value) {
+    try {
+      const parsed=typeof value==="string"?JSON.parse(value):(value||{});
+      return {
+        bank:String(parsed.bank||"").trim(),
+        nomorRekening:String(parsed.nomorRekening||"").trim(),
+        pemilikRekening:String(parsed.pemilikRekening||"").trim(),
+        whatsapp:String(parsed.whatsapp||DEFAULT_PAYMENT_SETTINGS.whatsapp).replace(/\D/g,"")
+      };
+    } catch (_) { return {...DEFAULT_PAYMENT_SETTINGS}; }
+  }
+  async function tampilkanPembayaranManual(profil) {
+    const [settingResult,paketResult]=await Promise.all([
+      db.from("member_packages").select("deskripsi").eq("nama",PAYMENT_SETTINGS_PACKAGE).eq("aktif",true).maybeSingle(),
+      profil&&profil.paket?db.from("member_packages").select("nama,harga").eq("nama",profil.paket).eq("aktif",true).maybeSingle():Promise.resolve({data:null,error:null})
+    ]);
+    const settings=settingResult.error?{...DEFAULT_PAYMENT_SETTINGS}:parsePaymentSettings(settingResult.data&&settingResult.data.deskripsi);
+    const lengkap=settings.bank&&settings.nomorRekening&&settings.pemilikRekening;
+    [["paymentBank",settings.bank||"Belum diatur"],["paymentAccountNumber",settings.nomorRekening||"—"],["paymentAccountOwner",settings.pemilikRekening||"—"]].forEach(([id,value])=>{const el=$(id);if(el)el.textContent=value;});
+    const amount=$("paymentAmount");
+    if(amount){
+      const paket=paketResult.data;
+      amount.textContent=paket?`${paket.nama} — Rp${Number(paket.harga||0).toLocaleString("id-ID")}`:(profil&&profil.paket)||"Paket belum dipilih";
+    }
+    const link=$("paymentWhatsAppLink");
+    if(link){
+      const pesan=["Halo Admin KlinikFisikapku, saya ingin mengirim bukti pembayaran Member Area.","",`Nama: ${(profil&&profil.nama)||"-"}`,`Email: ${(profil&&profil.email)||"-"}`,`Paket: ${(profil&&profil.paket)||"-"}`].join("\n");
+      link.href=`https://wa.me/${settings.whatsapp||DEFAULT_PAYMENT_SETTINGS.whatsapp}?text=${encodeURIComponent(pesan)}`;
+      link.style.display=lengkap?"inline-flex":"none";
+    }
+    if(!lengkap) notice("paymentNotice","Rekening pembayaran belum diatur. Silakan hubungi admin melalui WhatsApp.","err");
+  }
+  window.salinNomorRekening = async function(){
+    const nomor=$("paymentAccountNumber")&&$("paymentAccountNumber").textContent.trim();
+    if(!nomor||nomor==="—"){notice("paymentNotice","Nomor rekening belum tersedia.","err");return;}
+    try{await navigator.clipboard.writeText(nomor);notice("paymentNotice","Nomor rekening berhasil disalin.","ok");}
+    catch(_){notice("paymentNotice","Pilih dan salin nomor rekening secara manual.","info");}
+  };
   function konfigurasiBelumSiap() {
     const pesan = "Sistem akun sedang disiapkan. Admin perlu mengisi Project URL dan Publishable Key Supabase pada supabase-config.js.";
     ["supabaseConfigDaftar", "supabaseConfigLogin"].forEach((id) => {
@@ -193,12 +233,12 @@
       currentProfile = p;
       const kedaluwarsa = p.berakhir && new Date(p.berakhir).getTime() <= Date.now();
       if (p.status !== "aktif" || kedaluwarsa) {
-        const actions=$("paymentActions"); if(actions) actions.style.display=p.status==="pending"?"flex":"none";
         $("pendingText").textContent = kedaluwarsa
           ? "Masa aktif akun telah berakhir. Silakan hubungi admin untuk memperpanjang paket."
           : p.status === "ditolak"
           ? "Pendaftaran belum dapat disetujui. Silakan hubungi admin untuk informasi lebih lanjut."
           : "Email sudah terverifikasi. Admin akan mengaktifkan akses setelah data dan pembayaran diperiksa.";
+        await tampilkanPembayaranManual(p);
         buka("pending"); return;
       }
       window.masukPeserta(p);
@@ -211,7 +251,7 @@
     if (!db) return { data: [] };
     const { data, error } = await db.from("member_packages").select("nama,harga,deskripsi,durasi_hari").eq("aktif", true).order("harga");
     if (error) throw error;
-    return { data: (data || []).map((p) => ({ ...p, durasiHari: p.durasi_hari })) };
+    return { data: (data || []).filter(p=>p.nama!==PAYMENT_SETTINGS_PACKAGE).map((p) => ({ ...p, durasiHari: p.durasi_hari })) };
   }
   async function kontenMember() {
     if (!db) return { data: [] };
@@ -256,23 +296,7 @@
       : db.from("member_bookmarks").delete().eq("user_id",user.id).eq("content_id",contentId);
     const {error}=await q; if(error) throw error;
   }
-  async function buatOrder(paket,provider) {
-    const {data,error}=await db.rpc("create_member_order",{p_paket:paket,p_provider:provider||"manual"});
-    if(error) throw error; return data;
-  }
-  window.mulaiPembayaran = async function(provider) {
-    if(!db) return;
-    const profil=currentProfile;
-    if(!profil||!profil.paket){notice("paymentNotice","Paket belum dipilih. Hubungi admin.","err");return;}
-    notice("paymentNotice","Menyiapkan halaman pembayaran…","info");
-    try{
-      const {data,error}=await db.functions.invoke("create-payment",{body:{paket:profil.paket,provider}});
-      if(error)throw error;
-      if(!data||!data.payment_url)throw new Error((data&&data.error)||"URL pembayaran belum tersedia");
-      location.href=data.payment_url;
-    }catch(error){notice("paymentNotice","Pembayaran otomatis belum aktif: "+teksError(error),"err");}
-  };
-  window.KFMemberAuth = { configured: siap, client: db, listPaket, kontenMember, dataBelajar, simpanProgress, setBookmark, buatOrder, cekJawaban };
+  window.KFMemberAuth = { configured: siap, client: db, listPaket, kontenMember, dataBelajar, simpanProgress, setBookmark, cekJawaban };
 
   document.addEventListener("DOMContentLoaded", async function () {
     if (!siap) { konfigurasiBelumSiap(); return; }

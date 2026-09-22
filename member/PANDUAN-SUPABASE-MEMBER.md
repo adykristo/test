@@ -55,13 +55,21 @@ on conflict do nothing;
 
 4. Buka `https://klinikfisikapku.com/member/admin.html` dan masuk menggunakan email tersebut.
 
-## 6. Aktifkan tombol Google (opsional)
+## 6. Atur pembayaran manual
+
+1. Di Admin Member buka **Pembayaran Manual**.
+2. Isi nama bank/metode, nomor rekening, nama pemilik rekening, dan WhatsApp tujuan.
+3. Simpan, lalu uji memakai satu akun peserta berstatus `pending`.
+
+Data pembayaran memakai tabel paket yang sudah dibuat oleh skrip awal. Tidak perlu membuat tabel, policy, atau menjalankan SQL tambahan.
+
+## 7. Aktifkan tombol Google (opsional)
 
 Di **Authentication → Providers → Google**, aktifkan Google lalu ikuti petunjuk Client ID dan Client Secret dari Google Cloud. Masukkan Callback URL yang ditampilkan Supabase ke Authorized redirect URI di Google Cloud.
 
 Jika Google belum dikonfigurasi, pendaftaran email/password dan reset password tetap dapat digunakan.
 
-## 7. Unggah ke GitHub
+## 8. Unggah ke GitHub
 
 Unggah seluruh isi folder `member` dari paket ini ke folder `member` pada repository. Timpa file lama dengan nama yang sama dan jangan hapus data web utama.
 
@@ -70,7 +78,7 @@ Unggah seluruh isi folder `member` dari paket ini ke folder `member` pada reposi
 1. Siswa mendaftar menggunakan email dan melengkapi data sekolah.
 2. Siswa memverifikasi email.
 3. Profil siswa otomatis tercatat dengan status `pending`.
-4. Admin membuka **Pendaftaran Baru** di Admin Member.
-5. Admin memilih paket dan mengaktifkan siswa.
+4. Siswa mentransfer pembayaran dan mengirim bukti melalui WhatsApp dari halaman status akun.
+5. Admin memeriksa bukti, membuka **Pendaftaran Baru**, memilih paket, lalu mengaktifkan siswa.
 6. Siswa login dan melihat materi sesuai jenjang.
 7. Jika lupa password, siswa memilih **Lupa password?** dan menerima tautan melalui email.

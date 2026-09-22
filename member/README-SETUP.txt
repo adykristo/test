@@ -33,7 +33,7 @@ Catatan keamanan
 - Gunakan password admin yang panjang dan jangan bagikan URL admin kepada peserta.
 - Gemini dipanggil dari Apps Script, sehingga API key tidak ikut terkirim ke browser peserta.
 CATATAN KEAMANAN v4:
-- Setelah menyalin file, jalankan ulang seluruh supabase-setup.sql.
-- Deploy ulang Edge Function dan isi ALLOWED_ORIGINS dengan domain produksi.
+- Untuk pemasangan pertama, jalankan supabase-setup.sql. Pembaruan pembayaran manual tidak memerlukan SQL ulang.
+- Jika memakai Studio Soal AI, deploy Edge Function gemini-question-studio dan isi ALLOWED_ORIGINS dengan domain produksi.
 - Baca PANDUAN-KEAMANAN-V4.md sebelum menerima pembayaran sungguhan.
 - Aktifkan MFA admin dari menu Keamanan, CAPTCHA, Confirm Email, dan Security Advisor.

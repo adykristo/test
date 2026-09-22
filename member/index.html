@@ -458,6 +458,12 @@
       .auth-notice.ok { background:#e8f8ef; color:#147343; }
       .auth-notice.err { background:#fff0f3; color:#b4284f; }
       .auth-notice.info { background:#f2ecff; color:#5a2c88; }
+      .payment-card { margin:15px 0; padding:16px; border:1px solid #dec9ef; border-radius:14px; text-align:left; background:linear-gradient(145deg,#fbf8ff,#f4eafd); }
+      .payment-row { display:flex; justify-content:space-between; gap:16px; padding:8px 0; border-bottom:1px dashed #dbc9e8; }
+      .payment-row:last-child { border-bottom:0; }
+      .payment-row span { color:#765f87; font-size:12px; }
+      .payment-row strong { color:#43225f; text-align:right; overflow-wrap:anywhere; }
+      .payment-copy { width:100%; margin-top:10px; padding:9px; border:1px solid #b88ad8; border-radius:9px; color:#632298; background:#fff; font-weight:800; cursor:pointer; }
       .config-banner { display:none; max-width:760px; margin:14px auto 0; padding:12px 15px; border-radius:12px; background:#fff2c7; color:#704e00; font-size:13px; }
       .config-banner.show { display:block; }
 
@@ -569,7 +575,21 @@
       </section>
 
       <section id="pending" class="page auth-page">
-        <div class="auth-card" style="text-align:center"><div style="font-size:48px">⏳</div><h2>Akun Menunggu Aktivasi</h2><p class="auth-sub" id="pendingText">Email sudah terverifikasi. Admin akan mengaktifkan akses setelah data dan pembayaran diperiksa.</p><div style="text-align:left;background:#f6f0fd;border-radius:12px;padding:15px;margin:15px 0;font-size:13px;color:#4a3560"><b>Cara aktivasi:</b><ol style="margin:7px 0 0;padding-left:18px"><li>Pilih pembayaran otomatis di bawah, atau transfer manual.</li><li>Untuk transfer manual, kirim bukti melalui WhatsApp.</li><li>Sertakan nama dan email pendaftaran.</li></ol></div><div id="paymentActions" style="display:none;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-main" type="button" onclick="mulaiPembayaran('midtrans')">Bayar via Midtrans</button><button class="btn btn-main" type="button" onclick="mulaiPembayaran('xendit')">Bayar via Xendit</button></div><div id="paymentNotice" class="auth-notice" role="status"></div><a class="btn btn-main" href="https://wa.me/6281365657020?text=Halo%20Admin%20KlinikFisikapku%2C%20saya%20ingin%20konfirmasi%20pembayaran%20Member%20Area." target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Kirim Bukti via WhatsApp</a><button class="btn btn-ghost" type="button" onclick="keluar()" style="margin-top:10px">Keluar</button></div>
+        <div class="auth-card" style="text-align:center">
+          <div style="font-size:48px">⏳</div><h2>Akun Menunggu Aktivasi</h2>
+          <p class="auth-sub" id="pendingText">Email sudah terverifikasi. Admin akan mengaktifkan akses setelah data dan pembayaran diperiksa.</p>
+          <div style="text-align:left;background:#f6f0fd;border-radius:12px;padding:15px;margin:15px 0;font-size:13px;color:#4a3560"><b>Cara aktivasi:</b><ol style="margin:7px 0 0;padding-left:18px"><li>Transfer pembayaran ke rekening di bawah.</li><li>Tekan tombol <b>Kirim Bukti via WhatsApp</b>.</li><li>Lampirkan bukti transfer; nama, email, dan paket sudah disiapkan pada pesan.</li></ol></div>
+          <div class="payment-card" aria-label="Informasi rekening pembayaran">
+            <div class="payment-row"><span>Bank / metode</span><strong id="paymentBank">Memuat…</strong></div>
+            <div class="payment-row"><span>Nomor rekening</span><strong id="paymentAccountNumber">Memuat…</strong></div>
+            <div class="payment-row"><span>Atas nama</span><strong id="paymentAccountOwner">Memuat…</strong></div>
+            <div class="payment-row"><span>Paket dipilih</span><strong id="paymentAmount">Memuat…</strong></div>
+            <button class="payment-copy" type="button" onclick="salinNomorRekening()">⧉ Salin Nomor Rekening</button>
+          </div>
+          <div id="paymentNotice" class="auth-notice" role="status"></div>
+          <a id="paymentWhatsAppLink" class="btn btn-main" href="https://wa.me/6281365657020" target="_blank" rel="noopener noreferrer" style="display:inline-flex;text-decoration:none;justify-content:center">Kirim Bukti via WhatsApp</a>
+          <button class="btn btn-ghost" type="button" onclick="keluar()" style="margin-top:10px">Keluar</button>
+        </div>
       </section>
 
       <section id="dash" class="page">

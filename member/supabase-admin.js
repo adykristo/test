@@ -4,7 +4,21 @@
   const configured = /^https:\/\/.+\.supabase\.co$/i.test(String(cfg.url || "")) &&
     !String(cfg.publishableKey || "").startsWith("GANTI_") && String(cfg.publishableKey || "").length > 20;
   const db = configured && window.supabase ? window.supabase.createClient(cfg.url, cfg.publishableKey) : null;
+  const PAYMENT_SETTINGS_PACKAGE = "__PENGATURAN_PEMBAYARAN__";
   let idleTimer = null;
+
+  function normalizePaymentSettings(raw) {
+    let value = raw || {};
+    if (typeof value === "string") {
+      try { value = JSON.parse(value); } catch (_) { value = {}; }
+    }
+    return {
+      bank: String(value.bank || "").trim().slice(0, 80),
+      nomorRekening: String(value.nomorRekening || "").trim().slice(0, 40),
+      pemilikRekening: String(value.pemilikRekening || "").trim().slice(0, 100),
+      whatsapp: String(value.whatsapp || "6281365657020").replace(/\D/g, "").slice(0, 16)
+    };
+  }
 
   function startIdleGuard() {
     const reset=()=>{clearTimeout(idleTimer);idleTimer=setTimeout(async()=>{if(db)await db.auth.signOut();window.alert("Sesi admin berakhir karena tidak aktif selama 30 menit.");location.reload();},30*60*1000);};
@@ -106,11 +120,28 @@
         if(error) throw error; return {ok:true,data:data||[]};
       case "adminListPaket":
         ({data,error}=await db.from("member_packages").select("*").order("harga"));
-        if(error) throw error; return {ok:true,data:(data||[]).map(p=>({...p,durasiHari:p.durasi_hari}))};
+        if(error) throw error; return {ok:true,data:(data||[]).filter(p=>p.nama!==PAYMENT_SETTINGS_PACKAGE).map(p=>({...p,durasiHari:p.durasi_hari}))};
       case "adminSimpanPaket": {
         const p=payload.item||{};
         ({error}=await db.from("member_packages").upsert({nama:p.nama,durasi_hari:Number(p.durasiHari)||30,harga:Number(p.harga)||0,deskripsi:p.deskripsi||"",aktif:true},{onConflict:"nama"}));
         if(error) throw error; await logAdmin("simpan_paket","paket",p.nama,{harga:p.harga,durasiHari:p.durasiHari}); return {ok:true};
+      }
+      case "adminGetPaymentSettings": {
+        ({data,error}=await db.from("member_packages").select("deskripsi").eq("nama",PAYMENT_SETTINGS_PACKAGE).maybeSingle());
+        if(error) throw error;
+        return {ok:true,data:normalizePaymentSettings(data&&data.deskripsi)};
+      }
+      case "adminSavePaymentSettings": {
+        const settings=normalizePaymentSettings(payload.item);
+        if(settings.bank.length<2) throw new Error("Nama bank atau metode pembayaran wajib diisi.");
+        if(!/^[0-9 .-]{4,40}$/.test(settings.nomorRekening)) throw new Error("Nomor rekening hanya boleh berisi angka, spasi, titik, atau tanda hubung.");
+        if(settings.pemilikRekening.length<2) throw new Error("Nama pemilik rekening wajib diisi.");
+        if(settings.whatsapp.startsWith("0")) settings.whatsapp="62"+settings.whatsapp.slice(1);
+        if(!/^62\d{8,13}$/.test(settings.whatsapp)) throw new Error("Nomor WhatsApp harus memakai format 62, contoh 6281234567890.");
+        ({error}=await db.from("member_packages").upsert({nama:PAYMENT_SETTINGS_PACKAGE,durasi_hari:1,harga:0,deskripsi:JSON.stringify(settings),aktif:true},{onConflict:"nama"}));
+        if(error) throw error;
+        await logAdmin("ubah_rekening_pembayaran","pengaturan","pembayaran_manual",{bank:settings.bank,pemilikRekening:settings.pemilikRekening,whatsapp:settings.whatsapp});
+        return {ok:true,data:settings};
       }
       case "adminVerifikasi": {
         ({error}=await db.rpc("admin_update_member",{p_id:payload.id,p_action:"activate",p_package:payload.paket,p_note:""}));
