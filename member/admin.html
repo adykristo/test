@@ -981,9 +981,10 @@
       }
       async function simpanPengaturanPembayaran(event){
         event.preventDefault();
+        const form=event.currentTarget;
         try{
           await adminApi("adminSavePaymentSettings",{item:{bank:document.getElementById("paymentAdminBank").value,nomorRekening:document.getElementById("paymentAdminNumber").value,pemilikRekening:document.getElementById("paymentAdminOwner").value,whatsapp:document.getElementById("paymentAdminWhatsapp").value}});
-          previewPengaturanPembayaran();notifikasi(event.currentTarget,"Informasi pembayaran diperbarui.");
+          previewPengaturanPembayaran();notifikasi(form,"Informasi pembayaran diperbarui.");
         }catch(err){alert("Gagal menyimpan informasi pembayaran: "+err.message);}
       }
       document.addEventListener("input",event=>{if(event.target&&event.target.closest&&event.target.closest("#paymentSettingsForm"))previewPengaturanPembayaran();});
