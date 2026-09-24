@@ -524,7 +524,7 @@ begin
   if not found then raise exception 'Soal tidak ditemukan'; end if;
   select count(*) into v_attempt_count from public.member_answer_attempts
     where user_id=auth.uid() and content_id=p_content_id and created_at>now()-interval '1 hour';
-  if v_attempt_count >= case when v_content.tujuan='tryout' then 3 else 30 end then
+  if v_attempt_count >= (case when v_content.tujuan='tryout' then 3 else 30 end) then
     raise exception 'Batas percobaan tercapai. Coba lagi satu jam lagi.';
   end if;
   if pg_column_size(coalesce(p_answer,'null'::jsonb))>10000 then raise exception 'Jawaban terlalu besar'; end if;
