@@ -1,8 +1,9 @@
 MEMBER AREA KLINIKFISIKAPKU — VERSI SUPABASE
 
 PENTING: Panduan Apps Script di bawah ini adalah panduan versi lama.
-Untuk versi pendaftaran email, login Google, reset password email, dan database
-siswa terbaru, gunakan file PANDUAN-SUPABASE-MEMBER.md dan supabase-setup.sql.
+Untuk versi pendaftaran Gmail, reset password email, paket manual, dan database
+siswa terbaru, gunakan PANDUAN-SUPABASE-MEMBER.md dan supabase-setup.sql.
+Jika database lama sudah ada, jalankan MIGRASI-PENDAFTARAN-BARU.sql satu kali.
 
 ARSIP PANDUAN LAMA:
 
@@ -37,3 +38,15 @@ CATATAN KEAMANAN v4:
 - Jika memakai Studio Soal AI, deploy Edge Function gemini-question-studio dan isi ALLOWED_ORIGINS dengan domain produksi.
 - Baca PANDUAN-KEAMANAN-V4.md sebelum menerima pembayaran sungguhan.
 - Aktifkan MFA admin dari menu Keamanan, CAPTCHA, Confirm Email, dan Security Advisor.
+PEMBARUAN HAK AKSES ADMIN
+=========================
+1. Admin Utama dapat menambahkan Admin Konten melalui menu Admin Pengelola.
+   Admin Konten hanya dapat mengelola modul, latihan, video, dan tryout.
+2. Jalankan ulang seluruh supabase-setup.sql agar trigger admin tunggal,
+   role admin, status publikasi, arsip, dan riwayat versi konten terpasang.
+3. Aktifkan MFA dari menu Admin > Keamanan sebelum dipakai secara resmi.
+4. Konten AI disimpan sebagai DRAF. Periksa lalu klik Terbitkan.
+5. Tombol Arsipkan tidak menghapus permanen; konten dapat dipulihkan sebagai draf.
+6. Email dan WhatsApp peserta disamarkan pada data yang dikirim ke dashboard admin.
+7. Sebelum produksi ubah testMode dan demoMode menjadi false di supabase-config.js.
+8. Deploy Edge Function admin-user-management dan gemini-question-studio.

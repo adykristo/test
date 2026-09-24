@@ -50,7 +50,7 @@ Deno.serve(async(req)=>{
     const url=Deno.env.get("SUPABASE_URL")!,anon=Deno.env.get("SUPABASE_ANON_KEY")!,service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const auth=createClient(url,anon,{global:{headers:{Authorization:req.headers.get("Authorization")||""}}});
     const {data:{user},error:userError}=await auth.auth.getUser();if(userError||!user)throw new Error("Sesi admin tidak valid.");
-    const admin=createClient(url,service),{data:role}=await admin.from("member_admins").select("user_id").eq("user_id",user.id).maybeSingle();if(!role)throw new Error("Akun tidak memiliki hak Admin Member.");
+    const admin=createClient(url,service),{data:role}=await admin.from("member_admins").select("user_id,active").eq("user_id",user.id).eq("active",true).maybeSingle();if(!role)throw new Error("Akun tidak memiliki hak Admin Member.");
     const since=new Date(Date.now()-3600000).toISOString(),{count}=await admin.from("member_ai_usage").select("id",{count:"exact",head:true}).eq("admin_id",user.id).gte("created_at",since);
     if((count||0)>=40)throw new Error("Batas 40 permintaan AI per jam tercapai. Coba kembali nanti.");
     const raw=await req.text();if(raw.length>9000000)throw new Error("Permintaan AI terlalu besar");

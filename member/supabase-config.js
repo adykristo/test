@@ -7,5 +7,9 @@
 window.KF_SUPABASE_CONFIG = {
   url: "https://spxprgwkpjkusnoviofi.supabase.co",
   publishableKey: "sb_publishable_LYLDlwmx-joblC8ls6dB0w_XpZyP4gt",
-  siteUrl: "https://klinikfisikapku.com/member/"
+  siteUrl: "https://klinikfisikapku.com/member/",
+
+  // Konfigurasi produksi: data contoh dan akses uji coba dimatikan.
+  testMode: false,
+  demoMode: false
 };

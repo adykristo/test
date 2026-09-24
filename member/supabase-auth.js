@@ -2,11 +2,13 @@
   "use strict";
 
   const cfg = window.KF_SUPABASE_CONFIG || {};
-  const siap = /^https:\/\/.+\.supabase\.co$/i.test(String(cfg.url || "")) &&
+  const demoMode = cfg.demoMode === true && !!window.KFDemo;
+  const siap = !demoMode && /^https:\/\/.+\.supabase\.co$/i.test(String(cfg.url || "")) &&
     !String(cfg.publishableKey || "").startsWith("GANTI_") &&
     String(cfg.publishableKey || "").length > 20;
   let db = null;
   let currentProfile = null;
+  let selectedPaymentPackage = "";
   const PAYMENT_SETTINGS_PACKAGE = "__PENGATURAN_PEMBAYARAN__";
   const DEFAULT_PAYMENT_SETTINGS = { bank:"", nomorRekening:"", pemilikRekening:"", whatsapp:"6281365657020" };
 
@@ -43,26 +45,49 @@
     } catch (_) { return {...DEFAULT_PAYMENT_SETTINGS}; }
   }
   async function tampilkanPembayaranManual(profil) {
-    const [settingResult,paketResult]=await Promise.all([
+    if(demoMode){
+      const d=window.KFDemo.load(),settings=d.payment,packages=d.packages.filter(x=>x.aktif);
+      selectedPaymentPackage=(profil&&profil.paket)||selectedPaymentPackage||"";
+      [["paymentBank",settings.bank||"Belum diatur"],["paymentAccountNumber",settings.nomorRekening||"—"],["paymentAccountOwner",settings.pemilikRekening||"—"]].forEach(([id,value])=>{const el=$(id);if(el)el.textContent=value;});
+      const container=$("pendingPackageOptions");if(container)container.innerHTML=packages.map(p=>`<article class="package-choice ${p.nama===selectedPaymentPackage?"selected":""}"><div class="package-choice-head"><div><h3>${escapeHtml(p.nama)}</h3><p>${p.durasi_hari} hari akses</p></div><span class="price">Rp${Number(p.harga||0).toLocaleString("id-ID")}</span></div><p>${escapeHtml(p.deskripsi)}</p><button type="button" class="btn ${p.nama===selectedPaymentPackage?"btn-main":"btn-ghost"}" onclick="pilihPaketMember('${escapeAttr(p.nama)}')">${p.nama===selectedPaymentPackage?"✓ Paket dipilih":"Pilih paket ini"}</button></article>`).join("");
+      perbaruiKonfirmasiPembayaran(profil,packages,settings,true);return;
+    }
+    const [settingResult,paketListResult]=await Promise.all([
       db.from("member_packages").select("deskripsi").eq("nama",PAYMENT_SETTINGS_PACKAGE).eq("aktif",true).maybeSingle(),
-      profil&&profil.paket?db.from("member_packages").select("nama,harga").eq("nama",profil.paket).eq("aktif",true).maybeSingle():Promise.resolve({data:null,error:null})
+      db.from("member_packages").select("nama,harga,deskripsi,durasi_hari").eq("aktif",true).neq("nama",PAYMENT_SETTINGS_PACKAGE).order("harga")
     ]);
     const settings=settingResult.error?{...DEFAULT_PAYMENT_SETTINGS}:parsePaymentSettings(settingResult.data&&settingResult.data.deskripsi);
     const lengkap=settings.bank&&settings.nomorRekening&&settings.pemilikRekening;
     [["paymentBank",settings.bank||"Belum diatur"],["paymentAccountNumber",settings.nomorRekening||"—"],["paymentAccountOwner",settings.pemilikRekening||"—"]].forEach(([id,value])=>{const el=$(id);if(el)el.textContent=value;});
-    const amount=$("paymentAmount");
-    if(amount){
-      const paket=paketResult.data;
-      amount.textContent=paket?`${paket.nama} — Rp${Number(paket.harga||0).toLocaleString("id-ID")}`:(profil&&profil.paket)||"Paket belum dipilih";
-    }
+    const packages=paketListResult.error?[]:(paketListResult.data||[]);
+    selectedPaymentPackage=(profil&&profil.paket)||selectedPaymentPackage||"";
+    const container=$("pendingPackageOptions");
+    if(container) container.innerHTML=packages.length?packages.map(p=>`<article class="package-choice ${p.nama===selectedPaymentPackage?"selected":""}"><div class="package-choice-head"><div><h3>${escapeHtml(p.nama)}</h3><p>${Number(p.durasi_hari)||30} hari akses</p></div><span class="price">Rp${Number(p.harga||0).toLocaleString("id-ID")}</span></div><p>${escapeHtml(p.deskripsi||"Akses materi, latihan, dan tryout sesuai jenjang.")}</p><button type="button" class="btn ${p.nama===selectedPaymentPackage?"btn-main":"btn-ghost"}" onclick="pilihPaketMember('${escapeAttr(p.nama)}')">${p.nama===selectedPaymentPackage?"✓ Paket dipilih":"Pilih paket ini"}</button></article>`).join(""):'<p class="auth-sub">Paket belum tersedia. Silakan hubungi admin.</p>';
+    perbaruiKonfirmasiPembayaran(profil,packages,settings,lengkap);
+  }
+  function escapeHtml(value){return String(value||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+  function escapeAttr(value){return String(value||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+  function perbaruiKonfirmasiPembayaran(profil,packages,settings,lengkap){
+    const paket=packages.find(p=>p.nama===selectedPaymentPackage);
+    const amount=$("paymentAmount"); if(amount)amount.textContent=paket?`${paket.nama} — Rp${Number(paket.harga||0).toLocaleString("id-ID")}`:"Pilih paket di atas";
     const link=$("paymentWhatsAppLink");
     if(link){
-      const pesan=["Halo Admin KlinikFisikapku, saya ingin mengirim bukti pembayaran Member Area.","",`Nama: ${(profil&&profil.nama)||"-"}`,`Email: ${(profil&&profil.email)||"-"}`,`Paket: ${(profil&&profil.paket)||"-"}`].join("\n");
+      const pesan=["Halo Admin KlinikFisikapku, saya ingin mengirim bukti pembayaran Member Area.","",`Nama: ${(profil&&profil.nama)||"-"}`,`Email: ${(profil&&profil.email)||"-"}`,`Username: ${(profil&&profil.username)||"-"}`,`Kelas: ${(profil&&profil.kelas)||"-"}`,`Paket: ${selectedPaymentPackage||"Belum dipilih"}`].join("\n");
       link.href=`https://wa.me/${settings.whatsapp||DEFAULT_PAYMENT_SETTINGS.whatsapp}?text=${encodeURIComponent(pesan)}`;
-      link.style.display=lengkap?"inline-flex":"none";
+      link.style.display=lengkap&&!!paket?"inline-flex":"none";
     }
     if(!lengkap) notice("paymentNotice","Rekening pembayaran belum diatur. Silakan hubungi admin melalui WhatsApp.","err");
   }
+  window.pilihPaketMember=async function(nama){
+    if(!currentProfile)return;
+    try{
+      if(demoMode){currentProfile=window.KFDemo.updateMember({...currentProfile,paket:nama});selectedPaymentPackage=nama;await tampilkanPembayaranManual(currentProfile);notice("paymentNotice","Paket demo berhasil dipilih. Admin demo dapat mengaktifkan akun ini.","ok");return;}
+      const {error}=await db.rpc("choose_member_package",{p_package:nama}); if(error)throw error;
+      currentProfile.paket=nama; selectedPaymentPackage=nama;
+      await tampilkanPembayaranManual(currentProfile);
+      notice("paymentNotice","Paket berhasil dipilih. Silakan transfer sesuai nominal lalu kirim bukti pembayaran.","ok");
+    }catch(error){notice("paymentNotice","Paket belum dapat dipilih: "+teksError(error),"err");}
+  };
   window.salinNomorRekening = async function(){
     const nomor=$("paymentAccountNumber")&&$("paymentAccountNumber").textContent.trim();
     if(!nomor||nomor==="—"){notice("paymentNotice","Nomor rekening belum tersedia.","err");return;}
@@ -77,6 +102,7 @@
     return false;
   }
   function pastikanSiap(noticeId) {
+    if (demoMode) return true;
     if (db) return true;
     konfigurasiBelumSiap();
     if (noticeId) notice(noticeId, "Fitur belum aktif karena Supabase belum dikonfigurasi.", "err");
@@ -97,6 +123,11 @@
     if (!pastikanSiap("daftarNotice")) return;
     const form = event.currentTarget;
     const password = $("passwordDaftar").value;
+    const email=$("email").value.trim().toLowerCase();
+    const username=$("usernameDaftar").value.trim().toLowerCase();
+    const kelas=$("kelas").value;
+    if(!/^[^@\s]+@gmail\.com$/i.test(email)){notice("daftarNotice","Pendaftaran hanya menerima email Google dengan akhiran @gmail.com.","err");return;}
+    if(!/^[a-z0-9._]{4,30}$/.test(username)){notice("daftarNotice","Username harus 4–30 karakter dan hanya memakai huruf, angka, titik, atau garis bawah.","err");return;}
     if (password !== $("passwordKonfirmasi").value) {
       notice("daftarNotice", "Konfirmasi password belum sama.", "err"); return;
     }
@@ -107,13 +138,19 @@
     try {
       const metadata = {
         nama: $("nama").value.trim(),
-        wa: $("wa").value.trim(),
-        jenjang: $("kelas").value,
+        username,
+        kelas,
+        jenjang: Number(kelas)<=6?"sd":Number(kelas)<=9?"smp":"sma",
         sekolah: $("sekolah").value.trim(),
-        paket: $("paketDaftar").value
+        paket: ""
       };
+      if(demoMode){
+        const member=window.KFDemo.register({...metadata,email,password});
+        notice("daftarNotice","Pendaftaran demo berhasil. Akun dapat login dan menunggu aktivasi admin demo.","ok");
+        form.reset();setTimeout(()=>{if(window.buka)buka("login");},700);return;
+      }
       const { data, error } = await db.auth.signUp({
-        email: $("email").value.trim().toLowerCase(),
+        email,
         password,
         options: { data: metadata, emailRedirectTo: redirect("./") }
       });
@@ -133,6 +170,12 @@
     const form = event.currentTarget;
     setTombol(form, "Memeriksa…");
     try {
+      if(demoMode){
+        const p=window.KFDemo.login($("user").value,$("pass").value);currentProfile=p;
+        const expired=p.berakhir&&new Date(p.berakhir)<=new Date();
+        if(p.status==="aktif"&&!expired){window.masukPeserta(p);}else{await tampilkanPembayaranManual(p);buka("pending");}
+        return;
+      }
       const { data, error } = await db.auth.signInWithPassword({
         email: $("user").value.trim().toLowerCase(), password: $("pass").value
       });
@@ -146,6 +189,9 @@
   window.masukGoogle = async function () {
     const sedangDaftar = $("daftar") && $("daftar").classList.contains("show");
     if (!pastikanSiap(sedangDaftar ? "daftarNotice" : "loginNotice")) return;
+    if(demoMode){
+      const p=window.KFDemo.login(window.KFDemo.accounts.memberEmail,window.KFDemo.accounts.memberPassword);currentProfile=p;window.masukPeserta(p);return;
+    }
     if (sedangDaftar) {
       const draft = { nama:$("nama").value.trim(), wa:$("wa").value.trim(), jenjang:$("kelas").value, sekolah:$("sekolah").value.trim(), paket:$("paketDaftar").value };
       if (!draft.nama || !draft.wa || !draft.jenjang || !draft.sekolah || !draft.paket) {
@@ -198,6 +244,7 @@
   };
 
   window.keluar = async function () {
+    if(demoMode) window.KFDemo.logout();
     if (db) await db.auth.signOut();
     localStorage.removeItem("kf_member_profile");
     window.location.href = "./";
@@ -212,7 +259,7 @@
   };
 
   async function ambilProfil(user) {
-    const { data, error } = await db.from("member_profiles").select("id,email,nama,wa,sekolah,jenjang,paket,status,berakhir,created_at,updated_at").eq("id", user.id).single();
+    const { data, error } = await db.from("member_profiles").select("id,email,nama,username,kelas,wa,sekolah,jenjang,paket,status,berakhir,created_at,updated_at").eq("id", user.id).single();
     if (error) throw error;
     return data;
   }
@@ -237,7 +284,7 @@
           ? "Masa aktif akun telah berakhir. Silakan hubungi admin untuk memperpanjang paket."
           : p.status === "ditolak"
           ? "Pendaftaran belum dapat disetujui. Silakan hubungi admin untuk informasi lebih lanjut."
-          : "Email sudah terverifikasi. Admin akan mengaktifkan akses setelah data dan pembayaran diperiksa.";
+          : "Akun berhasil masuk, tetapi dashboard belajar masih terkunci. Pilih paket dan kirim bukti pembayaran; admin akan mengaktifkan akses setelah verifikasi.";
         await tampilkanPembayaranManual(p);
         buka("pending"); return;
       }
@@ -248,18 +295,21 @@
   }
 
   async function listPaket() {
+    if(demoMode)return {data:window.KFDemo.load().packages.filter(x=>x.aktif).map(p=>({...p,durasiHari:p.durasi_hari}))};
     if (!db) return { data: [] };
     const { data, error } = await db.from("member_packages").select("nama,harga,deskripsi,durasi_hari").eq("aktif", true).order("harga");
     if (error) throw error;
     return { data: (data || []).filter(p=>p.nama!==PAYMENT_SETTINGS_PACKAGE).map((p) => ({ ...p, durasiHari: p.durasi_hari })) };
   }
   async function kontenMember() {
+    if(demoMode){const p=window.KFDemo.current();if(!p||p.status!=="aktif")throw new Error("Akun demo belum diaktifkan admin.");return {data:window.KFDemo.load().content.filter(x=>x.visible&&x.jenjang===p.jenjang&&(!Array.isArray(x.packages)||!x.packages.length||x.packages.includes(p.paket)))};}
     if (!db) return { data: [] };
     const { data, error } = await db.rpc("member_secure_content");
     if (error) throw error;
     return { data: (data || []).map((x) => ({ ...x.data, id:x.id, jenjang:x.jenjang, jenis:x.jenis, tujuan:x.tujuan, topik:x.topik, judul:x.judul, visible:x.visible })) };
   }
   async function cekJawaban(contentId, jawaban) {
+    if(demoMode){const item=window.KFDemo.load().content.find(x=>x.id===contentId);if(!item)throw new Error("Soal demo tidak ditemukan.");const benar=Array.isArray(item.kunci)?JSON.stringify(item.kunci)===JSON.stringify(jawaban):String(item.kunci)===String(jawaban);return {benar,correct:benar,kunci:item.kunci,pembahasan:item.pembahasan||"Pembahasan demo belum tersedia.",review_locked:false};}
     if (!db || !contentId) throw new Error("Soal tidak valid.");
     const { data, error } = await db.rpc("check_member_answer", { p_content_id:contentId, p_answer:jawaban });
     if (error) throw error;
@@ -271,6 +321,7 @@
     return data && data.user ? data.user : null;
   }
   async function dataBelajar() {
+    if(demoMode)return {progress:[],bookmarks:[],attempts:window.KFDemo.load().attempts||[],orders:window.KFDemo.load().orders||[],certificates:[]};
     const user = await userAktif();
     if (!user) return { progress:[], bookmarks:[], attempts:[], orders:[], certificates:[] };
     const [progress,bookmarks,attempts,orders,certificates] = await Promise.all([
@@ -296,9 +347,20 @@
       : db.from("member_bookmarks").delete().eq("user_id",user.id).eq("content_id",contentId);
     const {error}=await q; if(error) throw error;
   }
-  window.KFMemberAuth = { configured: siap, client: db, listPaket, kontenMember, dataBelajar, simpanProgress, setBookmark, cekJawaban };
+  window.KFMemberAuth = { configured: siap||demoMode, demoMode, client: db, listPaket, kontenMember, dataBelajar, simpanProgress, setBookmark, cekJawaban };
 
   document.addEventListener("DOMContentLoaded", async function () {
+    const testButton=$("testModeButton"), testInfo=$("testModeInfo");
+    if(cfg.testMode===true && testButton){
+      testButton.style.display="block";
+      if(testInfo){testInfo.textContent="Mode uji coba aktif: dashboard memakai data contoh dan tidak membuka data peserta.";testInfo.className="auth-notice show info";}
+    }
+    const demoBox=$("demoAccountBox");if(demoMode&&demoBox)demoBox.style.display="block";
+    if(demoMode){
+      const p=window.KFDemo.current();
+      if(p){currentProfile=p;const expired=p.berakhir&&new Date(p.berakhir)<=new Date();if(p.status==="aktif"&&!expired)window.masukPeserta(p);else{await tampilkanPembayaranManual(p);buka("pending");}}
+      return;
+    }
     if (!siap) { konfigurasiBelumSiap(); return; }
     db.auth.onAuthStateChange((event) => { if (event === "PASSWORD_RECOVERY") buka("reset"); });
     const mode = new URLSearchParams(location.search).get("mode");

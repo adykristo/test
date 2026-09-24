@@ -1,0 +1,52 @@
+AKUN DEMO MEMBER AREA KLINIKFISIKAPKU
+=====================================
+
+MODE DEMO
+Pastikan supabase-config.js berisi:
+  demoMode: true
+
+1. ADMIN DEMO
+   Halaman  : admin.html
+   Email    : admin.demo@gmail.com
+   Password : AdminDemo123!
+
+   Dapat digunakan untuk:
+   - Melihat pendaftar dan semua member.
+   - Mengaktifkan atau menonaktifkan peserta.
+   - Menambah dan mengubah paket.
+   - Mengubah informasi rekening pembayaran.
+   - Menambah, mengedit, dan menghapus konten contoh.
+   - Melihat laporan demo.
+
+2. PESERTA AKTIF
+   Halaman  : index.html > Masuk
+   Email    : peserta.demo@gmail.com
+   Password : PesertaDemo123!
+
+   Status peserta sudah aktif sehingga dapat langsung membuka dashboard,
+   materi, latihan, video, dan tryout contoh.
+
+3. PESERTA MENUNGGU AKTIVASI
+   Halaman  : index.html > Masuk
+   Email    : pending.demo@gmail.com
+   Password : PendingDemo123!
+
+   Akun ini hanya dapat melihat pilihan paket dan informasi pembayaran.
+   Login sebagai Admin Demo untuk mengaktifkannya, lalu login kembali sebagai
+   peserta pending untuk menguji pembukaan dashboard setelah aktivasi.
+
+4. PENDAFTARAN BARU
+   Formulir pendaftaran tetap dapat digunakan. Akun baru disimpan di browser
+   dengan status pending dan akan langsung muncul di panel Admin Demo.
+
+5. RESET DATA
+   Pada halaman login peserta, tekan "Reset seluruh data demo" untuk
+   mengembalikan akun, paket, rekening, member, dan konten ke kondisi awal.
+
+PENTING SEBELUM PRODUKSI
+Ubah pengaturan berikut di supabase-config.js:
+  demoMode: false,
+  testMode: false
+
+Setelah itu web kembali menggunakan Supabase dan dashboard asli hanya dapat
+dibuka oleh akun yang telah diaktifkan admin.
