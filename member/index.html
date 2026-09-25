@@ -475,7 +475,7 @@
       .config-banner { display:none; max-width:760px; margin:14px auto 0; padding:12px 15px; border-radius:12px; background:#fff2c7; color:#704e00; font-size:13px; }
       .config-banner.show { display:block; }
 
-      .summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:18px 0; }
+      .summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; margin:18px 0; }
       .dash-welcome { position:relative; overflow:hidden; padding:28px 24px; border-radius:20px; color:#fff; background:linear-gradient(135deg,#6e2ca5,#822bd9 48%,#f34ea5); box-shadow:0 12px 32px rgba(110,44,165,.28); }
       .dash-welcome::after { content:""; position:absolute; width:170px; height:170px; border-radius:50%; right:-45px; top:-55px; background:rgba(255,255,255,.12); }
       .dash-welcome h1 { position:relative; z-index:1; margin:0 0 5px; }
@@ -602,6 +602,7 @@
           <div class="summary-card"><small>Materi selesai</small><strong id="statSelesai">0 / 0</strong></div>
           <div class="summary-card"><small>Sisa akses</small><strong id="statHari">—</strong></div>
           <div class="summary-card"><small>Tryout terakhir</small><strong id="statSkor">—</strong></div>
+          <div class="summary-card"><small>Tahap terbuka</small><strong id="statTahap">0 / 12</strong></div>
         </div>
         <div class="dashboard-actions">
           <button id="lanjutBtn" class="btn btn-main" type="button" onclick="lanjutBelajar()">▶ Lanjutkan belajar</button>
@@ -720,7 +721,7 @@
       }
       function textWithBreaks(v){return esc(v).replace(/\n/g,"<br>");}
 
-      let PAKET_CACHE = [];
+      let PAKET_CACHE = window.PAKET_CACHE || [];
       function formatRupiah(n) {
         return "Rp" + Number(n || 0).toLocaleString("id-ID");
       }
@@ -731,7 +732,7 @@
           const res = window.KFMemberAuth
             ? await window.KFMemberAuth.listPaket()
             : await apiGet({ action: "listPaket" });
-          PAKET_CACHE = res.data || [];
+          window.PAKET_CACHE = PAKET_CACHE = res.data || [];
           sel.innerHTML =
             '<option value="">Pilih paket akses</option>' +
             PAKET_CACHE.map(
@@ -808,16 +809,76 @@
         }
       }
 
+      
+      function renderPendingPackages(profil) {
+        const box = document.getElementById("pendingPackageOptions");
+        if (!box) return;
+        const load = async () => {
+          try {
+            if (!(window.PAKET_CACHE || []).length && window.KFMemberAuth) {
+              const res = await window.KFMemberAuth.listPaket();
+              window.PAKET_CACHE = PAKET_CACHE = res.data || [];
+            }
+            const list = window.PAKET_CACHE || [];
+            if (!list.length) {
+              box.innerHTML = '<p class="empty">Paket belum tersedia. Hubungi admin.</p>';
+              return;
+            }
+            const selected = (profil && profil.paket) || "";
+            box.innerHTML = list.map((p) => {
+              const aktif = p.nama === selected ? " selected" : "";
+              return `<div class="package-choice${aktif}"><div class="package-choice-head"><div><h3>${esc(p.nama)}</h3><p>${esc(p.deskripsi || "")}</p></div><div class="price">${formatRupiah(p.harga)}</div></div>
+                <button type="button" class="btn ${aktif ? "btn-main" : "btn-ghost"}" onclick="pilihPaketPending('${esc(p.nama)}')">${aktif ? "Paket dipilih" : "Pilih paket"}</button></div>`;
+            }).join("");
+            if (selected) {
+              const el = document.getElementById("paymentAmount");
+              const p = list.find((x) => x.nama === selected);
+              if (el && p) el.textContent = p.nama + " — " + formatRupiah(p.harga);
+            }
+          } catch (err) {
+            box.innerHTML = '<p class="empty">Gagal memuat paket: ' + esc(err.message) + "</p>";
+          }
+        };
+        load();
+      }
+      function pilihPaketPending(nama) {
+        if (profilAktif) profilAktif.paket = nama;
+        try { localStorage.setItem(P, JSON.stringify(profilAktif)); } catch (e) {}
+        const el = document.getElementById("paymentAmount");
+        const p = (window.PAKET_CACHE || []).find((x) => x.nama === nama);
+        if (el && p) el.textContent = p.nama + " — " + formatRupiah(p.harga);
+        document.querySelectorAll(".package-choice").forEach((c) => c.classList.remove("selected"));
+        renderPendingPackages(profilAktif);
+      }
+
       async function masukPeserta(p) {
         profilAktif = p;
         jenjangAktif = p.jenjang || "sd";
+        // Status gate: pending / nonaktif / ditolak / expired → halaman pembayaran/info
+        const st = String(p.status || "pending");
+        const expired = st === "aktif" && p.berakhir && new Date(p.berakhir).getTime() <= Date.now();
+        if (st !== "aktif" || expired) {
+          document.getElementById("navBtns").innerHTML =
+            '<button type="button" onclick="toggleDark()">◐ Tema</button><button onclick="keluar()">Keluar</button>';
+          const txt = document.getElementById("pendingText");
+          if (txt) {
+            if (st === "ditolak") txt.textContent = "Pendaftaran ditolak. Hubungi admin jika ada pertanyaan.";
+            else if (st === "nonaktif") txt.textContent = "Akun dinonaktifkan. Hubungi admin untuk mengaktifkan kembali.";
+            else if (expired) txt.textContent = "Masa aktif paket telah berakhir. Perpanjang paket dan kirim bukti pembayaran ke admin.";
+            else txt.textContent = "Akun Anda sudah dapat digunakan. Pilih paket, lakukan pembayaran, lalu kirim bukti kepada admin untuk membuka dashboard belajar.";
+          }
+          renderPendingPackages(p);
+          buka("pending");
+          return;
+        }
         document.getElementById("namaDash").textContent = p.nama || "Member";
         const berakhir = p.berakhir
           ? new Date(p.berakhir).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
           : "-";
+        const tahap = Number(p.tahap_terbuka) || 0;
         document.getElementById("sub").textContent =
-          "Materi jenjang " + jenjangAktif.toUpperCase() + " · " + (p.paket || "") + " · aktif s.d. " + berakhir;
-        document.getElementById("badgePaket").textContent=(p.paket||"Paket Member")+" ✓";
+          "Materi jenjang " + jenjangAktif.toUpperCase() + " · " + (p.paket || "") + " · Tahap " + tahap + "/12 · aktif s.d. " + berakhir;
+        document.getElementById("badgePaket").textContent=(p.paket||"Paket Member")+" · Tahap "+tahap+"/12 ✓";
         document.getElementById("navBtns").innerHTML =
           '<button type="button" onclick="toggleDark()">◐ Tema</button><button onclick="buka(\'dash\')">Dashboard</button><button onclick="keluar()">Keluar</button>';
         document.getElementById("list").innerHTML =
@@ -928,6 +989,8 @@
         if(hari!==null&&hari<=7){notice.style.display="block";notice.textContent=hari?"Paket Anda akan berakhir dalam "+hari+" hari. Hubungi admin untuk memperpanjang akses.":"Masa akses telah berakhir. Hubungi admin untuk memperpanjang paket.";}else notice.style.display="none";
         const last=(dataBelajarAktif.attempts||[])[0];
         document.getElementById("statSkor").textContent=last?Math.round(Number(last.skor||0))+"":"—";
+        const elTahap=document.getElementById("statTahap");
+        if(elTahap) elTahap.textContent=(Number(profilAktif&&profilAktif.tahap_terbuka)||0)+" / 12";
       }
       function lanjutBelajar(){
         const progres=(dataBelajarAktif.progress||[]).slice().sort((a,b)=>new Date(b.last_opened_at)-new Date(a.last_opened_at));
@@ -996,6 +1059,7 @@
         <div class="topik">${esc(x.topik || "")}</div>
         <div class="judul">${terkunci ? "🔒 " : ""}${esc(x.judul || "")}</div>
         <span class="tag ${["pdf","soal","video"].includes(x.jenis)?x.jenis:""}">${esc(tryout ? "🏆 Tryout Topik" : LABEL[x.jenis] || x.jenis)}</span>
+        <span class="tag" style="margin-left:5px;background:#f0e6ff;color:#5b2185">Tahap ${esc(String(x.learning_stage||1))}</span>
         ${selesai ? '<span class="tag" style="margin-left:5px">✓ Latihan selesai</span>' : ""}
       </div>
       <button class="bookmark-btn ${bookmarked(x.id)?"active":""}" type="button" onclick="toggleBookmark(event,'${esc(String(x.id||"").replace(/[^0-9a-f-]/gi,""))}')" aria-label="Simpan materi">${bookmarked(x.id)?"★":"☆"}</button>

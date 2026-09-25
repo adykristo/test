@@ -185,3 +185,19 @@ grant execute on function public.member_secure_content() to authenticated;
 grant execute on function public.touch_member_content(uuid) to authenticated;
 grant execute on function public.check_member_answer(uuid,jsonb) to authenticated;
 grant execute on function public.admin_update_member(uuid,text,text,text) to authenticated;
+
+-- ============================================================
+-- Tambahan: Admin set tahap_terbuka secara manual
+-- ============================================================
+create or replace function public.admin_set_member_tahap(p_id uuid, p_tahap integer)
+returns void language plpgsql security definer set search_path='' as $$
+begin
+  if not public.is_member_super_admin() then raise exception 'Hanya Admin Utama'; end if;
+  if p_tahap is null or p_tahap < 0 or p_tahap > 12 then raise exception 'Tahap harus 0 sampai 12'; end if;
+  update public.member_profiles set tahap_terbuka = p_tahap, updated_at = now() where id = p_id;
+  if not found then raise exception 'Member tidak ditemukan'; end if;
+  insert into public.member_admin_logs(admin_id,aksi,target_type,target_id,detail)
+  values(auth.uid(),'member_set_tahap','member',p_id::text,jsonb_build_object('tahap',p_tahap));
+end; $$;
+
+grant execute on function public.admin_set_member_tahap(uuid,integer) to authenticated;
