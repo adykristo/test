@@ -17,37 +17,58 @@
   window.KFSupabaseAdmin = {
     configured: true,
 
-    ensureAdmin: async function () {
-      let { data: { session } } = await supabase.auth.getSession();
-
-      // Admin Member memakai Supabase Auth sendiri. Jangan pernah melempar
-      // pengguna ke login Admin Tryout lama. Jika belum ada sesi, login di sini.
-      if (!session) {
-        const email = prompt("Email Super Admin Member:", "adykristo@gmail.com");
-        if (email === null) return false;
-        const password = prompt("Password Super Admin Member:");
-        if (password === null) return false;
-
-        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password
-        });
-        if (loginError || !loginData || !loginData.session) {
-          alert("Login Admin Member gagal: " + (loginError && loginError.message ? loginError.message : "Sesi tidak terbentuk."));
-          return false;
+    showLogin: function (message) {
+      document.body.innerHTML = `
+        <main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#faf7fd;font-family:Inter,Arial,sans-serif">
+          <section style="width:min(430px,100%);background:#fff;border:1px solid #eadff2;border-radius:22px;padding:28px;box-shadow:0 18px 50px rgba(67,35,92,.12)">
+            <div style="font-weight:800;font-size:22px;color:#512b67">KlinikFisikapku</div>
+            <div style="margin-top:4px;color:#765d83">Login Admin Member</div>
+            ${message ? `<div style="margin-top:16px;padding:12px;border-radius:12px;background:#fff1f1;color:#9c2525">${String(message).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</div>` : ''}
+            <form id="kfAdminLoginForm" style="margin-top:22px;display:grid;gap:14px">
+              <label style="display:grid;gap:6px">Email<input id="kfAdminEmail" type="email" autocomplete="username" required style="padding:12px;border:1px solid #d9cce3;border-radius:10px;font:inherit"></label>
+              <label style="display:grid;gap:6px">Password<input id="kfAdminPassword" type="password" autocomplete="current-password" required style="padding:12px;border:1px solid #d9cce3;border-radius:10px;font:inherit"></label>
+              <button id="kfAdminLoginButton" type="submit" style="padding:12px;border:0;border-radius:10px;background:#6d3b83;color:white;font-weight:700;cursor:pointer">Masuk Admin Member</button>
+              <div id="kfAdminLoginMessage" style="min-height:20px;color:#a32626"></div>
+            </form>
+            <a href="./index.html" style="display:inline-block;margin-top:10px;color:#6d3b83">← Kembali ke Member Area</a>
+          </section>
+        </main>`;
+      const form = document.getElementById("kfAdminLoginForm");
+      if (form) form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const button = document.getElementById("kfAdminLoginButton");
+        const msg = document.getElementById("kfAdminLoginMessage");
+        button.disabled = true; button.textContent = "Memeriksa…"; msg.textContent = "";
+        try {
+          const email = document.getElementById("kfAdminEmail").value.trim();
+          const password = document.getElementById("kfAdminPassword").value;
+          const { error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          const ok = await window.KFSupabaseAdmin.ensureAdmin();
+          if (ok) window.location.reload();
+        } catch (err) {
+          msg.textContent = "Login gagal: " + (err && err.message ? err.message : err);
+          button.disabled = false; button.textContent = "Masuk Admin Member";
         }
-        session = loginData.session;
+      });
+    },
+
+    ensureAdmin: async function () {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        this.showLogin();
+        return false;
       }
 
       const { data, error } = await supabase
         .from("member_admins")
-        .select("role,active")
+        .select("role, active, display_name")
         .eq("user_id", session.user.id)
         .maybeSingle();
 
-      if (error || !data || data.role !== "super_admin" || data.active !== true) {
+      if (error || !data || data.active !== true || data.role !== "super_admin") {
         await supabase.auth.signOut();
-        alert("Akses ditolak: akun ini bukan Super Admin Member yang aktif. Silakan login dengan akun Super Admin Member.");
+        this.showLogin("Akun ini tidak memiliki hak Super Admin Member yang aktif.");
         return false;
       }
       return true;
