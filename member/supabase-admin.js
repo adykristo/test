@@ -18,21 +18,58 @@
     configured: true,
 
     showLogin: function (message) {
+      const esc = (value) => String(value || "").replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
       document.body.innerHTML = `
-        <main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#faf7fd;font-family:Inter,Arial,sans-serif">
-          <section style="width:min(430px,100%);background:#fff;border:1px solid #eadff2;border-radius:22px;padding:28px;box-shadow:0 18px 50px rgba(67,35,92,.12)">
-            <div style="font-weight:800;font-size:22px;color:#512b67">KlinikFisikapku</div>
-            <div style="margin-top:4px;color:#765d83">Login Admin Member</div>
-            ${message ? `<div style="margin-top:16px;padding:12px;border-radius:12px;background:#fff1f1;color:#9c2525">${String(message).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</div>` : ''}
-            <form id="kfAdminLoginForm" style="margin-top:22px;display:grid;gap:14px">
-              <label style="display:grid;gap:6px">Email<input id="kfAdminEmail" type="email" autocomplete="username" required style="padding:12px;border:1px solid #d9cce3;border-radius:10px;font:inherit"></label>
-              <label style="display:grid;gap:6px">Password<input id="kfAdminPassword" type="password" autocomplete="current-password" required style="padding:12px;border:1px solid #d9cce3;border-radius:10px;font:inherit"></label>
-              <button id="kfAdminLoginButton" type="submit" style="padding:12px;border:0;border-radius:10px;background:#6d3b83;color:white;font-weight:700;cursor:pointer">Masuk Admin Member</button>
-              <div id="kfAdminLoginMessage" style="min-height:20px;color:#a32626"></div>
+        <style>
+          *{box-sizing:border-box}
+          body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;color:#2c1740}
+          .kf-login-page{min-height:100vh;display:grid;place-items:center;padding:28px;background:
+            radial-gradient(circle at 18% 15%,rgba(255,255,255,.16),transparent 27%),
+            radial-gradient(circle at 82% 85%,rgba(255,255,255,.12),transparent 24%),
+            linear-gradient(125deg,#42136f 0%,#7024c8 48%,#ed42b4 100%)}
+          .kf-login-card{width:min(460px,100%);background:rgba(255,255,255,.97);border:1px solid rgba(255,255,255,.7);border-radius:28px;padding:34px;box-shadow:0 28px 80px rgba(31,9,54,.32)}
+          .kf-logo{width:62px;height:62px;border-radius:18px;display:grid;place-items:center;margin-bottom:20px;background:linear-gradient(135deg,#7c2cff,#ef45ae);color:#fff;font-size:28px;font-weight:900;box-shadow:0 12px 28px rgba(126,44,255,.28)}
+          .kf-title{margin:0;font-size:29px;line-height:1.15;color:#31134f}.kf-sub{margin:8px 0 25px;color:#806c91}
+          .kf-alert{margin:0 0 18px;padding:12px 14px;border:1px solid #ffd0d0;border-radius:12px;background:#fff2f2;color:#a52222}
+          .kf-form{display:grid;gap:15px}.kf-label{display:grid;gap:7px;font-weight:800;font-size:13px}
+          .kf-input{width:100%;padding:13px 14px;border:1px solid #d9c8e8;border-radius:12px;background:#faf8fd;color:#2c1740;font:inherit;outline:none;transition:.2s}
+          .kf-input:focus{border-color:#8c42df;box-shadow:0 0 0 4px rgba(140,66,223,.11);background:#fff}
+          .kf-btn{width:100%;border:0;border-radius:12px;padding:13px 16px;font:inherit;font-weight:850;cursor:pointer;transition:.18s}
+          .kf-btn:disabled{opacity:.65;cursor:wait}.kf-primary{color:#fff;background:linear-gradient(105deg,#7024c8,#e83fac);box-shadow:0 10px 24px rgba(120,39,200,.22)}
+          .kf-primary:hover{transform:translateY(-1px)}
+          .kf-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:#9b8aa8;font-size:12px}.kf-divider:before,.kf-divider:after{content:"";height:1px;flex:1;background:#e7dced}
+          .kf-google{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;border:1px solid #d9cfe1;color:#38224b}
+          .kf-google:hover{background:#faf7fd;border-color:#bda7ce}.kf-g{font-size:20px;font-weight:900;color:#4285f4}
+          .kf-note{margin:20px 0 0;padding:12px 14px;border-radius:12px;background:#f7efff;color:#65457c;font-size:12px;line-height:1.5}
+          .kf-back{display:block;text-align:center;margin-top:18px;color:#7133a5;text-decoration:none;font-weight:700;font-size:13px}.kf-back:hover{text-decoration:underline}
+          .kf-msg{min-height:19px;color:#a32626;font-size:13px}
+          @media(max-width:520px){.kf-login-card{padding:26px 21px;border-radius:22px}.kf-title{font-size:25px}}
+        </style>
+        <main class="kf-login-page">
+          <section class="kf-login-card" aria-label="Login Admin Member">
+            <div class="kf-logo">K</div>
+            <h1 class="kf-title">Masuk ke Admin Member</h1>
+            <p class="kf-sub">KlinikFisikapku · Panel khusus Super Admin Member</p>
+            ${message ? `<div class="kf-alert">${esc(message)}</div>` : ""}
+            <form id="kfAdminLoginForm" class="kf-form">
+              <label class="kf-label">Email
+                <input id="kfAdminEmail" class="kf-input" type="email" autocomplete="username" placeholder="nama@gmail.com" required>
+              </label>
+              <label class="kf-label">Password
+                <input id="kfAdminPassword" class="kf-input" type="password" autocomplete="current-password" placeholder="Masukkan password" required>
+              </label>
+              <button id="kfAdminLoginButton" class="kf-btn kf-primary" type="submit">Masuk ke Admin Member</button>
+              <div id="kfAdminLoginMessage" class="kf-msg" role="status"></div>
             </form>
-            <a href="./index.html" style="display:inline-block;margin-top:10px;color:#6d3b83">← Kembali ke Member Area</a>
+            <div class="kf-divider"><span>atau</span></div>
+            <button id="kfGoogleAdminLogin" class="kf-btn kf-google" type="button"><span class="kf-g">G</span> Masuk dengan Google</button>
+            <div class="kf-note">Login Google tetap diperiksa ke tabel <b>member_admins</b>. Hanya akun dengan role <b>super_admin</b> dan status aktif yang dapat membuka panel ini.</div>
+            <a class="kf-back" href="./index.html">← Kembali ke Member Area</a>
           </section>
         </main>`;
+
       const form = document.getElementById("kfAdminLoginForm");
       if (form) form.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -48,7 +85,24 @@
           if (ok) window.location.reload();
         } catch (err) {
           msg.textContent = "Login gagal: " + (err && err.message ? err.message : err);
-          button.disabled = false; button.textContent = "Masuk Admin Member";
+          button.disabled = false; button.textContent = "Masuk ke Admin Member";
+        }
+      });
+
+      const googleButton = document.getElementById("kfGoogleAdminLogin");
+      if (googleButton) googleButton.addEventListener("click", async () => {
+        const msg = document.getElementById("kfAdminLoginMessage");
+        googleButton.disabled = true; googleButton.textContent = "Menghubungkan ke Google…"; msg.textContent = "";
+        try {
+          const redirectTo = new URL("./admin.html", window.location.href).href;
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: { redirectTo }
+          });
+          if (error) throw error;
+        } catch (err) {
+          msg.textContent = "Login Google gagal: " + (err && err.message ? err.message : err);
+          googleButton.disabled = false; googleButton.innerHTML = '<span class="kf-g">G</span> Masuk dengan Google';
         }
       });
     },
