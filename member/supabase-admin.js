@@ -18,21 +18,36 @@
     configured: true,
 
     ensureAdmin: async function () {
-      const { data: { session } } = await supabase.auth.getSession();
+      let { data: { session } } = await supabase.auth.getSession();
+
+      // Admin Member memakai Supabase Auth sendiri. Jangan pernah melempar
+      // pengguna ke login Admin Tryout lama. Jika belum ada sesi, login di sini.
       if (!session) {
-        window.location.href = "../admin-dashboard-login.html";
-        return false;
+        const email = prompt("Email Super Admin Member:", "adykristo@gmail.com");
+        if (email === null) return false;
+        const password = prompt("Password Super Admin Member:");
+        if (password === null) return false;
+
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password
+        });
+        if (loginError || !loginData || !loginData.session) {
+          alert("Login Admin Member gagal: " + (loginError && loginError.message ? loginError.message : "Sesi tidak terbentuk."));
+          return false;
+        }
+        session = loginData.session;
       }
 
       const { data, error } = await supabase
         .from("member_admins")
-        .select("role")
+        .select("role,active")
         .eq("user_id", session.user.id)
-        .single();
+        .maybeSingle();
 
-      if (error || !data || data.role !== "super_admin") {
-        alert("Akses ditolak: Hanya Super Admin yang dapat mengakses halaman ini.");
-        window.location.href = "../admin-dashboard-login.html";
+      if (error || !data || data.role !== "super_admin" || data.active !== true) {
+        await supabase.auth.signOut();
+        alert("Akses ditolak: akun ini bukan Super Admin Member yang aktif. Silakan login dengan akun Super Admin Member.");
         return false;
       }
       return true;
@@ -308,7 +323,7 @@
       const { error } = await supabase.auth.signOut({ scope: "global" });
       if (error) throw error;
       alert("Semua sesi admin telah dikeluarkan. Silakan login kembali.");
-      window.location.href = "../admin-dashboard-login.html";
+      window.location.href = "./admin.html";
     } catch (err) {
       alert("Gagal mengeluarkan semua sesi: " + (err && err.message ? err.message : err));
     }
@@ -357,6 +372,6 @@
 
   window.KFLogoutAdminMember = async function () {
     await supabase.auth.signOut();
-    window.location.href = "../admin-dashboard-login.html";
+    window.location.href = "./admin.html";
   };
 })();
