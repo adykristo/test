@@ -1,0 +1,23 @@
+KLINIKFISIKAPKU - FIX LOGIN ADMIN MEMBER
+
+File yang diganti:
+member/supabase-admin.js
+
+Cara upload ke GitHub:
+1. Buka folder member pada repository.
+2. Ganti/overwrite supabase-admin.js dengan file baru ini.
+3. Commit perubahan.
+4. Tunggu GitHub Pages selesai deploy.
+5. Buka https://klinikfisikapku.com/member/admin.html
+6. Jika belum ada sesi, halaman akan meminta Email Super Admin Member dan Password Supabase.
+7. Gunakan akun Super Admin Member yang sudah dibuat di Supabase.
+
+Perubahan:
+- Admin Member tidak lagi otomatis diarahkan ke /admin-dashboard-login.html.
+- Login Admin Member menggunakan Supabase Auth.
+- Akun wajib terdaftar aktif sebagai super_admin di member_admins.
+- Logout Admin Member kembali ke /member/admin.html, bukan login Admin Tryout lama.
+- Sistem Admin Tryout lama tidak diubah.
+
+Catatan keamanan:
+Jangan masukkan Supabase Secret Key, service_role, atau GEMINI_API_KEY ke GitHub.
