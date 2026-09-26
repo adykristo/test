@@ -18,3 +18,18 @@ window.KF_SUPABASE_CONFIG = {
 
 // Penanda di Console untuk memastikan file ini sudah terbaca
 console.log("File konfigurasi Supabase berhasil dimuat.");
+
+// Validasi ringan agar file lain dapat memberi pesan konfigurasi yang jelas.
+(function () {
+  var cfg = window.KF_SUPABASE_CONFIG || {};
+  cfg.url = String(cfg.url || "").trim().replace(/\/+$/, "");
+  cfg.anonKey = String(cfg.anonKey || "").trim();
+  cfg.isValid =
+    /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(cfg.url) &&
+    cfg.anonKey.length >= 20 &&
+    !/service_role/i.test(cfg.anonKey);
+  window.KF_SUPABASE_CONFIG = cfg;
+  if (!cfg.isValid) {
+    console.error("[KlinikFisikapku] Konfigurasi Supabase belum valid.");
+  }
+})();

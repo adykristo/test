@@ -1179,7 +1179,7 @@
 
       async function koreksiDiServer(jawaban) {
         const hasil=document.getElementById("hasilJawab"),item=dataMateri[detailAktif];
-        if(!item||!item.id||!window.KFMemberAuth||!window.KFMemberAuth.cekJawaban)throw new Error("Koreksi aman belum tersedia. Jalankan ulang supabase-setup.sql terbaru.");
+        if(!item||!item.id||!window.KFMemberAuth||!window.KFMemberAuth.cekJawaban)throw new Error("Koreksi aman belum tersedia. Jalankan supabase-setup-final.sql terbaru.");
         hasil.innerHTML='<div class="result">Memeriksa jawaban secara aman…</div>';
         const r=await window.KFMemberAuth.cekJawaban(item.id,jawaban);
         const idVideo=ytId(r.youtube),box=document.getElementById("pembahasanBox");

@@ -1,7 +1,11 @@
 // supabase-admin.js — Admin Member Area KlinikFisikapku (Tahap Belajar 12 Bulan)
 (function () {
-  if (!window.KF_SUPABASE_CONFIG) {
-    console.error("Konfigurasi Supabase tidak ditemukan.");
+  if (!window.KF_SUPABASE_CONFIG || window.KF_SUPABASE_CONFIG.isValid === false) {
+    console.error("Konfigurasi Supabase tidak ditemukan atau tidak valid.");
+    return;
+  }
+  if (!window.supabase || typeof window.supabase.createClient !== "function") {
+    console.error("Supabase JS SDK belum dimuat.");
     return;
   }
 
@@ -36,6 +40,10 @@
 
     api: async function (action, payload) {
       payload = payload || {};
+      if (action !== "adminLogin") {
+        const allowed = await this.ensureAdmin();
+        if (!allowed) throw new Error("Sesi admin tidak valid.");
+      }
       switch (action) {
         case "adminLogin":
           return { ok: true };
@@ -170,10 +178,10 @@
           const { error: errPay } = await supabase.from("member_packages").upsert(
             {
               nama: "_PAYMENT_CONFIG_",
-              durasi_hari: 0,
+              durasi_hari: 1,
               harga: 0,
               deskripsi: deskripsi,
-              aktif: false
+              aktif: true
             },
             { onConflict: "nama" }
           );
@@ -208,6 +216,12 @@
 
         case "adminSimpanKonten": {
           const i = payload.item || {};
+          const stage = Number(i.learning_stage || 1);
+          if (!Number.isInteger(stage) || stage < 1 || stage > 12) {
+            throw new Error("Tahap belajar harus berupa angka 1 sampai 12.");
+          }
+          if (!String(i.jenjang || "").trim()) throw new Error("Jenjang wajib diisi.");
+          if (!String(i.judul || "").trim()) throw new Error("Judul konten wajib diisi.");
           const contentData = {
             pdfUrl: i.pdfUrl,
             youtube: i.youtube,
@@ -219,7 +233,7 @@
             tipe: i.tipe,
             statements: i.statements,
             category_labels: i.category_labels,
-            learning_stage: Number(i.learning_stage) || 1,
+            learning_stage: stage,
             paket: i.paket,
             tanggal: i.tanggal,
             catatan: i.catatan,
@@ -241,8 +255,14 @@
           };
           if (i.id) row.id = i.id;
 
-          const { error: errSimpanKonten } = await supabase.from("member_content").upsert(row);
-          if (errSimpanKonten) throw errSimpanKonten;
+          let result;
+          if (i.id) {
+            result = await supabase.from("member_content").update(row).eq("id", i.id);
+          } else {
+            delete row.id;
+            result = await supabase.from("member_content").insert(row);
+          }
+          if (result.error) throw result.error;
           return { ok: true };
         }
 
@@ -280,6 +300,58 @@
         default:
           throw new Error("Aksi admin tidak dikenali: " + action);
       }
+    }
+  };
+
+  window.KFLogoutAllAdminSessions = async function () {
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "global" });
+      if (error) throw error;
+      alert("Semua sesi admin telah dikeluarkan. Silakan login kembali.");
+      window.location.href = "../admin-dashboard-login.html";
+    } catch (err) {
+      alert("Gagal mengeluarkan semua sesi: " + (err && err.message ? err.message : err));
+    }
+  };
+
+  window.KFSetupMFAAdmin = async function () {
+    try {
+      const ok = await window.KFSupabaseAdmin.ensureAdmin();
+      if (!ok) return;
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const verified = (factors && factors.totp || []).find(function (f) { return f.status === "verified"; });
+      if (verified) {
+        alert("MFA Authenticator sudah aktif pada akun admin ini.");
+        return;
+      }
+      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "KlinikFisikapku Admin" });
+      if (error) throw error;
+      if (!data || !data.id || !data.totp) throw new Error("Data MFA tidak lengkap.");
+
+      const popup = window.open("", "kf_mfa_setup", "width=520,height=680");
+      if (popup) {
+        const qr = String(data.totp.qr_code || "").replace(/"/g, "&quot;");
+        const secret = String(data.totp.secret || "").replace(/[<>&]/g, "");
+        popup.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Setup MFA</title></head><body style="font-family:Arial;padding:24px;text-align:center"><h2>KlinikFisikapku · MFA Admin</h2><p>Scan QR ini dengan aplikasi Authenticator.</p><img alt="QR MFA" style="max-width:300px;width:100%" src="'+qr+'"><p>Jika QR tidak dapat dipindai, masukkan secret berikut:</p><code style="word-break:break-all">'+secret+'</code><p>Setelah itu kembali ke jendela Admin dan masukkan kode 6 digit.</p></body></html>');
+        popup.document.close();
+      } else {
+        alert("Izinkan pop-up untuk menampilkan QR MFA. Secret: " + data.totp.secret);
+      }
+      const code = prompt("Masukkan kode 6 digit dari aplikasi Authenticator:");
+      if (code === null) { await supabase.auth.mfa.unenroll({ factorId: data.id }); return; }
+      if (!/^\\d{6}$/.test(code.trim())) {
+        await supabase.auth.mfa.unenroll({ factorId: data.id });
+        throw new Error("Kode Authenticator harus 6 digit.");
+      }
+      const { error: verifyError } = await supabase.auth.mfa.challengeAndVerify({ factorId: data.id, code: code.trim() });
+      if (verifyError) {
+        await supabase.auth.mfa.unenroll({ factorId: data.id });
+        throw verifyError;
+      }
+      if (popup && !popup.closed) popup.close();
+      alert("MFA Authenticator berhasil diaktifkan.");
+    } catch (err) {
+      alert("Gagal mengaktifkan MFA: " + (err && err.message ? err.message : err));
     }
   };
 

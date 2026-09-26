@@ -1,7 +1,11 @@
 // supabase-auth.js — Member Area KlinikFisikapku (Tahap Belajar 12 Bulan)
 (function () {
-  if (!window.KF_SUPABASE_CONFIG) {
-    console.error("Konfigurasi Supabase tidak ditemukan.");
+  if (!window.KF_SUPABASE_CONFIG || window.KF_SUPABASE_CONFIG.isValid === false) {
+    console.error("Konfigurasi Supabase tidak ditemukan atau tidak valid.");
+    return;
+  }
+  if (!window.supabase || typeof window.supabase.createClient !== "function") {
+    console.error("Supabase JS SDK belum dimuat.");
     return;
   }
 
@@ -22,8 +26,8 @@
 
   window.api = async function (action, payload) {
     if (action === "daftar") {
-      const { error: authError } = await supabase.auth.signUp({
-        email: payload.email,
+      const { data: signUpData, error: authError } = await supabase.auth.signUp({
+        email: String(payload.email || "").trim().toLowerCase(),
         password: payload.password,
         options: {
           data: {
@@ -37,20 +41,24 @@
           }
         }
       });
-      if (authError) throw authError;
-      return { ok: true };
+      if (authError) throw new Error(authError.message || "Pendaftaran gagal.");
+      return {
+        ok: true,
+        user: signUpData && signUpData.user ? { id: signUpData.user.id, email: signUpData.user.email } : null,
+        needsEmailConfirmation: !(signUpData && signUpData.session)
+      };
     }
 
     if (action === "login") {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: payload.username || payload.email,
+        email: String(payload.username || payload.email || "").trim().toLowerCase(),
         password: payload.password
       });
       if (authError) throw new Error("Email atau password salah.");
 
       const { data: profile, error: profError } = await supabase
         .from("member_profiles")
-        .select("*")
+        .select("id,email,nama,username,kelas,wa,sekolah,jenjang,paket,status,berakhir,tahap_terbuka,created_at,updated_at")
         .eq("id", authData.user.id)
         .single();
 
@@ -125,8 +133,13 @@
       return data;
     },
 
-    simpanProgress: async function (contentId) {
-      await supabase.rpc("touch_member_content", { p_content_id: contentId });
+    simpanProgress: async function (contentId, state) {
+      if (!contentId) return { ok: false };
+      const { error } = await supabase.rpc("touch_member_content", { p_content_id: contentId });
+      if (error) throw error;
+      // Nilai selesai/skor tidak ditulis langsung dari browser.
+      // check_member_answer() di server yang menandai soal benar sebagai selesai.
+      return { ok: true, state: state || null };
     },
 
     setBookmark: async function (contentId, aktif) {
@@ -134,10 +147,15 @@
       const user = userData && userData.user;
       if (!user) return;
       if (aktif) {
-        await supabase.from("member_bookmarks").upsert({ user_id: user.id, content_id: contentId });
+        const { error } = await supabase.from("member_bookmarks")
+          .upsert({ user_id: user.id, content_id: contentId }, { onConflict: "user_id,content_id" });
+        if (error) throw error;
       } else {
-        await supabase.from("member_bookmarks").delete().match({ user_id: user.id, content_id: contentId });
+        const { error } = await supabase.from("member_bookmarks")
+          .delete().match({ user_id: user.id, content_id: contentId });
+        if (error) throw error;
       }
+      return { ok: true };
     }
   };
 
@@ -146,7 +164,7 @@
     if (sess.session && document.getElementById("dash")) {
       const { data: profile } = await supabase
         .from("member_profiles")
-        .select("*")
+        .select("id,email,nama,username,kelas,wa,sekolah,jenjang,paket,status,berakhir,tahap_terbuka,created_at,updated_at")
         .eq("id", sess.session.user.id)
         .single();
       if (profile && typeof masukPeserta === "function") {
