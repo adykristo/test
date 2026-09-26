@@ -536,7 +536,7 @@
           <h2>Daftar Akun</h2>
           <p class="auth-sub">Isi biodata dengan benar. Gunakan alamat Gmail aktif untuk verifikasi dan pemulihan akun.</p>
           <div class="field"><label for="nama">Nama Lengkap</label><input id="nama" autocomplete="name" required placeholder="Masukkan nama lengkap" /></div>
-          <div class="field"><label for="email">Email Google (Gmail)</label><input id="email" type="email" autocomplete="email" required pattern="^[^@\\s]+@gmail\\.com$" title="Gunakan alamat email @gmail.com" placeholder="nama@gmail.com" /></div>
+          <div class="field"><label for="email">Email Google (Gmail)</label><input id="email" type="email" autocomplete="email" required pattern="^[^@\s]+@gmail\.com$" title="Gunakan alamat email @gmail.com" placeholder="nama@gmail.com" /></div>
           <div class="field"><label for="sekolah">Asal Sekolah</label><input id="sekolah" autocomplete="organization" required maxlength="150" placeholder="Nama sekolah" /></div>
           <div class="field"><label for="kelas">Kelas</label><select id="kelas" required><option value="">Pilih kelas</option><option value="1">Kelas 1 SD</option><option value="2">Kelas 2 SD</option><option value="3">Kelas 3 SD</option><option value="4">Kelas 4 SD</option><option value="5">Kelas 5 SD</option><option value="6">Kelas 6 SD</option><option value="7">Kelas 7 SMP</option><option value="8">Kelas 8 SMP</option><option value="9">Kelas 9 SMP</option><option value="10">Kelas 10 SMA</option><option value="11">Kelas 11 SMA</option><option value="12">Kelas 12 SMA</option></select></div>
           <div class="field"><label for="usernameDaftar">Username</label><input id="usernameDaftar" autocomplete="username" required minlength="4" maxlength="30" pattern="[a-zA-Z0-9._]+" title="Gunakan huruf, angka, titik, atau garis bawah" placeholder="Contoh: adykristo" /></div>
@@ -760,6 +760,12 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
+      document.addEventListener("input", function (e) {
+        if (e.target && ["email","usernameDaftar","passwordKonfirmasi"].includes(e.target.id)) {
+          e.target.setCustomValidity("");
+        }
+      });
+
       async function daftar(e) {
         e.preventDefault();
         const form = e.target;
@@ -767,6 +773,25 @@
           emailDaftar = email.value.trim().toLowerCase(),
           nomorKelas = kelas.value,
           jenjang = Number(nomorKelas) <= 6 ? "sd" : Number(nomorKelas) <= 9 ? "smp" : "sma";
+        const emailGmailValid = /^[^\s@]+@gmail\.com$/i.test(emailDaftar);
+        if (!emailGmailValid) {
+          email.setCustomValidity("Gunakan alamat Gmail yang valid, contoh: nama@gmail.com");
+          email.reportValidity();
+          return;
+        }
+        email.setCustomValidity("");
+        if (!/^[a-zA-Z0-9._]{4,30}$/.test(username)) {
+          usernameDaftar.setCustomValidity("Username 4-30 karakter: huruf, angka, titik, atau garis bawah. Jangan gunakan alamat email.");
+          usernameDaftar.reportValidity();
+          return;
+        }
+        usernameDaftar.setCustomValidity("");
+        if (passwordDaftar.value !== passwordKonfirmasi.value) {
+          passwordKonfirmasi.setCustomValidity("Konfirmasi password harus sama dengan password.");
+          passwordKonfirmasi.reportValidity();
+          return;
+        }
+        passwordKonfirmasi.setCustomValidity("");
         setTombol(form, "Mengirim…");
         try {
           await api("daftar", {
