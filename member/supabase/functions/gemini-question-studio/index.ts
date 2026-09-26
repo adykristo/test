@@ -104,21 +104,35 @@ function extractParams(body: Record<string, unknown>) {
 }
 
 async function authorizeAdmin(authHeader: string) {
-  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  const accessToken = match?.[1]?.trim() || "";
+  if (!accessToken) {
+    throw new Error("Sesi Admin Member tidak ditemukan. Silakan login ulang.");
+  }
+
   const admin: SupabaseClient = createClient(SUPABASE_URL, SERVICE_ROLE, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const { data: userData, error: userError } = await userClient.auth.getUser();
-  if (userError || !userData.user) throw new Error("Sesi admin tidak valid.");
+  // Verifikasi access token user secara eksplisit.
+  const { data: userData, error: userError } =
+    await admin.auth.getUser(accessToken);
+
+  if (userError || !userData.user) {
+    console.error("Admin auth gagal:", userError?.message || "user tidak ditemukan");
+    throw new Error("Sesi Admin Member tidak valid atau sudah kedaluwarsa. Silakan login ulang.");
+  }
+
   const userId = userData.user.id;
+  const userEmail = String(userData.user.email || "").toLowerCase();
   const since = new Date(Date.now() - 3_600_000).toISOString();
 
   const [roleRes, usageRes] = await Promise.all([
-    admin.from("member_admins").select("user_id, active").eq("user_id", userId).maybeSingle(),
+    admin
+      .from("member_admins")
+      .select("user_id, role, display_name, active")
+      .eq("user_id", userId)
+      .maybeSingle(),
     admin
       .from("member_ai_usage")
       .select("id", { count: "exact", head: true })
@@ -126,12 +140,36 @@ async function authorizeAdmin(authHeader: string) {
       .gte("created_at", since),
   ]);
 
-  if (!roleRes.data || roleRes.data.active === false) {
+  if (roleRes.error) {
+    console.error("Gagal membaca member_admins:", roleRes.error.message);
+    throw new Error("Gagal memverifikasi hak Admin Member.");
+  }
+
+  const adminRow = roleRes.data;
+  if (!adminRow || adminRow.active !== true) {
+    console.error("Admin Member ditolak:", {
+      userId,
+      email: userEmail,
+      adminFound: !!adminRow,
+      active: adminRow?.active ?? null,
+    });
     throw new Error("Akun tidak memiliki hak Admin Member.");
   }
+
+  if (!["admin", "super_admin"].includes(String(adminRow.role || ""))) {
+    console.error("Role Admin Member tidak diizinkan:", adminRow.role);
+    throw new Error("Role akun tidak diizinkan menggunakan Studio AI.");
+  }
+
+  if (usageRes.error) {
+    console.error("Gagal membaca member_ai_usage:", usageRes.error.message);
+    throw new Error("Gagal memeriksa batas penggunaan AI.");
+  }
+
   if ((usageRes.count || 0) >= 40) {
     throw new Error("Batas 40 permintaan AI per jam tercapai. Coba kembali nanti.");
   }
+
   return { admin, userId };
 }
 
@@ -275,7 +313,13 @@ Deno.serve(async (req) => {
     const message = error instanceof Error ? error.message : String(error);
     console.error("gemini-question-studio", message);
     try {
-      return json(req, { ok: false, error: message }, 400);
+      const lower = message.toLowerCase();
+      const status =
+        lower.includes("sesi admin") ? 401 :
+        lower.includes("hak admin") || lower.includes("role akun") ? 403 :
+        lower.includes("batas 40") ? 429 :
+        400;
+      return json(req, { ok: false, error: message }, status);
     } catch {
       return new Response('{"ok":false,"error":"Permintaan ditolak"}', {
         status: 403,
