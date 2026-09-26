@@ -480,7 +480,7 @@
           grid-template-columns: 1fr;
         }
       }
-    </style>
+    .draft-explanation{margin-top:14px;padding:14px 16px;border-radius:14px;background:#f8fafc;border:1px solid #e2e8f0;line-height:1.7}.draft-explanation-title{font-weight:800;margin-bottom:8px;color:#4c1d95}.draft-explanation-body{overflow-wrap:anywhere}.draft-explanation-body mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;padding:6px 0}</style>
   </head>
   <body>
     <header class="top">
@@ -488,7 +488,7 @@
         <b>KlinikFisikapku</b><small>Admin Member Area</small>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn ghost" onclick="location.href='./index.html'">← Member Area</button>
+        <button class="btn ghost" onclick="location.href='../admin-dashboard-login.html'">← Admin Utama</button>
         <button class="btn ghost" onclick="KFLogoutAdminMember()">Keluar Member</button>
       </div>
     </header>
@@ -1039,7 +1039,7 @@
                 <li><code>member/admin.html</code></li>
               </ol>
               <p>URL harus berakhir dengan <code>/exec</code>. Jangan memasukkan password admin atau API key ke file HTML publik.</p>
-              <button class="btn" onclick="location.href='./index.html'">Kembali ke Member Area</button>
+              <button class="btn" onclick="location.href='../admin-dashboard-login.html'">Kembali ke Admin Utama</button>
             </div>
           </main>`;
       }
@@ -1500,15 +1500,20 @@
       function bersihkanSvg(svg){const doc=new DOMParser().parseFromString(String(svg||""),"image/svg+xml");if(doc.querySelector("parsererror")||!doc.documentElement||doc.documentElement.localName!=="svg")return "";doc.querySelectorAll("script,foreignObject,iframe,object,embed").forEach(x=>x.remove());doc.querySelectorAll("*").forEach(el=>[...el.attributes].forEach(a=>{if(/^on/i.test(a.name)||/^(?:javascript:|https?:)/i.test(a.value.trim()))el.removeAttribute(a.name);}));return new XMLSerializer().serializeToString(doc.documentElement);}
       function normalisasiSoal(x,i){
         const tipe=String(x.tipe||"pg4").toLowerCase(),opsi=Array.isArray(x.opsi)?x.opsi:(x.pilihan?Object.values(x.pilihan):[]),labels=x.category_labels||x.kategori||["Benar","Salah"];
-        let kunci=x.kunci??x.jawaban_benar??"";if((tipe==="pg4"||tipe==="pg5")&&typeof kunci==="string")kunci=Math.max(0,"ABCDE".indexOf(kunci.trim().charAt(0).toUpperCase()));
+        let kunci=x.kunci??x.jawaban_benar??"";if((tipe==="pg4"||tipe==="pg5")&&typeof kunci==="string"){const raw=kunci.trim().toUpperCase();if(/^[A-E]$/.test(raw))kunci="ABCDE".indexOf(raw);else if(/^\d+$/.test(raw))kunci=Number(raw);}
         if(tipe==="mcma"&&!Array.isArray(kunci))kunci=String(kunci).split(/[,;\s]+/).filter(Boolean).map(v=>Math.max(0,"ABCDE".indexOf(v.charAt(0).toUpperCase())));
         const svg=bersihkanSvg(x.diagram_svg),gambar=x.gambar||(svg?"data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(svg))):"");
         return {...x,no:i+1,tipe,soal:String(x.soal||x.pertanyaan||"").trim(),opsi:opsi.map(String),kunci,pembahasan:String(x.pembahasan||"").trim(),statements:x.statements||x.pernyataan||[],category_labels:labels,gambar,peringatan:x.peringatan||x.warnings||[]};
       }
+      function formatPembahasanAI(text){
+        let s=escMember(String(text||""));
+        s=s.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>");
+        return s.replace(/\r?\n/g,"<br>");
+      }
       function tampilkanDraf(mode,list,targetId,meta){QUESTION_DRAFTS[mode]=(list||[]).map(normalisasiSoal).filter(x=>x.soal);QUESTION_META[mode]=meta||{};renderDraf(mode,targetId);}
       function renderDraf(mode,targetId){
         const list=QUESTION_DRAFTS[mode],box=document.getElementById(targetId||QUESTION_META[mode].targetId);if(!box)return;QUESTION_META[mode].targetId=box.id;box.style.display="block";
-        box.innerHTML=`<b>${list.length} draf siap ditinjau</b><div class="draft-list">`+list.map((x,i)=>{const image=safeAdminImage(x.gambar);return `<div class="draft-card"><div class="draft-head"><b>Soal ${i+1} · ${escMember(x.tipe.toUpperCase())}</b><div><button class="btn ghost small" onclick="editDrafSoal('${mode}',${i})">Ubah</button> <button class="btn danger small" onclick="hapusDrafSoal('${mode}',${i})">Hapus</button></div></div><div class="draft-question">${escMember(x.soal)}</div>${image?`<img src="${escMember(image)}" style="max-width:220px;max-height:150px">`:""}${x.opsi.length?`<ol class="draft-options" type="A">${x.opsi.map(o=>`<li>${escMember(o)}</li>`).join("")}</ol>`:""}<small><b>Kunci:</b> ${escMember(Array.isArray(x.kunci)?x.kunci.map(k=>"ABCDE"[k]||k).join(", "):String(x.kunci))}</small>${(x.peringatan||[]).length?`<div class="draft-warning">⚠ ${escMember(x.peringatan.join(" · "))}</div>`:""}</div>`;}).join("")+`</div><div class="studio-actions"><button class="btn btn-ai" onclick="simpanSemuaDraf('${mode}')">✓ Simpan semua draf</button><button class="btn btn-soft" onclick="QUESTION_DRAFTS['${mode}']=[];renderDraf('${mode}','${box.id}')">Hapus draf</button></div>`;
+        box.innerHTML=`<b>${list.length} draf siap ditinjau</b><div class="draft-list">`+list.map((x,i)=>{const image=safeAdminImage(x.gambar);return `<div class="draft-card"><div class="draft-head"><b>Soal ${i+1} · ${escMember(x.tipe.toUpperCase())}</b><div><button class="btn ghost small" onclick="editDrafSoal('${mode}',${i})">Ubah</button> <button class="btn danger small" onclick="hapusDrafSoal('${mode}',${i})">Hapus</button></div></div><div class="draft-question">${escMember(x.soal)}</div>${image?`<img src="${escMember(image)}" style="max-width:220px;max-height:150px">`:""}${x.opsi.length?`<ol class="draft-options" type="A">${x.opsi.map(o=>`<li>${escMember(o)}</li>`).join("")}</ol>`:""}<small><b>Kunci:</b> ${escMember(Array.isArray(x.kunci)?x.kunci.map(k=>"ABCDE"[k]??k).join(", "):((x.tipe==="pg4"||x.tipe==="pg5")?("ABCDE"[Number(x.kunci)]??String(x.kunci)):String(x.kunci)))}</small>${x.pembahasan?`<div class="draft-explanation"><div class="draft-explanation-title">Pembahasan</div><div class="draft-explanation-body">${formatPembahasanAI(x.pembahasan)}</div></div>`:""}${(x.peringatan||[]).length?`<div class="draft-warning">⚠ ${escMember(x.peringatan.join(" · "))}</div>`:""}</div>`;}).join("")+`</div><div class="studio-actions"><button class="btn btn-ai" onclick="simpanSemuaDraf('${mode}')">✓ Simpan semua draf</button><button class="btn btn-soft" onclick="QUESTION_DRAFTS['${mode}']=[];renderDraf('${mode}','${box.id}')">Hapus draf</button></div>`;
         if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([box]).catch(()=>{});
       }
       function editDrafSoal(mode,i){const x=QUESTION_DRAFTS[mode][i];if(!x)return;const soal=prompt("Teks soal:",x.soal);if(soal===null)return;x.soal=soal.trim();if(x.opsi.length){for(let n=0;n<x.opsi.length;n++){const o=prompt("Opsi "+"ABCDE"[n]+":",x.opsi[n]);if(o===null)return;x.opsi[n]=o.trim();}}const k=prompt("Kunci jawaban:",Array.isArray(x.kunci)?x.kunci.map(v=>"ABCDE"[v]||v).join(","):String(x.kunci));if(k===null)return;x.kunci=x.tipe==="mcma"?k.split(/[,;\s]+/).map(v=>Math.max(0,"ABCDE".indexOf(v.charAt(0).toUpperCase()))):x.tipe.startsWith("pg")?Math.max(0,"ABCDE".indexOf(k.charAt(0).toUpperCase())):k;const b=prompt("Pembahasan:",x.pembahasan||"");if(b!==null)x.pembahasan=b.trim();renderDraf(mode);}
