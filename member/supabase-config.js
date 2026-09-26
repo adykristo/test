@@ -4,12 +4,12 @@
 window.KF_SUPABASE_CONFIG = {
   // 1. Project URL (Salin dari Dashboard Supabase -> Project Settings -> API)
   // Contoh format: "https://abcdefghijklmnopqrst.supabase.co"
-  url: "https://spxprgwkpjkusnoviofi.supabase.co", 
+  url: "https://eltwrqarkdmmtlmstlyy.supabase.co", 
 
   // 2. Project API Key - anon/public (Salin dari Dashboard Supabase -> Project Settings -> API)
   // PENTING: Gunakan kunci berlabel 'anon' atau 'public'. JANGAN gunakan 'service_role'.
   // Contoh format: "eyJhbGciOiJIUzI1NiIsIn..."
-  anonKey: "sb_publishable_LYLDlwmx-joblC8ls6dB0w_XpZyP4gt",
+  anonKey: "sb_publishable_zrBqVutwHsAAWYnSyPcG_g_g-Eln54c",
 
   // 3. Mode Lingkungan (Biarkan false saat sudah diluncurkan ke siswa)
   demoMode: false,
