@@ -17,39 +17,110 @@
   window.KFSupabaseAdmin = {
     configured: true,
 
-    ensureAdmin: async function () {
-      let { data: { session } } = await supabase.auth.getSession();
+    currentRole: null,
 
-      // Admin Member memakai Supabase Auth sendiri. Jangan pernah melempar
-      // pengguna ke login Admin Tryout lama. Jika belum ada sesi, login di sini.
-      if (!session) {
-        const email = prompt("Email Super Admin Member:", "adykristo@gmail.com");
-        if (email === null) return false;
-        const password = prompt("Password Super Admin Member:");
-        if (password === null) return false;
+    showAdminLogin: function () {
+      return new Promise(function (resolve) {
+        var old = document.getElementById("kfAdminLoginOverlay");
+        if (old) old.remove();
 
-        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password
+        var overlay = document.createElement("div");
+        overlay.id = "kfAdminLoginOverlay";
+        overlay.innerHTML = `
+          <div style="position:fixed;inset:0;z-index:99999;background:rgba(24,7,38,.68);display:flex;align-items:center;justify-content:center;padding:20px">
+            <form id="kfAdminLoginForm" style="width:min(430px,100%);background:#fff;border-radius:20px;padding:28px;box-shadow:0 28px 80px rgba(0,0,0,.30);font-family:inherit">
+              <div style="font-size:12px;font-weight:900;letter-spacing:.06em;color:#8b5aa8;margin-bottom:5px">KLINIKFISIKAPKU</div>
+              <h2 style="margin:0 0 7px;color:#210a35">Login Admin Member</h2>
+              <p style="margin:0 0 20px;color:#755f82;font-size:14px">Masuk dengan akun Super Admin atau Admin Konten.</p>
+              <label style="display:block;font-weight:800;font-size:13px;margin-bottom:6px">Email</label>
+              <input id="kfAdminEmail" type="email" autocomplete="username" required placeholder="nama@gmail.com" style="box-sizing:border-box;width:100%;padding:12px;border:1px solid #ddcbed;border-radius:10px;margin-bottom:14px;font:inherit">
+              <label style="display:block;font-weight:800;font-size:13px;margin-bottom:6px">Password</label>
+              <input id="kfAdminPassword" type="password" autocomplete="current-password" required placeholder="Password" style="box-sizing:border-box;width:100%;padding:12px;border:1px solid #ddcbed;border-radius:10px;margin-bottom:10px;font:inherit">
+              <div id="kfAdminLoginError" style="display:none;background:#fff1ed;color:#a9341d;padding:10px;border-radius:9px;font-size:13px;margin:8px 0 12px"></div>
+              <button id="kfAdminLoginButton" type="submit" style="width:100%;border:0;border-radius:10px;padding:12px;background:linear-gradient(90deg,#7b2ff7,#f857a6);color:#fff;font-weight:900;cursor:pointer">Masuk</button>
+            </form>
+          </div>`;
+        document.body.appendChild(overlay);
+
+        var form = overlay.querySelector("#kfAdminLoginForm");
+        var emailEl = overlay.querySelector("#kfAdminEmail");
+        var passEl = overlay.querySelector("#kfAdminPassword");
+        var errorEl = overlay.querySelector("#kfAdminLoginError");
+        var button = overlay.querySelector("#kfAdminLoginButton");
+        setTimeout(function () { emailEl.focus(); }, 50);
+
+        form.addEventListener("submit", async function (ev) {
+          ev.preventDefault();
+          errorEl.style.display = "none";
+          button.disabled = true;
+          button.textContent = "Memeriksa…";
+          try {
+            var result = await supabase.auth.signInWithPassword({
+              email: emailEl.value.trim(),
+              password: passEl.value
+            });
+            if (result.error || !result.data || !result.data.session) {
+              throw new Error(result.error && result.error.message ? result.error.message : "Login gagal.");
+            }
+            overlay.remove();
+            resolve(result.data.session);
+          } catch (err) {
+            errorEl.textContent = "Login gagal: " + (err && err.message ? err.message : String(err));
+            errorEl.style.display = "block";
+            button.disabled = false;
+            button.textContent = "Masuk";
+          }
         });
-        if (loginError || !loginData || !loginData.session) {
-          alert("Login Admin Member gagal: " + (loginError && loginError.message ? loginError.message : "Sesi tidak terbentuk."));
-          return false;
-        }
-        session = loginData.session;
-      }
+      });
+    },
 
-      const { data, error } = await supabase
+    applyRoleUI: function (role) {
+      document.documentElement.setAttribute("data-admin-role", role || "");
+      if (role !== "content_admin") return;
+
+      var blocked = ["ringkasan", "pendaftaran", "member", "paket", "transaksi", "laporan", "keamanan", "kelolaAdmin"];
+      document.querySelectorAll("aside button").forEach(function (btn) {
+        var click = btn.getAttribute("onclick") || "";
+        if (blocked.some(function (id) { return click.indexOf("'" + id + "'") !== -1 || click.indexOf('"' + id + '"') !== -1; })) {
+          btn.style.display = "none";
+        }
+      });
+
+      document.querySelectorAll("header button").forEach(function (btn) {
+        var click = btn.getAttribute("onclick") || "";
+        if (click.indexOf("admin-dashboard-login.html") !== -1) btn.style.display = "none";
+      });
+
+      document.querySelectorAll(".panel").forEach(function (panel) { panel.classList.remove("show"); });
+      document.querySelectorAll("aside button").forEach(function (btn) { btn.classList.remove("active"); });
+      var first = Array.from(document.querySelectorAll("aside button")).find(function (btn) {
+        var click = btn.getAttribute("onclick") || "";
+        return btn.style.display !== "none" && (click.indexOf("'modul'") !== -1 || click.indexOf('"modul"') !== -1);
+      });
+      if (first) first.click();
+    },
+
+    ensureAdmin: async function () {
+      var sessionResult = await supabase.auth.getSession();
+      var session = sessionResult.data.session;
+      if (!session) session = await this.showAdminLogin();
+      if (!session) return false;
+
+      var roleResult = await supabase
         .from("member_admins")
         .select("role,active")
         .eq("user_id", session.user.id)
         .maybeSingle();
 
-      if (error || !data || data.role !== "super_admin" || data.active !== true) {
+      var data = roleResult.data;
+      if (roleResult.error || !data || data.active !== true || !["super_admin", "content_admin"].includes(data.role)) {
         await supabase.auth.signOut();
-        alert("Akses ditolak: akun ini bukan Super Admin Member yang aktif. Silakan login dengan akun Super Admin Member.");
+        alert("Akses ditolak: akun ini bukan Admin Member yang aktif.");
         return false;
       }
+
+      this.currentRole = data.role;
+      this.applyRoleUI(data.role);
       return true;
     },
 

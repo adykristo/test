@@ -1,199 +1,464 @@
-/**
- * admin-user-management — optimasi performa
- * - import npm native
- * - env/CORS di-cache
- * - list admin: getUserById paralel (Promise.all)
- * - client tanpa persist session
- */
-import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+// KlinikFisikapku - admin-user-management
+// Supabase Edge Function
+// Kompatibel dengan frontend yang mengirim:
+// { action: "adminCreateAdmin", payload: {...} }
+// maupun { action: "adminCreateAdmin", display_name: ..., ... }
 
-const ALLOWED = (Deno.env.get("ALLOWED_ORIGINS") || "")
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+const SUPABASE_SERVICE_ROLE_KEY =
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+const ALLOWED_ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") ??
+  "https://klinikfisikapku.com")
   .split(",")
   .map((x) => x.trim())
   .filter(Boolean);
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+function cors(origin: string | null) {
+  const allowed =
+    origin && ALLOWED_ORIGINS.includes(origin)
+      ? origin
+      : ALLOWED_ORIGINS[0] ?? "https://klinikfisikapku.com";
 
-function cors(req: Request): Record<string, string> {
-  const origin = req.headers.get("origin") || "";
-  if (ALLOWED.length && origin && !ALLOWED.includes(origin)) {
-    throw new Error("Origin tidak diizinkan");
-  }
   return {
-    "Access-Control-Allow-Origin": origin || ALLOWED[0] || "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    Vary: "Origin",
+    "Vary": "Origin",
   };
 }
 
-const reply = (req: Request, body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
+function reply(
+  body: Record<string, unknown>,
+  status: number,
+  origin: string | null,
+) {
+  return new Response(JSON.stringify(body), {
     status,
     headers: {
-      ...cors(req),
-      "Content-Type": "application/json",
-      "Cache-Control": "no-store",
+      ...cors(origin),
+      "Content-Type": "application/json; charset=utf-8",
     },
   });
+}
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get("origin");
+
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: cors(origin) });
+  }
+
+  if (req.method !== "POST") {
+    return reply({ ok: false, error: "Method tidak diizinkan." }, 405, origin);
+  }
+
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    return reply({ ok: false, error: "Origin tidak diizinkan." }, 403, origin);
+  }
+
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
+    return reply(
+      { ok: false, error: "Konfigurasi Edge Function belum lengkap." },
+      500,
+      origin,
+    );
+  }
+
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+
+  if (!token) {
+    return reply(
+      { ok: false, error: "Sesi Super Admin tidak ditemukan." },
+      401,
+      origin,
+    );
+  }
+
+  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const serviceClient = createClient(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+
   try {
-    if (req.method === "OPTIONS") {
-      return new Response("ok", { headers: cors(req) });
+    // Validasi JWT.
+    const { data: authData, error: authError } =
+      await userClient.auth.getUser(token);
+
+    if (authError || !authData.user) {
+      return reply(
+        { ok: false, error: "Sesi admin tidak valid atau kedaluwarsa." },
+        401,
+        origin,
+      );
     }
-    if (req.method !== "POST") {
-      return reply(req, { ok: false, error: "Metode tidak diizinkan" }, 405);
-    }
 
-    const auth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: req.headers.get("Authorization") || "" } },
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-
-    const {
-      data: { user },
-      error: userError,
-    } = await auth.auth.getUser();
-    if (userError || !user) throw new Error("Sesi admin tidak valid");
-
-    const { data: owner } = await admin
+    // Validasi Super Admin menggunakan service client agar pengecekan ini
+    // tidak bergantung pada policy SELECT browser.
+    const { data: caller, error: callerError } = await serviceClient
       .from("member_admins")
-      .select("role, active")
-      .eq("user_id", user.id)
+      .select("user_id,role,active")
+      .eq("user_id", authData.user.id)
       .maybeSingle();
-    if (!owner || !owner.active || owner.role !== "super_admin") {
-      throw new Error("Hanya Admin Utama yang dapat mengelola admin");
+
+    if (
+      callerError ||
+      !caller ||
+      caller.role !== "super_admin" ||
+      caller.active !== true
+    ) {
+      return reply(
+        {
+          ok: false,
+          error: "Hanya Super Admin aktif yang dapat mengelola admin.",
+        },
+        403,
+        origin,
+      );
     }
 
-    const body = await req.json();
-    const action = String(body.action || "");
+    let raw: Record<string, unknown>;
+    try {
+      raw = await req.json();
+    } catch {
+      return reply({ ok: false, error: "Body JSON tidak valid." }, 400, origin);
+    }
 
-    if (action === "list") {
-      const { data: rows, error } = await admin
+    // Frontend KlinikFisikapku dapat membungkus data di "payload".
+    const nested =
+      raw.payload && typeof raw.payload === "object" && !Array.isArray(raw.payload)
+        ? (raw.payload as Record<string, unknown>)
+        : {};
+
+    // Nilai nested dan top-level sama-sama diterima.
+    const input: Record<string, unknown> = { ...nested, ...raw };
+
+    const actionRaw = String(raw.action ?? input.action ?? "adminCreateAdmin");
+    const action = actionRaw.trim().toLowerCase();
+
+    // ------------------------------------------------------------
+    // LIST ADMIN
+    // ------------------------------------------------------------
+    if (
+      ["adminlistadmins", "list", "list_admins", "list-admins"].includes(action)
+    ) {
+      const { data: rows, error } = await serviceClient
         .from("member_admins")
-        .select("user_id, role, display_name, active, created_at")
-        .order("created_at");
+        .select("user_id,display_name,role,active,created_at")
+        .order("created_at", { ascending: true });
+
       if (error) throw error;
 
-      // Parallel lookup — jauh lebih cepat dari loop serial
-      const users = await Promise.all(
-        (rows || []).map(async (row) => {
-          try {
-            const { data: u } = await admin.auth.admin.getUserById(row.user_id);
-            return { ...row, email: u?.user?.email || "" };
-          } catch {
-            return { ...row, email: "" };
-          }
-        }),
+      const usersResult = await serviceClient.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
+      });
+
+      if (usersResult.error) throw usersResult.error;
+
+      const emailMap = new Map(
+        (usersResult.data.users ?? []).map((u) => [u.id, u.email ?? ""]),
       );
-      return reply(req, { ok: true, data: users });
-    }
 
-    if (action === "create") {
-      const email = String(body.email || "").trim().toLowerCase();
-      const name = String(body.display_name || "").trim();
-      const password = String(body.password || "");
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        throw new Error("Email admin tidak valid");
-      }
-      if (name.length < 2 || name.length > 100) {
-        throw new Error("Nama admin harus 2–100 karakter");
-      }
-      if (password.length < 10) {
-        throw new Error("Password sementara minimal 10 karakter");
-      }
-
-      const created = await admin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: { nama: name, admin_role: "content_admin" },
-      });
-      if (created.error) throw created.error;
-
-      const id = created.data.user!.id;
-      const { error } = await admin.from("member_admins").insert({
-        user_id: id,
-        role: "content_admin",
-        display_name: name,
-        active: true,
-      });
-      if (error) {
-        await admin.auth.admin.deleteUser(id);
-        throw error;
-      }
-
-      // Cleanup profil siswa + log — paralel
-      await Promise.all([
-        admin.from("member_profiles").delete().eq("id", id),
-        admin.from("member_admin_logs").insert({
-          admin_id: user.id,
-          aksi: "tambah_admin_konten",
-          target_type: "admin",
-          target_id: id,
-          detail: { email, display_name: name },
-        }),
-      ]);
-
-      return reply(req, {
-        ok: true,
-        data: {
-          user_id: id,
-          email,
-          display_name: name,
-          role: "content_admin",
-          active: true,
+      return reply(
+        {
+          ok: true,
+          data: (rows ?? []).map((r) => ({
+            ...r,
+            email: emailMap.get(r.user_id) ?? "",
+          })),
         },
-      });
+        200,
+        origin,
+      );
     }
 
-    if (action === "set_active") {
-      const id = String(body.user_id || "");
-      const active = body.active === true;
-      if (id === user.id) {
-        throw new Error("Admin Utama tidak dapat menonaktifkan dirinya sendiri");
+    // ------------------------------------------------------------
+    // CREATE ADMIN KONTEN
+    // ------------------------------------------------------------
+    if (
+      [
+        "admincreateadmin",
+        "admincreatecontentadmin",
+        "create",
+        "create_admin",
+        "create-admin",
+      ].includes(action)
+    ) {
+      const displayName = String(
+        input.display_name ??
+          input.displayName ??
+          input.name ??
+          "",
+      ).trim();
+
+      const email = String(input.email ?? "").trim().toLowerCase();
+      const password = String(
+        input.password ??
+          input.initial_password ??
+          input.initialPassword ??
+          "",
+      );
+
+      if (displayName.length < 2 || displayName.length > 100) {
+        return reply(
+          { ok: false, error: "Nama admin harus 2-100 karakter." },
+          400,
+          origin,
+        );
       }
-      const { data: target, error: findError } = await admin
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return reply(
+          { ok: false, error: "Email admin tidak valid." },
+          400,
+          origin,
+        );
+      }
+
+      if (password.length < 8) {
+        return reply(
+          { ok: false, error: "Password awal minimal 8 karakter." },
+          400,
+          origin,
+        );
+      }
+
+      // UI ini hanya boleh membuat Admin Konten.
+      const role = "content_admin";
+
+      const { data: created, error: createError } =
+        await serviceClient.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: {
+            display_name: displayName,
+            source: "klinikfisikapku_admin",
+          },
+        });
+
+      if (createError || !created.user) {
+        return reply(
+          {
+            ok: false,
+            error: createError?.message ?? "Akun Auth admin gagal dibuat.",
+          },
+          400,
+          origin,
+        );
+      }
+
+      const newUserId = created.user.id;
+
+      // RPC dijalankan dengan JWT Super Admin agar auth.uid() tetap benar.
+      const { error: profileError } = await userClient.rpc(
+        "admin_upsert_admin_profile",
+        {
+          p_user_id: newUserId,
+          p_display_name: displayName,
+          p_role: role,
+          p_active: true,
+        },
+      );
+
+      if (profileError) {
+        const { error: rollbackError } =
+          await serviceClient.auth.admin.deleteUser(newUserId);
+
+        return reply(
+          {
+            ok: false,
+            error:
+              "Akun Auth dibatalkan karena profil admin gagal dibuat: " +
+              profileError.message +
+              (rollbackError
+                ? ". Rollback Auth gagal: " + rollbackError.message
+                : ""),
+          },
+          500,
+          origin,
+        );
+      }
+
+      return reply(
+        {
+          ok: true,
+          message: "Admin Konten berhasil dibuat.",
+          data: {
+            user_id: newUserId,
+            email,
+            display_name: displayName,
+            role,
+            active: true,
+          },
+        },
+        200,
+        origin,
+      );
+    }
+
+    // ------------------------------------------------------------
+    // AKTIFKAN / NONAKTIFKAN ADMIN KONTEN
+    // ------------------------------------------------------------
+    if (
+      ["adminsetadminactive", "set_active", "set-active"].includes(action)
+    ) {
+      const userId = String(input.user_id ?? input.userId ?? "").trim();
+      const active =
+        input.active === true ||
+        String(input.active ?? "").toLowerCase() === "true";
+
+      if (!userId) {
+        return reply(
+          { ok: false, error: "User ID admin tidak ditemukan." },
+          400,
+          origin,
+        );
+      }
+
+      const { data: target, error: targetError } = await serviceClient
         .from("member_admins")
         .select("role")
-        .eq("user_id", id)
-        .single();
-      if (findError) throw findError;
-      if (target.role !== "content_admin") {
-        throw new Error("Hanya Admin Konten yang dapat diubah");
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (targetError) throw targetError;
+      if (!target) {
+        return reply(
+          { ok: false, error: "Admin tidak ditemukan." },
+          404,
+          origin,
+        );
+      }
+      if (target.role === "super_admin") {
+        return reply(
+          { ok: false, error: "Super Admin utama dilindungi." },
+          403,
+          origin,
+        );
       }
 
-      const [{ error }] = await Promise.all([
-        admin.from("member_admins").update({ active }).eq("user_id", id),
-        admin.from("member_admin_logs").insert({
-          admin_id: user.id,
-          aksi: active ? "aktifkan_admin_konten" : "nonaktifkan_admin_konten",
-          target_type: "admin",
-          target_id: id,
-          detail: {},
-        }),
-      ]);
+      const { error } = await serviceClient
+        .from("member_admins")
+        .update({ active, updated_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("role", "content_admin");
+
       if (error) throw error;
-      return reply(req, { ok: true });
+
+      return reply(
+        {
+          ok: true,
+          message: active
+            ? "Admin Konten berhasil diaktifkan."
+            : "Admin Konten berhasil dinonaktifkan.",
+        },
+        200,
+        origin,
+      );
     }
 
-    throw new Error("Aksi tidak dikenali");
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error("admin-user-management", message);
-    try {
-      return reply(req, { ok: false, error: message }, 400);
-    } catch {
-      return new Response('{"ok":false,"error":"Permintaan ditolak"}', {
-        status: 403,
-        headers: { "Content-Type": "application/json" },
-      });
+    // ------------------------------------------------------------
+    // HAPUS ADMIN KONTEN + AKUN AUTH
+    // ------------------------------------------------------------
+    if (
+      ["admindeleteadmin", "delete", "delete_admin", "delete-admin"].includes(
+        action,
+      )
+    ) {
+      const userId = String(input.user_id ?? input.userId ?? "").trim();
+
+      if (!userId) {
+        return reply(
+          { ok: false, error: "User ID admin tidak ditemukan." },
+          400,
+          origin,
+        );
+      }
+
+      const { data: target, error: targetError } = await serviceClient
+        .from("member_admins")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (targetError) throw targetError;
+      if (!target) {
+        return reply(
+          { ok: false, error: "Admin tidak ditemukan." },
+          404,
+          origin,
+        );
+      }
+      if (target.role === "super_admin") {
+        return reply(
+          { ok: false, error: "Super Admin utama tidak boleh dihapus." },
+          403,
+          origin,
+        );
+      }
+
+      // Hapus profil terlebih dahulu, lalu akun Auth.
+      const { error: profileDeleteError } = await serviceClient
+        .from("member_admins")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", "content_admin");
+
+      if (profileDeleteError) throw profileDeleteError;
+
+      const { error: authDeleteError } =
+        await serviceClient.auth.admin.deleteUser(userId);
+
+      if (authDeleteError) {
+        return reply(
+          {
+            ok: false,
+            error:
+              "Profil admin sudah dihapus, tetapi akun Auth gagal dihapus: " +
+              authDeleteError.message,
+          },
+          500,
+          origin,
+        );
+      }
+
+      return reply(
+        { ok: true, message: "Admin Konten berhasil dihapus." },
+        200,
+        origin,
+      );
     }
+
+    return reply(
+      { ok: false, error: `Aksi admin tidak dikenali: ${actionRaw}` },
+      400,
+      origin,
+    );
+  } catch (err) {
+    console.error("admin-user-management:", err);
+    return reply(
+      {
+        ok: false,
+        error:
+          err instanceof Error
+            ? err.message
+            : "Terjadi kesalahan pada server.",
+      },
+      500,
+      origin,
+    );
   }
 });

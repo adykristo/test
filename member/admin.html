@@ -1735,9 +1735,12 @@
         if (window.KFSupabaseAdmin) {
           const boleh = await window.KFSupabaseAdmin.ensureAdmin();
           if (!boleh) return;
-          await renderMemberAdmin();
+          const role = window.KFSupabaseAdmin.currentRole;
+          if (role === "super_admin") {
+            await renderMemberAdmin();
+            await renderPaketAdmin();
+          }
           await renderKontenAdmin();
-          await renderPaketAdmin();
           aturTipeManual("latihan");
           aturTipeManual("tryout");
           muatPilihanPaket();
