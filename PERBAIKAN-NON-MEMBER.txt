@@ -1,0 +1,19 @@
+KLINIKFISIKAPKU - PERBAIKAN NON-MEMBER
+======================================
+Folder member/ sengaja TIDAK DIUBAH.
+
+Perbaikan:
+1. admin.html: sebelumnya halaman 404; sekarang redirect resmi ke admin-dashboard-login.html.
+2. admin-dashboard-login.html: menghapus include Supabase yang mati/tidak digunakan:
+   - CDN @supabase/supabase-js
+   - supabase-config.js (root tidak ada)
+   - supabase-client.js (file tidak ada)
+   Logika Admin root tidak memanggil Supabase; Admin Member tetap berada di member/ dan tidak disentuh.
+3. Validasi seluruh JSON di luar member/: valid.
+4. Pemeriksaan referensi file statis HTML di luar member/: tidak ditemukan broken path statis nyata setelah perbaikan (referensi template/dinamis dikecualikan).
+5. visitor-counter.js dan ui-petunjuk.js lolos pemeriksaan sintaks JavaScript.
+6. Folder member/ dibandingkan byte-for-byte dengan versi CLEAN: tidak berubah.
+
+Catatan:
+- Sistem Google Apps Script/GitHub API memerlukan kredensial/endpoint eksternal saat runtime; audit statis tidak dapat menjamin layanan eksternal sedang aktif.
+- File media yang tampak tidak direferensikan tidak dihapus pada tahap ini untuk mencegah kerusakan data dinamis.

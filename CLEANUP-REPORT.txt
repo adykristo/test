@@ -1,0 +1,25 @@
+KLINIKFISIKAPKU - CLEANUP REPORT
+Dibuat: 29 September 2026
+
+File/folder yang dihapus dari versi CLEAN karena legacy/dokumentasi duplikat/tidak direferensikan:
+- member-area.html
+- member-area-admin.html
+- vektor-msijclly.json (duplikat; versi aktif: data/tryout/vektor-msijclly.json)
+- try-out-1-fisika-msijfznp.json (duplikat; versi aktif: data/tryout/try-out-1-fisika-msijfznp.json)
+- README.txt
+- CARA-SETUP.txt
+- CARA-PAKAI-FITUR-BARU.md
+- CHANGELOG-BANK-SOAL.md
+- FITUR-BARU-2026.md
+- PANDUAN-PELATIHAN-NANTI.txt
+- PANDUAN-RUMUS-DARI-GAMBAR-AI.txt
+- SUPABASE-MIGRASI-TAHAP-2.md
+- SUPABASE-PASANG.md
+- VISITOR_COUNTER_README.md
+- DEPLOY-FINAL.md
+- member/docs-legacy/ (seluruh folder)
+
+CATATAN:
+Versi CLEAN dibuat konservatif. File yang masih berpotensi dipakai oleh halaman Admin, Member, bank soal, tryout, unduhan, gambar, PDF, template Word, konfigurasi domain, atau Supabase dipertahankan.
+
+Jangan menghapus CNAME bila domain kustom GitHub Pages masih digunakan.
