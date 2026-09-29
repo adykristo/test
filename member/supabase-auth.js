@@ -37,6 +37,7 @@
             kelas: payload.kelas,
             jenjang: payload.jenjang,
             wa: payload.wa || "",
+            kota: payload.kota || "",
             paket: payload.paket || ""
           }
         }
@@ -58,7 +59,7 @@
 
       const { data: profile, error: profError } = await supabase
         .from("member_profiles")
-        .select("id,email,nama,username,kelas,wa,sekolah,jenjang,paket,status,berakhir,tahap_terbuka,created_at,updated_at")
+        .select("id,email,nama,username,kelas,wa,sekolah,kota,jenjang,paket,status,berakhir,tahap_terbuka,created_at,updated_at")
         .eq("id", authData.user.id)
         .single();
 
@@ -98,9 +99,15 @@
     },
 
     kontenMember: async function (jenjang) {
-      const { data, error } = await supabase.rpc("member_secure_content");
-      if (error) throw error;
-      const list = (data || []).map(flattenContent);
+      const results = await Promise.all([
+        supabase.rpc("member_secure_content"),
+        supabase.rpc("kf_member_question_content")
+      ]);
+      if (results[0].error) throw results[0].error;
+      // FINAL-INTEGRATED tetap kompatibel bila migrasi baru belum dijalankan.
+      const legacy = (results[0].data || []).map(flattenContent);
+      const integrated = results[1].error ? [] : (results[1].data || []).map(flattenContent);
+      const list = legacy.concat(integrated);
       const filtered = jenjang ? list.filter(function (item) { return item.jenjang === jenjang; }) : list;
       return { ok: true, data: filtered };
     },
@@ -125,9 +132,20 @@
     },
 
     cekJawaban: async function (contentId, jawaban) {
+      if (String(contentId || "").indexOf("qset:") === 0) {
+        const parts = String(contentId).split(":");
+        let normalized;
+        if (Array.isArray(jawaban)) normalized = jawaban.map(function(v){ return typeof v === "number" ? "ABCDE"[v] : String(v); });
+        else if (typeof jawaban === "number") normalized = ["ABCDE"[jawaban]];
+        else normalized = [String(jawaban)];
+        const { data, error } = await supabase.rpc("kf_check_set_answer", {
+          p_set_id: parts[1], p_question_id: parts[2], p_answer: normalized
+        });
+        if (error) throw error;
+        return data;
+      }
       const { data, error } = await supabase.rpc("check_member_answer", {
-        p_content_id: contentId,
-        p_answer: jawaban
+        p_content_id: contentId, p_answer: jawaban
       });
       if (error) throw error;
       return data;
@@ -135,6 +153,7 @@
 
     simpanProgress: async function (contentId, state) {
       if (!contentId) return { ok: false };
+      if (String(contentId).indexOf("qset:") === 0) return { ok: true, state: state || null };
       const { error } = await supabase.rpc("touch_member_content", { p_content_id: contentId });
       if (error) throw error;
       // Nilai selesai/skor tidak ditulis langsung dari browser.
@@ -164,7 +183,7 @@
     if (sess.session && document.getElementById("dash")) {
       const { data: profile } = await supabase
         .from("member_profiles")
-        .select("id,email,nama,username,kelas,wa,sekolah,jenjang,paket,status,berakhir,tahap_terbuka,created_at,updated_at")
+        .select("id,email,nama,username,kelas,wa,sekolah,kota,jenjang,paket,status,berakhir,tahap_terbuka,created_at,updated_at")
         .eq("id", sess.session.user.id)
         .single();
       if (profile && typeof masukPeserta === "function") {

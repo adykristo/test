@@ -506,7 +506,7 @@
         ><button onclick="openPanel('keamanan', this);muatKeamananAdmin()">🛡 Keamanan</button>
         <button onclick="openPanel('kelolaAdmin', this);muatDaftarAdmin()">👥 Kelola Admin</button>
         <div class="label">KONTEN BELAJAR</div>
-        <button onclick="openPanel('modul', this)">▤ Modul & Topik</button
+        <button onclick="openPanel('bankSoal', this);KFQuestionBank.load()">🗃 Bank Soal & Set Soal</button><button onclick="openPanel('modul', this)">▤ Modul & Topik</button
         ><button onclick="openPanel('latihan', this)">✎ Soal Latihan</button
         ><button onclick="openPanel('video', this)">▶ Video Pembahasan</button
         ><button onclick="openPanel('tryout', this)">★ Tryout Mingguan</button>
@@ -619,7 +619,7 @@
         <section id="paket" class="panel">
           <h1>Paket &amp; Harga</h1>
           <p class="sub">Atur harga dan durasi tiap paket. Perubahan langsung berlaku untuk pendaftar baru.</p>
-          <div class="card" id="paketList"></div>
+          <form class="card form" onsubmit="buatPaketBaru(event)"><h2>+ Buat Paket Pelatihan</h2><div><label>Nama paket</label><input id="newPaketNama" required placeholder="SMA Bulan 1"></div><div><label>Jenjang</label><select id="newPaketJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Jenis</label><select id="newPaketTipe"><option value="bulanan">Bulanan</option><option value="intensif">Intensif OSN</option><option value="tryout">Tryout</option><option value="khusus">Khusus</option></select></div><div><label>Bulan/urutan</label><input id="newPaketBulan" type="number" min="1" max="12" value="1"></div><div><label>Durasi hari</label><input id="newPaketDurasi" type="number" min="1" value="30"></div><div><label>Harga (Rp)</label><input id="newPaketHarga" type="number" min="0" step="1000" value="0"></div><div class="wide"><label>Prasyarat (opsional)</label><input id="newPaketPrasyarat" placeholder="Nama paket sebelumnya"></div><div class="wide"><label>Deskripsi</label><input id="newPaketDeskripsi"></div><div class="wide"><button class="btn">Buat Paket</button><div class="notice"></div></div></form><div class="card" id="paketList"></div>
         </section>
         <section id="transaksi" class="panel">
           <h1>Pengaturan Pembayaran Manual</h1>
@@ -679,6 +679,26 @@
               </div>
             </div>
           </div>
+        </section>
+
+        <section id="bankSoal" class="panel">
+          <h1>Bank Soal &amp; Set Soal</h1>
+          <p class="sub">Pusat soal Olimpiade SD–SMP–SMA. Soal dari Word, Tempel+Gambar, Gemini, atau editor manual diperiksa di sini sebelum dipakai untuk Latihan Harian dan Tryout.</p>
+          <div class="stats"><div class="stat"><b>1</b>Bank soal pusat</div><div class="stat"><b>3</b>Metode pembuatan</div><div class="stat"><b>2</b>Tujuan: latihan/tryout</div><div class="stat"><b>✓</b>Edit &amp; validasi manual</div></div>
+          <div class="card">
+            <div class="head"><h2>Buat / Import Soal</h2></div>
+            <p><b>Mesin soal menggunakan Google Apps Script.</b> Import Word, Tempel+Gambar, dan Gemini diproses melalui Google Script; hasilnya otomatis menjadi Draft di Bank Soal Supabase. Admin tetap wajib Preview/Edit/Validasi sebelum soal dapat diterbitkan.</p>
+            <div class="row-actions"><button class="btn" onclick="openPanel('latihan')">📄 Import Word / Tempel / Gemini</button><button class="btn ghost" onclick="KFQuestionBank.new();document.getElementById('qbStem').focus()">✎ Buat Manual</button></div>
+          </div>
+          <div class="grid">
+            <form class="card" id="questionEditorForm">
+              <h2>Editor Soal Manual</h2><input id="qbId" type="hidden">
+              <div class="form"><div><label>Jenjang</label><select id="qbJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma" selected>SMA</option></select></div><div><label>Tingkat kesulitan</label><select id="qbDifficulty"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div><div><label>Topik</label><input id="qbTopik" placeholder="Contoh: Mekanika"></div><div><label>Subtopik</label><input id="qbSubtopik" placeholder="Contoh: Momentum"></div><div><label>Tipe</label><select id="qbType"><option value="pg4">PG 4 opsi</option><option value="pg5" selected>PG 5 opsi</option><option value="pgk">PGK / MCMA</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label>Status</label><select id="qbStatus"><option value="draft">Draft</option><option value="validated">Tervalidasi</option><option value="archived">Arsip</option></select></div><div class="wide"><label>Pertanyaan</label><textarea id="qbStem" required placeholder="Tulis soal; rumus LaTeX dapat dipertahankan."></textarea></div><div class="wide"><label>Opsi — satu opsi per baris</label><textarea id="qbOptions" placeholder="Opsi A&#10;Opsi B&#10;Opsi C&#10;Opsi D&#10;Opsi E"></textarea></div><div><label>Kunci</label><input id="qbAnswer" placeholder="Contoh: B atau A,C"></div><div><label>URL gambar</label><input id="qbImage" placeholder="https://…"></div><div class="wide"><label>Pembahasan</label><textarea id="qbExplanation" placeholder="Pembahasan sistematis dan dapat diedit."></textarea></div></div>
+              <div class="row-actions"><button class="btn" type="submit">Simpan Soal</button><button class="btn ghost" type="button" onclick="KFQuestionBank.new()">Kosongkan Editor</button></div><div id="bankNotice" class="notice"></div>
+            </form>
+            <form class="card" id="setForm"><h2>Buat Set Soal</h2><p class="sub">Set Soal adalah kumpulan soal untuk Latihan Harian atau Tryout; berbeda dari Paket Pelatihan berbayar.</p><label>Nama Set</label><input id="setName" required placeholder="SMA Bulan 1 - Latihan Hari 1"><label>Jenis</label><select id="setType"><option value="daily">Latihan Harian</option><option value="tryout">Tryout Mingguan</option></select><label>Jenjang</label><select id="setJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select><label>Paket Pelatihan</label><input id="setPackage" placeholder="Contoh: SMA Bulan 1"><label>Durasi menit (khusus tryout)</label><input id="setDuration" type="number" min="1" placeholder="90"><label>Jadwal dibuka</label><input id="setSchedule" type="datetime-local"><label>Pembahasan tryout dibuka</label><input id="setExplanationRelease" type="datetime-local"><label style="display:flex;gap:8px;align-items:center"><input id="setRandomQuestions" type="checkbox"> Acak urutan soal</label><button class="btn" style="margin-top:12px">Buat Set</button><div id="setList" class="manage-list" style="margin-top:14px"></div></form>
+          </div>
+          <div class="card"><div class="head"><h2>Bank Soal</h2><button class="btn ghost" onclick="KFQuestionBank.load()">↻ Muat Ulang</button></div><div class="member-toolbar"><input id="bankSearch" placeholder="Cari kode, topik, subtopik, atau isi soal…" oninput="KFQuestionBank.filter()"><select id="bankJenjang" onchange="KFQuestionBank.filter()"><option value="">Semua jenjang</option><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select><select id="bankStatus" onchange="KFQuestionBank.filter()"><option value="">Semua status</option><option value="draft">Draft</option><option value="validated">Tervalidasi</option><option value="archived">Arsip</option></select><select id="targetSet"><option value="">Pilih set soal…</option></select><button class="btn" onclick="KFQuestionBank.assign()">Masukkan ke Set</button></div><div class="table-wrap"><table><thead><tr><th>✓</th><th>Kode</th><th>Topik</th><th>Soal</th><th>Tipe</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="bankRows"><tr><td colspan="7">Buka menu ini untuk memuat Bank Soal.</td></tr></tbody></table></div></div>
         </section>
         <section id="modul" class="panel">
           <h1>Modul & Topik</h1>
@@ -1019,6 +1039,18 @@
         return data;
       }
 
+      // FINAL-INTEGRATED: pembuatan/import/AI soal WAJIB melalui Google Apps Script.
+      // Data operasional lain tetap langsung memakai Supabase.
+      async function questionMakerApi(action, payload) {
+        const url=String(window.KF_GOOGLE_QUESTION_SCRIPT?.url||"");
+        if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/i.test(url)) throw new Error("URL Google Apps Script mesin soal belum diatur di google-script-config.js");
+        if(!window.KFSupabaseAdmin?.client) throw new Error("Sesi Supabase Admin belum aktif.");
+        const {data}=await window.KFSupabaseAdmin.client.auth.getSession();
+        if(!data?.session?.access_token) throw new Error("Silakan login Admin kembali.");
+        const res=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,accessToken:data.session.access_token,...(payload||{})})});
+        const out=await res.json(); if(!out.ok)throw new Error(out.error||"Google Script gagal memproses soal."); return out;
+      }
+
       function previewPengaturanPembayaran(){
         const bank=document.getElementById("paymentAdminBank")?.value.trim()||"Nama bank";
         const nomor=document.getElementById("paymentAdminNumber")?.value.trim()||"Nomor rekening";
@@ -1121,8 +1153,12 @@
             .map(
               (p, i) => `<form class="form" style="border-bottom:1px solid #f0e7f7;padding-bottom:16px;margin-bottom:16px" onsubmit="simpanPaket(event,'${escMember(p.nama)}')">
               <div class="wide"><h2 style="margin:0 0 6px">${escMember(p.nama)}</h2></div>
+              <div><label>Jenjang</label><select id="paketJenjang${i}"><option value="sd" ${p.jenjang==='sd'?'selected':''}>SD</option><option value="smp" ${p.jenjang==='smp'?'selected':''}>SMP</option><option value="sma" ${p.jenjang==='sma'?'selected':''}>SMA</option></select></div>
+              <div><label>Jenis</label><select id="paketTipe${i}"><option value="bulanan" ${p.tipe==='bulanan'?'selected':''}>Bulanan</option><option value="intensif" ${p.tipe==='intensif'?'selected':''}>Intensif OSN</option><option value="tryout" ${p.tipe==='tryout'?'selected':''}>Tryout</option><option value="khusus" ${p.tipe==='khusus'?'selected':''}>Khusus</option></select></div>
+              <div><label>Bulan/urutan</label><input id="paketBulan${i}" type="number" min="1" max="12" value="${Number(p.bulan)||''}"></div>
               <div><label>Durasi (hari)</label><input id="paketDurasi${i}" type="number" min="1" value="${Number(p.durasiHari) || 30}" required></div>
               <div><label>Harga (Rp)</label><input id="paketHarga${i}" type="number" min="0" step="1000" value="${Number(p.harga) || 0}" required></div>
+              <div><label>Prasyarat</label><input id="paketPrasyarat${i}" value="${escMember(p.prasyarat||'')}"></div>
               <div class="wide"><label>Deskripsi singkat (tampil di halaman pendaftaran)</label><input id="paketDeskripsi${i}" value="${escMember(p.deskripsi || "")}"></div>
               <div class="wide"><button class="btn small">Simpan ${escMember(p.nama)}</button><div class="notice"></div></div>
             </form>`,
@@ -1132,6 +1168,10 @@
           box.innerHTML = '<div class="sub">Gagal memuat data paket: ' + escMember(err.message) + "</div>";
         }
       }
+      async function buatPaketBaru(e){
+        e.preventDefault();
+        try{await adminApi("adminSimpanPaket",{item:{nama:newPaketNama.value.trim(),jenjang:newPaketJenjang.value,tipe:newPaketTipe.value,bulan:Number(newPaketBulan.value)||null,urutan:Number(newPaketBulan.value)||0,durasiHari:Number(newPaketDurasi.value)||30,harga:Number(newPaketHarga.value)||0,prasyarat:newPaketPrasyarat.value.trim(),deskripsi:newPaketDeskripsi.value.trim(),aktif:true}});notifikasi(e.target,"Paket baru dibuat.");e.target.reset();await renderPaketAdmin();}catch(err){alert("Gagal membuat paket: "+err.message);}
+      }
       async function simpanPaket(e, nama) {
         e.preventDefault();
         const idx = Array.from(document.querySelectorAll("#paketList form")).findIndex((f) => f === e.target);
@@ -1139,8 +1179,13 @@
           await adminApi("adminSimpanPaket", {
             item: {
               nama,
+              jenjang: document.getElementById("paketJenjang" + idx).value,
+              tipe: document.getElementById("paketTipe" + idx).value,
+              bulan: document.getElementById("paketBulan" + idx).value,
+              urutan: document.getElementById("paketBulan" + idx).value,
               durasiHari: document.getElementById("paketDurasi" + idx).value,
               harga: document.getElementById("paketHarga" + idx).value,
+              prasyarat: document.getElementById("paketPrasyarat" + idx).value.trim(),
               deskripsi: document.getElementById("paketDeskripsi" + idx).value.trim(),
             },
           });
@@ -1540,14 +1585,14 @@
       function tampilkanDraf(mode,list,targetId,meta){QUESTION_DRAFTS[mode]=(list||[]).map(normalisasiSoal).filter(x=>x.soal);QUESTION_META[mode]=meta||{};renderDraf(mode,targetId);}
       function renderDraf(mode,targetId){
         const list=QUESTION_DRAFTS[mode],box=document.getElementById(targetId||QUESTION_META[mode].targetId);if(!box)return;QUESTION_META[mode].targetId=box.id;box.style.display="block";
-        box.innerHTML=`<b>${list.length} draf siap ditinjau</b><div class="draft-list">`+list.map((x,i)=>{const image=safeAdminImage(x.gambar);return `<div class="draft-card"><div class="draft-head"><b>Soal ${i+1} · ${escMember(x.tipe.toUpperCase())}</b><div><button class="btn ghost small" onclick="editDrafSoal('${mode}',${i})">Ubah</button> <button class="btn danger small" onclick="hapusDrafSoal('${mode}',${i})">Hapus</button></div></div><div class="draft-question">${escMember(x.soal)}</div>${image?`<img src="${escMember(image)}" style="max-width:220px;max-height:150px">`:""}${x.opsi.length?`<ol class="draft-options" type="A">${x.opsi.map(o=>`<li>${escMember(o)}</li>`).join("")}</ol>`:""}<small><b>Kunci:</b> ${escMember(Array.isArray(x.kunci)?x.kunci.map(k=>"ABCDE"[k]||k).join(", "):String(x.kunci))}</small>${(x.peringatan||[]).length?`<div class="draft-warning">⚠ ${escMember(x.peringatan.join(" · "))}</div>`:""}</div>`;}).join("")+`</div><div class="studio-actions"><button class="btn btn-ai" onclick="simpanSemuaDraf('${mode}')">✓ Simpan semua draf</button><button class="btn btn-soft" onclick="QUESTION_DRAFTS['${mode}']=[];renderDraf('${mode}','${box.id}')">Hapus draf</button></div>`;
+        box.innerHTML=`<b>${list.length} draf siap ditinjau</b><div class="draft-list">`+list.map((x,i)=>{const image=safeAdminImage(x.gambar);return `<div class="draft-card"><div class="draft-head"><b>Soal ${i+1} · ${escMember(x.tipe.toUpperCase())}</b><div><button class="btn ghost small" onclick="editDrafSoal('${mode}',${i})">Ubah</button> <button class="btn danger small" onclick="hapusDrafSoal('${mode}',${i})">Hapus</button></div></div><div class="draft-question">${escMember(x.soal)}</div>${image?`<img src="${escMember(image)}" style="max-width:220px;max-height:150px">`:""}${x.opsi.length?`<ol class="draft-options" type="A">${x.opsi.map(o=>`<li>${escMember(o)}</li>`).join("")}</ol>`:""}<small><b>Kunci:</b> ${escMember(Array.isArray(x.kunci)?x.kunci.map(k=>"ABCDE"[k]||k).join(", "):String(x.kunci))}</small>${(x.peringatan||[]).length?`<div class="draft-warning">⚠ ${escMember(x.peringatan.join(" · "))}</div>`:""}</div>`;}).join("")+`</div><div class="studio-actions">${QUESTION_META[mode].alreadyStored?'<button class="btn btn-ai" onclick="openPanel(\'bankSoal\');KFQuestionBank.load()">✓ Sudah tersimpan · Buka Bank Soal</button>':`<button class="btn btn-ai" onclick="simpanSemuaDraf('${mode}')">✓ Simpan semua draf ke Bank Soal</button>`}<button class="btn btn-soft" onclick="QUESTION_DRAFTS['${mode}']=[];renderDraf('${mode}','${box.id}')">Tutup draf</button></div>`;
         if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([box]).catch(()=>{});
       }
       function editDrafSoal(mode,i){const x=QUESTION_DRAFTS[mode][i];if(!x)return;const soal=prompt("Teks soal:",x.soal);if(soal===null)return;x.soal=soal.trim();if(x.opsi.length){for(let n=0;n<x.opsi.length;n++){const o=prompt("Opsi "+"ABCDE"[n]+":",x.opsi[n]);if(o===null)return;x.opsi[n]=o.trim();}}const k=prompt("Kunci jawaban:",Array.isArray(x.kunci)?x.kunci.map(v=>"ABCDE"[v]||v).join(","):String(x.kunci));if(k===null)return;x.kunci=x.tipe==="mcma"?k.split(/[,;\s]+/).map(v=>Math.max(0,"ABCDE".indexOf(v.charAt(0).toUpperCase()))):x.tipe.startsWith("pg")?Math.max(0,"ABCDE".indexOf(k.charAt(0).toUpperCase())):k;const b=prompt("Pembahasan:",x.pembahasan||"");if(b!==null)x.pembahasan=b.trim();renderDraf(mode);}
       function hapusDrafSoal(mode,i){QUESTION_DRAFTS[mode].splice(i,1);renderDraf(mode);}
       async function simpanSemuaDraf(mode){
         const list=QUESTION_DRAFTS[mode],m=QUESTION_META[mode];if(!list.length)return; if(!confirm("Simpan "+list.length+" soal ke database Member?"))return;
-        const box=document.getElementById(m.targetId);try{for(let i=0;i<list.length;i++){const x=list[i];await adminApi("adminSimpanKonten",{item:{jenjang:m.jenjang,visible:true,jenis:"soal",topik:m.topik,judul:(mode==="latihan"?"Latihan":"Paket "+m.paket)+" · Soal "+(i+1),...x,...(mode==="tryout"?{tujuan:"tryout",paket:m.paket}:{})}});}QUESTION_DRAFTS[mode]=[];box.innerHTML='<div class="result ok">✓ Semua soal berhasil disimpan. Periksa daftar soal sebelum dipublikasikan.</div>';await renderKontenAdmin();muatPilihanPaket();}catch(err){box.innerHTML='<div class="result bad">Gagal menyimpan: '+escMember(err.message)+'</div>';}
+        const box=document.getElementById(m.targetId);try{const n=await KFQuestionBank.importDrafts(list,m);QUESTION_DRAFTS[mode]=[];box.innerHTML='<div class="result ok">✓ '+n+' soal tersimpan sebagai Draft di Bank Soal Supabase. Buka Bank Soal untuk edit, preview, dan validasi sebelum diterbitkan.</div>';await KFQuestionBank.load();}catch(err){box.innerHTML='<div class="result bad">Gagal menyimpan: '+escMember(err.message)+'</div>';}
       }
       function bacaTeksWord(file) {
         return new Promise((resolve, reject) => { const r=new FileReader(); r.onerror=()=>reject(new Error("File tidak dapat dibaca.")); r.onload=async()=>{ try { if(file.name.toLowerCase().endsWith(".txt")) return resolve(String(r.result)); if(!window.mammoth) throw new Error("Mesin impor Word belum termuat. Periksa koneksi internet lalu coba lagi."); const out=await mammoth.extractRawText({arrayBuffer:r.result}); resolve(out.value || ""); } catch(err) { reject(err); } }; file.name.toLowerCase().endsWith(".txt") ? r.readAsText(file) : r.readAsArrayBuffer(file); });
@@ -1568,15 +1613,15 @@
         const p=studioCfg(mode).pre,file=document.getElementById("word"+p+"File").files[0],jenjang=document.getElementById("word"+p+"Jenjang").value,topik=document.getElementById("word"+p+"Topik").value.trim(),paket=mode==="tryout"?document.getElementById("wordTryoutPaket").value.trim():"",outId="word"+p+"Draft",old=btn.textContent;
         if(!topik||mode==="tryout"&&!paket){alert("Lengkapi topik dan nama paket.");return;}
         try{btn.disabled=true;btn.textContent="Membaca dokumen…";const doc=await bacaDokumenSoal(file);let list=parseWordSoal(doc.text);
-          if(pakaiAI){btn.textContent="Gemini sedang menganalisis…";const res=await adminApi("adminAnalisisWordGemini",{text:doc.text,images:doc.images.slice(0,8),options:opsiProses("word"+p),jenjang,topik});list=res.data||res.questions||[];list.forEach((x,i)=>{if(!x.gambar&&doc.images[i])x.gambar=doc.images[i];});}else if(doc.images.length)list.forEach((x,i)=>{if(doc.images[i])x.gambar=doc.images[i];});
-          if(!list.length)throw new Error("Soal belum terbaca. Coba tombol Gemini rapikan & impor.");tampilkanDraf(mode,list,outId,{jenjang,topik,paket,targetId:outId});
+          if(pakaiAI){btn.textContent="Gemini sedang menganalisis…";const res=await questionMakerApi("processText",{text:doc.text,images:doc.images.slice(0,8),options:opsiProses("word"+p),jenjang,topik});list=res.questions||res.data||[];list.forEach((x,i)=>{if(!x.gambar&&doc.images[i])x.gambar=doc.images[i];});}else if(doc.images.length)list.forEach((x,i)=>{if(doc.images[i])x.gambar=doc.images[i];});
+          if(!list.length)throw new Error("Soal belum terbaca. Coba tombol Gemini rapikan & impor.");tampilkanDraf(mode,list,outId,{jenjang,topik,paket,targetId:outId,alreadyStored:!!pakaiAI});
         }catch(err){const box=document.getElementById(outId);box.style.display="block";box.textContent="✗ "+err.message;}finally{btn.disabled=false;btn.textContent=old;}
       }
       async function imporWord(e,mode){e.preventDefault();return imporWordCanggih(mode,true,e.submitter||e.currentTarget.querySelector("button"));}
       async function prosesTempelAI(mode,btn){
         const p=studioCfg(mode).pre,text=document.getElementById("paste"+p+"Text").value.trim(),jenjang=document.getElementById("paste"+p+"Jenjang").value,topik=document.getElementById("paste"+p+"Topik").value.trim(),paket=mode==="tryout"?document.getElementById("pasteTryoutPaket").value.trim():"",outId="paste"+p+"Output",old=btn.textContent;
         if(!text&&!PASTE_IMAGES[mode].length){alert("Tempel teks atau gambar soal terlebih dahulu.");return;}if(!topik||mode==="tryout"&&!paket){alert("Lengkapi topik dan nama paket.");return;}
-        try{btn.disabled=true;btn.textContent="AI membaca soal & gambar…";const res=await adminApi("adminAnalisisWordGemini",{text,images:PASTE_IMAGES[mode],options:opsiProses("paste"+p),jenjang,topik}),list=res.data||res.questions||[];list.forEach((x,i)=>{if(!x.gambar&&PASTE_IMAGES[mode][i])x.gambar=PASTE_IMAGES[mode][i];});tampilkanDraf(mode,list,outId,{jenjang,topik,paket,targetId:outId});}catch(err){const box=document.getElementById(outId);box.style.display="block";box.textContent="✗ "+err.message;}finally{btn.disabled=false;btn.textContent=old;}
+        try{btn.disabled=true;btn.textContent="AI membaca soal & gambar…";const res=await questionMakerApi("processText",{text,images:PASTE_IMAGES[mode],options:opsiProses("paste"+p),jenjang,topik}),list=res.data||res.questions||[];list.forEach((x,i)=>{if(!x.gambar&&PASTE_IMAGES[mode][i])x.gambar=PASTE_IMAGES[mode][i];});tampilkanDraf(mode,list,outId,{jenjang,topik,paket,targetId:outId,alreadyStored:true});}catch(err){const box=document.getElementById(outId);box.style.display="block";box.textContent="✗ "+err.message;}finally{btn.disabled=false;btn.textContent=old;}
       }
       async function buatDraftAI(e, mode) {
         e.preventDefault();
@@ -1592,18 +1637,18 @@
         out.style.display = "block";
         out.textContent = "✦ AI sedang menyusun dan memvalidasi soal…";
         try {
-          const res = await adminApi("adminBuatSoalGemini", {
+          const res = await questionMakerApi("generate", {
             jenjang, topik, tipe, sulit, jumlah, instruksi, options:opsiProses("ai"+(latihan?"Latihan":"Tryout")),
             untukTryout: !latihan, paket,
           });
-          tampilkanDraf(mode,res.data||res.questions||[],out.id,{jenjang,topik,paket,targetId:out.id});
+          tampilkanDraf(mode,res.questions||res.data||[],out.id,{jenjang,topik,paket,targetId:out.id,alreadyStored:true});
         } catch (err) {
           out.textContent = "✗ Gagal membuat soal: " + err.message;
         }
       }
       async function asistenSoal(mode,jenis){
         const p=studioCfg(mode).pre,input=document.getElementById("ai"+p+"Instruksi"),out=document.getElementById("ai"+p+"Output"),text=input.value.trim();if(!text){alert("Tulis soal atau instruksi terlebih dahulu.");return;}out.style.display="block";out.textContent="✦ Asisten sedang bekerja…";
-        try{const res=await adminApi("adminAsistenSoal",{jenis,text,jenjang:document.getElementById("ai"+p+"Jenjang").value,topik:document.getElementById("ai"+p+"Topik").value.trim()});out.textContent=res.analysis||res.text||"Analisis selesai.";}catch(err){out.textContent="✗ "+err.message;}
+        try{const res=await questionMakerApi("assistant",{jenis,text,jenjang:document.getElementById("ai"+p+"Jenjang").value,topik:document.getElementById("ai"+p+"Topik").value.trim()});out.textContent=res.analysis||res.text||"Analisis selesai.";}catch(err){out.textContent="✗ "+err.message;}
       }
       function muatPilihanPaket() { const s=document.getElementById("tryoutPaket"); if(!s)return; const lama=s.value, paket=[...new Set(KONTEN_CACHE.filter(x=>x.tujuan === "tryout" && x.paket).map(x=>x.paket))]; s.innerHTML='<option value="">Pilih paket tryout…</option>'+paket.map(x=>'<option>'+escMember(x)+"</option>").join(""); s.value=paket.includes(lama) ? lama : ""; }
       function simpanVideo(e) {
@@ -1812,5 +1857,7 @@
       }
 
 </script>
-  </body>
+  <script src="google-script-config.js"></script>
+  <script src="admin-platform.js"></script>
+</body>
 </html>

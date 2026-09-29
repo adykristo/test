@@ -15,6 +15,7 @@
   );
 
   window.KFSupabaseAdmin = {
+    client: supabase,
     configured: true,
 
     currentRole: null,
@@ -216,7 +217,7 @@
                 durasiHari: p.durasi_hari,
                 harga: p.harga,
                 deskripsi: p.deskripsi,
-                aktif: p.aktif
+                aktif: p.aktif, jenjang: p.jenjang || "", bulan: p.bulan || null, tipe: p.tipe || "bulanan", prasyarat: p.prasyarat || "", urutan: p.urutan || 0
               };
             })
           };
@@ -230,7 +231,8 @@
               durasi_hari: Number(item.durasiHari),
               harga: Number(item.harga),
               deskripsi: item.deskripsi || "",
-              aktif: item.aktif !== false
+              aktif: item.aktif !== false,
+              jenjang: item.jenjang || null, bulan: item.bulan ? Number(item.bulan) : null, tipe: item.tipe || "bulanan", prasyarat: item.prasyarat || null, urutan: Number(item.urutan) || 0
             },
             { onConflict: "nama" }
           );
