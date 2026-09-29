@@ -1,0 +1,13 @@
+KLINIKFISIKAPKU — PLATFORM 12 BULAN
+
+Fokus versi ini:
+1. Member: registrasi sekali -> login -> pilih paket -> menunggu aktivasi -> belajar.
+2. Tema/dark mode Member dihapus.
+3. Tambah WhatsApp dan Kota/Kabupaten saat registrasi.
+4. Pilihan paket pending disimpan ke Supabase, bukan hanya localStorage.
+5. Admin: Bank Soal pusat + Editor Manual + Edit/Duplikat/Arsip/Validasi.
+6. Admin: Set Soal untuk Latihan Harian dan Tryout.
+7. Fondasi database akses paket multi-bulan per peserta.
+8. Paket lama, peserta lama, modul/video/latihan/tryout yang ada tidak sengaja dihapus.
+
+WAJIB: jalankan member/MIGRASI-PLATFORM-PELATIHAN-12-BULAN.sql sebelum memakai fitur Bank Soal baru.
