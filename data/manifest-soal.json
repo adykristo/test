@@ -125,38 +125,5 @@
     "youtubeLink": "",
     "showYoutube": false,
     "statusDokumen": "terbit"
-  },
-  {
-    "id": "web-1790683716960-9072",
-    "title": "Usaha",
-    "topik": "Usaha",
-    "tanggal": "2026-09-29",
-    "jenjang": "smp",
-    "displayMode": "web",
-    "webQuestions": [
-      {
-        "tipe": "pg4",
-        "pertanyaan": "Sebuah balok yang massanya $200\\text{ gram}$ ditahan di ujung atas bidang miring licin, yang sudut elevasinya $30^\\circ$. Dasar bidang miring bertemu dengan bidang datar kasar. Balok dilepaskan, sehingga menuruni bidang miring licin, bergerak di bidang datar kasar, dan akhirnya berhenti. Jika panjang lintasan di bidang miring $50\\text{ cm}$, percepatan gravitasi $10\\text{ m/s}^2$, maka usaha yang dilakukan gaya gesek antara balok dan bidang datar kasar adalah .... (\\sin 30^\\circ = 0,5, \\cos 30^\\circ = 0,5\\sqrt{3})",
-        "gambar": "",
-        "pilihan": {
-          "A": "0,8 joule",
-          "B": "0,7 joule",
-          "C": "0,6 joule",
-          "D": "0,5 joule"
-        },
-        "pilihan_gambar": {},
-        "statements": [],
-        "category_labels": [
-          "Benar",
-          "Salah"
-        ],
-        "jawabanLatihan": "D",
-        "pembahasan": "Diketahui:\\n- Massa balok ($m$) = $200\\text{ gram} = 0,2\\text{ kg}$\\n- Sudut elevasi ($\\theta$) = $30^\\circ$\\n- Panjang lintasan bidang miring ($s$) = $50\\text{ cm} = 0,5\\text{ m}$\\n- Percepatan gravitasi ($g$) = $10\\text{ m/s}^2$\\n- Kecepatan awal ($v_0$) = $0\\text{ m/s}$\\n- Kecepatan akhir saat berhenti ($v_t$) = $0\\text{ m/s}$\\n\\nDitanya:\\n- Usaha yang dilakukan gaya gesek pada bidang datar kasar ($W_{\\text{gesek}}$) = ...?\\n\\nKonsep fisika/persamaan yang digunakan:\\n1. Ketinggian bidang miring ($h$):\\n   $h = s \\cdot \\sin \\theta$\\n2. Hukum Kekekalan Energi Mekanik (pada bidang miring licin):\\n   $E_{m1} = E_{m2}\\n   m \\cdot g \\cdot h = \\frac{1}{2} \\cdot m \\cdot v^2$\\n3. Teorema Usaha-Energi (pada bidang datar kasar):\\n   $W_{\\text{total}} = \\Delta Ek\\n   W_{\\text{gesek}} = Ek_{\\text{akhir}} - Ek_{\\text{awal}}\\n   W_{\\text{gesek}} = 0 - E_k = -E_k$\\n   (Nilai usaha gaya gesek bernilai negatif karena berlawanan arah gerak, namun besar usahanya sering ditanyakan dalam nilai positif/besarnya saja).\\n\\nPenyelesaian langkah demi langkah:\\n1. Menghitung ketinggian ($h$) dari ujung atas bidang miring:\\n   $h = 0,5 \\cdot \\sin 30^\\circ = 0,5 \\cdot 0,5 = 0,25\\text{ meter}$\\n\\n2. Menghitung energi potensial awal saat balok dilepaskan, yang seluruhnya berubah menjadi energi kinetik ($Ek$) saat mencapai dasar bidang miring:\\n   $Ep = m \\cdot g \\cdot h\\n   Ep = 0,2 \\cdot 10 \\cdot 0,25 = 0,5\\text{ joule}$\\n   Maka besar energi kinetik balok di dasar bidang miring adalah $Ek = 0,5\\text{ joule}$.\\n\\n3. Ketika balok memasuki bidang datar kasar dan akhirnya berhenti, seluruh energi kinetik tersebut habis diubah menjadi usaha oleh gaya gesek ($\\text{W}_{\\text{gesek}}$):\\n   $W_{\\text{gesek}} = -Ek = -0,5\\text{ joule}$\\n   Besar usaha yang dilakukan gaya gesek adalah $0,5\\text{ joule}$.\\n\\nJawaban akhir:\\nD. 0,5 joule",
-        "pembahasan_gambar": ""
-      }
-    ],
-    "youtubeLink": "",
-    "showYoutube": false,
-    "statusDokumen": "terbit"
   }
 ]
