@@ -480,8 +480,32 @@
           grid-template-columns: 1fr;
         }
       }
-    </style>
-  </head>
+    
+      .creation-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.creation-choice{border:1px solid #e7d7f4;background:#fff;border-radius:16px;padding:18px;text-align:left;cursor:pointer;min-height:110px}.creation-choice:hover{border-color:#a855f7;box-shadow:0 10px 28px rgba(126,34,206,.10);transform:translateY(-1px)}.creation-choice b{display:block;color:#5b2182;font-size:15px;margin-bottom:7px}.creation-choice span,.daily-model span{display:block;color:#76647f;font-size:13px;line-height:1.5}.daily-models{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}.daily-model{background:#fff;border:1px solid #eadcf5;border-radius:18px;padding:18px}.daily-model b{display:block;font-size:16px;color:#4b176b;margin-bottom:6px}.question-picker{max-height:430px;overflow:auto;border:1px solid #eadcf5;border-radius:14px}.question-pick-item{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:12px;border-bottom:1px solid #f0e7f7}.question-pick-item:last-child{border-bottom:0}.question-pick-item small{display:block;color:#806f89;margin-top:4px}.daily-builder-grid{align-items:start}@media(max-width:980px){.creation-grid{grid-template-columns:1fr 1fr}.daily-models{grid-template-columns:1fr}}@media(max-width:620px){.creation-grid{grid-template-columns:1fr}}
+</style>
+  
+<style id="kf-admin-v6">
+:root{--kf-purple:#5b2188;--kf-purple2:#7c2bbd;--kf-pink:#ed3f9d;--kf-bg:#f6f7fb;--kf-card:#fff;--kf-line:#e7e8ef;--kf-text:#17152d;--kf-muted:#737187;--kf-shadow:0 8px 26px rgba(40,22,67,.07)}
+body{background:var(--kf-bg);font-size:13px;color:var(--kf-text)}
+.top{height:64px;position:sticky;top:0;z-index:50;padding:0 22px;background:linear-gradient(105deg,#4b1d76 0%,#8428c7 55%,#ef3f9d 100%);box-shadow:0 3px 16px rgba(63,23,91,.18)}
+.brand b{font-size:18px;letter-spacing:-.2px}.brand small{font-size:11px}.top .btn.ghost{background:rgba(255,255,255,.96);border:0;color:#52217f;padding:9px 13px}
+.layout{grid-template-columns:230px minmax(0,1fr);min-height:calc(100vh - 64px);align-items:stretch}
+aside{position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto;padding:14px 10px 24px;border-right:1px solid #e5e2eb;background:#fff;scrollbar-width:thin}
+aside .label{margin:14px 11px 6px;font-size:10px;color:#9b8aa8;letter-spacing:.12em}
+aside button{font-size:12.5px;padding:9px 11px;margin:2px 0;border-radius:8px;color:#443653;transition:.15s ease}
+aside button:hover{background:#f7f1fb;color:#6f25a9;transform:translateX(1px)}
+aside button.active{background:linear-gradient(90deg,#f2e7fb,#faeaf4);color:#7123ad;box-shadow:inset 3px 0 0 #8b2bc5}
+main{max-width:none;margin:0;padding:25px 28px 50px;min-width:0}.panel{max-width:1500px;margin:0 auto}.panel>h1{font-size:24px;letter-spacing:-.5px;color:#211331}.panel>.sub{margin:2px 0 18px;font-size:12.5px}
+.stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-bottom:16px}.stat,.card{border:1px solid var(--kf-line);border-radius:12px;box-shadow:var(--kf-shadow)}.stat{padding:14px 15px}.stat b{font-size:23px;color:#6b269e}.card{padding:16px;margin-bottom:14px}.grid{gap:14px}.head{margin-bottom:10px}h2{font-size:16px}label{font-size:11px;margin-bottom:5px;color:#41344d}input,select,textarea{border:1px solid #ddd7e7;border-radius:8px;padding:9px 10px;font-size:12.5px;background:#fff}input:focus,select:focus,textarea:focus{outline:0;border-color:#9c52c9;box-shadow:0 0 0 3px rgba(126,43,189,.09)}
+.form{gap:11px 12px}.btn{border-radius:8px;padding:8px 11px;font-size:12px;box-shadow:none}.btn:hover{filter:brightness(.98);transform:translateY(-1px)}.btn.ghost{border-color:#ddd3e8}.member-toolbar{gap:8px;margin-bottom:11px}.table-wrap{border:1px solid #ece9f0;border-radius:10px;overflow:auto}table{font-size:12px}th{font-size:10.5px;letter-spacing:.02em;background:#faf9fc;position:sticky;top:0;z-index:1}th,td{padding:9px 10px;border-bottom:1px solid #efedf2}.manage-item{border-radius:10px}
+#paket .kf-package-toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:0 0 13px;flex-wrap:wrap}#paket .kf-package-toolbar .left{display:flex;gap:8px;flex-wrap:wrap;align-items:center}#paket .kf-package-toolbar input,#paket .kf-package-toolbar select{min-width:150px}#paket form.card{display:none;border-top:3px solid #8a2bc4}#paket form.card.kf-open{display:grid}#paket .kf-package-note{background:#f7f1fb;border:1px solid #e6d8f0;border-radius:9px;padding:9px 11px;color:#5c496b;font-size:11.5px}
+.bank-create-card{border-top:3px solid #8b2bc5}.creation-choice{min-height:86px!important}.studio-pro{border-radius:12px!important}.mode-tabs{gap:6px!important}.mode-tabs button{font-size:11.5px!important;padding:8px 10px!important}.daily-model{border-radius:10px!important}.notice{font-size:11.5px}
+.kf-section-title{display:flex;align-items:center;gap:8px}.kf-section-title:before{content:'';width:4px;height:18px;border-radius:4px;background:linear-gradient(#7626b5,#ed3f9d)}
+@media(max-width:980px){.layout{grid-template-columns:1fr}aside{position:static;height:auto;display:flex;overflow:auto;padding:8px;border-right:0;border-bottom:1px solid #e5e2eb}aside .label{display:none}aside button{min-width:max-content;margin-right:4px}main{padding:18px}.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.member-toolbar{grid-template-columns:1fr 1fr}.top{padding:0 14px}}
+@media(max-width:620px){.top{height:auto;min-height:62px;gap:8px;flex-wrap:wrap;padding:9px 12px}.top .btn{padding:7px 9px}.layout{min-height:0}.stats,.member-summary{grid-template-columns:1fr 1fr}.form{grid-template-columns:1fr!important}.form .wide{grid-column:auto!important}.member-toolbar{grid-template-columns:1fr}main{padding:14px 10px 36px}.panel>h1{font-size:21px}.card{padding:13px}.brand small{display:none}}
+</style>
+
+</head>
   <body>
     <header class="top">
       <div class="brand">
@@ -506,8 +530,8 @@
         ><button onclick="openPanel('keamanan', this);muatKeamananAdmin()">🛡 Keamanan</button>
         <button onclick="openPanel('kelolaAdmin', this);muatDaftarAdmin()">👥 Kelola Admin</button>
         <div class="label">KONTEN BELAJAR</div>
-        <button onclick="openPanel('bankSoal', this);KFQuestionBank.load()">🗃 Bank Soal & Set Soal</button><button onclick="openPanel('modul', this)">▤ Modul & Topik</button
-        ><button onclick="openPanel('latihan', this)">✎ Soal Latihan</button
+        <button onclick="openPanel('bankSoal', this);KFQuestionBank.load()">🗃 Bank Soal Interaktif</button><button onclick="openPanel('modul', this)">▤ Modul & Topik</button
+        ><button onclick="openPanel('latihanHarian', this);KFDailyTraining.load()">✎ Soal Latihan Harian</button
         ><button onclick="openPanel('video', this)">▶ Video Pembahasan</button
         ><button onclick="openPanel('tryout', this)">★ Tryout Mingguan</button>
       </aside>
@@ -682,23 +706,24 @@
         </section>
 
         <section id="bankSoal" class="panel">
-          <h1>Bank Soal &amp; Set Soal</h1>
-          <p class="sub">Pusat soal Olimpiade SD–SMP–SMA. Soal dari Word, Tempel+Gambar, Gemini, atau editor manual diperiksa di sini sebelum dipakai untuk Latihan Harian dan Tryout.</p>
-          <div class="stats"><div class="stat"><b>1</b>Bank soal pusat</div><div class="stat"><b>3</b>Metode pembuatan</div><div class="stat"><b>2</b>Tujuan: latihan/tryout</div><div class="stat"><b>✓</b>Edit &amp; validasi manual</div></div>
-          <div class="card">
-            <div class="head"><h2>Buat / Import Soal</h2></div>
-            <p><b>Mesin soal menggunakan Google Apps Script.</b> Import Word, Tempel+Gambar, dan Gemini diproses melalui Google Script; hasilnya otomatis menjadi Draft di Bank Soal Supabase. Admin tetap wajib Preview/Edit/Validasi sebelum soal dapat diterbitkan.</p>
-            <div class="row-actions"><button class="btn" onclick="openPanel('latihan')">📄 Import Word / Tempel / Gemini</button><button class="btn ghost" onclick="KFQuestionBank.new();document.getElementById('qbStem').focus()">✎ Buat Manual</button></div>
+          <h1>Bank Soal Interaktif</h1>
+          <p class="sub">Tempat membuat, memperbaiki, memvalidasi, dan menyimpan soal interaktif Olimpiade SD–SMP–SMA. Soal dapat dibuat manual atau dibantu Google Apps Script + Gemini. Bank Soal bukan tempat mengatur jadwal latihan bulanan.</p>
+          <div class="stats"><div class="stat"><b>✎</b>Manual</div><div class="stat"><b>✦</b>Gemini AI</div><div class="stat"><b>⇧</b>Word / Tempel</div><div class="stat"><b>✓</b>Edit & Validasi</div></div>
+          <div class="card bank-create-card">
+            <div class="head"><div><h2>Buat Soal Interaktif</h2><p class="sub">Pilih cara pembuatan. Semua hasil masuk ke Bank Soal sebagai Draft dan dapat diedit sebelum digunakan.</p></div></div>
+            <div class="creation-grid">
+              <button class="creation-choice" type="button" onclick="KFQuestionBank.new();document.getElementById('qbStem').focus();document.getElementById('qbStem').scrollIntoView({behavior:'smooth',block:'center'})"><b>✎ Buat Manual</b><span>Tulis soal, opsi, kunci, gambar, dan pembahasan sendiri.</span></button>
+              <button class="creation-choice" type="button" onclick="openPanel('latihan');bukaMode('latihan','ai',document.querySelector('[data-studio=latihan] button:nth-child(4)'))"><b>✦ Buat dengan Gemini</b><span>AI membantu membuat draft soal Olimpiade untuk diperiksa Admin.</span></button>
+              <button class="creation-choice" type="button" onclick="openPanel('latihan');bukaMode('latihan','word',document.querySelector('[data-studio=latihan] button:nth-child(2)'))"><b>⇧ Import Word</b><span>Ambil soal dari dokumen Word lalu rapikan ke format Bank Soal.</span></button>
+              <button class="creation-choice" type="button" onclick="openPanel('latihan');bukaMode('latihan','paste',document.querySelector('[data-studio=latihan] button:nth-child(3)'))"><b>▣ Tempel + Gambar</b><span>Tempel soal/gambar dan biarkan mesin menyusunnya menjadi draft.</span></button>
+            </div>
           </div>
-          <div class="grid">
-            <form class="card" id="questionEditorForm">
-              <h2>Editor Soal Manual</h2><input id="qbId" type="hidden">
-              <div class="form"><div><label>Jenjang</label><select id="qbJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma" selected>SMA</option></select></div><div><label>Tingkat kesulitan</label><select id="qbDifficulty"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div><div><label>Topik</label><input id="qbTopik" placeholder="Contoh: Mekanika"></div><div><label>Subtopik</label><input id="qbSubtopik" placeholder="Contoh: Momentum"></div><div><label>Tipe</label><select id="qbType"><option value="pg4">PG 4 opsi</option><option value="pg5" selected>PG 5 opsi</option><option value="pgk">PGK / MCMA</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label>Status</label><select id="qbStatus"><option value="draft">Draft</option><option value="validated">Tervalidasi</option><option value="archived">Arsip</option></select></div><div class="wide"><label>Pertanyaan</label><textarea id="qbStem" required placeholder="Tulis soal; rumus LaTeX dapat dipertahankan."></textarea></div><div class="wide"><label>Opsi — satu opsi per baris</label><textarea id="qbOptions" placeholder="Opsi A&#10;Opsi B&#10;Opsi C&#10;Opsi D&#10;Opsi E"></textarea></div><div><label>Kunci</label><input id="qbAnswer" placeholder="Contoh: B atau A,C"></div><div><label>URL gambar</label><input id="qbImage" placeholder="https://…"></div><div class="wide"><label>Pembahasan</label><textarea id="qbExplanation" placeholder="Pembahasan sistematis dan dapat diedit."></textarea></div></div>
-              <div class="row-actions"><button class="btn" type="submit">Simpan Soal</button><button class="btn ghost" type="button" onclick="KFQuestionBank.new()">Kosongkan Editor</button></div><div id="bankNotice" class="notice"></div>
-            </form>
-            <form class="card" id="setForm"><h2>Buat Set Soal</h2><p class="sub">Set Soal adalah kumpulan soal untuk Latihan Harian atau Tryout; berbeda dari Paket Pelatihan berbayar.</p><label>Nama Set</label><input id="setName" required placeholder="SMA Bulan 1 - Latihan Hari 1"><label>Jenis</label><select id="setType"><option value="daily">Latihan Harian</option><option value="tryout">Tryout Mingguan</option></select><label>Jenjang</label><select id="setJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select><label>Paket Pelatihan</label><input id="setPackage" placeholder="Contoh: SMA Bulan 1"><label>Durasi menit (khusus tryout)</label><input id="setDuration" type="number" min="1" placeholder="90"><label>Jadwal dibuka</label><input id="setSchedule" type="datetime-local"><label>Pembahasan tryout dibuka</label><input id="setExplanationRelease" type="datetime-local"><label style="display:flex;gap:8px;align-items:center"><input id="setRandomQuestions" type="checkbox"> Acak urutan soal</label><button class="btn" style="margin-top:12px">Buat Set</button><div id="setList" class="manage-list" style="margin-top:14px"></div></form>
-          </div>
-          <div class="card"><div class="head"><h2>Bank Soal</h2><button class="btn ghost" onclick="KFQuestionBank.load()">↻ Muat Ulang</button></div><div class="member-toolbar"><input id="bankSearch" placeholder="Cari kode, topik, subtopik, atau isi soal…" oninput="KFQuestionBank.filter()"><select id="bankJenjang" onchange="KFQuestionBank.filter()"><option value="">Semua jenjang</option><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select><select id="bankStatus" onchange="KFQuestionBank.filter()"><option value="">Semua status</option><option value="draft">Draft</option><option value="validated">Tervalidasi</option><option value="archived">Arsip</option></select><select id="targetSet"><option value="">Pilih set soal…</option></select><button class="btn" onclick="KFQuestionBank.assign()">Masukkan ke Set</button></div><div class="table-wrap"><table><thead><tr><th>✓</th><th>Kode</th><th>Topik</th><th>Soal</th><th>Tipe</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="bankRows"><tr><td colspan="7">Buka menu ini untuk memuat Bank Soal.</td></tr></tbody></table></div></div>
+          <form class="card editor-collapsible" id="questionEditorForm">
+            <div class="head"><div><h2>Editor Manual / Perbaiki Soal</h2><p class="sub">Gunakan saat membuat manual atau memperbaiki soal yang dipilih dari Bank Soal.</p></div><button class="btn ghost" type="button" onclick="KFQuestionBank.new();document.getElementById('qbStem').focus()">+ Soal Baru</button></div><input id="qbId" type="hidden">
+            <div class="form"><div><label>Jenjang</label><select id="qbJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma" selected>SMA</option></select></div><div><label>Tingkat kesulitan</label><select id="qbDifficulty"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div><div><label>Topik</label><input id="qbTopik" placeholder="Contoh: Mekanika"></div><div><label>Subtopik</label><input id="qbSubtopik" placeholder="Contoh: Momentum"></div><div><label>Tipe</label><select id="qbType"><option value="pg4">PG 4 opsi</option><option value="pg5" selected>PG 5 opsi</option><option value="pgk">PGK / MCMA</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label>Status</label><select id="qbStatus"><option value="draft">Draft</option><option value="validated">Tervalidasi</option><option value="archived">Arsip</option></select></div><div class="wide"><label>Pertanyaan</label><textarea id="qbStem" required placeholder="Tulis soal; rumus LaTeX dapat dipertahankan."></textarea></div><div class="wide"><label>Opsi — satu opsi per baris</label><textarea id="qbOptions" placeholder="Opsi A&#10;Opsi B&#10;Opsi C&#10;Opsi D&#10;Opsi E"></textarea></div><div><label>Kunci</label><input id="qbAnswer" placeholder="Contoh: B atau A,C"></div><div><label>URL gambar</label><input id="qbImage" placeholder="https://…"></div><div class="wide"><label>Pembahasan lengkap</label><textarea id="qbExplanation" placeholder="Diketahui → Ditanya → Konsep → Penyelesaian → Kesimpulan"></textarea></div></div>
+            <div class="row-actions"><button class="btn" type="submit">Simpan ke Bank Soal</button><button class="btn ghost" type="button" onclick="KFQuestionBank.new()">Kosongkan</button></div><div id="bankNotice" class="notice"></div>
+          </form>
+          <div class="card"><div class="head"><div><h2>Daftar Bank Soal</h2><p class="sub">Soal tervalidasi dapat dipilih di menu Soal Latihan Harian untuk dijadwalkan ke paket bulanan.</p></div><button class="btn ghost" onclick="KFQuestionBank.load()">↻ Muat Ulang</button></div><div class="member-toolbar"><input id="bankSearch" placeholder="Cari kode, topik, subtopik, atau isi soal…" oninput="KFQuestionBank.filter()"><select id="bankJenjang" onchange="KFQuestionBank.filter()"><option value="">Semua jenjang</option><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select><select id="bankStatus" onchange="KFQuestionBank.filter()"><option value="">Semua status</option><option value="draft">Draft</option><option value="validated">Tervalidasi</option><option value="archived">Arsip</option></select></div><div class="table-wrap"><table><thead><tr><th>Kode</th><th>Topik</th><th>Soal</th><th>Tipe</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="bankRows"><tr><td colspan="6">Buka menu ini untuk memuat Bank Soal.</td></tr></tbody></table></div></div>
         </section>
         <section id="modul" class="panel">
           <h1>Modul & Topik</h1>
@@ -756,9 +781,35 @@
             </div>
           </div>
         </section>
+        <section id="latihanHarian" class="panel">
+          <h1>Soal Latihan Harian</h1>
+          <p class="sub">Atur latihan untuk setiap paket bulanan. Setiap hari dapat mempunyai <b>dua model sekaligus</b>: Latihan PDF dan Latihan Interaktif dari Bank Soal.</p>
+          <div class="daily-models">
+            <div class="daily-model"><b>📄 Latihan PDF</b><span>Admin memasang file/link PDF untuk dibaca atau dikerjakan peserta.</span></div>
+            <div class="daily-model"><b>⚡ Latihan Interaktif</b><span>Pilih soal tervalidasi dari Bank Soal, susun menjadi set, lalu kirim ke hari/paket yang sama.</span></div>
+          </div>
+          <form class="card" id="dailyTrainingForm">
+            <div class="head"><div><h2>Atur Latihan untuk Paket & Tanggal</h2><p class="sub">Satu baris jadwal dapat berisi PDF saja, interaktif saja, atau keduanya.</p></div></div>
+            <div class="form">
+              <div><label>Jenjang</label><select id="dailyJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div>
+              <div><label>Paket Bulanan</label><input id="dailyPackage" required placeholder="Contoh: SMP Bulan 1"></div>
+              <div><label>Tanggal latihan</label><input id="dailyDate" type="date" required></div>
+              <div><label>Judul latihan</label><input id="dailyTitle" required placeholder="Latihan Hari 1 — Energi"></div>
+              <div class="wide"><label>📄 URL PDF latihan (opsional)</label><input id="dailyPdf" placeholder="https://drive.google.com/... atau URL PDF"></div>
+              <div class="wide"><label>⚡ Set Soal Interaktif dari Bank Soal (opsional)</label><select id="dailyInteractiveSet"><option value="">Tanpa soal interaktif</option></select><small>Buat set interaktif di bawah dengan memilih soal Bank Soal.</small></div>
+              <div><label>Status</label><select id="dailyStatus"><option value="draft">Draft</option><option value="published">Terbit</option></select></div>
+            </div>
+            <div class="row-actions"><button class="btn" type="submit">Simpan Jadwal Harian</button></div><div id="dailyNotice" class="notice"></div>
+          </form>
+          <div class="grid daily-builder-grid">
+            <div class="card"><div class="head"><div><h2>Pilih Soal Interaktif</h2><p class="sub">Hanya soal tervalidasi yang ditampilkan.</p></div><button class="btn ghost" type="button" onclick="KFDailyTraining.loadQuestions()">↻</button></div><div class="member-toolbar"><input id="dailyQSearch" placeholder="Cari topik atau soal…" oninput="KFDailyTraining.filterQuestions()"><select id="dailyQJenjang" onchange="KFDailyTraining.filterQuestions()"><option value="">Semua jenjang</option><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div id="dailyQuestionPicker" class="question-picker"></div></div>
+            <form class="card" id="dailySetForm"><h2>Buat Set Interaktif</h2><p class="sub">Pilih soal di kiri, lalu simpan sebagai set latihan harian.</p><label>Nama set</label><input id="dailySetName" required placeholder="SMP B1 - Hari 1 Interaktif"><label>Jenjang</label><select id="dailySetJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select><label>Paket</label><input id="dailySetPackage" required placeholder="SMP Bulan 1"><label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input id="dailySetRandom" type="checkbox" style="width:auto"> Acak urutan soal</label><button class="btn" style="margin-top:14px">Buat Set dari Soal Terpilih</button><div id="dailySetNotice" class="notice"></div></form>
+          </div>
+          <div class="card"><div class="head"><div><h2>Jadwal Latihan Harian</h2><p class="sub">PDF dan interaktif ditampilkan bersama pada halaman Latihan peserta sesuai paket dan tanggal.</p></div><button class="btn ghost" onclick="KFDailyTraining.loadSchedules()">↻ Muat Ulang</button></div><div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Paket</th><th>Judul</th><th>PDF</th><th>Interaktif</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="dailyRows"><tr><td colspan="7">Belum dimuat.</td></tr></tbody></table></div></div>
+        </section>
         <section id="latihan" class="panel">
-          <h1>Soal Latihan</h1>
-          <p class="sub">Studio soal khusus Member Area: input manual, impor Word, atau Gemini AI. Soal disimpan terpisah dari Bank Soal KlinikFisikapku utama dan dapat dirapikan lagi oleh Gemini sebelum dipublikasikan.</p>
+          <h1>Buat Soal untuk Bank Soal</h1>
+          <p class="sub">Mesin pembuatan soal interaktif. Manual, Word, Tempel+Gambar, dan Gemini menghasilkan Draft untuk Bank Soal. Setelah selesai, kembali ke Bank Soal untuk edit, preview, dan validasi.</p>
           <div class="card">
             <h2>Studio Soal Latihan</h2>
             <div class="mode-tabs" data-studio="latihan">
@@ -1859,5 +1910,30 @@
 </script>
   <script src="google-script-config.js"></script>
   <script src="admin-platform.js"></script>
+  <script src="daily-training.js"></script>
+
+<script id="kf-admin-v6-js">
+(function(){
+ function q(id){return document.getElementById(id)}
+ function setupPackage(){
+   var panel=q('paket'); if(!panel||panel.dataset.kfEnhanced)return; panel.dataset.kfEnhanced='1';
+   var form=panel.querySelector('form.card'); if(!form)return;
+   var bar=document.createElement('div');bar.className='kf-package-toolbar';
+   bar.innerHTML='<div class="left"><input id="kfPaketCari" placeholder="Cari paket…" aria-label="Cari paket"><select id="kfPaketFilter"><option value="">Semua jenjang</option><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><button type="button" class="btn" id="kfTambahPaket">+ Tambah Paket</button>';
+   form.parentNode.insertBefore(bar,form);
+   var note=document.createElement('div');note.className='kf-package-note';note.innerHTML='<b>Pengelolaan cepat:</b> daftar paket tetap terlihat ringkas. Form hanya dibuka saat membuat paket baru.';bar.parentNode.insertBefore(note,bar.nextSibling);
+   note.insertAdjacentElement('afterend',form);
+   q('kfTambahPaket').onclick=function(){form.classList.toggle('kf-open');this.textContent=form.classList.contains('kf-open')?'× Tutup Form':'+ Tambah Paket';if(form.classList.contains('kf-open'))q('newPaketNama').focus()};
+   function autoName(){var n=q('newPaketNama'),j=q('newPaketJenjang'),b=q('newPaketBulan'),t=q('newPaketTipe');if(!n||!j||!b||!t)return;if(!n.value.trim()||/^((SD|SMP|SMA)\s+)?(Bulan|Intensif|Tryout|Khusus)/i.test(n.value)){var label=j.options[j.selectedIndex].text;var type=t.options[t.selectedIndex].text;n.value=(t.value==='bulanan'?label+' Bulan '+b.value:label+' '+type+' '+b.value)}}
+   ['newPaketJenjang','newPaketBulan','newPaketTipe'].forEach(function(id){q(id)&&q(id).addEventListener('change',autoName)});
+   function filter(){var term=(q('kfPaketCari').value||'').toLowerCase(),lev=q('kfPaketFilter').value;var list=q('paketList');if(!list)return;Array.from(list.children).forEach(function(el){var txt=(el.textContent||'').toLowerCase();var ok=(!term||txt.includes(term))&&(!lev||txt.includes(lev));el.style.display=ok?'':'none'})}
+   q('kfPaketCari').addEventListener('input',filter);q('kfPaketFilter').addEventListener('change',filter);
+ }
+ function decorate(){document.querySelectorAll('.panel>h1').forEach(function(h){h.classList.add('kf-section-title')});setupPackage()}
+ document.addEventListener('DOMContentLoaded',decorate);
+ var old=window.openPanel; if(typeof old==='function'){window.openPanel=function(){var r=old.apply(this,arguments);setTimeout(decorate,0);return r}}
+})();
+</script>
+
 </body>
 </html>
