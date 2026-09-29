@@ -499,6 +499,7 @@ main{max-width:none;margin:0;padding:25px 28px 50px;min-width:0}.panel{max-width
 .stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-bottom:16px}.stat,.card{border:1px solid var(--kf-line);border-radius:12px;box-shadow:var(--kf-shadow)}.stat{padding:14px 15px}.stat b{font-size:23px;color:#6b269e}.card{padding:16px;margin-bottom:14px}.grid{gap:14px}.head{margin-bottom:10px}h2{font-size:16px}label{font-size:11px;margin-bottom:5px;color:#41344d}input,select,textarea{border:1px solid #ddd7e7;border-radius:8px;padding:9px 10px;font-size:12.5px;background:#fff}input:focus,select:focus,textarea:focus{outline:0;border-color:#9c52c9;box-shadow:0 0 0 3px rgba(126,43,189,.09)}
 .form{gap:11px 12px}.btn{border-radius:8px;padding:8px 11px;font-size:12px;box-shadow:none}.btn:hover{filter:brightness(.98);transform:translateY(-1px)}.btn.ghost{border-color:#ddd3e8}.member-toolbar{gap:8px;margin-bottom:11px}.table-wrap{border:1px solid #ece9f0;border-radius:10px;overflow:auto}table{font-size:12px}th{font-size:10.5px;letter-spacing:.02em;background:#faf9fc;position:sticky;top:0;z-index:1}th,td{padding:9px 10px;border-bottom:1px solid #efedf2}.manage-item{border-radius:10px}
 #paket .kf-package-toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:0 0 13px;flex-wrap:wrap}#paket .kf-package-toolbar .left{display:flex;gap:8px;flex-wrap:wrap;align-items:center}#paket .kf-package-toolbar input,#paket .kf-package-toolbar select{min-width:150px}#paket form.card{display:none;border-top:3px solid #8a2bc4}#paket form.card.kf-open{display:grid}#paket .kf-package-note{background:#f7f1fb;border:1px solid #e6d8f0;border-radius:9px;padding:9px 11px;color:#5c496b;font-size:11.5px}
+#paket #paketList{padding:0;background:transparent;border:0;box-shadow:none}.kf-paket-summary{display:grid;grid-template-columns:repeat(5,minmax(100px,1fr));gap:9px;margin:0 0 12px}.kf-paket-summary>div{background:#fff;border:1px solid var(--kf-line);border-radius:10px;padding:11px 13px}.kf-paket-summary b{display:block;font-size:20px;color:#68249b}.kf-paket-summary span{font-size:10.5px;color:var(--kf-muted)}.kf-paket-table td:first-child{min-width:220px}.kf-paket-table td:first-child small{display:block;color:var(--kf-muted);margin-top:3px;max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kf-badge{display:inline-block;padding:3px 7px;border-radius:99px;background:#f2e8fa;color:#69249d;font-size:10px;font-weight:800}.kf-status{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800}.kf-status:before{content:"";width:7px;height:7px;border-radius:50%}.kf-status.on{color:#197447}.kf-status.on:before{background:#27a765}.kf-status.off{color:#8b6974}.kf-status.off:before{background:#bcaeb4}.kf-actions{display:flex;gap:5px;flex-wrap:wrap}.kf-actions .btn{padding:6px 8px}.kf-paket-edit td{background:#faf7fc!important;padding:14px!important}.kf-edit-form{margin:0}.kf-edit-actions{display:flex;gap:7px;align-items:center}.kf-empty{padding:28px;text-align:center;background:#fff;border:1px dashed #d9cce3;border-radius:10px;color:var(--kf-muted)}@media(max-width:850px){.kf-paket-summary{grid-template-columns:repeat(2,1fr)}.kf-paket-table{min-width:780px}}
 .bank-create-card{border-top:3px solid #8b2bc5}.creation-choice{min-height:86px!important}.studio-pro{border-radius:12px!important}.mode-tabs{gap:6px!important}.mode-tabs button{font-size:11.5px!important;padding:8px 10px!important}.daily-model{border-radius:10px!important}.notice{font-size:11.5px}
 .kf-section-title{display:flex;align-items:center;gap:8px}.kf-section-title:before{content:'';width:4px;height:18px;border-radius:4px;background:linear-gradient(#7626b5,#ed3f9d)}
 @media(max-width:980px){.layout{grid-template-columns:1fr}aside{position:static;height:auto;display:flex;overflow:auto;padding:8px;border-right:0;border-bottom:1px solid #e5e2eb}aside .label{display:none}aside button{min-width:max-content;margin-right:4px}main{padding:18px}.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.member-toolbar{grid-template-columns:1fr 1fr}.top{padding:0 14px}}
@@ -1193,57 +1194,50 @@ main{max-width:none;margin:0;padding:25px 28px 50px;min-width:0}.panel{max-width
         if(/^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/i.test(s))return s;
         try{const u=new URL(s);return u.protocol==="https:"?u.href:"";}catch{return "";}
       }
+      let paketAdminCache = [];
+      const rupiahAdmin = (n) => new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n)||0);
+      function paketBadge(v){return `<span class="kf-badge">${escMember(String(v||'-').toUpperCase())}</span>`;}
+      function bukaEditorPaket(i){
+        document.querySelectorAll('#paketList .kf-paket-edit').forEach((x,j)=>x.hidden=j!==i || !x.hidden);
+      }
+      function duplikatPaket(i){
+        const p=paketAdminCache[i]; if(!p)return;
+        const form=document.querySelector('#paket form.card');
+        form.classList.add('kf-open');
+        const btn=document.getElementById('kfTambahPaket'); if(btn)btn.textContent='× Tutup Form';
+        newPaketJenjang.value=p.jenjang||'sd'; newPaketTipe.value=p.tipe||'bulanan';
+        newPaketBulan.value=Math.min(12,(Number(p.bulan)||0)+1)||1; newPaketDurasi.value=Number(p.durasiHari)||30;
+        newPaketHarga.value=Number(p.harga)||0; newPaketPrasyarat.value=p.nama||'';
+        newPaketDeskripsi.value=p.deskripsi||'';
+        newPaketNama.value=(String(p.jenjang||'').toUpperCase())+' Bulan '+newPaketBulan.value;
+        form.scrollIntoView({behavior:'smooth',block:'start'}); newPaketNama.focus();
+      }
+      async function ubahAktifPaket(i){
+        const p=paketAdminCache[i]; if(!p)return;
+        try{await adminApi('adminSimpanPaket',{item:{...p,aktif:!(p.aktif!==false)}});await renderPaketAdmin();}
+        catch(err){alert('Gagal mengubah status paket: '+err.message)}
+      }
       async function renderPaketAdmin() {
-        const box = document.getElementById("paketList");
-        if (!box) return;
-        box.innerHTML = "Memuat…";
+        const box = document.getElementById("paketList"); if (!box) return;
+        box.innerHTML = "Memuat paket…";
         try {
-          const res = await adminApi("adminListPaket", {});
-          const list = res.data || [];
-          box.innerHTML = list
-            .map(
-              (p, i) => `<form class="form" style="border-bottom:1px solid #f0e7f7;padding-bottom:16px;margin-bottom:16px" onsubmit="simpanPaket(event,'${escMember(p.nama)}')">
-              <div class="wide"><h2 style="margin:0 0 6px">${escMember(p.nama)}</h2></div>
-              <div><label>Jenjang</label><select id="paketJenjang${i}"><option value="sd" ${p.jenjang==='sd'?'selected':''}>SD</option><option value="smp" ${p.jenjang==='smp'?'selected':''}>SMP</option><option value="sma" ${p.jenjang==='sma'?'selected':''}>SMA</option></select></div>
-              <div><label>Jenis</label><select id="paketTipe${i}"><option value="bulanan" ${p.tipe==='bulanan'?'selected':''}>Bulanan</option><option value="intensif" ${p.tipe==='intensif'?'selected':''}>Intensif OSN</option><option value="tryout" ${p.tipe==='tryout'?'selected':''}>Tryout</option><option value="khusus" ${p.tipe==='khusus'?'selected':''}>Khusus</option></select></div>
-              <div><label>Bulan/urutan</label><input id="paketBulan${i}" type="number" min="1" max="12" value="${Number(p.bulan)||''}"></div>
-              <div><label>Durasi (hari)</label><input id="paketDurasi${i}" type="number" min="1" value="${Number(p.durasiHari) || 30}" required></div>
-              <div><label>Harga (Rp)</label><input id="paketHarga${i}" type="number" min="0" step="1000" value="${Number(p.harga) || 0}" required></div>
-              <div><label>Prasyarat</label><input id="paketPrasyarat${i}" value="${escMember(p.prasyarat||'')}"></div>
-              <div class="wide"><label>Deskripsi singkat (tampil di halaman pendaftaran)</label><input id="paketDeskripsi${i}" value="${escMember(p.deskripsi || "")}"></div>
-              <div class="wide"><button class="btn small">Simpan ${escMember(p.nama)}</button><div class="notice"></div></div>
-            </form>`,
-            )
-            .join("");
-        } catch (err) {
-          box.innerHTML = '<div class="sub">Gagal memuat data paket: ' + escMember(err.message) + "</div>";
-        }
+          const res = await adminApi("adminListPaket", {}); paketAdminCache = res.data || [];
+          const list=paketAdminCache;
+          const total=list.length, aktif=list.filter(x=>x.aktif!==false).length;
+          const by=(j)=>list.filter(x=>String(x.jenjang).toLowerCase()===j).length;
+          box.innerHTML=`<div class="kf-paket-summary"><div><b>${total}</b><span>Total paket</span></div><div><b>${aktif}</b><span>Aktif</span></div><div><b>${by('sd')}</b><span>SD</span></div><div><b>${by('smp')}</b><span>SMP</span></div><div><b>${by('sma')}</b><span>SMA</span></div></div>`+
+          (list.length?`<div class="table-wrap"><table class="kf-paket-table"><thead><tr><th>Paket</th><th>Jenjang</th><th>Jenis</th><th>Harga</th><th>Durasi</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${list.map((p,i)=>`<tr class="kf-paket-row" data-search="${escMember((p.nama+' '+p.jenjang+' '+p.tipe).toLowerCase())}" data-level="${escMember(p.jenjang||'')}"><td><b>${escMember(p.nama)}</b><small>${escMember(p.deskripsi||'Belum ada deskripsi')}</small></td><td>${paketBadge(p.jenjang)}</td><td>${escMember(p.tipe||'-')}</td><td><b>${rupiahAdmin(p.harga)}</b></td><td>${Number(p.durasiHari)||30} hari</td><td><span class="kf-status ${p.aktif===false?'off':'on'}">${p.aktif===false?'Nonaktif':'Aktif'}</span></td><td><div class="kf-actions"><button type="button" class="btn ghost small" onclick="bukaEditorPaket(${i})">Edit</button><button type="button" class="btn ghost small" onclick="duplikatPaket(${i})">Duplikat</button><button type="button" class="btn ghost small" onclick="ubahAktifPaket(${i})">${p.aktif===false?'Aktifkan':'Nonaktifkan'}</button></div></td></tr><tr class="kf-paket-edit" hidden><td colspan="7"><form class="form kf-edit-form" onsubmit="simpanPaket(event,${i})"><div><label>Jenjang</label><select name="jenjang"><option value="sd" ${p.jenjang==='sd'?'selected':''}>SD</option><option value="smp" ${p.jenjang==='smp'?'selected':''}>SMP</option><option value="sma" ${p.jenjang==='sma'?'selected':''}>SMA</option></select></div><div><label>Jenis</label><select name="tipe"><option value="bulanan" ${p.tipe==='bulanan'?'selected':''}>Bulanan</option><option value="intensif" ${p.tipe==='intensif'?'selected':''}>Intensif OSN</option><option value="tryout" ${p.tipe==='tryout'?'selected':''}>Tryout</option><option value="khusus" ${p.tipe==='khusus'?'selected':''}>Khusus</option></select></div><div><label>Bulan/urutan</label><input name="bulan" type="number" min="1" max="12" value="${Number(p.bulan)||1}"></div><div><label>Durasi</label><input name="durasi" type="number" min="1" value="${Number(p.durasiHari)||30}"></div><div><label>Harga</label><input name="harga" type="number" min="0" step="1000" value="${Number(p.harga)||0}"></div><div><label>Prasyarat</label><input name="prasyarat" value="${escMember(p.prasyarat||'')}"></div><div class="wide"><label>Deskripsi</label><input name="deskripsi" value="${escMember(p.deskripsi||'')}"></div><div class="wide kf-edit-actions"><button class="btn">Simpan Perubahan</button><button type="button" class="btn ghost" onclick="bukaEditorPaket(${i})">Batal</button><div class="notice"></div></div></form></td></tr>`).join('')}</tbody></table></div>`:`<div class="kf-empty">Belum ada paket. Klik <b>+ Tambah Paket</b> untuk membuat paket pertama.</div>`);
+          if(window.filterPaketAdmin) window.filterPaketAdmin();
+        } catch (err) { box.innerHTML = '<div class="sub">Gagal memuat data paket: ' + escMember(err.message) + "</div>"; }
       }
       async function buatPaketBaru(e){
         e.preventDefault();
         try{await adminApi("adminSimpanPaket",{item:{nama:newPaketNama.value.trim(),jenjang:newPaketJenjang.value,tipe:newPaketTipe.value,bulan:Number(newPaketBulan.value)||null,urutan:Number(newPaketBulan.value)||0,durasiHari:Number(newPaketDurasi.value)||30,harga:Number(newPaketHarga.value)||0,prasyarat:newPaketPrasyarat.value.trim(),deskripsi:newPaketDeskripsi.value.trim(),aktif:true}});notifikasi(e.target,"Paket baru dibuat.");e.target.reset();await renderPaketAdmin();}catch(err){alert("Gagal membuat paket: "+err.message);}
       }
-      async function simpanPaket(e, nama) {
-        e.preventDefault();
-        const idx = Array.from(document.querySelectorAll("#paketList form")).findIndex((f) => f === e.target);
-        try {
-          await adminApi("adminSimpanPaket", {
-            item: {
-              nama,
-              jenjang: document.getElementById("paketJenjang" + idx).value,
-              tipe: document.getElementById("paketTipe" + idx).value,
-              bulan: document.getElementById("paketBulan" + idx).value,
-              urutan: document.getElementById("paketBulan" + idx).value,
-              durasiHari: document.getElementById("paketDurasi" + idx).value,
-              harga: document.getElementById("paketHarga" + idx).value,
-              prasyarat: document.getElementById("paketPrasyarat" + idx).value.trim(),
-              deskripsi: document.getElementById("paketDeskripsi" + idx).value.trim(),
-            },
-          });
-          notifikasi(e.target, "Paket diperbarui.");
-        } catch (err) {
-          alert("Gagal menyimpan paket: " + err.message);
-        }
+      async function simpanPaket(e, idx) {
+        e.preventDefault(); const p=paketAdminCache[idx]; const f=e.target;
+        try { await adminApi("adminSimpanPaket", {item:{...p,nama:p.nama,jenjang:f.jenjang.value,tipe:f.tipe.value,bulan:Number(f.bulan.value)||1,urutan:Number(f.bulan.value)||1,durasiHari:Number(f.durasi.value)||30,harga:Number(f.harga.value)||0,prasyarat:f.prasyarat.value.trim(),deskripsi:f.deskripsi.value.trim(),aktif:p.aktif!==false}}); notifikasi(f,"Paket diperbarui."); await renderPaketAdmin(); }
+        catch(err){alert("Gagal menyimpan paket: "+err.message)}
       }
       function notifikasi(form, msg) {
         const n = form.querySelector(".notice");
@@ -1926,7 +1920,7 @@ main{max-width:none;margin:0;padding:25px 28px 50px;min-width:0}.panel{max-width
    q('kfTambahPaket').onclick=function(){form.classList.toggle('kf-open');this.textContent=form.classList.contains('kf-open')?'× Tutup Form':'+ Tambah Paket';if(form.classList.contains('kf-open'))q('newPaketNama').focus()};
    function autoName(){var n=q('newPaketNama'),j=q('newPaketJenjang'),b=q('newPaketBulan'),t=q('newPaketTipe');if(!n||!j||!b||!t)return;if(!n.value.trim()||/^((SD|SMP|SMA)\s+)?(Bulan|Intensif|Tryout|Khusus)/i.test(n.value)){var label=j.options[j.selectedIndex].text;var type=t.options[t.selectedIndex].text;n.value=(t.value==='bulanan'?label+' Bulan '+b.value:label+' '+type+' '+b.value)}}
    ['newPaketJenjang','newPaketBulan','newPaketTipe'].forEach(function(id){q(id)&&q(id).addEventListener('change',autoName)});
-   function filter(){var term=(q('kfPaketCari').value||'').toLowerCase(),lev=q('kfPaketFilter').value;var list=q('paketList');if(!list)return;Array.from(list.children).forEach(function(el){var txt=(el.textContent||'').toLowerCase();var ok=(!term||txt.includes(term))&&(!lev||txt.includes(lev));el.style.display=ok?'':'none'})}
+   function filter(){var term=(q('kfPaketCari').value||'').toLowerCase(),lev=q('kfPaketFilter').value;document.querySelectorAll('#paketList .kf-paket-row').forEach(function(row){var ok=(!term||(row.dataset.search||'').includes(term))&&(!lev||row.dataset.level===lev);row.style.display=ok?'':'none';var edit=row.nextElementSibling;if(edit&&edit.classList.contains('kf-paket-edit')&&!ok)edit.style.display='none';else if(edit)edit.style.display=''})} window.filterPaketAdmin=filter;
    q('kfPaketCari').addEventListener('input',filter);q('kfPaketFilter').addEventListener('change',filter);
  }
  function decorate(){document.querySelectorAll('.panel>h1').forEach(function(h){h.classList.add('kf-section-title')});setupPackage()}
