@@ -1,8 +1,7 @@
-// KlinikFisikapku Member Area — konfigurasi publik Supabase.
-// Isi dari Supabase > Project Settings > API.
-// Gunakan Project URL + Publishable/anon key. JANGAN service_role/secret key.
+// KlinikFisikapku V15 — project baru.
+// Ambil Publishable key di Supabase > Project Settings > API Keys. JANGAN gunakan secret/service_role.
 window.KF_SUPABASE_CONFIG = {
-  url: "https://eltwrqarkdmmtlmstlyy.supabase.co",
-  anonKey: "sb_publishable_zrBqVutwHsAAWYnSyPcG_g_g-Eln54c",
+  url: "https://jgqakrpnjofwjnutbxfe.supabase.co",
+  anonKey: "sb_publishable_svUZfo9YCjK-ObWixaX83A_Z9EA1hG0",
   isValid: true
 };

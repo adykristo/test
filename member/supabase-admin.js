@@ -16,6 +16,7 @@
 
   window.KFSupabaseAdmin = {
     configured: true,
+    client: supabase,
 
     ensureAdmin: async function () {
       let { data: { session } } = await supabase.auth.getSession();
@@ -291,12 +292,20 @@
         }
 
         case "adminReports": {
-          const { data: logs } = await supabase
-            .from("member_admin_logs")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .limit(30);
-          return { ok: true, data: { logs: logs || [] } };
+          const [memberRes, legacyRes, v15Res, logRes] = await Promise.all([
+            supabase.rpc("admin_list_members_masked"),
+            supabase.from("member_answer_attempts").select("id,user_id,content_id,score,created_at").order("created_at", { ascending: false }).limit(500),
+            supabase.from("kf_attempts").select("id,user_id,package_id,objective_score,submitted_at,status").eq("status","submitted").order("submitted_at", { ascending: false }).limit(500),
+            supabase.from("member_admin_logs").select("*").order("created_at", { ascending: false }).limit(30)
+          ]);
+          if (memberRes.error) throw memberRes.error;
+          if (legacyRes.error) throw legacyRes.error;
+          if (v15Res.error) throw v15Res.error;
+          if (logRes.error) throw logRes.error;
+          const attempts = (legacyRes.data || []).map(x => ({...x, skor:x.score, jenis:"latihan_lama"}))
+            .concat((v15Res.data || []).map(x => ({...x, skor:x.objective_score, created_at:x.submitted_at, jenis:"v15"})));
+          const logs = (logRes.data || []).map(x => ({...x, aksi:x.action}));
+          return { ok: true, data: { members: memberRes.data || [], attempts, logs } };
         }
 
         case "adminRapikanSoalGemini":

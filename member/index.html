@@ -497,7 +497,18 @@
       .notice-expiry { padding:11px 14px; border-radius:11px; background:#fff3cf; color:#765600; margin:10px 0; display:none; }
       @media(max-width:720px){ .summary-grid{grid-template-columns:1fr 1fr}.summary-card strong{font-size:18px} }
 
-    </style>
+    
+      /* V14 paket latihan/tryout peserta */
+      .kf-pkg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:12px 0}
+      .kf-pkg-card{border:1px solid var(--line);border-radius:14px;background:#fff;padding:15px}
+      .kf-pkg-card h3{margin:0 0 6px}.kf-pkg-meta{font-size:12px;color:#755f86;line-height:1.6}
+      .kf-pkg-locked{opacity:.68}.kf-pkg-runner{max-width:900px;margin:auto}
+      .kf-pkg-nav{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+      .kf-pkg-nav button{width:38px;height:38px;border:1px solid var(--line);background:#fff;border-radius:9px;cursor:pointer}
+      .kf-pkg-nav button.answered{background:#efe2fb;color:#6925a6}.kf-pkg-nav button.active{background:#762cc0;color:#fff}
+      .kf-timer{font-weight:900;font-size:18px;color:#7a269e}.kf-pkg-result{padding:18px;border-radius:14px;background:#f5ebff;margin-top:14px}
+
+</style>
   
 <style id="kf-member-v6">
 :root{--kf-brand:#68249b;--kf-brand2:#8a2bc5;--kf-accent:#ed3f9d;--kf-surface:#fff;--kf-bg:#f7f7fb;--kf-line:#e8e7ee;--kf-ink:#1f1930;--kf-muted:#747083}
@@ -651,7 +662,13 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         </div>
       </section>
 
-      <section id="detail" class="page">
+      
+      <section id="paketRunner" class="page">
+        <div class="card kf-pkg-runner">
+          <div id="kfPkgRunnerBody"></div>
+        </div>
+      </section>
+<section id="detail" class="page">
         <div class="backlink" onclick="buka('dash')">
           ← Kembali ke daftar materi
         </div>
@@ -1140,6 +1157,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           ? "none"
           : "block";
         renderTryoutMingguan();
+        kfRenderPackageBoxes();
       }
 
       function renderTryoutMingguan() {
@@ -1297,6 +1315,94 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         try{await koreksiDiServer(jawaban);}catch(err){hasil.innerHTML='<div class="result bad">'+esc(err.message)+'</div>';}
       }
 
+      
+      /* ===== V14 MEMBER PACKAGE ENGINE ===== */
+      const KF_ATTEMPT_KEY="kf_member_package_attempts_v14";
+      const KF_RESULT_KEY="kf_member_package_results_v14";
+      let kfRun=null,kfTimerHandle=null;
+
+      function kfSubscriptionAllowed(x){
+        const need=String(x.subscription||"Semua Paket Aktif").trim().toLowerCase();
+        if(!need||need==="semua paket aktif"||need==="semua"||need==="all")return true;
+        const have=String((profilAktif&&profilAktif.paket)||"").trim().toLowerCase();
+        return have===need || need.split("|").map(s=>s.trim()).includes(have);
+      }
+      function kfScheduleState(x){
+        const now=Date.now(),start=x.start?new Date(x.start).getTime():0,end=x.end?new Date(x.end).getTime():0;
+        if(start&&now<start)return {ok:false,msg:"Belum dimulai · "+new Date(start).toLocaleString("id-ID")};
+        if(end&&now>end)return {ok:false,msg:"Sudah berakhir · "+new Date(end).toLocaleString("id-ID")};
+        return {ok:true,msg:end?"Berakhir "+new Date(end).toLocaleString("id-ID"):"Tersedia sekarang"};
+      }
+      function kfPkgGroups(kind){
+        const rows=dataMateri.filter(x=>x.visible!==false && (kind==="tryout"?tujuanItem(x)==="tryout":x.jenis==="soal"&&tujuanItem(x)!=="tryout"));
+        const m=new Map();
+        rows.forEach(x=>{const n=String(x.paket||x.topik||"Latihan");if(!m.has(n))m.set(n,[]);m.get(n).push(x)});
+        return [...m.entries()].map(([name,questions])=>({name,questions,meta:questions[0]||{}}));
+      }
+      function kfAttempts(){
+        try{return JSON.parse(localStorage.getItem(KF_ATTEMPT_KEY)||"{}")}catch{return{}}
+      }
+      function kfAttemptId(kind,name){return [profilAktif?.id||profilAktif?.email||profilAktif?.username||"member",kind,name].join("|")}
+      function kfAttemptCount(kind,name){return Number(kfAttempts()[kfAttemptId(kind,name)]||0)}
+      function kfIncAttempt(kind,name){let a=kfAttempts(),k=kfAttemptId(kind,name);a[k]=Number(a[k]||0)+1;localStorage.setItem(KF_ATTEMPT_KEY,JSON.stringify(a));return a[k]}
+      function kfCanStart(kind,g){
+        if(!kfSubscriptionAllowed(g.meta))return {ok:false,msg:"Paket ini bukan untuk langganan Anda."};
+        let sc=kfScheduleState(g.meta);if(!sc.ok)return sc;
+        if(kind==="tryout"){let max=Number(g.meta.attempts)||1,c=kfAttemptCount(kind,g.name);if(c>=max)return {ok:false,msg:"Batas percobaan sudah habis ("+c+"/"+max+")."}}
+        return {ok:true,msg:sc.msg};
+      }
+      function kfRenderPackageBoxes(){
+        let old=document.getElementById("kfPackageAccessBox");
+        if(!old){old=document.createElement("div");old.id="kfPackageAccessBox";old.className="card";let list=document.getElementById("list");if(list&&list.parentNode)list.parentNode.insertBefore(old,list)}
+        let latihan=kfPkgGroups("latihan"),tryout=kfPkgGroups("tryout");
+        const cards=(arr,kind)=>arr.map(g=>{let c=kfCanStart(kind,g),m=g.meta,max=Number(m.attempts)||1,used=kfAttemptCount(kind,g.name);return `<div class="kf-pkg-card ${c.ok?"":"kf-pkg-locked"}"><h3>${kind==="tryout"?"🏆":"✎"} ${esc(g.name)}</h3><div class="kf-pkg-meta">${g.questions.length} soal · Akses: ${esc(m.subscription||"Semua Paket Aktif")}${kind==="tryout"?` · ${Number(m.duration)||90} menit · Percobaan ${used}/${max}`:""}<br>${esc(c.msg||"")}</div><button class="btn ${c.ok?"btn-main":"btn-ghost"}" style="margin-top:10px" ${c.ok?`onclick="kfStartPackage('${kind}','${encodeURIComponent(g.name)}')"`:"disabled"}>${c.ok?"Mulai":"Tidak tersedia"}</button></div>`}).join("");
+        old.innerHTML=`<h2 style="margin-top:0">📦 Paket untuk Langganan Anda</h2><p style="color:#5b4374">Paket ditampilkan sesuai langganan, jadwal, dan batas percobaan yang diatur admin.</p><h3>Latihan Soal</h3><div class="kf-pkg-grid">${cards(latihan,"latihan")||'<div class="empty">Belum ada paket latihan.</div>'}</div><h3>Tryout</h3><div class="kf-pkg-grid">${cards(tryout,"tryout")||'<div class="empty">Belum ada paket tryout.</div>'}</div>`;
+      }
+      function kfStartPackage(kind,encodedName){
+        const name=decodeURIComponent(encodedName),g=kfPkgGroups(kind).find(x=>x.name===name);if(!g)return alert("Paket tidak ditemukan.");
+        const can=kfCanStart(kind,g);if(!can.ok)return alert(can.msg);
+        let attempt=kind==="tryout"?kfIncAttempt(kind,name):0;
+        let duration=kind==="tryout"?(Number(g.meta.duration)||90):0;
+        kfRun={kind,name,questions:g.questions,index:0,answers:{},startedAt:Date.now(),deadline:duration?Date.now()+duration*60000:0,attempt};
+        kfRenderRunner();buka("paketRunner");if(duration)kfStartTimer();
+      }
+      function kfStartTimer(){
+        clearInterval(kfTimerHandle);kfTimerHandle=setInterval(()=>{if(!kfRun||!kfRun.deadline)return clearInterval(kfTimerHandle);let left=kfRun.deadline-Date.now(),el=document.getElementById("kfTimer");if(left<=0){clearInterval(kfTimerHandle);if(el)el.textContent="00:00";kfSubmitPackage(true);return}let s=Math.ceil(left/1000),mm=Math.floor(s/60),ss=s%60;if(el)el.textContent=String(mm).padStart(2,"0")+":"+String(ss).padStart(2,"0")},1000);
+      }
+      function kfRenderRunner(){
+        if(!kfRun)return;let q=kfRun.questions[kfRun.index],i=kfRun.index,ans=kfRun.answers[i],tipe=q.tipe||"pg4",html=`<div class="head"><div><div class="topik">${esc(kfRun.kind==="tryout"?"TRYOUT":"LATIHAN")}</div><h2 style="margin:3px 0">${esc(kfRun.name)}</h2></div>${kfRun.deadline?'<div class="kf-timer">⏱ <span id="kfTimer">--:--</span></div>':""}</div><div class="kf-pkg-nav">${kfRun.questions.map((_,n)=>`<button class="${n===i?"active":""} ${kfRun.answers[n]!=null?"answered":""}" onclick="kfGo(${n})">${n+1}</button>`).join("")}</div><hr style="border:0;border-top:1px solid var(--line)"><h3>Soal ${i+1} dari ${kfRun.questions.length}</h3><div>${textWithBreaks(q.soal||"")}</div>`;
+        let img=safeImageUrl(q.gambar);if(img)html+=`<img src="${img}" alt="Gambar soal" style="max-width:100%;max-height:360px;margin:12px 0;border-radius:10px">`;
+        if(tipe==="pg4"||tipe==="pg5")html+=(q.opsi||[]).map((o,n)=>`<label class="opt"><input type="radio" name="kfAns" value="${n}" ${Number(ans)===n?"checked":""} onchange="kfSaveAns(${n})"><span><b>${"ABCDE"[n]}.</b> ${esc(o)}</span></label>`).join("");
+        else if(tipe==="mcma")html+=(q.opsi||[]).map((o,n)=>`<label class="opt"><input type="checkbox" name="kfAnsMulti" value="${n}" ${Array.isArray(ans)&&ans.includes(n)?"checked":""} onchange="kfSaveMulti()"><span><b>${"ABCDE"[n]}.</b> ${esc(o)}</span></label>`).join("");
+        else if(tipe==="kategori")html+=(q.statements||[]).map((st,n)=>`<div class="category-question"><p><b>${n+1}.</b> ${esc(st.text||st)}</p><div class="category-options">${(q.category_labels||["Benar","Salah"]).map((l,j)=>`<label><input type="radio" name="kfCat${n}" value="${j}" ${Array.isArray(ans)&&ans[n]===j?"checked":""} onchange="kfSaveCat()">${esc(l)}</label>`).join("")}</div></div>`).join("");
+        else if(tipe==="isian")html+=`<label>Jawaban</label><input id="kfTextAns" value="${esc(ans||"")}" oninput="kfRun.answers[${i}]=this.value">`;
+        else html+=`<label>Jawaban Esai</label><textarea id="kfTextAns" oninput="kfRun.answers[${i}]=this.value">${esc(ans||"")}</textarea>`;
+        html+=`<div style="display:flex;justify-content:space-between;gap:8px;margin-top:18px"><button class="btn btn-ghost" onclick="kfGo(${i-1})" ${i===0?"disabled":""}>← Sebelumnya</button>${i<kfRun.questions.length-1?`<button class="btn btn-main" onclick="kfGo(${i+1})">Berikutnya →</button>`:`<button class="btn btn-main" onclick="kfSubmitPackage(false)">✓ Selesai & Kirim</button>`}</div>`;
+        document.getElementById("kfPkgRunnerBody").innerHTML=html;if(kfRun.deadline)kfStartTimer();if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([document.getElementById("kfPkgRunnerBody")]);
+      }
+      function kfSaveAns(v){kfRun.answers[kfRun.index]=Number(v);kfRenderNavOnly()}
+      function kfSaveMulti(){kfRun.answers[kfRun.index]=[...document.querySelectorAll('input[name="kfAnsMulti"]:checked')].map(x=>Number(x.value));kfRenderNavOnly()}
+      function kfSaveCat(){let q=kfRun.questions[kfRun.index],a=[];(q.statements||[]).forEach((_,n)=>{let e=document.querySelector('input[name="kfCat'+n+'"]:checked');a[n]=e?Number(e.value):null});kfRun.answers[kfRun.index]=a;kfRenderNavOnly()}
+      function kfRenderNavOnly(){document.querySelectorAll(".kf-pkg-nav button").forEach((b,n)=>b.classList.toggle("answered",kfRun.answers[n]!=null))}
+      function kfGo(n){if(!kfRun||n<0||n>=kfRun.questions.length)return;kfRun.index=n;kfRenderRunner()}
+      function kfNorm(v){return String(v==null?"":v).trim().toLowerCase().replace(/\s+/g," ")}
+      function kfGrade(q,a){
+        let t=q.tipe||"pg4",k=q.kunci;
+        if(t==="pg4"||t==="pg5")return {auto:true,score:Number(a)===Number(k)?1:0};
+        if(t==="mcma"){let aa=(a||[]).map(Number).sort(),kk=(Array.isArray(k)?k:[]).map(Number).sort();return {auto:true,score:JSON.stringify(aa)===JSON.stringify(kk)?1:0}}
+        if(t==="kategori"){let kk=(q.statements||[]).map((st,i)=>{let labels=q.category_labels||["Benar","Salah"],key=st.key!=null?st.key:(Array.isArray(k)?k[i]:"");return Math.max(0,labels.map(kfNorm).indexOf(kfNorm(key)))}),aa=Array.isArray(a)?a:[],good=kk.reduce((n,v,i)=>n+(Number(aa[i])===Number(v)?1:0),0);return {auto:true,score:kk.length?good/kk.length:0}}
+        if(t==="isian")return {auto:true,score:kfNorm(a)===kfNorm(k)?1:0};
+        return {auto:false,score:0};
+      }
+      function kfSaveResult(r){let a=[];try{a=JSON.parse(localStorage.getItem(KF_RESULT_KEY)||"[]")}catch{}a.unshift(r);localStorage.setItem(KF_RESULT_KEY,JSON.stringify(a.slice(0,100)))}
+      function kfSubmitPackage(auto){
+        if(!kfRun)return;clearInterval(kfTimerHandle);
+        let graded=kfRun.questions.map((q,i)=>kfGrade(q,kfRun.answers[i])),autoQs=graded.filter(x=>x.auto),earned=autoQs.reduce((n,x)=>n+x.score,0),score=autoQs.length?Math.round(earned/autoQs.length*100):0,essay=graded.filter(x=>!x.auto).length;
+        let r={member:profilAktif?.email||profilAktif?.username||"",package:kfRun.name,kind:kfRun.kind,score,essay,submittedAt:new Date().toISOString(),attempt:kfRun.attempt||0,autoSubmitted:!!auto};kfSaveResult(r);
+        document.getElementById("kfPkgRunnerBody").innerHTML=`<h2>✓ ${auto?"Waktu Habis — ":""}Pengerjaan Selesai</h2><div class="kf-pkg-result"><b>Nilai objektif: ${score}</b><br>${autoQs.length} soal dinilai otomatis${essay?` · ${essay} esai perlu diperiksa guru`:""}<br>Dikirim: ${new Date().toLocaleString("id-ID")}</div><button class="btn btn-main" style="margin-top:14px" onclick="buka('dash');kfRenderPackageBoxes()">Kembali ke Dashboard</button>`;
+        kfRun=null;kfRenderPackageBoxes();
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         
         muatPaketDaftar();
@@ -1311,5 +1417,52 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
     <script src="supabase-auth.js"></script>
-  </body>
+    <script src="supabase-data-v15.js"></script>
+  
+<script>
+/* V15 SERVER PACKAGE ENGINE — override V14 local package engine */
+let KF_SERVER_PACKAGES=[];
+async function kfLoadServerPackages(){
+ if(!window.KFPackageDB)return;
+ try{KF_SERVER_PACKAGES=await KFPackageDB.listPackages()||[];kfRenderServerPackageBoxes();}catch(e){console.warn("Paket Supabase:",e)}
+}
+function kfRenderServerPackageBoxes(){
+ let old=document.getElementById("kfPackageAccessBox");
+ if(!old){old=document.createElement("div");old.id="kfPackageAccessBox";old.className="card";let list=document.getElementById("list");if(list&&list.parentNode)list.parentNode.insertBefore(old,list)}
+ let cards=(kind)=>KF_SERVER_PACKAGES.filter(p=>p.kind===kind).map(p=>{
+  let now=Date.now(),start=p.starts_at?new Date(p.starts_at).getTime():0,end=p.ends_at?new Date(p.ends_at).getTime():0,blocked=start&&now<start?"Belum dimulai":end&&now>end?"Sudah berakhir":kind==="tryout"&&Number(p.attempts_used)>=Number(p.max_attempts)?"Percobaan habis":"";
+  return `<div class="kf-pkg-card ${blocked?"kf-pkg-locked":""}"><h3>${kind==="tryout"?"🏆":"✎"} ${esc(p.name)}</h3><div class="kf-pkg-meta">${p.question_count} soal${kind==="tryout"?` · ${p.duration_minutes||0} menit · Percobaan ${p.attempts_used}/${p.max_attempts}`:""}<br>${blocked||"Tersedia untuk paket langganan Anda"}</div><button class="btn ${blocked?"btn-ghost":"btn-main"}" ${blocked?"disabled":`onclick="kfStartServerPackage('${p.id}')"`}>${blocked?"Tidak tersedia":"Mulai"}</button></div>`;
+ }).join("");
+ old.innerHTML=`<h2 style="margin-top:0">📦 Paket Latihan & Tryout</h2><p style="color:#5b4374">Data dipanggil langsung dari Supabase sesuai langganan akun Anda.</p><h3>Latihan Soal</h3><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty">Belum ada paket latihan.</div>'}</div><h3>Tryout</h3><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty">Belum ada tryout.</div>'}</div>`;
+}
+async function kfStartServerPackage(packageId){
+ try{
+  const p=KF_SERVER_PACKAGES.find(x=>x.id===packageId),a=await KFPackageDB.startAttempt(packageId),qs=await KFPackageDB.questions(a.attempt_id);
+  kfRun={server:true,attemptId:a.attempt_id,kind:p.kind,name:p.name,questions:(qs||[]).map(q=>({id:q.id,tipe:q.type,topik:q.topic,soal:q.question,gambar:q.image,opsi:q.options||[],statements:q.statements||[],category_labels:q.category_labels||[]})),index:0,answers:{},startedAt:Date.now(),deadline:a.deadline_at?new Date(a.deadline_at).getTime():0,attempt:a.attempt_no};
+  kfRenderRunner();buka("paketRunner");if(kfRun.deadline)kfStartTimer();
+ }catch(e){alert("Tidak dapat memulai: "+e.message);await kfLoadServerPackages()}
+}
+async function kfServerSaveCurrent(){
+ if(!kfRun||!kfRun.server)return;let q=kfRun.questions[kfRun.index],a=kfRun.answers[kfRun.index];
+ if(a===undefined)return;
+ try{await KFPackageDB.saveAnswer(kfRun.attemptId,q.id,a)}catch(e){console.warn("Jawaban belum tersimpan:",e);throw e}
+}
+const _kfGoLocal=kfGo;
+kfGo=async function(n){if(kfRun?.server){try{await kfServerSaveCurrent()}catch(e){return alert("Jawaban gagal disimpan ke server: "+e.message)}}return _kfGoLocal(n)};
+const _kfSubmitLocal=kfSubmitPackage;
+kfSubmitPackage=async function(auto){
+ if(!kfRun?.server)return _kfSubmitLocal(auto);
+ clearInterval(kfTimerHandle);
+ try{
+   await kfServerSaveCurrent();
+   let r=await KFPackageDB.submit(kfRun.attemptId,!!auto);
+   document.getElementById("kfPkgRunnerBody").innerHTML=`<h2>✓ ${auto?"Waktu Habis — ":""}Pengerjaan Selesai</h2><div class="kf-pkg-result"><b>Nilai objektif: ${Number(r.score||0).toFixed(0)}</b><br>${r.essay_count||0} esai perlu diperiksa guru.<br>Hasil tersimpan di Supabase.</div><button class="btn btn-main" style="margin-top:14px" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button>`;
+   kfRun=null;await kfLoadServerPackages();
+ }catch(e){alert("Submit gagal: "+e.message)}
+};
+const _renderListV15=renderList;
+renderList=function(){_renderListV15();setTimeout(kfLoadServerPackages,0)};
+</script>
+
+</body>
 </html>
