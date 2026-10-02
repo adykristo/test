@@ -605,7 +605,7 @@
         <b>KlinikFisikapku</b><small>Admin Member Area</small>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn ghost" onclick="location.href='index.html'">← Admin Utama</button>
+        <button class="btn ghost" onclick="lihatStatusSuperAdmin()">← Admin Utama</button>
         <button class="btn ghost" onclick="KFLogoutAdminMemberSafe()">Keluar Member</button>
       </div>
     </header>
@@ -1096,7 +1096,7 @@
               <p>Backend utama Member Area V15 adalah Supabase. Isi <code>member/supabase-config.js</code> dengan <b>Project URL</b> dan <b>anon/publishable public key</b> dari project baru, lalu pastikan <code>isValid: true</code>.</p>
               <p>Jalankan installer <code>V15-INSTALL-SUPABASE-FINAL-AUDITED.sql</code>, setup Super Admin, kemudian <code>V15-DIAGNOSTIK-SETELAH-INSTALASI.sql</code> sebelum deploy.</p>
               <p>Jangan pernah memasukkan <code>service_role</code>, secret key, atau password admin ke file HTML/JS publik.</p>
-              <button class="btn" onclick="location.href='index.html'">Kembali ke Admin Utama</button>
+              <button class="btn" onclick="lihatStatusSuperAdmin()">Kembali ke Admin Utama</button>
             </div>
           </main>`;
       }
@@ -2198,5 +2198,34 @@ async function hapusAturanDiskon(id){if(!confirm("Hapus aturan diskon?"))return;
 async function renderBundleOrders(){const b=document.getElementById("bundleOrdersAdmin");if(!b)return;try{const q=await kfdb().from("member_bundle_orders").select("*").order("created_at",{ascending:false}).limit(100);if(q.error)throw q.error;const os=q.data||[],ids=os.map(o=>o.id);let it=[];if(ids.length){const x=await kfdb().from("member_bundle_order_items").select("*").in("order_id",ids);if(x.error)throw x.error;it=x.data||[]}b.innerHTML=os.map(o=>{const n=it.filter(i=>i.order_id===o.id).map(i=>i.package_name).join(", ");return `<div class="bundle-order-row"><div><b>${escMember(o.jenjang)} · ${o.package_count} paket · ${moneyID(o.total_amount)}</b><p class="sub">${escMember(n)}<br>Subtotal ${moneyID(o.subtotal)} · Diskon ${Number(o.discount_percent)}% · Status ${escMember(o.status)}</p></div><div>${o.status==="pending"?`<button class="btn small" onclick="approveBundleOrder('${o.id}',${o.package_count})">✓ Verifikasi & Aktifkan ${o.package_count} Paket</button>`:"✓ "+escMember(o.status)}</div></div>`}).join("")||'<div class="sub">Belum ada transaksi.</div>'}catch(e){b.innerHTML='<div class="sub">'+escMember(e.message)+'</div>'}}
 async function approveBundleOrder(id,c){if(!confirm("Pastikan pembayaran sudah benar.\n\nAktifkan seluruh "+c+" paket?"))return;const n=prompt("Catatan Admin:","Pembayaran telah diverifikasi");if(n===null)return;const q=await kfdb().rpc("kf_admin_approve_bundle_order",{p_order:id,p_note:n});if(q.error)return alert(q.error.message);alert("✓ "+c+" paket aktif.");renderBundleOrders()}
 window.addEventListener("load",()=>setTimeout(()=>{renderDiscountRules();renderBundleOrders()},1400));
-</script></body>
+</script>
+<script>
+async function lihatStatusSuperAdmin(){
+  try{
+    if(!window.supabase || !window.KF_SUPABASE_CONFIG){
+      alert("Konfigurasi Supabase tidak tersedia.");
+      return;
+    }
+    const client=(window.KFSupabaseAdmin && KFSupabaseAdmin.client)
+      ? KFSupabaseAdmin.client
+      : window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);
+    const sr=await client.auth.getSession();
+    const session=sr && sr.data ? sr.data.session : null;
+    if(!session){
+      alert("Sesi Admin sudah berakhir. Silakan login kembali.");
+      location.replace("index.html?admin_session=expired");
+      return;
+    }
+    const q=await client.from("member_admins").select("role,active").eq("user_id",session.user.id).maybeSingle();
+    if(q.error || !q.data || q.data.role!=="super_admin" || q.data.active!==true){
+      alert("Akun ini tidak memiliki akses Super Admin aktif.");
+      return;
+    }
+    alert("Super Admin aktif\\n\\n"+(session.user.email||"Akun Google terverifikasi")+"\\n\\nTidak perlu memasukkan email secara manual.");
+  }catch(e){
+    alert("Gagal memeriksa status Admin: "+(e.message||e));
+  }
+}
+</script>
+</body>
 </html>
