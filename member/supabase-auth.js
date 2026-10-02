@@ -56,7 +56,7 @@
       if (error) {
         const m = String(error.message || "");
         if (/already|registered|exists/i.test(m)) throw new Error("Email tersebut sudah terdaftar. Silakan masuk atau gunakan Lupa Password.");
-        if (/database error/i.test(m)) throw new Error("Database gagal membuat profil. Jalankan V15-INSTALL-SUPABASE-FINAL-AUDITED.sql versi paket ini dan pastikan username belum digunakan.");
+        if (/database error/i.test(m)) throw new Error("Database gagal membuat profil. Jalankan 01-INSTALL-DATABASE.sql versi paket ini dan pastikan username belum digunakan.");
         if (/confirmation email|sending/i.test(m)) throw new Error("Akun belum dapat dibuat karena email verifikasi gagal dikirim. Periksa SMTP Brevo/Supabase.");
         throw new Error(m || "Pendaftaran gagal.");
       }
@@ -77,14 +77,55 @@
   window.KFMemberAuth = {
     configured:true, client:supabase,
     listPaket: async function () {
-      const {data,error}=await supabase.from("member_packages").select("*").eq("aktif",true).order("harga",{ascending:true});
+      const {data,error}=await supabase.rpc("kf_member_package_catalog");
       if(error) throw error;
-      return {ok:true,data:(data||[]).filter(p=>p.nama!=="_PAYMENT_CONFIG_" && p.nama!=="__PENGATURAN_PEMBAYARAN__").map(p=>({nama:p.nama,durasiHari:p.durasi_hari,harga:p.harga,deskripsi:p.deskripsi,aktif:p.aktif}))};
+      return {ok:true,data:(data||[]).map(p=>({
+        id:p.package_id,
+        nama:p.nama,
+        durasiHari:p.durasi_hari,
+        harga:p.harga,
+        deskripsi:p.deskripsi,
+        owned:!!p.owned,
+        expiresAt:p.expires_at||null
+      }))};
+    },
+    paketSaya: async function(){
+      const r=await this.listPaket();
+      return {ok:true,data:(r.data||[]).filter(p=>p.owned)};
+    },
+    topikSaya: async function(){
+      const {data,error}=await supabase.rpc("kf_member_topics");
+      if(error) throw error;
+      return {ok:true,data:(data||[]).map(t=>({
+        id:t.topic_id, package_id:t.package_id, package_name:t.package_name,
+        judul:t.judul, deskripsi:t.deskripsi, urutan:t.urutan
+      }))};
+    },
+    metodePembayaran: async function(){
+      const {data,error}=await supabase.rpc("kf_payment_methods");
+      if(error) throw error;
+      return {ok:true,data:(data||[]).map(m=>({
+        id:m.id, jenis:m.jenis, nama:m.nama, nomor_akun:m.nomor_akun,
+        pemilik:m.pemilik, whatsapp:m.whatsapp, instruksi:m.instruksi,
+        qr_image:m.qr_image, urutan:m.urutan
+      }))};
+    },
+    buatOrderPaket: async function(packageId,paymentMethodId){
+      const {data,error}=await supabase.rpc("kf_create_package_order",{
+        p_package:packageId,p_payment_method:paymentMethodId||null
+      });
+      if(error) throw error;
+      return {ok:true,id:data};
     },
     kontenMember: async function(jenjang){
-      const results=await Promise.all([supabase.rpc("member_secure_content"),supabase.rpc("kf_member_question_content")]);
+      const results=await Promise.all([
+        supabase.rpc("kf_member_content_v2"),
+        supabase.rpc("kf_member_question_content")
+      ]);
       if(results[0].error) throw results[0].error;
-      const list=(results[0].data||[]).map(flattenContent).concat(results[1].error?[]:(results[1].data||[]).map(flattenContent));
+      const primary=Array.isArray(results[0].data)?results[0].data:[];
+      const legacyQuestions=results[1].error?[]:(results[1].data||[]);
+      const list=primary.map(flattenContent).concat(legacyQuestions.map(flattenContent));
       return {ok:true,data:jenjang?list.filter(x=>x.jenjang===jenjang):list};
     },
     dataBelajar: async function(){

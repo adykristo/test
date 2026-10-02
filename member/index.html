@@ -508,6 +508,11 @@
       .kf-pkg-nav button.answered{background:#efe2fb;color:#6925a6}.kf-pkg-nav button.active{background:#762cc0;color:#fff}
       .kf-timer{font-weight:900;font-size:18px;color:#7a269e}.kf-pkg-result{padding:18px;border-radius:14px;background:#f5ebff;margin-top:14px}
 
+
+      /* V15 — Paket Mandiri */
+      .paket-saya-panel{margin-top:14px}.paket-saya-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.paket-saya-head h2{margin:0 0 4px}.paket-saya-head p{margin:0;color:#725c82;font-size:13px}
+      .owned-package-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:14px}.owned-package{padding:14px;border:1px solid #e4d5f2;border-radius:14px;background:linear-gradient(135deg,#fff,#fbf7ff)}.owned-package b,.owned-package span,.owned-package small{display:block}.owned-package span{margin-top:5px;color:#177a4b;font-size:12px;font-weight:800}.owned-package small{margin-top:7px;color:#7b6888;line-height:1.45}
+      .member-payment-methods{display:grid;gap:8px;margin-top:12px}.member-pay-card{padding:11px 12px;border:1px solid #e6d8f2;border-radius:12px;background:#fcf9ff}.member-pay-card b,.member-pay-card span,.member-pay-card small{display:block}.member-pay-card span{margin-top:3px}.member-pay-card small{margin-top:4px;color:#786687}
 </style>
   
 <style id="kf-member-v6">
@@ -626,7 +631,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           <div class="summary-card"><small>Tahap terbuka</small><strong id="statTahap">0 / 12</strong></div>
         </div>
         <div class="dashboard-actions">
-          <button id="lanjutBtn" class="btn btn-main" type="button" onclick="lanjutBelajar()">▶ Lanjutkan belajar</button>
+          <button id="lanjutBtn" class="btn btn-main" type="button" onclick="lanjutBelajar()">▶ Pilih materi belajar</button>
           <button class="btn btn-ghost" type="button" onclick="toggleRiwayat()">📈 Riwayat &amp; Sertifikat</button>
           <button class="btn btn-ghost" type="button" onclick="toggleBookmarkFilter(this)">★ Materi tersimpan</button>
         </div>
@@ -930,9 +935,9 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
             }
             const selected = (profil && profil.paket) || "";
             box.innerHTML = list.map((p) => {
-              const aktif = p.nama === selected ? " selected" : "";
-              return `<div class="package-choice${aktif}"><div class="package-choice-head"><div><h3>${esc(p.nama)}</h3><p>${esc(p.deskripsi || "")}</p></div><div class="price">${formatRupiah(p.harga)}</div></div>
-                <button type="button" class="btn ${aktif ? "btn-main" : "btn-ghost"}" onclick="pilihPaketPending('${esc(p.nama)}')">${aktif ? "Paket dipilih" : "Pilih paket"}</button></div>`;
+              const aktif = !!p.owned;
+              return `<div class="package-choice${aktif?" selected":""}"><div class="package-choice-head"><div><h3>${esc(p.nama)}</h3><p>${esc(p.deskripsi||"")}</p></div><div class="price">${formatRupiah(p.harga)}</div></div>
+                <button type="button" class="btn ${aktif?"btn-main":"btn-ghost"}" ${aktif?"disabled":""} onclick="pilihPaketPending('${esc(p.nama)}')">${aktif?"✓ Sudah Dimiliki":"Beli Paket"}</button></div>`;
             }).join("");
             if (selected) {
               const el = document.getElementById("paymentAmount");
@@ -947,18 +952,61 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
       }
       async function pilihPaketPending(nama) {
         try {
-          if (window.KFMemberAuth && window.KFMemberAuth.client) {
-            const r = await window.KFMemberAuth.client.rpc("choose_member_package", { p_package: nama });
-            if (r.error) throw r.error;
+          const p=(window.PAKET_CACHE||[]).find(x=>x.nama===nama);
+          if(!p||!p.id) throw new Error("Paket tidak ditemukan.");
+          if(p.owned){ alert("Paket ini sudah Anda miliki."); return; }
+          const mr=await window.KFMemberAuth.metodePembayaran();
+          const metode=mr.data||[];
+          if(!metode.length) throw new Error("Admin belum mengaktifkan metode pembayaran.");
+          window.KF_SELECTED_PACKAGE=p;
+          window.KF_PAYMENT_METHODS=metode;
+          await window.KFMemberAuth.buatOrderPaket(p.id,metode[0].id);
+          renderMetodePembayaranMember(metode);
+          const amount=document.getElementById("paymentAmount");
+          if(amount) amount.textContent=p.nama+" — "+formatRupiah(p.harga);
+          alert("✓ Permintaan pembelian paket dibuat. Silakan lakukan pembayaran dan kirim bukti ke Admin.");
+        } catch(err) { alert("Paket belum dapat diproses: "+err.message); }
+      }
+
+      function renderMetodePembayaranMember(list){
+        window.KF_PAYMENT_METHODS=list||[];
+        const bank=document.getElementById("paymentBank"), no=document.getElementById("paymentAccountNumber"),
+              owner=document.getElementById("paymentAccountOwner"), wa=document.getElementById("paymentWhatsAppLink");
+        if(!list||!list.length){
+          if(bank)bank.textContent="Belum diatur Admin"; if(no)no.textContent="-"; if(owner)owner.textContent="-"; return;
+        }
+        const m=list[0];
+        if(bank)bank.textContent=((m.jenis||"").toUpperCase()+" · "+(m.nama||"")).replace(/^ · /,"");
+        if(no)no.textContent=m.nomor_akun||"-";
+        if(owner)owner.textContent=m.pemilik||"-";
+        if(wa&&m.whatsapp){
+          const p=window.KF_SELECTED_PACKAGE;
+          wa.href="https://wa.me/"+String(m.whatsapp).replace(/\D/g,"")+"?text="+encodeURIComponent(
+            "Halo Admin KlinikFisikapku, saya mengirim bukti pembayaran.\n\nPaket: "+(p?p.nama:"Paket Member")
+          );
+        }
+        let box=document.getElementById("allPaymentMethods");
+        if(!box){
+          box=document.createElement("div"); box.id="allPaymentMethods"; box.className="member-payment-methods";
+          const card=bank&&bank.closest(".payment-card"); if(card)card.appendChild(box);
+        }
+        if(box)box.innerHTML=list.map(x=>`<div class="member-pay-card"><b>${esc(((x.jenis||"").toUpperCase()+" · "+(x.nama||"")).replace(/^ · /,""))}</b><span>${esc(x.nomor_akun||"-")}${x.pemilik?" · "+esc(x.pemilik):""}</span>${x.instruksi?`<small>${esc(x.instruksi)}</small>`:""}</div>`).join("");
+      }
+
+      async function renderPaketSaya(){
+        try{
+          const [pr,tr]=await Promise.all([window.KFMemberAuth.listPaket(),window.KFMemberAuth.topikSaya()]);
+          const all=pr.data||[], owned=all.filter(p=>p.owned), topics=tr.data||[];
+          window.PAKET_CACHE=all;
+          let box=document.getElementById("paketSayaPanel");
+          if(!box){
+            box=document.createElement("div"); box.id="paketSayaPanel"; box.className="card paket-saya-panel";
+            const list=document.getElementById("list"); if(list&&list.parentNode)list.parentNode.insertBefore(box,list);
           }
-        } catch (err) { alert("Paket belum tersimpan: " + err.message); return; }
-        if (profilAktif) profilAktif.paket = nama;
-        try { localStorage.setItem(P, JSON.stringify(profilAktif)); } catch (e) {}
-        const el = document.getElementById("paymentAmount");
-        const p = (window.PAKET_CACHE || []).find((x) => x.nama === nama);
-        if (el && p) el.textContent = p.nama + " — " + formatRupiah(p.harga);
-        document.querySelectorAll(".package-choice").forEach((c) => c.classList.remove("selected"));
-        renderPendingPackages(profilAktif);
+          if(box)box.innerHTML=`<div class="paket-saya-head"><div><h2>📚 Paket Saya</h2><p>Semua Modul, Video, dan Latihan dalam paket aktif dapat dipilih bebas. Tryout menunggu aktivasi Admin.</p></div><button class="btn btn-ghost" onclick="buka('pending');renderPendingPackages(profilAktif)">+ Beli Paket Lain</button></div>`+
+            (owned.length?`<div class="owned-package-grid">${owned.map(p=>`<div class="owned-package"><b>${esc(p.nama)}</b><span>✓ Aktif${p.expiresAt?" · s.d. "+new Date(p.expiresAt).toLocaleDateString("id-ID"):""}</span><small>${topics.filter(t=>t.package_id===p.id).map(t=>esc(t.judul)).join(" · ")||"Topik akan muncul setelah Admin menambahkannya."}</small></div>`).join("")}</div>`:`<div class="empty">Belum ada paket aktif.</div>`);
+          const badge=document.getElementById("badgePaket"); if(badge)badge.textContent=owned.length?owned.length+" Paket Aktif ✓":"Belum ada Paket Aktif";
+        }catch(e){console.warn("Paket Saya:",e);}
       }
 
       async function masukPeserta(p) {
@@ -994,6 +1042,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         document.getElementById("list").innerHTML =
           '<div class="empty">Memuat materi…</div>';
         buka("dash");
+        renderPaketSaya();
         try {
           const res = window.KFMemberAuth
             ? await window.KFMemberAuth.kontenMember(jenjangAktif)
@@ -1123,11 +1172,8 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         );
       }
       function bolehBuka(item) {
-        const urut = daftarTopik(),
-          topik = String(item.topik || "Tanpa Topik"),
-          pos = urut.indexOf(topik),
-          p = bacaProgres();
-        return pos <= 0 || p.latihanSelesai.includes(urut[pos - 1]);
+        // Materi yang sudah diizinkan server untuk paket peserta boleh dipilih bebas.
+        return true;
       }
       function statusTopik(topik) {
         return bacaProgres().latihanSelesai.includes(
@@ -1193,7 +1239,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
             (tujuanItem(x) === "tryout" || x.jenis === "tryout"),
         );
         box.innerHTML =
-          '<h2 style="margin-top:0">🏆 Tryout Mingguan</h2><p style="color:#5b4374">Terpisah dari progres topik. Member dapat mengerjakan langsung tanpa Token.</p>' +
+          '<h2 style="margin-top:0">🏆 Tryout Mingguan</h2><p style="color:#5b4374">Tryout hanya dapat diakses setelah diaktifkan oleh Admin.</p>' +
           (list.length
             ? list
                 .map(
@@ -1459,7 +1505,7 @@ function kfRenderServerPackageBoxes(){
   let now=Date.now(),start=p.starts_at?new Date(p.starts_at).getTime():0,end=p.ends_at?new Date(p.ends_at).getTime():0,blocked=start&&now<start?"Belum dimulai":end&&now>end?"Sudah berakhir":kind==="tryout"&&Number(p.attempts_used)>=Number(p.max_attempts)?"Percobaan habis":"";
   return `<div class="kf-pkg-card ${blocked?"kf-pkg-locked":""}"><h3>${kind==="tryout"?"🏆":"✎"} ${esc(p.name)}</h3><div class="kf-pkg-meta">${p.question_count} soal${kind==="tryout"?` · ${p.duration_minutes||0} menit · Percobaan ${p.attempts_used}/${p.max_attempts}`:""}<br>${blocked||"Tersedia untuk paket langganan Anda"}</div><button class="btn ${blocked?"btn-ghost":"btn-main"}" ${blocked?"disabled":`onclick="kfStartServerPackage('${p.id}')"`}>${blocked?"Tidak tersedia":"Mulai"}</button></div>`;
  }).join("");
- old.innerHTML=`<h2 style="margin-top:0">📦 Paket Latihan & Tryout</h2><p style="color:#5b4374">Data dipanggil langsung dari Supabase sesuai langganan akun Anda.</p><h3>Latihan Soal</h3><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty">Belum ada paket latihan.</div>'}</div><h3>Tryout</h3><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty">Belum ada tryout.</div>'}</div>`;
+ old.innerHTML=`<h2 style="margin-top:0">📦 Paket Latihan & Tryout</h2><p style="color:#5b4374">Data dipanggil langsung dari Supabase sesuai langganan akun Anda.</p><h3>Latihan Soal</h3><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty">Belum ada paket latihan.</div>'}</div><h3>Tryout</h3><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
 }
 async function kfStartServerPackage(packageId){
  try{
