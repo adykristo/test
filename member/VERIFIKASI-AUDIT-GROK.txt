@@ -1,0 +1,6 @@
+config_placeholder=true
+config_invalid_until_set=true
+payment_duration_valid=true
+admin_setup_exists=true
+diagnostic_exists=true
+v12_exists=true

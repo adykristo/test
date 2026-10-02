@@ -1,0 +1,40 @@
+KLINIKFISIKAPKU MEMBER AREA V15 — AUDIT GROK DITERAPKAN
+Tanggal acuan audit: 1 Oktober 2026
+
+DITERAPKAN KE PAKET:
+1. Project lama tidak lagi di-hardcode. supabase-config.js memakai placeholder project baru dan isValid=false.
+2. Browser hanya memakai Project URL + anon/publishable public key. service_role/secret dilarang di frontend.
+3. Installer tunggal: V15-INSTALL-SUPABASE-FINAL-AUDITED.sql. Jangan campur patch SQL lama.
+4. Login Admin memakai Supabase Auth + verifikasi member_admins role=super_admin dan active=true.
+5. V15-SETUP-ADMIN-PERTAMA.sql disediakan untuk promosi akun Auth menjadi super_admin.
+6. V15-DIAGNOSTIK-SETELAH-INSTALASI.sql disediakan untuk memeriksa tabel, RPC, trigger, RLS, admin, paket dan payment config.
+7. Pesan installer lama di frontend telah diarahkan ke installer V15 yang benar.
+8. Pembuat Soal V12 tidak dimodifikasi.
+
+KOREKSI PENTING TERHADAP DOKUMEN AUDIT:
+Dokumen audit memberi contoh _PAYMENT_CONFIG_ dengan durasi_hari=0. Itu TIDAK kompatibel dengan schema V15 karena member_packages memiliki CHECK(durasi_hari>0).
+Paket ini mempertahankan nilai yang valid:
+  nama='_PAYMENT_CONFIG_'
+  durasi_hari=1
+  harga=0
+Frontend memfilter baris ini dari daftar paket biasa dan tetap dapat membaca konfigurasi pembayaran.
+
+BELUM BISA DITERAPKAN TANPA DATA PROJECT BARU:
+- Project URL baru
+- anon/publishable key baru
+- pembuatan user Auth aktual
+- eksekusi SQL di project Supabase aktual
+- pengaturan Confirm email / SMTP aktual
+- uji end-to-end pada hosting produksi
+
+URUTAN EKSEKUSI:
+1. Buat project Supabase baru.
+2. Jalankan V15-INSTALL-SUPABASE-FINAL-AUDITED.sql utuh.
+3. Jalankan V15-DIAGNOSTIK-SETELAH-INSTALASI.sql; semua pemeriksaan wajib lolos.
+4. Untuk uji awal, Confirm email boleh OFF sementara.
+5. Buat user Auth Admin.
+6. Jalankan V15-SETUP-ADMIN-PERTAMA.sql.
+7. Isi supabase-config.js dengan URL + anon/publishable key, lalu isValid=true.
+8. Deploy folder member/ dan Ctrl+F5.
+9. Uji: daftar -> pending -> admin aktifkan -> login member -> modul/video -> latihan/tryout -> skor/laporan.
+10. Setelah SMTP tervalidasi, aktifkan kembali Confirm email.
