@@ -498,6 +498,16 @@
       .pkg-editor-grid .wide{grid-column:1/-1}
       @media(max-width:760px){.pkg-editor-grid{grid-template-columns:1fr}.pkg-editor-grid .wide{grid-column:auto}.pkg-question{grid-template-columns:32px 1fr}.pkg-question .pkg-actions{grid-column:2}}
 
+
+    /* Data Peserta Member: semua informasi utama dipisah per kolom */
+    #member .table-wrap{overflow-x:auto;border-radius:16px}
+    #member .table-wrap table{min-width:1420px;border-collapse:separate;border-spacing:0}
+    #member .table-wrap th{white-space:nowrap;background:#faf6ff;color:#54206f;font-size:12px}
+    #member .table-wrap td{vertical-align:middle}
+    #member .table-wrap tbody tr{transition:background .18s ease}
+    #member .table-wrap tbody tr:hover{background:#fcf8ff}
+    .member-cell-pill{display:inline-flex;align-items:center;justify-content:center;min-width:42px;padding:5px 9px;border-radius:999px;background:#f3e8ff;color:#6f2dbd;font-weight:800;font-size:12px}
+    .member-date-cell{display:block;white-space:nowrap;color:#6d5b78;font-size:12px}
 </style>
   </head>
   <body>
@@ -618,9 +628,12 @@
                   <th>No.</th>
                   <th>Peserta</th>
                   <th>Username</th>
-                  <th>Sekolah & Kelas</th>
-                  <th>Jenjang & Paket</th>
-                  <th>Status & Masa Aktif</th>
+                  <th>Sekolah</th>
+                  <th>Kelas</th>
+                  <th>Jenjang</th>
+                  <th>Paket</th>
+                  <th>Status</th>
+                  <th>Masa Aktif</th>
                   <th>Tanggal Daftar</th>
                   <th>Aksi</th>
                 </tr></thead>
@@ -1080,13 +1093,16 @@
             <td>${i+1}</td>
             <td><div class="member-name"><div class="member-avatar">${escMember(inisial)}</div><div><b>${escMember(nama)}</b><br><small>${escMember(x.email||"-")}</small></div></div></td>
             <td>@${escMember(x.username||"-")}</td>
-            <td>${escMember(x.sekolah||"-")}<br><small>Kelas ${escMember(x.kelas||"-")}</small></td>
-            <td><b>${escMember(String(x.jenjang||"-").toUpperCase())}</b><br><small>${escMember(x.paket||"Paket belum dipilih")}</small></td>
-            <td><span class="status-pill ${s}">${escMember(STATUS_LABEL[s]||s)}</span><br><small>s.d. ${escMember(formatTanggalMember(x.berakhir))}</small></td>
+            <td><b>${escMember(x.sekolah||"-")}</b></td>
+            <td><span class="member-cell-pill">${escMember(x.kelas||"-")}</span></td>
+            <td><span class="member-cell-pill">${escMember(String(x.jenjang||"-").toUpperCase())}</span></td>
+            <td><b>${escMember(x.paket||"Paket belum dipilih")}</b></td>
+            <td><span class="status-pill ${s}">${escMember(STATUS_LABEL[s]||s)}</span></td>
+            <td><small class="member-date-cell">${escMember(formatTanggalMember(x.berakhir))}</small></td>
             <td>${escMember(formatTanggalMember(x.created_at,true))}</td>
             <td><div class="row-actions"><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button>${aksi}<button class="btn danger small" onclick="hapusMember('${x.id}')">Hapus</button></div></td>
           </tr>`;
-        }).join("") || '<tr><td colspan="8" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
+        }).join("") || '<tr><td colspan="11" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
         const info=document.getElementById("memberHasilInfo");
         if(info) info.textContent=`${tersaring.length} dari ${MEMBER_CACHE.length} peserta ditampilkan`;
       }
