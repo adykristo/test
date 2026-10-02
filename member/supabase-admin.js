@@ -19,25 +19,20 @@
     client: supabase,
 
     ensureAdmin: async function () {
-      let { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error("Gagal membaca sesi Admin:", sessionError);
+        return false;
+      }
 
-      // Admin Member memakai Supabase Auth sendiri. Jangan pernah melempar
-      // pengguna ke login Admin Tryout lama. Jika belum ada sesi, login di sini.
       if (!session) {
-        const email = prompt("Email Super Admin Member:", "adykristo@gmail.com");
-        if (email === null) return false;
-        const password = prompt("Password Super Admin Member:");
-        if (password === null) return false;
-
-        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password
+        const redirectTo = window.location.origin + window.location.pathname;
+        const { error: oauthError } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: redirectTo }
         });
-        if (loginError || !loginData || !loginData.session) {
-          alert("Login Admin Member gagal: " + (loginError && loginError.message ? loginError.message : "Sesi tidak terbentuk."));
-          return false;
-        }
-        session = loginData.session;
+        if (oauthError) alert("Login Google Admin gagal: " + oauthError.message);
+        return false;
       }
 
       const { data, error } = await supabase
@@ -47,9 +42,14 @@
         .maybeSingle();
 
       if (error || !data || data.role !== "super_admin" || data.active !== true) {
-        await supabase.auth.signOut();
-        alert("Akses ditolak: akun ini bukan Super Admin Member yang aktif. Silakan login dengan akun Super Admin Member.");
+        await supabase.auth.signOut({ scope: "local" });
+        alert("Akses ditolak: akun Google ini bukan Super Admin Member yang aktif.");
+        window.location.replace("index.html?admin_access=denied");
         return false;
+      }
+
+      if (window.location.hash && /access_token|refresh_token|error_description/.test(window.location.hash)) {
+        history.replaceState(null, document.title, window.location.pathname + window.location.search);
       }
       return true;
     },
