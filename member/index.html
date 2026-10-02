@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src https://www.youtube-nocookie.com https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self' blob: https://www.youtube-nocookie.com https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>Member Area · KlinikFisikapku</title>
     <script>
@@ -746,6 +746,25 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
       function safeDownloadUrl(v) {
         try{const u=new URL(String(v||""));return u.protocol==="https:"?u.href:"";}catch{return "";}
       }
+      let kfPdfBlobUrl = "";
+      function pdfDisplayUrl(v) {
+        const s = safePdfUrl(v);
+        if (!s) return "";
+        if (!s.startsWith("data:application/pdf;base64,")) return s;
+        try {
+          const base64 = s.slice(s.indexOf(",") + 1);
+          const binary = atob(base64);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          if (kfPdfBlobUrl) URL.revokeObjectURL(kfPdfBlobUrl);
+          kfPdfBlobUrl = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+          return kfPdfBlobUrl;
+        } catch (err) {
+          console.error("PDF Base64 tidak dapat dikonversi:", err);
+          return "";
+        }
+      }
+
       function textWithBreaks(v){return esc(v).replace(/\n/g,"<br>");}
 
       let PAKET_CACHE = window.PAKET_CACHE || [];
@@ -1211,14 +1230,21 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           html += `<p style="color:#5b4374">Modul dalam format PDF — bisa dibaca langsung di sini atau diunduh.</p>`;
           const pdfUrl=safePdfUrl(x.pdfUrl);
           if (pdfUrl) {
-            const sumberPdf = String(pdfUrl).startsWith("data:application/pdf")
-              ? pdfUrl
-              : `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
-            html += `<iframe class="pdfview" title="Modul PDF" src="${esc(sumberPdf)}"></iframe>
+            const pdfBlobOrUrl = pdfDisplayUrl(pdfUrl);
+            const isBlob = String(pdfBlobOrUrl).startsWith("blob:");
+            const sumberPdf = isBlob
+              ? pdfBlobOrUrl
+              : `https://docs.google.com/viewer?url=${encodeURIComponent(pdfBlobOrUrl)}&embedded=true`;
+            if (!pdfBlobOrUrl) {
+              html += `<div class="empty">PDF tidak dapat dibaca. Silakan unggah ulang PDF dari halaman admin.</div>`;
+            } else {
+              const namaPdf = String(x.judul || "modul").replace(/[\\/:*?"<>|]+/g, "-") + ".pdf";
+              html += `<iframe class="pdfview" title="Modul PDF" src="${esc(sumberPdf)}"></iframe>
         <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-          <a class="btn btn-main" style="text-decoration:none" href="${esc(pdfUrl)}" target="_blank" rel="noopener noreferrer">⬇ Unduh PDF</a>
-          <a class="btn btn-ghost" style="text-decoration:none" href="${esc(pdfUrl)}" target="_blank" rel="noopener noreferrer">Buka di Tab Baru</a>
+          <a class="btn btn-main" style="text-decoration:none" href="${esc(pdfBlobOrUrl)}" ${isBlob ? `download="${esc(namaPdf)}"` : `target="_blank" rel="noopener noreferrer"`}>⬇ Unduh PDF</a>
+          <a class="btn btn-ghost" style="text-decoration:none" href="${esc(pdfBlobOrUrl)}" target="_blank" rel="noopener noreferrer">Buka di Tab Baru</a>
         </div>`;
+            }
           } else {
             html += `<div class="empty">Link PDF belum diisi admin.</div>`;
           }
