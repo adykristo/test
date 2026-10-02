@@ -481,23 +481,15 @@
         }
       }
     
-      .pkg-card{border:1px solid #eadcf8;border-radius:14px;padding:15px;margin:10px 0;background:#fff}
-      .pkg-card .pkg-meta{font-size:12px;color:#806b90;margin:5px 0 10px}
-      .pkg-actions{display:flex;gap:7px;flex-wrap:wrap}
-      .pkg-question{display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:start;border-top:1px solid #f1e8f8;padding:11px 0}
-      .pkg-no{width:32px;height:32px;border-radius:9px;background:#f4eaff;color:#6925a6;display:grid;place-items:center;font-weight:900}
-      .pkg-question .qtext{font-size:13px;line-height:1.45}
-      .v12-bank-card{border:1px solid #eadcf8;border-radius:14px;padding:14px;margin:10px 0}
-      .v12-select-list{max-height:300px;overflow:auto;border-top:1px solid #eee2f7;margin-top:10px;padding-top:7px}
-      .v12-select-row{display:flex;gap:9px;align-items:flex-start;padding:7px 0;font-size:13px}
-      .v12-select-row input{width:auto;margin-top:3px}
-      .pkg-editor{position:fixed;inset:0;background:#28163899;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px}
-      .pkg-editor.show{display:flex}
-      .pkg-editor-box{width:min(880px,96vw);max-height:92vh;overflow:auto;background:white;border-radius:18px;padding:20px;box-shadow:0 25px 70px #0004}
-      .pkg-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-      .pkg-editor-grid .wide{grid-column:1/-1}
-      @media(max-width:760px){.pkg-editor-grid{grid-template-columns:1fr}.pkg-editor-grid .wide{grid-column:auto}.pkg-question{grid-template-columns:32px 1fr}.pkg-question .pkg-actions{grid-column:2}}
-
+    /* Data Peserta Member — kolom dipisah agar lebih jelas dan rapi */
+    #member .table-wrap{overflow-x:auto;border-radius:16px}
+    #member .table-wrap table{min-width:1420px;border-collapse:separate;border-spacing:0}
+    #member .table-wrap th{white-space:nowrap;background:#faf6ff;color:#54206f;font-size:12px}
+    #member .table-wrap td{vertical-align:middle}
+    #member .table-wrap tbody tr{transition:background .18s ease}
+    #member .table-wrap tbody tr:hover{background:#fcf8ff}
+    .member-cell-pill{display:inline-flex;align-items:center;justify-content:center;min-width:42px;padding:5px 9px;border-radius:999px;background:#f3e8ff;color:#6f2dbd;font-weight:800;font-size:12px}
+    .member-date-cell{display:block;white-space:nowrap;color:#6d5b78;font-size:12px}
 </style>
   </head>
   <body>
@@ -506,7 +498,7 @@
         <b>KlinikFisikapku</b><small>Admin Member Area</small>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn ghost" onclick="location.href='index.html'">← Admin Utama</button>
+        <button class="btn ghost" onclick="location.href='../admin-dashboard-login.html'">← Admin Utama</button>
         <button class="btn ghost" onclick="KFLogoutAdminMember()">Keluar Member</button>
       </div>
     </header>
@@ -526,8 +518,7 @@
         <button onclick="openPanel('modul', this)">▤ Modul & Topik</button
         ><button onclick="openPanel('latihan', this)">✎ Soal Latihan</button
         ><button onclick="openPanel('video', this)">▶ Video Pembahasan</button
-        ><button onclick="openPanel('tryout', this)">★ Tryout Mingguan</button
-        ><button onclick="openPanel('v12builder', this);setTimeout(bacaBankV12,250)">✦ Pembuat Soal V12</button>
+        ><button onclick="openPanel('tryout', this)">★ Tryout Mingguan</button>
       </aside>
       <main>
         <section id="ringkasan" class="panel show">
@@ -618,9 +609,12 @@
                   <th>No.</th>
                   <th>Peserta</th>
                   <th>Username</th>
-                  <th>Sekolah & Kelas</th>
-                  <th>Jenjang & Paket</th>
-                  <th>Status & Masa Aktif</th>
+                  <th>Sekolah</th>
+                  <th>Kelas</th>
+                  <th>Jenjang</th>
+                  <th>Paket</th>
+                  <th>Status</th>
+                  <th>Masa Aktif</th>
                   <th>Tanggal Daftar</th>
                   <th>Aksi</th>
                 </tr></thead>
@@ -718,20 +712,85 @@
             </div>
           </div>
         </section>
-        
         <section id="latihan" class="panel">
           <h1>Soal Latihan</h1>
-          <p class="sub">Kelola paket latihan untuk peserta berlangganan. Soal dibuat di Pembuat Soal V12, kemudian dipilih, diedit sebagai salinan paket, dan dipublikasikan dari sini.</p>
+          <p class="sub">Studio soal khusus Member Area: input manual, impor Word, atau Gemini AI. Soal disimpan terpisah dari Bank Soal KlinikFisikapku utama dan dapat dirapikan lagi oleh Gemini sebelum dipublikasikan.</p>
           <div class="card">
-            <div class="head"><div><h2>Paket Latihan</h2><p class="sub" style="margin:4px 0 0">Paket tersimpan di browser admin. Saat dipublikasikan, soal dikirim ke database Member Area.</p></div><button class="btn" onclick="buatPaketKelola('latihan')">+ Paket Latihan</button></div>
-            <div id="latihanPackageManager" class="manage-list"></div><div class="card" style="margin-top:14px"><div class="head"><h3>Paket Final di Supabase</h3><button class="btn ghost small" onclick="renderSupabasePackageStatus()">↻ Panggil dari Supabase</button></div><div id="latihanPackageManagerSupabase" class="manage-list"><div class="sub">Klik muat untuk melihat data final.</div></div></div>
-          </div>
-          <div class="card">
-            <div class="head"><h2>Soal latihan yang sudah dipublikasikan</h2><button class="btn ghost small" onclick="renderKontenAdmin()">↻ Muat ulang</button></div>
+            <h2>Studio Soal Latihan</h2>
+            <div class="mode-tabs" data-studio="latihan">
+              <button class="active" type="button" onclick="bukaMode('latihan','manual',this)">✎ Input Manual</button>
+              <button type="button" onclick="bukaMode('latihan','word',this)">⇧ Impor Word</button>
+              <button type="button" onclick="bukaMode('latihan','paste',this)">▣ Tempel + Gambar</button>
+              <button type="button" onclick="bukaMode('latihan','ai',this)">✦ Buat dengan Gemini</button>
+            </div>
+            <div id="latihan-manual" class="mode-pane show">
+            <form class="form" onsubmit="simpanLatihan(event)">
+              <div>
+                <label>Jenjang</label
+                ><select id="latihanJenjang">
+                  <option value="sd">SD</option>
+                  <option value="smp">SMP</option>
+                  <option value="sma">SMA</option>
+                </select>
+              </div>
+              <div>
+                <label>Topik</label
+                ><input
+                  id="latihanTopik"
+                  required
+                  placeholder="Contoh: Kinematika"
+                />
+              </div>
+              <div class="wide">
+                <label>Judul latihan</label
+                ><input
+                  id="latihanJudul"
+                  required
+                  placeholder="Contoh: Latihan GLBB 1"
+                />
+              </div>
+              <div><label>Tipe soal</label><select id="latihanTipe" onchange="aturTipeManual('latihan')"><option value="pg4">Pilihan Ganda (4 opsi)</option><option value="pg5">Pilihan Ganda (5 opsi)</option><option value="mcma">PG Kompleks / MCMA</option><option value="kategori">PG Kategori</option><option value="isian">Isian Singkat</option><option value="esai">Esai</option></select></div>
+              <div><label>Gambar soal (opsional)</label><input id="latihanGambar" type="file" accept="image/*" /></div>
+              <div class="wide">
+                <label>Pertanyaan</label
+                ><textarea
+                  id="latihanSoal"
+                  required
+                  placeholder="Tulis soal latihan…"
+                ></textarea>
+              </div>
+              <div id="latihanOpsi" class="wide form"><div><label>Opsi A</label><input id="opsi0" required /></div><div><label>Opsi B</label><input id="opsi1" required /></div><div><label>Opsi C</label><input id="opsi2" required /></div><div><label>Opsi D</label><input id="opsi3" required /></div></div>
+              <div id="latihanKunciWrap">
+                <label>Jawaban benar</label
+                ><select id="latihanKunci">
+                  <option value="0">A</option>
+                  <option value="1">B</option>
+                  <option value="2">C</option>
+                  <option value="3">D</option>
+                </select>
+              </div>
+              <div>
+                <label>Pembahasan singkat</label
+                ><input id="latihanBahas" placeholder="Penjelasan jawaban" />
+              </div>
+              <div class="wide">
+                <button class="btn">Simpan Latihan</button>
+                <div class="notice"></div>
+              </div>
+            </form>
+            </div>
+            <div id="latihan-word" class="mode-pane">
+              <div class="import-guide"><b>Format Word yang didukung:</b> nomor soal <code>1.</code>, opsi <code>A.</code>–<code>E.</code>, lalu <code>KUNCI:</code> dan <code>PEMBAHASAN:</code>. Untuk tipe lain gunakan <code>TIPE: ISIAN</code> atau <code>TIPE: ESAI</code>. Rumus dapat ditulis dengan LaTeX, misalnya <code>$v=s/t$</code>.</div>
+              <form class="form" style="margin-top:12px" onsubmit="imporWord(event,'latihan')"><div><label>Jenjang</label><select id="wordLatihanJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Topik</label><input id="wordLatihanTopik" required placeholder="Contoh: Kinematika" /></div><div class="wide"><label>File Word / teks</label><input id="wordLatihanFile" type="file" accept=".docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required /><label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:600"><input id="wordLatihanGemini" type="checkbox" checked style="width:auto" /> Gemini rapikan, terjemahkan, kenali rumus dan pembahasan sebelum impor</label></div><div class="wide"><button class="btn">Impor ke Latihan</button><div class="notice"></div></div></form>
+            </div>
+            <div id="latihan-ai" class="mode-pane">
+              <form class="form" onsubmit="buatDraftAI(event,'latihan')"><div><label>Jenjang</label><select id="aiLatihanJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Topik</label><input id="aiLatihanTopik" required placeholder="Contoh: Energi" /></div><div><label>Tipe</label><select id="aiLatihanTipe"><option value="pg4">PG 4 opsi</option><option value="pg5">PG 5 opsi</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label>Tingkat kesulitan</label><select id="aiLatihanSulit"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div><div><label>Jumlah soal (1-20)</label><input id="aiLatihanJumlah" type="number" min="1" max="20" value="3" required></div><div class="wide"><label>Instruksi Gemini</label><textarea id="aiLatihanInstruksi" placeholder="Contoh: Buat soal konteks kehidupan sehari-hari, sertakan data, rumus LaTeX, pengecoh yang masuk akal, dan pembahasan sistematis."></textarea></div><div class="wide"><button class="btn">✦ Buat Draf dengan Gemini</button><div id="aiLatihanOutput" class="ai-output" style="display:none"></div></div></form>
+            </div>
+            <div id="latihan-paste" class="mode-pane"></div>
             <div id="latihanList" class="manage-list"></div>
           </div>
         </section>
-<section id="video" class="panel">
+        <section id="video" class="panel">
           <h1>Video Pembahasan</h1>
           <p class="sub">
             Tambahkan video per topik. Pada halaman member video ditampilkan sebagai pemutar; URL YouTube tidak akan ditampilkan.
@@ -774,33 +833,81 @@
             <div id="videoList" class="manage-list"></div>
           </div>
         </section>
-        
         <section id="tryout" class="panel">
           <h1>Tryout Mingguan</h1>
-          <p class="sub">Kelola paket tryout untuk peserta pelatihan yang berlangganan. Soal berasal dari V12 dan dapat diedit khusus untuk paket yang dipilih.</p>
+          <p class="sub">
+            Jadwalkan Tryout khusus member. Member yang sudah aktif dapat
+            mengerjakan tanpa Token/Nomor Ujian.
+          </p>
           <div class="card">
-            <div class="head"><div><h2>Paket Tryout</h2><p class="sub" style="margin:4px 0 0">Atur durasi, jadwal, akses paket langganan, susunan soal, dan publikasi.</p></div><button class="btn" onclick="buatPaketKelola('tryout')">+ Paket Tryout</button></div>
-            <div id="tryoutPackageManager" class="manage-list"></div><div class="card" style="margin-top:14px"><div class="head"><h3>Paket Final di Supabase</h3><button class="btn ghost small" onclick="renderSupabasePackageStatus()">↻ Panggil dari Supabase</button></div><div id="tryoutPackageManagerSupabase" class="manage-list"><div class="sub">Klik muat untuk melihat data final.</div></div></div>
+            <h2>Studio Soal Tryout</h2>
+            <p class="sub">Buat dahulu soal paket tryout lewat salah satu mode berikut, lalu pilih paketnya pada jadwal tryout di bawah.</p>
+            <div class="mode-tabs" data-studio="tryout">
+              <button class="active" type="button" onclick="bukaMode('tryout','manual',this)">✎ Input Manual</button>
+              <button type="button" onclick="bukaMode('tryout','word',this)">⇧ Impor Word</button>
+              <button type="button" onclick="bukaMode('tryout','paste',this)">▣ Tempel + Gambar</button>
+              <button type="button" onclick="bukaMode('tryout','ai',this)">✦ Buat dengan Gemini</button>
+            </div>
+            <div id="tryout-manual" class="mode-pane show">
+              <form class="form" onsubmit="simpanSoalTryout(event)">
+                <div><label>Jenjang</label><select id="tryoutSoalJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div>
+                <div><label>Nama paket tryout</label><input id="tryoutSoalPaket" required placeholder="Contoh: TO Kinematika #01" /></div>
+                <div><label>Topik</label><input id="tryoutSoalTopik" required placeholder="Contoh: Kinematika" /></div><div><label>Tipe soal</label><select id="tryoutSoalTipe" onchange="aturTipeManual('tryout')"><option value="pg4">Pilihan Ganda (4 opsi)</option><option value="pg5">Pilihan Ganda (5 opsi)</option><option value="mcma">PG Kompleks / MCMA</option><option value="kategori">PG Kategori</option><option value="isian">Isian Singkat</option><option value="esai">Esai</option></select></div><div><label>Gambar soal (opsional)</label><input id="tryoutSoalGambar" type="file" accept="image/*"></div>
+                <div class="wide"><label>Pertanyaan</label><textarea id="tryoutSoalTeks" required placeholder="Tulis soal tryout…"></textarea></div>
+                <div id="tryoutOpsi" class="wide form"><div><label>Opsi A</label><input id="toOpsi0" required /></div><div><label>Opsi B</label><input id="toOpsi1" required /></div><div><label>Opsi C</label><input id="toOpsi2" required /></div><div><label>Opsi D</label><input id="toOpsi3" required /></div></div>
+                <div id="tryoutKunciWrap"><label>Jawaban benar</label><select id="tryoutSoalKunci"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></div><div><label>Pembahasan</label><input id="tryoutSoalBahas" placeholder="Pembahasan singkat" /></div>
+                <div class="wide"><button class="btn">Simpan Soal ke Paket Tryout</button><div class="notice"></div></div>
+              </form>
+            </div>
+            <div id="tryout-word" class="mode-pane"><div class="import-guide"><b>Impor Word tryout:</b> gunakan format yang sama dengan Bank Soal KlinikFisikapku: nomor soal, A.–E., KUNCI:, PEMBAHASAN:, serta TIPE: ISIAN/ESAI bila diperlukan.</div><form class="form" style="margin-top:12px" onsubmit="imporWord(event,'tryout')"><div><label>Jenjang</label><select id="wordTryoutJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Nama paket</label><input id="wordTryoutPaket" required placeholder="Contoh: TO Kinematika #01" /></div><div><label>Topik</label><input id="wordTryoutTopik" required placeholder="Kinematika" /></div><div class="wide"><label>File Word / teks</label><input id="wordTryoutFile" type="file" accept=".docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required /><label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:600"><input id="wordTryoutGemini" type="checkbox" checked style="width:auto" /> Gemini rapikan, terjemahkan, dan buat pembahasan bila tersedia</label></div><div class="wide"><button class="btn">Impor ke Paket Tryout</button><div class="notice"></div></div></form></div>
+            <div id="tryout-ai" class="mode-pane"><form class="form" onsubmit="buatDraftAI(event,'tryout')"><div><label>Jenjang</label><select id="aiTryoutJenjang"><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div><div><label>Nama paket</label><input id="aiTryoutPaket" required placeholder="Contoh: TO Kinematika #01" /></div><div><label>Topik</label><input id="aiTryoutTopik" required placeholder="Kinematika" /></div><div><label>Tipe</label><select id="aiTryoutTipe"><option value="pg4">PG 4 opsi</option><option value="pg5">PG 5 opsi</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label>Tingkat kesulitan</label><select id="aiTryoutSulit"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div><div><label>Jumlah soal (1-20)</label><input id="aiTryoutJumlah" type="number" min="1" max="20" value="3" required></div><div class="wide"><label>Instruksi Gemini</label><textarea id="aiTryoutInstruksi" placeholder="Contoh: Buat paket OSN bertingkat, rumus LaTeX, pengecoh valid, serta pembahasan Diketahui–Ditanya–Konsep–Penyelesaian."></textarea></div><div class="wide"><button class="btn">✦ Buat Draf Tryout dengan Gemini</button><div id="aiTryoutOutput" class="ai-output" style="display:none"></div></div></form></div>
+            <div id="tryout-paste" class="mode-pane"></div>
           </div>
+          <form
+            id="tryoutForm"
+            class="card form"
+            onsubmit="simpanTryout(event)"
+          >
+            <div>
+              <label>Judul Tryout</label
+              ><input
+                id="tryoutJudul"
+                required
+                placeholder="Tryout Kinematika #05"
+              />
+            </div>
+            <div>
+              <label>Jenjang</label
+              ><select id="tryoutJenjang">
+                <option value="sd">SD</option>
+                <option value="smp">SMP</option>
+                <option value="sma">SMA</option>
+              </select>
+            </div>
+            <div>
+              <label>Tanggal & waktu</label
+              ><input id="tryoutTanggal" type="datetime-local" required />
+            </div>
+            <div>
+              <label>Paket Tryout dari Bank</label
+              ><select id="tryoutPaket" required><option value="">Pilih paket tryout…</option></select>
+            </div>
+            <div class="wide">
+              <label>Catatan untuk member</label
+              ><textarea
+                id="tryoutCatatan"
+                placeholder="Durasi, materi, dan aturan tryout…"
+              ></textarea>
+            </div>
+            <button class="btn">Jadwalkan Tryout</button>
+            <div class="notice"></div>
+          </form>
           <div class="card">
-            <div class="head"><h2>Tryout yang sudah dipublikasikan</h2><button class="btn ghost small" onclick="renderKontenAdmin()">↻ Muat ulang</button></div>
+            <h2>Tryout terjadwal</h2>
             <div id="tryoutList" class="manage-list"></div>
           </div>
         </section>
-
-        <section id="v12builder" class="panel">
-          <h1>Pembuat Soal V12</h1>
-          <p class="sub">Pusat pembuatan dan Bank Paket Soal. V12 asli dijalankan tanpa perubahan. Paket/soal dari V12 dapat dikirim ke Paket Latihan maupun Paket Tryout.</p>
-          <div class="card">
-            <div class="head"><div><h2>KlinikFisikapku · Pembuat Soal V12</h2><p class="sub" style="margin:4px 0 0">Selesaikan soal/paket di V12, lalu gunakan panel “Kirim dari Bank V12” di bawah.</p></div><button class="btn ghost small" onclick="document.getElementById('v12Frame').contentWindow.location.reload()">↻ Muat Ulang</button></div>
-            <iframe id="v12Frame" src="pembuat-soal-klinikfisikapku-v12-final.html" style="width:100%;height:78vh;min-height:720px;border:1px solid #eadcf8;border-radius:14px;background:white"></iframe>
-          </div>
-          <div class="card">
-            <div class="head"><div><h2>Kirim dari Bank V12</h2><p class="sub" style="margin:4px 0 0">Pilih seluruh paket atau pilih soal tertentu, kemudian kirim sebagai draf Paket Latihan/Tryout.</p></div><button class="btn ghost small" onclick="bacaBankV12()">↻ Segarkan Bank V12</button><button class="btn ghost small" onclick="KFGASWorkspace.push().then(r=>alert('✓ Workspace V12 tersimpan di Google Sheets: '+r.count+' paket')).catch(e=>alert(e.message))">☁ Simpan Workspace ke Google</button><button class="btn ghost small" onclick="KFGASWorkspace.pull().then(()=>{bacaBankV12();alert('✓ Workspace dipanggil dari Google Sheets')}).catch(e=>alert(e.message))">☁ Panggil dari Google</button><button class="btn ghost small" onclick="const u=prompt('URL Web App Google Apps Script (/exec):',localStorage.getItem('kf_v12_gas_url')||'');if(u){KFGASWorkspace.setUrl(u.trim());alert('✓ URL Google Apps Script tersimpan di browser Admin.')}">⚙ Atur Google Script</button></div>
-            <div id="v12BankBridge" class="manage-list"><div class="sub">Muat Bank V12 untuk mulai.</div></div>
-          </div>
-        </section>
-</main>
+      </main>
     </div>
     <dialog id="memberDetailDialog" class="member-dialog">
       <div class="dialog-head">
@@ -818,10 +925,8 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-    <script src="supabase-config.js"></script>
-    <script src="supabase-admin.js"></script>
-    <script src="supabase-publisher-v15.js"></script>
-    <script src="gas-workspace-bridge-v15.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-admin.js"></script>
     <script>
       window.addEventListener("load", function () {
         if (!window.KFSupabaseAdmin || !window.KFSupabaseAdmin.configured) {
@@ -869,7 +974,7 @@
         // Fallback Apps Script hanya dipakai bila URL benar-benar sudah dikonfigurasi.
         if (!SCRIPT_URL || SCRIPT_URL.includes("GANTI_DENGAN_URL")) {
           throw new Error(
-            "Supabase Admin belum siap. Pastikan supabase-config.js dan supabase-admin.js tersedia serta konfigurasi Supabase sudah benar."
+            "Supabase Admin belum siap. Pastikan js/supabase-config.js dan js/supabase-admin.js tersedia serta konfigurasi Supabase sudah benar."
           );
         }
 
@@ -929,11 +1034,14 @@
         document.querySelector('.layout').innerHTML = `
           <main style="width:min(760px,calc(100% - 32px));margin:42px auto;">
             <div class="card" style="padding:28px;">
-              <h1 style="margin-top:0;">Hubungkan Backend Member</h1>
-              <p>Backend utama Member Area V15 adalah Supabase. Isi <code>member/supabase-config.js</code> dengan <b>Project URL</b> dan <b>anon/publishable public key</b> dari project baru, lalu pastikan <code>isValid: true</code>.</p>
-              <p>Jalankan installer <code>V15-INSTALL-SUPABASE-FINAL-AUDITED.sql</code>, setup Super Admin, kemudian <code>V15-DIAGNOSTIK-SETELAH-INSTALASI.sql</code> sebelum deploy.</p>
-              <p>Jangan pernah memasukkan <code>service_role</code>, secret key, atau password admin ke file HTML/JS publik.</p>
-              <button class="btn" onclick="location.href='index.html'">Kembali ke Admin Utama</button>
+              <h1 style="margin-top:0;">Hubungkan Database Member</h1>
+              <p>Perpindahan dari Admin KlinikFisikapku sudah berhasil. Agar data peserta, paket, materi, dan tryout dapat dikelola, masukkan URL Web App Apps Script khusus Member pada konstanta <code>SCRIPT_URL</code> di dua file berikut:</p>
+              <ol style="line-height:1.8;">
+                <li><code>member/index.html</code></li>
+                <li><code>member/admin.html</code></li>
+              </ol>
+              <p>URL harus berakhir dengan <code>/exec</code>. Jangan memasukkan password admin atau API key ke file HTML publik.</p>
+              <button class="btn" onclick="location.href='../admin-dashboard-login.html'">Kembali ke Admin Utama</button>
             </div>
           </main>`;
       }
@@ -1080,13 +1188,16 @@
             <td>${i+1}</td>
             <td><div class="member-name"><div class="member-avatar">${escMember(inisial)}</div><div><b>${escMember(nama)}</b><br><small>${escMember(x.email||"-")}</small></div></div></td>
             <td>@${escMember(x.username||"-")}</td>
-            <td>${escMember(x.sekolah||"-")}<br><small>Kelas ${escMember(x.kelas||"-")}</small></td>
-            <td><b>${escMember(String(x.jenjang||"-").toUpperCase())}</b><br><small>${escMember(x.paket||"Paket belum dipilih")}</small></td>
-            <td><span class="status-pill ${s}">${escMember(STATUS_LABEL[s]||s)}</span><br><small>s.d. ${escMember(formatTanggalMember(x.berakhir))}</small></td>
+            <td><b>${escMember(x.sekolah||"-")}</b></td>
+            <td><span class="member-cell-pill">${escMember(x.kelas||"-")}</span></td>
+            <td><span class="member-cell-pill">${escMember(String(x.jenjang||"-").toUpperCase())}</span></td>
+            <td><b>${escMember(x.paket||"Paket belum dipilih")}</b></td>
+            <td><span class="status-pill ${s}">${escMember(STATUS_LABEL[s]||s)}</span></td>
+            <td><small class="member-date-cell">${escMember(formatTanggalMember(x.berakhir))}</small></td>
             <td>${escMember(formatTanggalMember(x.created_at,true))}</td>
             <td><div class="row-actions"><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button>${aksi}<button class="btn danger small" onclick="hapusMember('${x.id}')">Hapus</button></div></td>
           </tr>`;
-        }).join("") || '<tr><td colspan="8" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
+        }).join("") || '<tr><td colspan="11" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
         const info=document.getElementById("memberHasilInfo");
         if(info) info.textContent=`${tersaring.length} dari ${MEMBER_CACHE.length} peserta ditampilkan`;
       }
@@ -1567,7 +1678,8 @@
         await simpanKontenBackend(x);
       }
       document.addEventListener("DOMContentLoaded", async () => {
-        /* Studio lama diganti Package Manager V13 */
+        siapkanStudioSoal("latihan");
+        siapkanStudioSoal("tryout");
         if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
         if (window.KFSupabaseAdmin) {
           const boleh = await window.KFSupabaseAdmin.ensureAdmin();
@@ -1575,7 +1687,8 @@
           await renderMemberAdmin();
           await renderKontenAdmin();
           await renderPaketAdmin();
-          renderPkgManagers();
+          aturTipeManual("latihan");
+          aturTipeManual("tryout");
           muatPilihanPaket();
           return;
         }
@@ -1587,151 +1700,10 @@
         await renderMemberAdmin();
         await renderKontenAdmin();
         await renderPaketAdmin();
-        renderPkgManagers();
+        aturTipeManual("latihan");
+        aturTipeManual("tryout");
         muatPilihanPaket();
       });
     </script>
-  
-<div class="pkg-editor" id="pkgEditorModal"><div class="pkg-editor-box">
-  <div class="head"><h2 id="pkgEditorTitle">Edit Paket</h2><button class="btn ghost small" onclick="tutupPkgEditor()">✕ Tutup</button></div>
-  <div id="pkgEditorBody"></div>
-</div>
-
-<script>
-
-/* ===== V13: V12 -> PAKET LATIHAN / TRYOUT ===== */
-const KF_TRAIN_PACKAGES="kf_member_training_packages_v13";
-const KF_TRYOUT_PACKAGES="kf_member_tryout_packages_v13";
-const KF_V12_BANK="kf_package_bank_v1";
-let PKG_EDIT={kind:"",id:""};
-
-function pkgKey(k){return k==="tryout"?KF_TRYOUT_PACKAGES:KF_TRAIN_PACKAGES}
-function pkgGet(k){try{return JSON.parse(localStorage.getItem(pkgKey(k))||"[]")}catch{return []}}
-function pkgSet(k,v){localStorage.setItem(pkgKey(k),JSON.stringify(v));renderPkgManagers()}
-function uidPkg(){return "MP-"+Date.now()+"-"+Math.random().toString(36).slice(2,7)}
-function cloneObj(x){return JSON.parse(JSON.stringify(x))}
-function v12win(){let f=document.getElementById("v12Frame");if(!f||!f.contentWindow)throw Error("V12 belum dimuat.");return f.contentWindow}
-function v12bank(){return JSON.parse(v12win().localStorage.getItem(KF_V12_BANK)||"[]")}
-function h(v){return escMember(v==null?"":String(v))}
-
-function newPkg(kind,name){
- return {id:uidPkg(),kind,name:name|| (kind==="tryout"?"Tryout Baru":"Latihan Baru"),questions:[],visible:false,
- duration:kind==="tryout"?90:0,start:"",end:"",subscription:"Semua Paket Aktif",attempts:1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
-}
-function buatPaketKelola(kind){
- const name=prompt(kind==="tryout"?"Nama paket tryout:":"Nama paket latihan:");
- if(!name||!name.trim())return;
- const a=pkgGet(kind);const p=newPkg(kind,name.trim());a.unshift(p);pkgSet(kind,a);bukaPkgEditor(kind,p.id);
-}
-function getPkg(kind,id){return pkgGet(kind).find(x=>x.id===id)}
-function savePkgObj(kind,p){
- let a=pkgGet(kind),i=a.findIndex(x=>x.id===p.id);p.updatedAt=new Date().toISOString();if(i>=0)a[i]=p;else a.unshift(p);pkgSet(kind,a);
-}
-function hapusPkg(kind,id){let p=getPkg(kind,id);if(!p||!confirm('Hapus paket "'+p.name+'"?'))return;pkgSet(kind,pkgGet(kind).filter(x=>x.id!==id))}
-function duplikatPkg(kind,id){let p=cloneObj(getPkg(kind,id));if(!p)return;p.id=uidPkg();p.name+=" (Salinan)";p.visible=false;p.createdAt=new Date().toISOString();savePkgObj(kind,p)}
-
-function renderPkgManagers(){
- [["latihan","latihanPackageManager"],["tryout","tryoutPackageManager"]].forEach(([kind,target])=>{
-  let box=document.getElementById(target);if(!box)return;let a=pkgGet(kind);
-  box.innerHTML=a.length?a.map(p=>`<div class="pkg-card">
-   <div class="head"><div><b>${h(p.name)}</b><div class="pkg-meta">${p.questions.length} soal · ${p.visible?"Dipublikasikan":"Draf"}${kind==="tryout"?` · ${Number(p.duration)||90} menit · Akses: ${h(p.subscription||"Semua Paket Aktif")}`:" · Akses: "+h(p.subscription||"Semua Paket Aktif")}</div></div></div>
-   <div class="pkg-actions">
-    <button class="btn small" onclick="bukaPkgEditor('${kind}','${p.id}')">✎ Atur & Edit Soal</button>
-    <button class="btn ghost small" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal V12</button>
-    <button class="btn ghost small" onclick="duplikatPkg('${kind}','${p.id}')">Duplikat</button>
-    <button class="btn ${p.visible?"ghost":""} small" onclick="publikasiPkg('${kind}','${p.id}')">${p.visible?"↻ Sinkron Ulang":"✓ Publikasikan"}</button>
-    <button class="btn danger small" onclick="hapusPkg('${kind}','${p.id}')">Hapus</button>
-   </div></div>`).join(""):'<div class="sub">Belum ada paket. Buat paket lalu ambil soal dari V12.</div>';
- })
-}
-function bukaPkgEditor(kind,id){
- let p=getPkg(kind,id);if(!p)return;PKG_EDIT={kind,id};
- document.getElementById("pkgEditorTitle").textContent=(kind==="tryout"?"Paket Tryout · ":"Paket Latihan · ")+p.name;
- document.getElementById("pkgEditorBody").innerHTML=`<div class="pkg-editor-grid">
-  <div class="wide"><label>Nama paket</label><input id="peName" value="${h(p.name)}"></div>
-  <div><label>Akses peserta berlangganan</label><input id="peSub" value="${h(p.subscription||"Semua Paket Aktif")}" placeholder="Semua Paket Aktif atau nama paket; beberapa paket pisahkan dengan |"><div class="sub">Contoh: Paket 1 Bulan | Paket 3 Bulan</div></div>
-  ${kind==="tryout"?`<div><label>Durasi (menit)</label><input id="peDuration" type="number" min="1" value="${Number(p.duration)||90}"></div>
-  <div><label>Mulai</label><input id="peStart" type="datetime-local" value="${h(p.start||"")}"></div>
-  <div><label>Selesai</label><input id="peEnd" type="datetime-local" value="${h(p.end||"")}"></div>
-  <div><label>Maksimal percobaan</label><input id="peAttempts" type="number" min="1" value="${Number(p.attempts)||1}"></div>`:""}
-  <div class="wide pkg-actions"><button class="btn" onclick="simpanMetaPkg()">Simpan Pengaturan</button><button class="btn ghost" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal dari V12</button></div>
- </div>
- <hr style="border:0;border-top:1px solid #eee2f7;margin:18px 0">
- <h3>Soal dalam paket (${p.questions.length})</h3>
- <div>${p.questions.length?p.questions.map((q,i)=>`<div class="pkg-question"><div class="pkg-no">${i+1}</div><div class="qtext"><b>${h((q.question||"").slice(0,140)||"Soal tanpa teks")}</b><div class="sub">${h(q.type||"")} · ${h(q.topik||"")}</div></div><div class="pkg-actions"><button class="btn ghost small" onclick="editQuestionPkg(${i})">Edit</button><button class="btn ghost small" onclick="moveQuestionPkg(${i},-1)">↑</button><button class="btn ghost small" onclick="moveQuestionPkg(${i},1)">↓</button><button class="btn danger small" onclick="removeQuestionPkg(${i})">Hapus</button></div></div>`).join(""):'<div class="sub">Belum ada soal.</div>'}</div>`;
- document.getElementById("pkgEditorModal").classList.add("show");
-}
-function tutupPkgEditor(){document.getElementById("pkgEditorModal").classList.remove("show");PKG_EDIT={kind:"",id:""}}
-function simpanMetaPkg(){
- let p=getPkg(PKG_EDIT.kind,PKG_EDIT.id);if(!p)return;p.name=document.getElementById("peName").value.trim()||p.name;p.subscription=document.getElementById("peSub").value.trim()||"Semua Paket Aktif";
- if(PKG_EDIT.kind==="tryout"){p.duration=Number(document.getElementById("peDuration").value)||90;p.start=document.getElementById("peStart").value;p.end=document.getElementById("peEnd").value;p.attempts=Number(document.getElementById("peAttempts").value)||1}
- savePkgObj(PKG_EDIT.kind,p);bukaPkgEditor(PKG_EDIT.kind,p.id);
-}
-function removeQuestionPkg(i){let p=getPkg(PKG_EDIT.kind,PKG_EDIT.id);p.questions.splice(i,1);savePkgObj(PKG_EDIT.kind,p);bukaPkgEditor(PKG_EDIT.kind,p.id)}
-function moveQuestionPkg(i,d){let p=getPkg(PKG_EDIT.kind,PKG_EDIT.id),j=i+d;if(j<0||j>=p.questions.length)return;[p.questions[i],p.questions[j]]=[p.questions[j],p.questions[i]];savePkgObj(PKG_EDIT.kind,p);bukaPkgEditor(PKG_EDIT.kind,p.id)}
-function editQuestionPkg(i){
- let p=getPkg(PKG_EDIT.kind,PKG_EDIT.id),q=p.questions[i];if(!q)return;
- let t=prompt("Teks soal:",q.question||"");if(t===null)return;q.question=t.trim();
- if(["pg4","pg5","mcma"].includes(q.type)){q.answers=q.answers||{};q.answers.options=q.answers.options||[];for(let n=0;n<q.answers.options.length;n++){let o=prompt("Opsi "+"ABCDE"[n]+":",q.answers.options[n]||"");if(o===null)return;q.answers.options[n]=o.trim()}let k=prompt("Kunci (huruf, pisahkan koma untuk MCMA):",(q.answers.keys||[]).map(x=>"ABCDE"[Number(x)]||x).join(","));if(k===null)return;q.answers.keys=k.split(/[,;\s]+/).filter(Boolean).map(x=>Math.max(0,"ABCDE".indexOf(x.charAt(0).toUpperCase())))}
- else if(q.type==="isian"){q.answers=q.answers||{};let k=prompt("Kunci isian:",q.answers.short||"");if(k===null)return;q.answers.short=k.trim()}
- let b=prompt("Pembahasan:",q.explanation||"");if(b!==null)q.explanation=b.trim();
- q.packageEdited=true;p.questions[i]=q;savePkgObj(PKG_EDIT.kind,p);bukaPkgEditor(PKG_EDIT.kind,p.id);
-}
-function bukaPilihV12(kind,id){
- tutupPkgEditor();openPanel("v12builder");setTimeout(()=>{bacaBankV12(kind,id)},200);
-}
-function bacaBankV12(targetKind="",targetId=""){
- let box=document.getElementById("v12BankBridge");if(!box)return;
- try{let bank=v12bank();box.innerHTML=bank.length?bank.map((p,pi)=>`<div class="v12-bank-card"><b>${h(p.name||"Paket V12")}</b><div class="sub">${(p.questions||[]).length} soal</div>
-  <div class="pkg-actions" style="margin-top:8px"><button class="btn small" onclick="kirimPaketV12('${p.id}','latihan','${targetKind==="latihan"?targetId:""}')">→ Paket Latihan</button><button class="btn small" onclick="kirimPaketV12('${p.id}','tryout','${targetKind==="tryout"?targetId:""}')">→ Paket Tryout</button></div>
-  <details><summary style="cursor:pointer;margin-top:10px;font-weight:800">Pilih soal tertentu</summary><div class="v12-select-list">${(p.questions||[]).map((q,qi)=>`<label class="v12-select-row"><input type="checkbox" class="v12pick-${pi}" value="${qi}"><span><b>${qi+1}.</b> ${h((q.question||"").slice(0,150))}</span></label>`).join("")}</div><div class="pkg-actions"><button class="btn ghost small" onclick="kirimPilihanV12(${pi},'latihan','${targetKind==="latihan"?targetId:""}')">Kirim pilihan → Latihan</button><button class="btn ghost small" onclick="kirimPilihanV12(${pi},'tryout','${targetKind==="tryout"?targetId:""}')">Kirim pilihan → Tryout</button></div></details>
- </div>`).join(""):'<div class="sub">Bank Paket V12 masih kosong.</div>'}catch(e){box.innerHTML='<div class="notice" style="display:block">V12 belum dapat dibaca. Pastikan V12 sudah dimuat dan berada pada domain yang sama.<br>'+h(e.message)+'</div>'}
-}
-function addV12Questions(kind,targetId,srcPack,questions){
- let a=pkgGet(kind),p=targetId?a.find(x=>x.id===targetId):null;
- if(!p){let name=prompt(kind==="tryout"?"Nama Paket Tryout:":"Nama Paket Latihan:",srcPack.name||"Paket V12");if(name===null)return;p=newPkg(kind,name.trim()||srcPack.name);a.unshift(p)}
- questions.forEach(q=>{let c=cloneObj(q);c.sourceV12Package=srcPack.id;c.sourceV12Question=q.id||"";c.packageEdited=false;p.questions.push(c)});
- p.updatedAt=new Date().toISOString();let i=a.findIndex(x=>x.id===p.id);if(i>=0)a[i]=p;localStorage.setItem(pkgKey(kind),JSON.stringify(a));renderPkgManagers();alert("✓ "+questions.length+" soal ditambahkan ke "+(kind==="tryout"?"Paket Tryout":"Paket Latihan")+".");openPanel(kind==="tryout"?"tryout":"latihan");
-}
-function kirimPaketV12(pid,kind,targetId=""){let b=v12bank(),p=b.find(x=>String(x.id)===String(pid));if(p)addV12Questions(kind,targetId,p,p.questions||[])}
-function kirimPilihanV12(pi,kind,targetId=""){let b=v12bank(),p=b[pi];if(!p)return;let ids=[...document.querySelectorAll(".v12pick-"+pi+":checked")].map(x=>Number(x.value));if(!ids.length)return alert("Pilih minimal satu soal.");addV12Questions(kind,targetId,p,ids.map(i=>p.questions[i]).filter(Boolean))}
-
-function v12ToMember(q,p,kind,no){
- let a=q.answers||{},tipe=q.type||"pg4",k="";
- if(tipe==="pg4"||tipe==="pg5")k=Number((a.keys||[])[0]??0);
- else if(tipe==="mcma")k=(a.keys||[]).map(Number);
- else if(tipe==="kategori")k=(a.statements||[]).map(x=>x.answer||"");
- else if(tipe==="isian")k=a.short||"";else k=a.essayKey||"";
- return {id:"pkg-"+p.id+"-q-"+no,jenjang:String(q.jenjang||"sma").toLowerCase(),visible:true,jenis:"soal",tujuan:kind==="tryout"?"tryout":"latihan",paket:p.name,topik:q.topik||p.name,judul:p.name+" · Soal "+no,tipe,soal:q.question||"",gambar:q.image||"",opsi:a.options||[],kunci:k,statements:(a.statements||[]).map(x=>({text:x.text||"",key:x.answer||""})),category_labels:tipe==="kategori"?["Benar","Salah"]:[],pembahasan:q.explanation||"",kelas:q.kelas||"",mapel:q.mapel||"Fisika",scoring:q.scoring||"exact",subscription:p.subscription||"Semua Paket Aktif",duration:p.duration||0,start:p.start||"",end:p.end||"",attempts:p.attempts||1};
-}
-async function publikasiPkg(kind,id){
- let p=getPkg(kind,id);if(!p||!p.questions.length)return alert("Paket belum memiliki soal.");
- if(!window.KFPackagePublisher)return alert("Mesin Supabase V15 belum termuat.");
- if(!confirm('Publikasikan/sinkronkan "'+p.name+'" ('+p.questions.length+' soal) ke Supabase?'))return;
- try{
-   await window.KFPackagePublisher.publish(p);
-   p.visible=true;savePkgObj(kind,p);
-   alert("✓ Paket final dan seluruh soalnya sudah tersimpan di Supabase.");
-   await renderSupabasePackageStatus();
- }catch(e){alert("Gagal publikasi Supabase: "+e.message)}
-}
-window.addEventListener("load",()=>{renderPkgManagers();let f=document.getElementById("v12Frame");if(f)f.addEventListener("load",()=>setTimeout(()=>bacaBankV12(),250))});
-
-</script>
-<script>
-
-async function renderSupabasePackageStatus(){
- if(!window.KFPackagePublisher)return;
- try{
-  let a=await KFPackagePublisher.adminList();
-  [["latihan","latihanPackageManagerSupabase"],["tryout","tryoutPackageManagerSupabase"]].forEach(([kind,id])=>{
-   let box=document.getElementById(id);if(!box)return;let rows=a.filter(x=>x.kind===kind);
-   box.innerHTML=rows.length?rows.map(x=>`<div class="manage-item"><div><b>${h(x.name)}</b><p>${x.kf_questions?.[0]?.count||0} soal · ${x.visible?"Aktif":"Nonaktif"} · ${h(x.subscription||"Semua Paket Aktif")}</p></div><div class="row-actions"><button class="btn ghost small" onclick="KFPackagePublisher.unpublish('${x.external_id}').then(renderSupabasePackageStatus)">Sembunyikan</button></div></div>`).join(""):'<div class="sub">Belum ada paket final di Supabase.</div>';
-  });
- }catch(e){console.warn("Paket Supabase belum dapat dipanggil:",e)}
-}
-window.addEventListener("load",()=>setTimeout(renderSupabasePackageStatus,1200));
-
-</script>
-</body>
+  </body>
 </html>
