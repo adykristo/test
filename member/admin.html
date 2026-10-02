@@ -1334,50 +1334,32 @@
       async function aktifkanMember(id) {
         const m=MEMBER_CACHE.find(x=>x.id===id);if(!m)return;
         const paket=prompt("Paket yang akan diaktifkan untuk "+m.nama+":",(m&&m.paket)||"Paket 1 Bulan");if(paket===null||!paket.trim())return;
-        if(!confirm("PERIKSA KEMBALI
-
-Peserta: "+m.nama+"
-Paket: "+paket.trim()+"
-
-Aktifkan peserta?"))return;
+        if(!confirm(`PERIKSA KEMBALI\n\nPeserta: ${m.nama}\nPaket: ${paket.trim()}\n\nAktifkan peserta?`))return;
         try{await adminApi("adminVerifikasi",{id,paket:paket.trim()});alert("✓ Peserta berhasil diaktifkan.");renderMemberAdmin()}catch(err){alert("Gagal mengaktifkan: "+err.message)}
       }
       async function tolakMember(id) {
-        const m=MEMBER_CACHE.find(x=>x.id===id);if(!m)return;const catatan=prompt("Alasan penolakan untuk "+m.nama+" (opsional):","");if(catatan===null)return;
-        if(!confirm("Tolak pendaftaran "+m.nama+"?
-
-Data tidak dihapus dan masih dapat ditinjau Admin."))return;
+        const m=MEMBER_CACHE.find(x=>x.id===id);if(!m)return;
+        const catatan=prompt("Alasan penolakan untuk "+m.nama+" (opsional):","");if(catatan===null)return;
+        if(!confirm(`Tolak pendaftaran ${m.nama}?\n\nData tidak dihapus dan masih dapat ditinjau Admin.`))return;
         try{await adminApi("adminTolak",{id,catatan});renderMemberAdmin()}catch(err){alert("Gagal menolak: "+err.message)}
       }
       async function ubahAktifMember(id,jadiAktif) {
         const m=MEMBER_CACHE.find(x=>x.id===id);if(!m)return;
-        if(!confirm((jadiAktif?"AKTIFKAN KEMBALI":"NONAKTIFKAN SEMENTARA")+"
-
-Peserta: "+m.nama+"
-
-"+(jadiAktif?"Akses dibuka kembali.":"Akses dihentikan sementara; data, progres, dan riwayat tetap disimpan.")+"
-
-Lanjutkan?"))return;
+        const pesan=jadiAktif
+          ? `AKTIFKAN KEMBALI\n\nPeserta: ${m.nama}\n\nAkses dibuka kembali.\n\nLanjutkan?`
+          : `NONAKTIFKAN SEMENTARA\n\nPeserta: ${m.nama}\n\nAkses dihentikan sementara; data, progres, dan riwayat tetap disimpan.\n\nLanjutkan?`;
+        if(!confirm(pesan))return;
         try{await adminApi(jadiAktif?"adminAktifkanKembali":"adminNonaktifkan",{id,catatan:"Perubahan status melalui Admin"});renderMemberAdmin()}catch(err){alert("Gagal mengubah status: "+err.message)}
       }
       async function hapusMember(id) {
         const p=MEMBER_CACHE.find(x=>x.id===id);if(!p)return;
-        const ketik=prompt("ARSIPKAN PESERTA — perlindungan salah pencet
-
-Peserta: "+p.nama+"
-Email: "+(p.email||"-")+"
-
-Data tidak dihapus permanen. Ketik nama peserta persis untuk melanjutkan:
-
-"+p.nama,"");
-        if(ketik===null)return;if(ketik.trim()!==String(p.nama||"").trim())return alert("Dibatalkan. Nama tidak sama; data peserta tetap aman.");
-        if(!confirm("Konfirmasi terakhir:
-
-Arsipkan "+p.nama+"?
-
-Riwayat tetap dipertahankan."))return;
+        const ketik=prompt(`ARSIPKAN PESERTA — perlindungan salah pencet\n\nPeserta: ${p.nama}\nEmail: ${p.email||"-"}\n\nData tidak dihapus permanen. Ketik nama peserta persis untuk melanjutkan:\n\n${p.nama}`,"");
+        if(ketik===null)return;
+        if(ketik.trim()!==String(p.nama||"").trim())return alert("Dibatalkan. Nama tidak sama; data peserta tetap aman.");
+        if(!confirm(`Konfirmasi terakhir:\n\nArsipkan ${p.nama}?\n\nRiwayat tetap dipertahankan.`))return;
         try{await adminApi("adminHapusMember",{id,catatan:"Diarsipkan melalui Admin dengan konfirmasi nama peserta"});alert("✓ Peserta diarsipkan.");renderMemberAdmin()}catch(err){alert("Gagal mengarsipkan: "+err.message)}
       }
+
       async function renderKontenAdmin() {
         try {
           const res = await adminApi("adminListKonten", {});
