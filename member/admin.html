@@ -550,6 +550,43 @@
 .v12-studio-card.is-collapsed .v12-studio-body{display:none}.v12-collapsed-hint{padding:18px;display:flex;justify-content:space-between;align-items:center;gap:12px}.v12-collapsed-hint[hidden]{display:none!important}
 .v12-studio-card:fullscreen{background:#f7f2fb;display:flex;flex-direction:column}.v12-studio-card:fullscreen .v12-studio-body{display:flex;flex:1;min-height:0}.v12-studio-card:fullscreen iframe{height:100%;min-height:0;flex:1}
 @media(max-width:900px){.v12-studio-title,.v12-studio-toolbar,.v12-collapsed-hint{flex-direction:column}.v12-studio-body iframe{height:72vh;min-height:540px}}
+
+/* ===== Compact actions + Preview Center ===== */
+.member-table .row-actions,.member-table td:last-child{white-space:nowrap}
+.icon-action-bar{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:nowrap}
+.icon-btn{width:32px;height:32px;min-width:32px;padding:0!important;border-radius:10px!important;display:inline-grid!important;place-items:center;font-size:14px!important;font-weight:900;line-height:1!important}
+.icon-btn:hover{transform:translateY(-1px)}
+.preview-modal{position:fixed;inset:0;z-index:99999;background:rgba(28,11,46,.58);display:none;align-items:center;justify-content:center;padding:24px}
+.preview-modal.open{display:flex}
+.preview-shell{width:min(1080px,96vw);max-height:92vh;background:#fff;border-radius:22px;box-shadow:0 28px 80px rgba(29,9,48,.28);overflow:hidden;display:flex;flex-direction:column}
+.preview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:18px 20px;border-bottom:1px solid #eee2f7;background:linear-gradient(135deg,#fff,#fcf7ff)}
+.preview-head h2{margin:0 0 4px}.preview-body{padding:20px;overflow:auto}.preview-close{width:36px;height:36px;border-radius:11px;border:1px solid #e7d8f5;background:#fff;font-size:20px;cursor:pointer}
+.preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.preview-field{padding:12px;border:1px solid #eee2f7;border-radius:13px;background:#fcfaff}.preview-field b{display:block;font-size:11px;color:#856a98;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}.preview-content{border:1px solid #eadcf8;border-radius:15px;padding:16px;background:#fff;overflow:auto}
+.preview-content iframe{width:100%;height:65vh;border:0;border-radius:10px;background:#f5f5f5}.preview-content video{width:100%;max-height:65vh;border-radius:10px;background:#111}
+.preview-content img{max-width:100%;height:auto}.preview-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.content-preview-btn{margin-left:6px}
+@media(max-width:720px){.preview-grid{grid-template-columns:1fr}.preview-modal{padding:8px}.preview-shell{max-height:96vh}}
+
+/* ===== Dedicated V12 Launcher ===== */
+.v12-launch-page{max-width:1050px;margin:0 auto 18px}
+.v12-launch-hero{position:relative;overflow:hidden;display:flex;gap:24px;align-items:center;padding:34px;border:1px solid #e6d7f4;border-radius:24px;background:linear-gradient(135deg,#fff 0%,#fbf5ff 55%,#fff0f8 100%);box-shadow:0 18px 48px rgba(83,31,129,.09)}
+.v12-launch-hero:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-100px;top:-120px;background:linear-gradient(135deg,rgba(119,42,190,.12),rgba(242,56,154,.10));pointer-events:none}
+.v12-launch-mark{position:relative;z-index:1;flex:0 0 auto;width:86px;height:86px;border-radius:24px;display:grid;place-items:center;background:linear-gradient(135deg,#6424ad,#f2389a);color:#fff;font-size:38px;box-shadow:0 16px 34px rgba(105,38,184,.23)}
+.v12-launch-copy{position:relative;z-index:1;max-width:760px}.v12-launch-kicker{display:inline-block;margin-bottom:8px;color:#7b35bb;font-size:11px;font-weight:900;letter-spacing:.08em}
+.v12-launch-copy h1{font-size:32px;margin:0 0 8px}.v12-launch-copy p{margin:0;color:#756482;line-height:1.65}
+.v12-launch-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.v12-launch-primary{padding:12px 18px!important;font-size:14px!important;box-shadow:0 10px 25px rgba(115,38,184,.18)}
+.v12-launch-note{margin-top:12px;font-size:12px;color:#8b7899}
+.v12-launch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.v12-mini-card{display:flex;gap:12px;padding:17px;border:1px solid #eadff3;border-radius:17px;background:#fff}.v12-mini-card b{display:block;margin-bottom:4px}.v12-mini-card p{margin:0;color:#857391;font-size:12px;line-height:1.5}.v12-mini-icon{flex:0 0 auto;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:#f4e8ff;color:#722bb7;font-weight:900}
+.v12-workflow-card{margin-top:14px;padding:17px 19px;border:1px solid #eadff3;border-radius:17px;background:#fcfaff}.v12-workflow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:10px}.v12-workflow span{padding:7px 10px;border-radius:10px;background:#fff;border:1px solid #eadff3;font-size:12px;font-weight:800;color:#543267}.v12-workflow i{font-style:normal;color:#b496c7}
+@media(max-width:800px){.v12-launch-hero{align-items:flex-start;flex-direction:column;padding:24px}.v12-launch-grid{grid-template-columns:1fr}.v12-launch-copy h1{font-size:27px}.v12-workflow i{display:none}}
+
+/* ===== Free Learning + Admin-controlled Tryout ===== */
+.learning-policy-card{display:flex;gap:13px;align-items:flex-start;padding:15px 17px;margin:0 0 16px;border:1px solid #dfd0f0;border-radius:16px;background:linear-gradient(135deg,#fbf7ff,#fff8fc)}
+.learning-policy-icon{width:38px;height:38px;flex:0 0 auto;display:grid;place-items:center;border-radius:11px;background:#efe2fb;color:#6f2db5;font-size:20px;font-weight:900}
+.learning-policy-card p{margin:4px 0 0;color:#786687;font-size:12px;line-height:1.55}
+.tryout-status{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:900}
+.tryout-status.on{background:#e9f9ef;color:#147a47}.tryout-status.off{background:#fff0f3;color:#bd3150}
 </style>
   </head>
   <body>
@@ -690,6 +727,10 @@
         </section>
         <section id="paket" class="panel">
   <div class="head"><div><h1>Paket &amp; Harga</h1><p class="sub">Kelola paket mandiri. Paket yang dibeli peserta tidak membuka paket lain secara otomatis.</p></div><button class="btn" onclick="tambahPaketBaru()">+ Tambah Paket</button></div>
+  <div class="learning-policy-card">
+    <div class="learning-policy-icon">↔</div>
+    <div><b>Mode Belajar Bebas</b><p>Di dalam paket yang dimiliki, peserta bebas memilih Modul, Latihan, dan Video mana yang ingin dipelajari terlebih dahulu. Tidak ada urutan wajib. <strong>Tryout berbeda:</strong> hanya dapat diakses setelah diaktifkan Admin.</p></div>
+  </div>
   <div class="card">
     <div class="head"><div><h2>Daftar Paket</h2><p class="sub" style="margin:4px 0 0">Atur nama, durasi, harga, urutan, status, dan topik setiap paket.</p></div><button class="btn ghost small" onclick="renderPaketBaru()">↻ Muat Ulang</button></div>
     <div id="paketListBaru" class="manage-list"><div class="sub">Memuat paket…</div></div>
@@ -870,12 +911,30 @@
         </section>
 
         <section id="v12builder" class="panel">
-          <div class="v12-studio-title"><div><h1>Pembuat Soal V12</h1><p class="sub">Ruang kerja fokus. Mesin V12 asli tetap dijalankan tanpa perubahan.</p></div><span class="v12-ready-badge">● Studio siap</span></div>
-          <div id="v12StudioCard" class="card v12-studio-card">
-            <div class="v12-studio-toolbar"><div class="v12-studio-info"><div class="v12-studio-icon">✦</div><div><h2>KlinikFisikapku · Studio V12</h2><p class="sub">Gunakan mode fokus untuk ruang kerja maksimal.</p></div></div><div class="v12-studio-actions"><button id="v12ToggleBtn" class="btn ghost small" onclick="toggleV12Studio()">— Sembunyikan</button><button class="btn ghost small" onclick="fullscreenV12Studio()">⛶ Layar Penuh</button><button class="btn ghost small" onclick="reloadV12Studio()">↻ Muat Ulang</button></div></div>
-            <div id="v12StudioBody" class="v12-studio-body"><iframe id="v12Frame" src="pembuat-soal-klinikfisikapku-v12-final.html" title="Pembuat Soal V12"></iframe></div>
-            <div id="v12CollapsedHint" class="v12-collapsed-hint" hidden><div><b>Studio V12 disembunyikan.</b><span> Buka kembali saat ingin membuat soal.</span></div><button class="btn small" onclick="toggleV12Studio(true)">✦ Buka Studio V12</button></div>
+          <div class="v12-launch-page">
+            <div class="v12-launch-hero">
+              <div class="v12-launch-mark">✦</div>
+              <div class="v12-launch-copy">
+                <span class="v12-launch-kicker">KLINIKFISIKAPKU · QUESTION STUDIO</span>
+                <h1>Pembuat Soal V12</h1>
+                <p>Studio V12 dibuka sebagai ruang kerja tersendiri agar editor lebih luas, lebih fokus, dan Admin tetap tersedia di tab ini.</p>
+                <div class="v12-launch-actions">
+                  <button class="btn v12-launch-primary" type="button" onclick="openV12NewTab()">🚀 Buka Studio V12 di Tab Baru</button>
+                  <button class="btn ghost" type="button" onclick="openV12SameTab()">↗ Buka di Tab Ini</button>
+                </div>
+                <div class="v12-launch-note">Disarankan menggunakan <b>Tab Baru</b>. Setelah selesai membuat soal, kembali ke tab Admin untuk distribusi Paket dan Topik.</div>
+              </div>
+            </div>
+            <div class="v12-launch-grid">
+              <div class="v12-mini-card"><div class="v12-mini-icon">✎</div><div><b>Buat Soal</b><p>Area kerja V12 mendapat ruang browser penuh.</p></div></div>
+              <div class="v12-mini-card"><div class="v12-mini-icon">▣</div><div><b>Bank Soal</b><p>Simpan paket soal seperti biasa di V12.</p></div></div>
+              <div class="v12-mini-card"><div class="v12-mini-icon">⇢</div><div><b>Distribusi</b><p>Kembali ke Admin untuk Paket, Topik, Latihan, dan Tryout.</p></div></div>
+            </div>
+            <div class="v12-workflow-card"><b>Alur kerja</b><div class="v12-workflow"><span>1. Buka Studio</span><i>→</i><span>2. Buat & Simpan</span><i>→</i><span>3. Kembali ke Admin</span><i>→</i><span>4. Distribusikan</span></div></div>
           </div>
+
+          <!-- iframe teknis tersembunyi: menjaga Bridge Bank V12 lama tetap bekerja tanpa mengubah V12 -->
+          <iframe id="v12Frame" src="pembuat-soal-klinikfisikapku-v12-final.html" title="V12 Bridge" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0" aria-hidden="true" tabindex="-1"></iframe>
           <div class="card">
             <div class="head"><div><h2>Kirim dari Bank V12</h2><p class="sub" style="margin:4px 0 0">Pilih seluruh paket atau pilih soal tertentu, kemudian kirim sebagai draf Paket Latihan/Tryout.</p></div><button class="btn ghost small" onclick="bacaBankV12()">↻ Segarkan Bank V12</button><button class="btn ghost small" onclick="KFGASWorkspace.push().then(r=>alert('✓ Workspace V12 tersimpan di Google Sheets: '+r.count+' paket')).catch(e=>alert(e.message))">☁ Simpan Workspace ke Google</button><button class="btn ghost small" onclick="KFGASWorkspace.pull().then(()=>{bacaBankV12();alert('✓ Workspace dipanggil dari Google Sheets')}).catch(e=>alert(e.message))">☁ Panggil dari Google</button><button class="btn ghost small" onclick="const u=prompt('URL Web App Google Apps Script (/exec):',localStorage.getItem('kf_v12_gas_url')||'');if(u){KFGASWorkspace.setUrl(u.trim());alert('✓ URL Google Apps Script tersimpan di browser Admin.')}">⚙ Atur Google Script</button></div>
             <div id="v12BankBridge" class="manage-list"><div class="sub">Muat Bank V12 untuk mulai.</div></div>
@@ -1951,6 +2010,116 @@ tambahItem=async function(jenjang,item){
 };
 
 window.addEventListener("load",()=>setTimeout(async()=>{try{await renderPaketBaru();await renderMetodePembayaran();await renderAccessManagers();if(localStorage.getItem("kf_v12_studio_open")==="0")toggleV12Studio(false)}catch(e){console.warn("Upgrade UI:",e)}},1400));
+
+/* ===== Preview Admin + compact member actions ===== */
+function closeAdminPreview(){document.getElementById("kfPreviewModal")?.classList.remove("open")}
+function openAdminPreview(title,sub,body){
+ const m=document.getElementById("kfPreviewModal");if(!m)return;
+ document.getElementById("kfPreviewTitle").textContent=title||"Preview";
+ document.getElementById("kfPreviewSub").textContent=sub||"";
+ document.getElementById("kfPreviewBody").innerHTML=body||"";
+ m.classList.add("open");
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAdminPreview()});
+function safeText(v){return escMember(String(v??""))}
+function fieldPreview(label,val){return `<div class="preview-field"><b>${safeText(label)}</b><div>${safeText(val||"-")}</div></div>`}
+function previewKontenAdmin(id){
+ const x=KONTEN_CACHE.find(v=>v.id===id);if(!x)return alert("Data konten tidak ditemukan.");
+ const d=x.data||{};let media="";
+ if(x.jenis==="pdf"){
+   const u=d.pdf_url||d.url||d.file_url||d.pdf||"";
+   media=u?`<iframe src="${safeText(u)}" title="Preview PDF"></iframe>`:`<div class="empty">File PDF belum tersedia.</div>`;
+ }else if(x.jenis==="video"){
+   const u=d.video_url||d.url||d.youtube_url||d.link||"";
+   if(/youtube\.com|youtu\.be/.test(u)){let embed=u.replace("watch?v=","embed/").replace("youtu.be/","youtube.com/embed/");media=`<iframe src="${safeText(embed)}" allowfullscreen></iframe>`}
+   else media=u?`<video controls src="${safeText(u)}"></video>`:`<div class="empty">Video belum tersedia.</div>`;
+ }else{
+   media=`<pre style="white-space:pre-wrap;margin:0">${safeText(JSON.stringify(d,null,2))}</pre>`;
+ }
+ openAdminPreview(x.judul||"Preview Konten",`${x.jenis||"Konten"} · ${x.jenjang||""}`,
+ `<div class="preview-grid">${fieldPreview("Judul",x.judul)}${fieldPreview("Jenis",x.jenis)}${fieldPreview("Jenjang",x.jenjang)}${fieldPreview("Topik",x.topik)}${fieldPreview("Status",x.visible===false?"Nonaktif":"Aktif")}${fieldPreview("Tujuan",x.tujuan)}</div><div class="preview-content">${media}</div>`);
+}
+async function previewFinalPackage(id){
+ try{
+  const rows=await KFPackagePublisher.adminList(),x=rows.find(v=>v.id===id);if(!x)return alert("Paket final tidak ditemukan.");
+  const count=x.question_count??x.questions_count??"-";
+  openAdminPreview(x.name||"Preview Paket",`${x.kind||"Paket Soal"} · ${x.jenjang||""}`,
+   `<div class="preview-grid">${fieldPreview("Nama Paket",x.name)}${fieldPreview("Jenis",x.kind)}${fieldPreview("Jenjang",x.jenjang)}${fieldPreview("Kelas",x.kelas)}${fieldPreview("Mapel",x.mapel)}${fieldPreview("Jumlah Soal",count)}${fieldPreview("Durasi",x.duration_minutes?x.duration_minutes+" menit":"-")}${fieldPreview("Status",x.visible===false?"Nonaktif":"Aktif")}</div><div class="preview-content"><b>Preview data paket</b><p class="sub">Data lengkap paket ditampilkan sebelum admin mengedit, menonaktifkan, atau menghapus.</p></div>`);
+ }catch(e){alert("Gagal membuka preview: "+e.message)}
+}
+function enhanceContentPreviewButtons(){
+ [["modulList","Modul"],["videoList","Video"],["latihanList","Latihan"],["tryoutList","Tryout"]].forEach(([id,label])=>{
+  document.querySelectorAll(`#${id} .manage-item`).forEach(el=>{
+   if(el.querySelector(".content-preview-btn"))return;
+   const edit=el.querySelector("button[onclick*='editKonten']");
+   if(!edit)return;const m=(edit.getAttribute("onclick")||"").match(/'([^']+)'/);if(!m)return;
+   const b=document.createElement("button");b.type="button";b.className="btn ghost small content-preview-btn";b.innerHTML="◉ Preview";b.title=`Preview ${label}`;b.onclick=()=>previewKontenAdmin(m[1]);edit.parentElement.insertBefore(b,edit);
+  });
+ });
+}
+function compactMemberActions(){
+ document.querySelectorAll("#memberTableBody tr,#memberRows tr,table tbody tr").forEach(tr=>{
+   const td=tr.lastElementChild;if(!td||td.dataset.compactDone==="1")return;
+   const buttons=[...td.querySelectorAll("button")];if(buttons.length<2)return;
+   const map=[["detail","◉","Lihat detail lengkap"],["nonaktif","✎","Ubah / nonaktifkan"],["hapus","⌫","Hapus"]];
+   let matched=0;
+   buttons.forEach(btn=>{const t=(btn.textContent||"").trim().toLowerCase();const cfg=map.find(x=>t.includes(x[0]));if(cfg){btn.textContent=cfg[1];btn.title=cfg[2];btn.setAttribute("aria-label",cfg[2]);btn.classList.add("icon-btn");matched++}});
+   if(matched){td.dataset.compactDone="1";td.classList.add("icon-action-bar")}
+ });
+}
+const _renderKontenPreviewBase=renderKontenAdmin;
+renderKontenAdmin=async function(){await _renderKontenPreviewBase();enhanceContentPreviewButtons();setTimeout(compactMemberActions,0)};
+const _renderAccessManagersPreview=renderAccessManagers;
+renderAccessManagers=async function(){await _renderAccessManagersPreview();for(const kind of ["latihan","tryout"]){document.querySelectorAll(`#${kind}AccessManager .manage-item`).forEach(el=>{if(el.querySelector(".final-preview-btn"))return;const access=el.querySelector("button[onclick*='aturAksesFinal']");if(!access)return;const m=(access.getAttribute("onclick")||"").match(/'([^']+)'/);if(!m)return;const b=document.createElement("button");b.className="btn ghost small final-preview-btn";b.innerHTML="◉ Preview";b.onclick=()=>previewFinalPackage(m[1]);access.parentElement?.insertBefore(b,access)})}}
+const kfMutationObserver=new MutationObserver(()=>{compactMemberActions();enhanceContentPreviewButtons()});
+window.addEventListener("load",()=>{setTimeout(()=>{compactMemberActions();enhanceContentPreviewButtons();kfMutationObserver.observe(document.body,{childList:true,subtree:true})},1700)});
+
+/* ===== V12 Dedicated Tab Launcher ===== */
+function openV12NewTab(){
+  const w=window.open("pembuat-soal-klinikfisikapku-v12-final.html","KF_V12_STUDIO");
+  if(w){try{w.focus()}catch(e){}}
+  else alert("Tab baru diblokir browser. Izinkan pop-up untuk klinikfisikapku.com lalu coba lagi.");
+}
+function openV12SameTab(){
+  window.location.href="pembuat-soal-klinikfisikapku-v12-final.html";
+}
+
+/* ===== Free learning policy + Tryout activation ===== */
+async function setTryoutActivation(id,active){
+  try{
+    const {error}=await kfdb().from("kf_packages").update({visible:!!active}).eq("id",id).eq("kind","tryout");
+    if(error)throw error;
+    await renderAccessManagers();
+    alert(active?"✓ Tryout sudah DIAKTIFKAN dan dapat muncul untuk peserta yang memiliki paket terkait.":"✓ Tryout sudah DINONAKTIFKAN. Peserta tidak dapat mengaksesnya.");
+  }catch(e){alert("Gagal mengubah status tryout: "+e.message)}
+}
+renderAccessManagers=async function(){
+ if(!window.KFPackagePublisher)return;
+ try{
+   await loadPackageCore();
+   const finals=await KFPackagePublisher.adminList();
+   for(const kind of ["latihan","tryout"]){
+     const box=document.getElementById(kind+"AccessManager");if(!box)continue;
+     const rows=finals.filter(x=>x.kind===kind);
+     box.innerHTML=rows.length?rows.map(x=>{
+       const isTryout=kind==="tryout", active=x.visible===true;
+       const status=isTryout?`<span class="tryout-status ${active?"on":"off"}">${active?"● Aktif untuk Peserta":"● Terkunci"}</span>`:"";
+       const toggle=isTryout?`<button class="btn ${active?"ghost":"small"} small" onclick="setTryoutActivation('${x.id}',${!active})">${active?"🔒 Nonaktifkan":"🔓 Aktifkan Tryout"}</button>`:"";
+       return `<div class="manage-item"><div><b>${escMember(x.name)}</b><p>${isTryout?"Tryout hanya dapat diakses setelah Admin mengaktifkannya.":"Latihan dapat dipilih bebas oleh peserta selama termasuk paket yang dimiliki."}</p>${status}</div><div class="row-actions"><button class="btn ghost small final-preview-btn" onclick="previewFinalPackage('${x.id}')">◉ Preview</button><button class="btn ghost small" onclick="aturAksesFinal('${x.id}','${kind}')">Atur Paket</button>${toggle}</div></div>`;
+     }).join(""):'<div class="sub">Belum ada paket final di Supabase.</div>';
+   }
+ }catch(e){console.warn(e);alert("Gagal memuat distribusi: "+e.message)}
+};
 </script>
+
+<div id="kfPreviewModal" class="preview-modal" onclick="if(event.target===this)closeAdminPreview()">
+  <div class="preview-shell">
+    <div class="preview-head">
+      <div><h2 id="kfPreviewTitle">Preview</h2><div id="kfPreviewSub" class="sub"></div></div>
+      <button class="preview-close" type="button" onclick="closeAdminPreview()" title="Tutup">×</button>
+    </div>
+    <div id="kfPreviewBody" class="preview-body"></div>
+  </div>
+</div>
 </body>
 </html>
