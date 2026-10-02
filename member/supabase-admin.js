@@ -21,18 +21,23 @@
     ensureAdmin: async function () {
       let { data: { session } } = await supabase.auth.getSession();
 
-      // Admin Member memakai Google OAuth Supabase. Jika belum ada sesi,
-      // arahkan ke Google lalu kembali ke halaman admin ini.
+      // Admin Member memakai Supabase Auth sendiri. Jangan pernah melempar
+      // pengguna ke login Admin Tryout lama. Jika belum ada sesi, login di sini.
       if (!session) {
-        const redirectTo = window.location.origin + window.location.pathname;
-        const { error: loginError } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: redirectTo }
+        const email = prompt("Email Super Admin Member:", "adykristo@gmail.com");
+        if (email === null) return false;
+        const password = prompt("Password Super Admin Member:");
+        if (password === null) return false;
+
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password
         });
-        if (loginError) {
-          alert("Login Google Admin gagal: " + loginError.message);
+        if (loginError || !loginData || !loginData.session) {
+          alert("Login Admin Member gagal: " + (loginError && loginError.message ? loginError.message : "Sesi tidak terbentuk."));
+          return false;
         }
-        return false;
+        session = loginData.session;
       }
 
       const { data, error } = await supabase
@@ -374,8 +379,5 @@
     }
   };
 
-  window.KFLogoutAdminMember = async function () {
-    await supabase.auth.signOut();
-    window.location.href = "./admin.html";
-  };
+  window.KFLogoutAdminMember = async function () {try { await supabase.auth.signOut({scope:"local"}); } finally { window.location.replace("index.html?logged_out=1"); }};
 })();

@@ -587,7 +587,17 @@
 .learning-policy-card p{margin:4px 0 0;color:#786687;font-size:12px;line-height:1.55}
 .tryout-status{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:900}
 .tryout-status.on{background:#e9f9ef;color:#147a47}.tryout-status.off{background:#fff0f3;color:#bd3150}
-</style>
+
+/* ===== Paket dinamis SD / SMP / SMA ===== */
+.package-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.package-filter{border:1px solid #dfcef0;background:#fff;color:#5b2b82;border-radius:999px;padding:9px 14px;font-weight:900;cursor:pointer}
+.package-filter:hover,.package-filter.active{background:linear-gradient(135deg,#7628c9,#ec3b9a);border-color:transparent;color:#fff}
+.package-filter span{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;margin-left:5px;border-radius:999px;background:#f1e6fa;color:#652695;font-size:11px}
+.package-filter.active span{background:#ffffff2b;color:#fff}
+.package-toolbar-note{font-size:12px;color:#7a6688;margin:0 0 13px}
+.package-level-badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:#f0e5fa;color:#67299b;font-size:11px;font-weight:900}
+.package-code{font-size:11px;color:#8b7897;margin-top:3px;font-weight:800}
+.member-safety-note{display:flex;gap:10px;align-items:flex-start;margin:12px 0 16px;padding:12px 14px;border:1px solid #dfd1ee;border-radius:14px;background:#fcf9ff;color:#5e4970}.member-safety-note b{white-space:nowrap;color:#57227e}.member-safety-note span{font-size:12px;line-height:1.5}.discount-rule-row,.bundle-order-row{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid #eee4f6}.discount-rule-row:last-child,.bundle-order-row:last-child{border-bottom:0}</style>
   </head>
   <body>
     <header class="top">
@@ -596,7 +606,7 @@
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn ghost" onclick="location.href='index.html'">← Admin Utama</button>
-        <button class="btn ghost" onclick="KFLogoutAdminMember()">Keluar Member</button>
+        <button class="btn ghost" onclick="KFLogoutAdminMemberSafe()">Keluar Member</button>
       </div>
     </header>
     <div class="layout">
@@ -733,11 +743,24 @@
   </div>
   <div class="card">
     <div class="head"><div><h2>Daftar Paket</h2><p class="sub" style="margin:4px 0 0">Atur nama, durasi, harga, urutan, status, dan topik setiap paket.</p></div><button class="btn ghost small" onclick="renderPaketBaru()">↻ Muat Ulang</button></div>
+    <div class="package-filter-bar" id="packageFilterBar">
+      <button class="package-filter active" data-level="SEMUA" onclick="setPackageLevelFilter('SEMUA',this)">Semua <span id="countPaketSemua">0</span></button>
+      <button class="package-filter" data-level="SD" onclick="setPackageLevelFilter('SD',this)">SD <span id="countPaketSD">0</span></button>
+      <button class="package-filter" data-level="SMP" onclick="setPackageLevelFilter('SMP',this)">SMP <span id="countPaketSMP">0</span></button>
+      <button class="package-filter" data-level="SMA" onclick="setPackageLevelFilter('SMA',this)">SMA <span id="countPaketSMA">0</span></button>
+    </div>
+    <div class="package-toolbar-note">Jumlah paket tidak dibatasi 12. Paket tambahan otomatis masuk ke jenjang yang dipilih.</div>
     <div id="paketListBaru" class="manage-list"><div class="sub">Memuat paket…</div></div>
   </div>
+<div class="card">
+<div class="head"><div><h2>Diskon Pembelian Multi-Paket</h2><p class="sub">Atur diskon berdasarkan jumlah paket dalam satu transaksi.</p></div><button class="btn" onclick="tambahAturanDiskon()">+ Tambah Aturan</button></div>
+<div id="discountRulesAdmin" class="manage-list"><div class="sub">Memuat aturan diskon…</div></div></div>
+<div class="card"><div class="head"><div><h2>Transaksi Multi-Paket</h2><p class="sub">Satu verifikasi mengaktifkan seluruh paket yang dibayar peserta.</p></div><button class="btn ghost small" onclick="renderBundleOrders()">↻ Muat Ulang</button></div>
+<div id="bundleOrdersAdmin" class="manage-list"><div class="sub">Memuat transaksi…</div></div></div>
   <div class="card">
     <div class="head"><div><h2>Topik per Paket</h2><p class="sub" style="margin:4px 0 0">Topik yang dibuat di sini dapat dipilih saat mendistribusikan Modul, Video, Latihan, dan Tryout.</p></div></div>
     <div class="form">
+      <div><label>Filter jenjang</label><select id="topicLevelFilter" onchange="fillPackageSelectors()"><option value="SEMUA">Semua jenjang</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option></select></div>
       <div><label>Paket</label><select id="topicPackageSelect" onchange="renderTopikPaket()"></select></div>
       <div><label>Nama topik baru</label><input id="topicTitleInput" placeholder="Contoh: Momentum & Impuls"></div>
       <div class="wide"><label>Deskripsi singkat</label><input id="topicDescInput" placeholder="Ringkasan materi yang akan dilihat peserta"></div>
@@ -1309,47 +1332,51 @@
         } catch(err) { alert("Gagal memuat data member: "+err.message); }
       }
       async function aktifkanMember(id) {
-        const m = MEMBER_CACHE.find((x) => x.id === id);
-        const paket = prompt(
-          "Paket yang diverifikasi (menentukan masa aktif):",
-          (m && m.paket) || "Paket 1 Bulan",
-        );
-        if (paket === null) return;
-        try {
-          await adminApi("adminVerifikasi", { id, paket: paket.trim() });
-          alert("✓ Peserta aktif dan sudah dapat masuk ke Member Area.");
-          renderMemberAdmin();
-        } catch (err) {
-          alert("Gagal mengaktifkan: " + err.message);
-        }
+        const m=MEMBER_CACHE.find(x=>x.id===id);if(!m)return;
+        const paket=prompt("Paket yang akan diaktifkan untuk "+m.nama+":",(m&&m.paket)||"Paket 1 Bulan");if(paket===null||!paket.trim())return;
+        if(!confirm("PERIKSA KEMBALI
+
+Peserta: "+m.nama+"
+Paket: "+paket.trim()+"
+
+Aktifkan peserta?"))return;
+        try{await adminApi("adminVerifikasi",{id,paket:paket.trim()});alert("✓ Peserta berhasil diaktifkan.");renderMemberAdmin()}catch(err){alert("Gagal mengaktifkan: "+err.message)}
       }
       async function tolakMember(id) {
-        const catatan = prompt("Alasan penolakan (opsional):", "") || "";
-        try {
-          await adminApi("adminTolak", { id, catatan });
-          renderMemberAdmin();
-        } catch (err) {
-          alert("Gagal menolak: " + err.message);
-        }
+        const m=MEMBER_CACHE.find(x=>x.id===id);if(!m)return;const catatan=prompt("Alasan penolakan untuk "+m.nama+" (opsional):","");if(catatan===null)return;
+        if(!confirm("Tolak pendaftaran "+m.nama+"?
+
+Data tidak dihapus dan masih dapat ditinjau Admin."))return;
+        try{await adminApi("adminTolak",{id,catatan});renderMemberAdmin()}catch(err){alert("Gagal menolak: "+err.message)}
       }
-      async function ubahAktifMember(id, jadiAktif) {
-        try {
-          await adminApi(jadiAktif ? "adminAktifkanKembali" : "adminNonaktifkan", { id });
-          renderMemberAdmin();
-        } catch (err) {
-          alert("Gagal mengubah status: " + err.message);
-        }
+      async function ubahAktifMember(id,jadiAktif) {
+        const m=MEMBER_CACHE.find(x=>x.id===id);if(!m)return;
+        if(!confirm((jadiAktif?"AKTIFKAN KEMBALI":"NONAKTIFKAN SEMENTARA")+"
+
+Peserta: "+m.nama+"
+
+"+(jadiAktif?"Akses dibuka kembali.":"Akses dihentikan sementara; data, progres, dan riwayat tetap disimpan.")+"
+
+Lanjutkan?"))return;
+        try{await adminApi(jadiAktif?"adminAktifkanKembali":"adminNonaktifkan",{id,catatan:"Perubahan status melalui Admin"});renderMemberAdmin()}catch(err){alert("Gagal mengubah status: "+err.message)}
       }
       async function hapusMember(id) {
-        const p = MEMBER_CACHE.find((x) => x.id === id);
-        if (!p) return;
-        if (!confirm("Hapus peserta " + p.nama + "? Akun tidak dapat dipulihkan.")) return;
-        try {
-          await adminApi("adminHapusMember", { id });
-          renderMemberAdmin();
-        } catch (err) {
-          alert("Gagal menghapus: " + err.message);
-        }
+        const p=MEMBER_CACHE.find(x=>x.id===id);if(!p)return;
+        const ketik=prompt("ARSIPKAN PESERTA — perlindungan salah pencet
+
+Peserta: "+p.nama+"
+Email: "+(p.email||"-")+"
+
+Data tidak dihapus permanen. Ketik nama peserta persis untuk melanjutkan:
+
+"+p.nama,"");
+        if(ketik===null)return;if(ketik.trim()!==String(p.nama||"").trim())return alert("Dibatalkan. Nama tidak sama; data peserta tetap aman.");
+        if(!confirm("Konfirmasi terakhir:
+
+Arsipkan "+p.nama+"?
+
+Riwayat tetap dipertahankan."))return;
+        try{await adminApi("adminHapusMember",{id,catatan:"Diarsipkan melalui Admin dengan konfirmasi nama peserta"});alert("✓ Peserta diarsipkan.");renderMemberAdmin()}catch(err){alert("Gagal mengarsipkan: "+err.message)}
       }
       async function renderKontenAdmin() {
         try {
@@ -1900,8 +1927,18 @@ async function loadPackageCore(){
  fillPackageSelectors(); return KF_PACKAGES_NEW;
 }
 function fillPackageSelectors(){
- const sel=document.getElementById("topicPackageSelect");if(sel){const old=sel.value;sel.innerHTML=KF_PACKAGES_NEW.map(p=>`<option value="${p.id}">${escMember(p.nama)}</option>`).join("");if(KF_PACKAGES_NEW.some(p=>p.id===old))sel.value=old}
- ["modul","video"].forEach(k=>{const box=document.getElementById(k+"PackageChecks");if(box)box.innerHTML=KF_PACKAGES_NEW.filter(p=>p.aktif).map(p=>`<label class="package-check"><input type="checkbox" value="${p.id}" onchange="updateTopicChoices('${k}')"><span>${escMember(p.nama)}</span></label>`).join("")});
+ const level=(document.getElementById("topicLevelFilter")?.value||"SEMUA").toUpperCase();
+ const topicPackages=level==="SEMUA"?KF_PACKAGES_NEW:KF_PACKAGES_NEW.filter(p=>(p.jenjang||"").toUpperCase()===level);
+ const sel=document.getElementById("topicPackageSelect");
+ if(sel){
+   const old=sel.value;
+   sel.innerHTML=topicPackages.map(p=>`<option value="${p.id}">${escMember((p.jenjang?("["+p.jenjang+"] "):"")+p.nama)}</option>`).join("");
+   if(topicPackages.some(p=>p.id===old))sel.value=old;
+ }
+ ["modul","video"].forEach(k=>{
+   const box=document.getElementById(k+"PackageChecks");
+   if(box)box.innerHTML=KF_PACKAGES_NEW.filter(p=>p.aktif).map(p=>`<label class="package-check"><input type="checkbox" value="${p.id}" onchange="updateTopicChoices('${k}')"><span>${escMember((p.jenjang?("["+p.jenjang+"] "):"")+p.nama)}</span></label>`).join("")
+ });
  updateTopicChoices("modul");updateTopicChoices("video");renderTopikPaket();
 }
 function selectedPackages(kind){return [...document.querySelectorAll(`#${kind}PackageChecks input:checked`)].map(x=>x.value)}
@@ -1910,24 +1947,66 @@ function updateTopicChoices(kind){
  const topics=KF_TOPICS_NEW.filter(t=>ids.includes(t.package_id)&&t.visible);
  sel.innerHTML='<option value="">Tanpa topik paket</option>'+topics.map(t=>`<option value="${t.id}">${escMember(KF_PACKAGES_NEW.find(p=>p.id===t.package_id)?.nama||"Paket")} — ${escMember(t.judul)}</option>`).join("");
 }
-async function renderPaketBaru(){
- try{await loadPackageCore();const box=document.getElementById("paketListBaru");if(!box)return;
- box.innerHTML=KF_PACKAGES_NEW.length?KF_PACKAGES_NEW.map(p=>`<div class="package-card-new"><div class="head"><div><b style="font-size:16px">${escMember(p.nama)}</b><div class="meta"><span class="soft-chip">${moneyID(p.harga)}</span><span class="soft-chip">${p.durasi_hari} hari</span><span class="soft-chip">${p.aktif?"Aktif":"Nonaktif"}</span><span class="soft-chip">${KF_TOPICS_NEW.filter(t=>t.package_id===p.id).length} topik</span></div><p class="sub">${escMember(p.deskripsi||"Tanpa deskripsi")}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editPaketBaru('${p.id}')">Edit</button><button class="btn ghost small" onclick="togglePaketBaru('${p.id}',${!p.aktif})">${p.aktif?"Nonaktifkan":"Aktifkan"}</button><button class="btn danger small" onclick="hapusPaketBaru('${p.id}')">Hapus</button></div></div></div>`).join(""):'<div class="sub">Belum ada paket.</div>';
+let KF_PACKAGE_LEVEL_FILTER="SEMUA";
+function setPackageLevelFilter(level,btn){
+ KF_PACKAGE_LEVEL_FILTER=level||"SEMUA";
+ document.querySelectorAll(".package-filter").forEach(x=>x.classList.toggle("active",x===btn));
+ renderPaketBaru(false);
+}
+function packageLevel(p){
+ const j=String(p.jenjang||"").toUpperCase();
+ if(["SD","SMP","SMA"].includes(j))return j;
+ const k=String(p.kode||"").toUpperCase();
+ if(k.startsWith("SMP-"))return "SMP";
+ if(k.startsWith("SMA-"))return "SMA";
+ if(k.startsWith("SD-"))return "SD";
+ return "LAINNYA";
+}
+function nextPackageCode(level){
+ const prefix=String(level||"").toUpperCase();
+ const nums=KF_PACKAGES_NEW.map(p=>String(p.kode||"")).filter(k=>k.startsWith(prefix+"-")).map(k=>Number(k.split("-").pop())).filter(Number.isFinite);
+ const n=(nums.length?Math.max(...nums):0)+1;
+ return prefix+"-"+String(n).padStart(2,"0");
+}
+async function renderPaketBaru(reload=true){
+ try{
+   if(reload)await loadPackageCore();
+   const all=KF_PACKAGES_NEW.filter(p=>!["_PAYMENT_CONFIG_","__PENGATURAN_PEMBAYARAN__"].includes(p.nama));
+   const counts={SD:0,SMP:0,SMA:0};all.forEach(p=>{const l=packageLevel(p);if(counts[l]!==undefined)counts[l]++});
+   [["Semua",all.length],["SD",counts.SD],["SMP",counts.SMP],["SMA",counts.SMA]].forEach(([k,v])=>{const e=document.getElementById("countPaket"+k);if(e)e.textContent=v});
+   const rows=KF_PACKAGE_LEVEL_FILTER==="SEMUA"?all:all.filter(p=>packageLevel(p)===KF_PACKAGE_LEVEL_FILTER);
+   const box=document.getElementById("paketListBaru");if(!box)return;
+   box.innerHTML=rows.length?rows.map(p=>`<div class="package-card-new"><div class="head"><div><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><b style="font-size:16px">${escMember(p.nama)}</b><span class="package-level-badge">${escMember(packageLevel(p))}</span></div><div class="package-code">${escMember(p.kode||"Tanpa kode")}</div><div class="meta"><span class="soft-chip">${moneyID(p.harga)}</span><span class="soft-chip">${p.durasi_hari} hari</span><span class="soft-chip">${p.aktif?"Aktif":"Nonaktif"}</span><span class="soft-chip">${KF_TOPICS_NEW.filter(t=>t.package_id===p.id).length} topik</span></div><p class="sub">${escMember(p.deskripsi||"Deskripsi belum diisi")}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editPaketBaru('${p.id}')">Edit</button><button class="btn ghost small" onclick="togglePaketBaru('${p.id}',${!p.aktif})">${p.aktif?"Nonaktifkan":"Aktifkan"}</button><button class="btn danger small" onclick="hapusPaketBaru('${p.id}')">Hapus</button></div></div></div>`).join(""):'<div class="sub">Belum ada paket pada jenjang ini.</div>';
  }catch(e){alert("Gagal memuat paket: "+e.message)}
 }
 async function tambahPaketBaru(){
- const nama=prompt("Nama paket baru:","Paket 1");if(!nama||!nama.trim())return;
- const durasi=Number(prompt("Durasi akses (hari):","30"));if(!durasi||durasi<1)return;
- const harga=Number(prompt("Harga (Rp):","0"));if(Number.isNaN(harga)||harga<0)return;
- const deskripsi=prompt("Deskripsi singkat:","")||"";
- const urutan=Number(prompt("Urutan tampil:","1"))||0;
- const {error}=await kfdb().from("member_packages").insert({nama:nama.trim(),durasi_hari:durasi,harga,deskripsi,urutan,aktif:true});
- if(error)return alert("Gagal menambah paket: "+error.message);await renderPaketBaru();
+ const jenjang=(prompt("Jenjang paket: ketik SD, SMP, atau SMA","SD")||"").trim().toUpperCase();
+ if(!["SD","SMP","SMA"].includes(jenjang))return alert("Jenjang harus SD, SMP, atau SMA.");
+ const kodeDefault=nextPackageCode(jenjang);
+ const kode=(prompt("Kode paket:",kodeDefault)||"").trim().toUpperCase();if(!kode)return;
+ const nomor=Number(kode.split("-").pop())||"";
+ const nama=prompt("Nama paket baru:",`${jenjang} • Paket ${nomor}`);if(!nama||!nama.trim())return;
+ const durasi=Number(prompt("Durasi akses (hari):","30"));if(!durasi||durasi<1)return alert("Durasi minimal 1 hari.");
+ const harga=Number(prompt("Harga (Rp):","0"));if(Number.isNaN(harga)||harga<0)return alert("Harga tidak valid.");
+ const deskripsi=prompt("Deskripsi singkat (boleh dikosongkan dan diisi belakangan):","");if(deskripsi===null)return;
+ const base=jenjang==="SD"?0:jenjang==="SMP"?100:200;
+ const urutan=Number(prompt("Urutan tampil:",String(base+(Number(nomor)||1))))||base+(Number(nomor)||1);
+ const {error}=await kfdb().from("member_packages").insert({kode,nama:nama.trim(),jenjang,durasi_hari:durasi,harga,deskripsi:deskripsi.trim(),urutan,aktif:true});
+ if(error)return alert("Gagal menambah paket: "+error.message);
+ KF_PACKAGE_LEVEL_FILTER=jenjang;
+ document.querySelectorAll(".package-filter").forEach(x=>x.classList.toggle("active",x.dataset.level===jenjang));
+ await renderPaketBaru();
 }
 async function editPaketBaru(id){
  const p=KF_PACKAGES_NEW.find(x=>x.id===id);if(!p)return;
- const nama=prompt("Nama paket:",p.nama);if(nama===null)return;const durasi=prompt("Durasi (hari):",p.durasi_hari);if(durasi===null)return;const harga=prompt("Harga (Rp):",p.harga);if(harga===null)return;const desc=prompt("Deskripsi:",p.deskripsi||"");if(desc===null)return;const urutan=prompt("Urutan:",p.urutan||0);if(urutan===null)return;
- const {error}=await kfdb().from("member_packages").update({nama:nama.trim(),durasi_hari:Number(durasi),harga:Number(harga),deskripsi:desc.trim(),urutan:Number(urutan)}).eq("id",id);
+ const jenjang=(prompt("Jenjang (SD/SMP/SMA):",packageLevel(p))||"").trim().toUpperCase();if(!["SD","SMP","SMA"].includes(jenjang))return alert("Jenjang harus SD, SMP, atau SMA.");
+ const kode=prompt("Kode paket:",p.kode||nextPackageCode(jenjang));if(kode===null||!kode.trim())return;
+ const nama=prompt("Nama paket:",p.nama);if(nama===null||!nama.trim())return;
+ const durasi=prompt("Durasi (hari):",p.durasi_hari);if(durasi===null)return;
+ const harga=prompt("Harga (Rp):",p.harga);if(harga===null)return;
+ const desc=prompt("Deskripsi (boleh kosong):",p.deskripsi||"");if(desc===null)return;
+ const urutan=prompt("Urutan:",p.urutan||0);if(urutan===null)return;
+ const {error}=await kfdb().from("member_packages").update({kode:kode.trim().toUpperCase(),jenjang,nama:nama.trim(),durasi_hari:Number(durasi),harga:Number(harga),deskripsi:desc.trim(),urutan:Number(urutan)}).eq("id",id);
  if(error)return alert("Gagal mengubah paket: "+error.message);await renderPaketBaru();
 }
 async function togglePaketBaru(id,val){const {error}=await kfdb().from("member_packages").update({aktif:val}).eq("id",id);if(error)return alert(error.message);await renderPaketBaru()}
@@ -2121,5 +2200,21 @@ renderAccessManagers=async function(){
     <div id="kfPreviewBody" class="preview-body"></div>
   </div>
 </div>
-</body>
+<script>
+async function KFLogoutAdminMemberSafe(){
+ if(!confirm("Keluar dari Admin Member Area?"))return;
+ try{if(window.KFSupabaseAdmin&&KFSupabaseAdmin.client)await KFSupabaseAdmin.client.auth.signOut({scope:"local"});else if(window.supabase&&window.KF_SUPABASE_CONFIG){const c=window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);await c.auth.signOut({scope:"local"})}}catch(e){console.warn(e)}
+ try{Object.keys(localStorage).filter(k=>k.startsWith("sb-")&&k.endsWith("-auth-token")).forEach(k=>localStorage.removeItem(k));sessionStorage.clear()}catch(e){}
+ window.location.replace("index.html?logged_out=1");
+}
+if(location.hash&&/access_token|refresh_token|error_description/.test(location.hash))history.replaceState(null,document.title,location.pathname+location.search);
+async function renderDiscountRules(){const b=document.getElementById("discountRulesAdmin");if(!b)return;try{const q=await kfdb().from("member_discount_rules").select("*").order("min_packages");if(q.error)throw q.error;b.innerHTML=(q.data||[]).map(r=>`<div class="discount-rule-row"><div><b>${escMember(r.label||r.min_packages+" paket")}</b><p class="sub">${r.min_packages}${r.max_packages?"–"+r.max_packages:"+"} paket · Diskon ${Number(r.discount_percent)}% · ${r.active?"Aktif":"Nonaktif"}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editAturanDiskon('${r.id}')">Edit</button><button class="btn ghost small" onclick="toggleAturanDiskon('${r.id}',${!r.active})">${r.active?"Nonaktifkan":"Aktifkan"}</button><button class="btn danger small" onclick="hapusAturanDiskon('${r.id}')">Hapus</button></div></div>`).join("")||'<div class="sub">Belum ada aturan.</div>'}catch(e){b.innerHTML='<div class="sub">'+escMember(e.message)+'</div>'}}
+async function tambahAturanDiskon(){const a=Number(prompt("Minimal paket:","2"));if(!a)return;const z=prompt("Maksimal paket (kosong = tanpa batas):",String(a));if(z===null)return;const d=Number(prompt("Diskon (%):","5"));if(d<0||d>100||Number.isNaN(d))return;const l=prompt("Label:",a+(z?"–"+z:"+")+" paket")||"";const q=await kfdb().from("member_discount_rules").insert({min_packages:a,max_packages:z.trim()===""?null:Number(z),discount_percent:d,label:l,active:true});if(q.error)return alert(q.error.message);renderDiscountRules()}
+async function editAturanDiskon(id){const q=await kfdb().from("member_discount_rules").select("*").eq("id",id).single();if(q.error)return alert(q.error.message);const r=q.data,a=Number(prompt("Minimal paket:",r.min_packages));if(!a)return;const z=prompt("Maksimal paket (kosong = tanpa batas):",r.max_packages??"");if(z===null)return;const d=Number(prompt("Diskon (%):",r.discount_percent));if(d<0||d>100||Number.isNaN(d))return;const l=prompt("Label:",r.label||"");if(l===null)return;const u=await kfdb().from("member_discount_rules").update({min_packages:a,max_packages:z.trim()===""?null:Number(z),discount_percent:d,label:l}).eq("id",id);if(u.error)return alert(u.error.message);renderDiscountRules()}
+async function toggleAturanDiskon(id,v){const q=await kfdb().from("member_discount_rules").update({active:v}).eq("id",id);if(q.error)return alert(q.error.message);renderDiscountRules()}
+async function hapusAturanDiskon(id){if(!confirm("Hapus aturan diskon?"))return;const q=await kfdb().from("member_discount_rules").delete().eq("id",id);if(q.error)return alert(q.error.message);renderDiscountRules()}
+async function renderBundleOrders(){const b=document.getElementById("bundleOrdersAdmin");if(!b)return;try{const q=await kfdb().from("member_bundle_orders").select("*").order("created_at",{ascending:false}).limit(100);if(q.error)throw q.error;const os=q.data||[],ids=os.map(o=>o.id);let it=[];if(ids.length){const x=await kfdb().from("member_bundle_order_items").select("*").in("order_id",ids);if(x.error)throw x.error;it=x.data||[]}b.innerHTML=os.map(o=>{const n=it.filter(i=>i.order_id===o.id).map(i=>i.package_name).join(", ");return `<div class="bundle-order-row"><div><b>${escMember(o.jenjang)} · ${o.package_count} paket · ${moneyID(o.total_amount)}</b><p class="sub">${escMember(n)}<br>Subtotal ${moneyID(o.subtotal)} · Diskon ${Number(o.discount_percent)}% · Status ${escMember(o.status)}</p></div><div>${o.status==="pending"?`<button class="btn small" onclick="approveBundleOrder('${o.id}',${o.package_count})">✓ Verifikasi & Aktifkan ${o.package_count} Paket</button>`:"✓ "+escMember(o.status)}</div></div>`}).join("")||'<div class="sub">Belum ada transaksi.</div>'}catch(e){b.innerHTML='<div class="sub">'+escMember(e.message)+'</div>'}}
+async function approveBundleOrder(id,c){if(!confirm("Pastikan pembayaran sudah benar.\n\nAktifkan seluruh "+c+" paket?"))return;const n=prompt("Catatan Admin:","Pembayaran telah diverifikasi");if(n===null)return;const q=await kfdb().rpc("kf_admin_approve_bundle_order",{p_order:id,p_note:n});if(q.error)return alert(q.error.message);alert("✓ "+c+" paket aktif.");renderBundleOrders()}
+window.addEventListener("load",()=>setTimeout(()=>{renderDiscountRules();renderBundleOrders()},1400));
+</script></body>
 </html>

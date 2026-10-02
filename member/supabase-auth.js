@@ -85,6 +85,8 @@
         durasiHari:p.durasi_hari,
         harga:p.harga,
         deskripsi:p.deskripsi,
+        jenjang:(p.jenjang||((String(p.nama||"").match(/^(SD|SMP|SMA)\b/i)||[])[1])||"").toUpperCase(),
+        kode:p.kode||"",
         owned:!!p.owned,
         expiresAt:p.expires_at||null
       }))};
@@ -117,6 +119,8 @@
       if(error) throw error;
       return {ok:true,id:data};
     },
+    quoteBundle: async function(packageIds){const {data,error}=await supabase.rpc("kf_bundle_quote",{p_package_ids:packageIds});if(error)throw error;return {ok:true,data:(data||[])[0]||{package_count:0,subtotal:0,discount_percent:0,discount_amount:0,total_amount:0}};},
+    buatOrderBundle: async function(packageIds,paymentMethodId){const {data,error}=await supabase.rpc("kf_create_bundle_order",{p_package_ids:packageIds,p_payment_method:paymentMethodId||null});if(error)throw error;return {ok:true,id:data};},
     kontenMember: async function(jenjang){
       const results=await Promise.all([
         supabase.rpc("kf_member_content_v2"),
