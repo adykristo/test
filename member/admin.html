@@ -499,15 +499,57 @@
       @media(max-width:760px){.pkg-editor-grid{grid-template-columns:1fr}.pkg-editor-grid .wide{grid-column:auto}.pkg-question{grid-template-columns:32px 1fr}.pkg-question .pkg-actions{grid-column:2}}
 
 
-    /* Data Peserta Member: semua informasi utama dipisah per kolom */
-    #member .table-wrap{overflow-x:auto;border-radius:16px}
-    #member .table-wrap table{min-width:1420px;border-collapse:separate;border-spacing:0}
-    #member .table-wrap th{white-space:nowrap;background:#faf6ff;color:#54206f;font-size:12px}
-    #member .table-wrap td{vertical-align:middle}
+    /* Data Peserta Member: seluruh kolom tetap terlihat pada zoom browser 100% */
+    #member{min-width:0}
+    #member .card{min-width:0;overflow:hidden}
+    #member .member-toolbar{grid-template-columns:minmax(220px,1fr) 180px 140px auto}
+    #member .table-wrap{width:100%;max-width:100%;overflow-x:hidden;border-radius:16px}
+    #member .table-wrap table{width:100%;min-width:0!important;table-layout:fixed;border-collapse:separate;border-spacing:0}
+    #member .table-wrap th{white-space:normal;background:#faf6ff;color:#54206f;font-size:10.5px;line-height:1.15;padding:10px 5px;text-align:left}
+    #member .table-wrap td{vertical-align:middle;font-size:10.5px;line-height:1.25;padding:9px 5px;overflow-wrap:anywhere;word-break:normal}
+    #member .table-wrap th:nth-child(1){width:4%}
+    #member .table-wrap th:nth-child(2){width:20%}
+    #member .table-wrap th:nth-child(3){width:11%}
+    #member .table-wrap th:nth-child(4){width:10%}
+    #member .table-wrap th:nth-child(5){width:6%}
+    #member .table-wrap th:nth-child(6){width:7%}
+    #member .table-wrap th:nth-child(7){width:11%}
+    #member .table-wrap th:nth-child(8){width:8%}
+    #member .table-wrap th:nth-child(9){width:10%}
+    #member .table-wrap th:nth-child(10){width:9%}
+    #member .table-wrap th:nth-child(11){width:4%}
+    #member .member-name{min-width:0;gap:6px}
+    #member .member-avatar{width:30px;height:30px;flex-basis:30px;border-radius:9px}
     #member .table-wrap tbody tr{transition:background .18s ease}
     #member .table-wrap tbody tr:hover{background:#fcf8ff}
-    .member-cell-pill{display:inline-flex;align-items:center;justify-content:center;min-width:42px;padding:5px 9px;border-radius:999px;background:#f3e8ff;color:#6f2dbd;font-weight:800;font-size:12px}
-    .member-date-cell{display:block;white-space:nowrap;color:#6d5b78;font-size:12px}
+    #member .btn{padding:8px 10px;font-size:11px}
+    .member-cell-pill{display:inline-flex;align-items:center;justify-content:center;min-width:0;padding:4px 7px;border-radius:999px;background:#f3e8ff;color:#6f2dbd;font-weight:800;font-size:10.5px}
+    .member-date-cell{display:block;white-space:normal;color:#6d5b78;font-size:10.5px}
+    @media(max-width:1100px){
+      #member .member-toolbar{grid-template-columns:1fr 150px 130px}.member-export{grid-column:1/-1;justify-content:flex-start}
+      #member .table-wrap th,#member .table-wrap td{font-size:9.5px;padding-left:3px;padding-right:3px}
+      #member .member-avatar{display:none}
+    }
+
+/* ===== Paket Mandiri / Topik / Pembayaran / V12 Focus ===== */
+.package-check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0 12px}
+.package-check{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid #eadcf8;border-radius:11px;background:#fff}
+.package-check input{width:auto;margin:0}
+.distribution-box{padding:14px;border:1px solid #e7d8f5;border-radius:14px;background:#fcf9ff;margin-bottom:12px}
+.package-card-new{padding:15px;border:1px solid #eadcf8;border-radius:14px;background:#fff;margin:10px 0}
+.package-card-new .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px}
+.soft-chip{display:inline-flex;padding:5px 9px;border-radius:999px;background:#f3e8ff;color:#6c2eb9;font-size:11px;font-weight:800}
+.v12-studio-title{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.v12-ready-badge{padding:8px 12px;border-radius:999px;background:#effbf4;color:#147a47;font-size:12px;font-weight:900}
+.v12-studio-card{padding:0!important;overflow:hidden}
+.v12-studio-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 17px;background:linear-gradient(135deg,#fff,#fcf7ff);border-bottom:1px solid #eee2f7}
+.v12-studio-info{display:flex;align-items:center;gap:11px}.v12-studio-info h2{margin:0}
+.v12-studio-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,#6926b8,#f2389a);color:#fff;font-size:19px}
+.v12-studio-actions{display:flex;gap:8px;flex-wrap:wrap}
+.v12-studio-body{padding:9px;background:#f8f4fb}.v12-studio-body iframe{display:block;width:100%;height:calc(100vh - 230px);min-height:680px;border:1px solid #e6d8f2;border-radius:13px;background:#fff}
+.v12-studio-card.is-collapsed .v12-studio-body{display:none}.v12-collapsed-hint{padding:18px;display:flex;justify-content:space-between;align-items:center;gap:12px}.v12-collapsed-hint[hidden]{display:none!important}
+.v12-studio-card:fullscreen{background:#f7f2fb;display:flex;flex-direction:column}.v12-studio-card:fullscreen .v12-studio-body{display:flex;flex:1;min-height:0}.v12-studio-card:fullscreen iframe{height:100%;min-height:0;flex:1}
+@media(max-width:900px){.v12-studio-title,.v12-studio-toolbar,.v12-collapsed-hint{flex-direction:column}.v12-studio-body iframe{height:72vh;min-height:540px}}
 </style>
   </head>
   <body>
@@ -528,15 +570,15 @@
         ><button onclick="openPanel('pendaftaran', this)">
           ◷ Pendaftaran Baru</button
         ><button onclick="openPanel('member', this)">♙ Daftar Member</button
-        ><button onclick="openPanel('paket', this)">💳 Paket &amp; Harga</button
-        ><button onclick="openPanel('transaksi', this);muatPengaturanPembayaran()">🏦 Pembayaran Manual</button
+        ><button onclick="openPanel('paket', this);renderPaketBaru()">💳 Paket &amp; Harga</button
+        ><button onclick="openPanel('transaksi', this);renderMetodePembayaran()">🏦 Pembayaran Manual</button
         ><button onclick="openPanel('laporan', this);muatLaporan()">▥ Laporan</button
         ><button onclick="openPanel('keamanan', this);muatKeamananAdmin()">🛡 Keamanan</button>
         <div class="label">KONTEN BELAJAR</div>
-        <button onclick="openPanel('modul', this)">▤ Modul & Topik</button
-        ><button onclick="openPanel('latihan', this)">✎ Soal Latihan</button
-        ><button onclick="openPanel('video', this)">▶ Video Pembahasan</button
-        ><button onclick="openPanel('tryout', this)">★ Tryout Mingguan</button
+        <button onclick="openPanel('modul', this);loadPackageCore()">▤ Modul & Topik</button
+        ><button onclick="openPanel('latihan', this);renderAccessManagers()">✎ Soal Latihan</button
+        ><button onclick="openPanel('video', this);loadPackageCore()">▶ Video Pembahasan</button
+        ><button onclick="openPanel('tryout', this);renderAccessManagers()">★ Tryout Mingguan</button
         ><button onclick="openPanel('v12builder', this);setTimeout(bacaBankV12,250)">✦ Pembuat Soal V12</button>
       </aside>
       <main>
@@ -647,24 +689,46 @@
           </div>
         </section>
         <section id="paket" class="panel">
-          <h1>Paket &amp; Harga</h1>
-          <p class="sub">Atur harga dan durasi tiap paket. Perubahan langsung berlaku untuk pendaftar baru.</p>
-          <div class="card" id="paketList"></div>
-        </section>
-        <section id="transaksi" class="panel">
-          <h1>Pengaturan Pembayaran Manual</h1>
-          <p class="sub">Informasi ini tampil pada halaman peserta yang menunggu aktivasi. Setelah bukti diterima lewat WhatsApp, periksa pembayaran lalu aktifkan member secara manual.</p>
-          <form class="card form" id="paymentSettingsForm" onsubmit="simpanPengaturanPembayaran(event)">
-            <div><label for="paymentAdminBank">Nama bank / metode</label><input id="paymentAdminBank" maxlength="80" required placeholder="Contoh: BCA"></div>
-            <div><label for="paymentAdminNumber">Nomor rekening</label><input id="paymentAdminNumber" maxlength="40" inputmode="numeric" required placeholder="Contoh: 1234567890"></div>
-            <div><label for="paymentAdminOwner">Nama pemilik rekening</label><input id="paymentAdminOwner" maxlength="100" required placeholder="Contoh: Ady Kristo N"></div>
-            <div><label for="paymentAdminWhatsapp">WhatsApp penerima bukti</label><input id="paymentAdminWhatsapp" maxlength="16" inputmode="tel" required placeholder="Contoh: 6281234567890"></div>
-            <div class="wide"><div id="paymentAdminPreview" style="padding:14px;border-radius:12px;background:#f6f0fd;color:#4a3560">Isi data rekening untuk melihat pratinjau.</div></div>
-            <div class="wide"><button class="btn" type="submit">Simpan Informasi Pembayaran</button><div class="notice"></div></div>
-          </form>
-          <div class="card"><h2>Alur verifikasi manual</h2><p>1. Peserta transfer dan mengirim bukti melalui WhatsApp.</p><p>2. Admin mencocokkan nominal, nama, email, serta paket.</p><p>3. Buka <b>Pendaftaran Baru</b>, lalu aktifkan akun peserta.</p><p class="sub">Pengaturan ini menggunakan penyimpanan paket yang sudah tersedia sehingga tidak memerlukan tabel atau SQL baru.</p></div>
-        </section>
-        <section id="laporan" class="panel">
+  <div class="head"><div><h1>Paket &amp; Harga</h1><p class="sub">Kelola paket mandiri. Paket yang dibeli peserta tidak membuka paket lain secara otomatis.</p></div><button class="btn" onclick="tambahPaketBaru()">+ Tambah Paket</button></div>
+  <div class="card">
+    <div class="head"><div><h2>Daftar Paket</h2><p class="sub" style="margin:4px 0 0">Atur nama, durasi, harga, urutan, status, dan topik setiap paket.</p></div><button class="btn ghost small" onclick="renderPaketBaru()">↻ Muat Ulang</button></div>
+    <div id="paketListBaru" class="manage-list"><div class="sub">Memuat paket…</div></div>
+  </div>
+  <div class="card">
+    <div class="head"><div><h2>Topik per Paket</h2><p class="sub" style="margin:4px 0 0">Topik yang dibuat di sini dapat dipilih saat mendistribusikan Modul, Video, Latihan, dan Tryout.</p></div></div>
+    <div class="form">
+      <div><label>Paket</label><select id="topicPackageSelect" onchange="renderTopikPaket()"></select></div>
+      <div><label>Nama topik baru</label><input id="topicTitleInput" placeholder="Contoh: Momentum & Impuls"></div>
+      <div class="wide"><label>Deskripsi singkat</label><input id="topicDescInput" placeholder="Ringkasan materi yang akan dilihat peserta"></div>
+      <div><label>Urutan</label><input id="topicOrderInput" type="number" min="0" value="1"></div>
+      <div style="display:flex;align-items:end"><button class="btn" type="button" onclick="tambahTopikPaket()">+ Tambah Topik</button></div>
+    </div>
+    <div id="topicPackageList" class="manage-list" style="margin-top:14px"></div>
+  </div>
+</section>
+<section id="transaksi" class="panel">
+  <div class="head"><div><h1>Metode Pembayaran</h1><p class="sub">Tambahkan beberapa rekening, e-wallet, QRIS, atau metode lainnya. Hanya metode aktif yang tampil kepada peserta.</p></div><button class="btn" onclick="bukaFormPembayaran()">+ Tambah Metode</button></div>
+  <div id="paymentMethodFormCard" class="card" style="display:none">
+    <div class="head"><h2 id="paymentFormTitle">Tambah Metode Pembayaran</h2><button class="btn ghost small" onclick="tutupFormPembayaran()">Tutup</button></div>
+    <form class="form" onsubmit="simpanMetodePembayaran(event)">
+      <input id="paymentMethodId" type="hidden">
+      <div><label>Jenis</label><select id="paymentJenis"><option value="bank">Transfer Bank</option><option value="ewallet">E-Wallet</option><option value="qris">QRIS</option><option value="lainnya">Lainnya</option></select></div>
+      <div><label>Nama metode</label><input id="paymentNama" required placeholder="BCA / BRI / DANA / QRIS"></div>
+      <div><label>Nomor rekening / akun</label><input id="paymentNomor" placeholder="Nomor rekening atau nomor e-wallet"></div>
+      <div><label>Nama pemilik</label><input id="paymentPemilik" placeholder="Nama pemilik rekening"></div>
+      <div><label>WhatsApp bukti pembayaran</label><input id="paymentWA" placeholder="62812..."></div>
+      <div><label>Urutan tampil</label><input id="paymentUrutan" type="number" min="0" value="1"></div>
+      <div class="wide"><label>Instruksi pembayaran</label><textarea id="paymentInstruksi" placeholder="Instruksi tambahan untuk peserta"></textarea></div>
+      <div class="wide"><label>URL gambar QRIS (opsional)</label><input id="paymentQR" placeholder="https://..."></div>
+      <div class="wide"><button class="btn">Simpan Metode Pembayaran</button></div>
+    </form>
+  </div>
+  <div class="card">
+    <div class="head"><div><h2>Metode Tersimpan</h2><p class="sub" style="margin:4px 0 0">Aktif/nonaktifkan tanpa menghapus riwayat transaksi.</p></div><button class="btn ghost small" onclick="renderMetodePembayaran()">↻ Muat Ulang</button></div>
+    <div id="paymentMethodsList" class="manage-list"><div class="sub">Memuat metode pembayaran…</div></div>
+  </div>
+</section>
+<section id="laporan" class="panel">
           <h1>Laporan Member Area</h1>
           <p class="sub">Ringkasan member, hasil tryout, dan aktivitas admin.</p>
           <div class="stats"><div class="stat"><b id="lapTotalMember">0</b>Total member</div><div class="stat"><b id="lapAktif">0</b>Member aktif</div><div class="stat"><b id="lapTryout">0</b>Tryout dikerjakan</div><div class="stat"><b id="lapRataSkor">0</b>Rata-rata skor</div></div>
@@ -686,7 +750,10 @@
           </p>
           <div class="grid">
             <form class="card" id="modulForm" onsubmit="simpanModul(event)">
-              <h2>Tambah Topik / Modul</h2>
+              <h2>Tambah Modul</h2>
+              <div class="distribution-box"><b>Distribusi Paket</b><p class="sub">Pilih paket tujuan. Peserta hanya melihat modul jika memiliki paket tersebut.</p>
+              <div id="modulPackageChecks" class="package-check-grid"></div>
+              <label>Topik Paket</label><select id="modulPackageTopic"><option value="">Tanpa topik paket</option></select></div>
               <label>Jenjang</label
               ><select id="modulJenjang">
                 <option value="sd">SD</option>
@@ -737,7 +804,7 @@
           <p class="sub">Kelola paket latihan untuk peserta berlangganan. Soal dibuat di Pembuat Soal V12, kemudian dipilih, diedit sebagai salinan paket, dan dipublikasikan dari sini.</p>
           <div class="card">
             <div class="head"><div><h2>Paket Latihan</h2><p class="sub" style="margin:4px 0 0">Paket tersimpan di browser admin. Saat dipublikasikan, soal dikirim ke database Member Area.</p></div><button class="btn" onclick="buatPaketKelola('latihan')">+ Paket Latihan</button></div>
-            <div id="latihanPackageManager" class="manage-list"></div><div class="card" style="margin-top:14px"><div class="head"><h3>Paket Final di Supabase</h3><button class="btn ghost small" onclick="renderSupabasePackageStatus()">↻ Panggil dari Supabase</button></div><div id="latihanPackageManagerSupabase" class="manage-list"><div class="sub">Klik muat untuk melihat data final.</div></div></div>
+            <div id="latihanPackageManager" class="manage-list"></div><div class="distribution-box" style="margin-top:14px"><b>Distribusi Paket Final</b><p class="sub">Setelah paket latihan dipublikasikan ke Supabase, atur paket peserta yang boleh mengaksesnya.</p><div id="latihanAccessManager" class="manage-list"></div></div><div class="card" style="margin-top:14px"><div class="head"><h3>Paket Final di Supabase</h3><button class="btn ghost small" onclick="renderSupabasePackageStatus()">↻ Panggil dari Supabase</button></div><div id="latihanPackageManagerSupabase" class="manage-list"><div class="sub">Klik muat untuk melihat data final.</div></div></div>
           </div>
           <div class="card">
             <div class="head"><h2>Soal latihan yang sudah dipublikasikan</h2><button class="btn ghost small" onclick="renderKontenAdmin()">↻ Muat ulang</button></div>
@@ -750,6 +817,7 @@
             Tambahkan video per topik. Pada halaman member video ditampilkan sebagai pemutar; URL YouTube tidak akan ditampilkan.
           </p>
           <form id="videoForm" class="card form" onsubmit="simpanVideo(event)">
+            <div class="wide distribution-box"><b>Distribusi Paket</b><p class="sub">Pilih satu atau beberapa paket yang boleh melihat video ini.</p><div id="videoPackageChecks" class="package-check-grid"></div><label>Topik Paket</label><select id="videoPackageTopic"><option value="">Tanpa topik paket</option></select></div>
             <div>
               <label>Jenjang</label
               ><select id="videoJenjang">
@@ -793,7 +861,7 @@
           <p class="sub">Kelola paket tryout untuk peserta pelatihan yang berlangganan. Soal berasal dari V12 dan dapat diedit khusus untuk paket yang dipilih.</p>
           <div class="card">
             <div class="head"><div><h2>Paket Tryout</h2><p class="sub" style="margin:4px 0 0">Atur durasi, jadwal, akses paket langganan, susunan soal, dan publikasi.</p></div><button class="btn" onclick="buatPaketKelola('tryout')">+ Paket Tryout</button></div>
-            <div id="tryoutPackageManager" class="manage-list"></div><div class="card" style="margin-top:14px"><div class="head"><h3>Paket Final di Supabase</h3><button class="btn ghost small" onclick="renderSupabasePackageStatus()">↻ Panggil dari Supabase</button></div><div id="tryoutPackageManagerSupabase" class="manage-list"><div class="sub">Klik muat untuk melihat data final.</div></div></div>
+            <div id="tryoutPackageManager" class="manage-list"></div><div class="distribution-box" style="margin-top:14px"><b>Distribusi Paket Final</b><p class="sub">Atur paket peserta dan topik yang boleh mengakses setiap tryout final.</p><div id="tryoutAccessManager" class="manage-list"></div></div><div class="card" style="margin-top:14px"><div class="head"><h3>Paket Final di Supabase</h3><button class="btn ghost small" onclick="renderSupabasePackageStatus()">↻ Panggil dari Supabase</button></div><div id="tryoutPackageManagerSupabase" class="manage-list"><div class="sub">Klik muat untuk melihat data final.</div></div></div>
           </div>
           <div class="card">
             <div class="head"><h2>Tryout yang sudah dipublikasikan</h2><button class="btn ghost small" onclick="renderKontenAdmin()">↻ Muat ulang</button></div>
@@ -802,11 +870,11 @@
         </section>
 
         <section id="v12builder" class="panel">
-          <h1>Pembuat Soal V12</h1>
-          <p class="sub">Pusat pembuatan dan Bank Paket Soal. V12 asli dijalankan tanpa perubahan. Paket/soal dari V12 dapat dikirim ke Paket Latihan maupun Paket Tryout.</p>
-          <div class="card">
-            <div class="head"><div><h2>KlinikFisikapku · Pembuat Soal V12</h2><p class="sub" style="margin:4px 0 0">Selesaikan soal/paket di V12, lalu gunakan panel “Kirim dari Bank V12” di bawah.</p></div><button class="btn ghost small" onclick="document.getElementById('v12Frame').contentWindow.location.reload()">↻ Muat Ulang</button></div>
-            <iframe id="v12Frame" src="pembuat-soal-klinikfisikapku-v12-final.html" style="width:100%;height:78vh;min-height:720px;border:1px solid #eadcf8;border-radius:14px;background:white"></iframe>
+          <div class="v12-studio-title"><div><h1>Pembuat Soal V12</h1><p class="sub">Ruang kerja fokus. Mesin V12 asli tetap dijalankan tanpa perubahan.</p></div><span class="v12-ready-badge">● Studio siap</span></div>
+          <div id="v12StudioCard" class="card v12-studio-card">
+            <div class="v12-studio-toolbar"><div class="v12-studio-info"><div class="v12-studio-icon">✦</div><div><h2>KlinikFisikapku · Studio V12</h2><p class="sub">Gunakan mode fokus untuk ruang kerja maksimal.</p></div></div><div class="v12-studio-actions"><button id="v12ToggleBtn" class="btn ghost small" onclick="toggleV12Studio()">— Sembunyikan</button><button class="btn ghost small" onclick="fullscreenV12Studio()">⛶ Layar Penuh</button><button class="btn ghost small" onclick="reloadV12Studio()">↻ Muat Ulang</button></div></div>
+            <div id="v12StudioBody" class="v12-studio-body"><iframe id="v12Frame" src="pembuat-soal-klinikfisikapku-v12-final.html" title="Pembuat Soal V12"></iframe></div>
+            <div id="v12CollapsedHint" class="v12-collapsed-hint" hidden><div><b>Studio V12 disembunyikan.</b><span> Buka kembali saat ingin membuat soal.</span></div><button class="btn small" onclick="toggleV12Studio(true)">✦ Buka Studio V12</button></div>
           </div>
           <div class="card">
             <div class="head"><div><h2>Kirim dari Bank V12</h2><p class="sub" style="margin:4px 0 0">Pilih seluruh paket atau pilih soal tertentu, kemudian kirim sebagai draf Paket Latihan/Tryout.</p></div><button class="btn ghost small" onclick="bacaBankV12()">↻ Segarkan Bank V12</button><button class="btn ghost small" onclick="KFGASWorkspace.push().then(r=>alert('✓ Workspace V12 tersimpan di Google Sheets: '+r.count+' paket')).catch(e=>alert(e.message))">☁ Simpan Workspace ke Google</button><button class="btn ghost small" onclick="KFGASWorkspace.pull().then(()=>{bacaBankV12();alert('✓ Workspace dipanggil dari Google Sheets')}).catch(e=>alert(e.message))">☁ Panggil dari Google</button><button class="btn ghost small" onclick="const u=prompt('URL Web App Google Apps Script (/exec):',localStorage.getItem('kf_v12_gas_url')||'');if(u){KFGASWorkspace.setUrl(u.trim());alert('✓ URL Google Apps Script tersimpan di browser Admin.')}">⚙ Atur Google Script</button></div>
@@ -1149,18 +1217,28 @@
         if(!data.length){alert("Tidak ada data peserta untuk diekspor.");return;}
         if(!window.jspdf || !window.jspdf.jsPDF){alert("Mesin PDF belum termuat. Periksa koneksi internet lalu muat ulang halaman.");return;}
         const {jsPDF}=window.jspdf, doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
-        doc.setFillColor(82,33,127); doc.rect(0,0,297,31,"F");
-        doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(17); doc.text("Data Peserta Member Area",14,13);
-        doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.text("KlinikFisikapku - diekspor "+new Date().toLocaleString("id-ID"),14,21);
-        doc.setTextColor(65,43,78); doc.setFontSize(9); doc.text(`Total hasil: ${data.length} peserta`,14,38);
+        const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight();
+        doc.setFillColor(82,33,127); doc.rect(0,0,pageW,29,"F");
+        doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.text("Data Peserta Member Area",12,12);
+        doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.text("KlinikFisikapku - diekspor "+new Date().toLocaleString("id-ID"),12,20);
+        doc.setTextColor(65,43,78); doc.setFontSize(8.5); doc.text(`Total hasil: ${data.length} peserta`,12,36);
         doc.autoTable({
-          startY:42, margin:{left:10,right:10,bottom:14},
-          head:[["No.","Nama / Username","Email","Sekolah / Kelas","Jenjang","Paket","Status","Masa Aktif"]],
-          body:data.map((x)=>[x.no,[x.nama,"@"+x.username].join("\n"),x.email,[x.sekolah,"Kelas "+x.kelas].join("\n"),x.jenjang,x.paket,x.status,x.berakhir]),
-          theme:"grid", styles:{font:"helvetica",fontSize:7.2,cellPadding:2.1,valign:"middle",overflow:"linebreak"},
-          headStyles:{fillColor:[122,40,196],textColor:255,fontStyle:"bold"}, alternateRowStyles:{fillColor:[249,245,253]},
-          columnStyles:{0:{cellWidth:10,halign:"center"},1:{cellWidth:35},2:{cellWidth:48},3:{cellWidth:51},4:{cellWidth:16,halign:"center"},5:{cellWidth:40},6:{cellWidth:33},7:{cellWidth:24}},
-          didDrawPage:()=>{const n=doc.internal.getNumberOfPages();doc.setFontSize(7.5);doc.setTextColor(110);doc.text(`Halaman ${n}`,287,203,{align:"right"});}
+          startY:40, margin:{left:6,right:6,bottom:13},
+          head:[["No.","Peserta","Username","Email","Sekolah","Kelas","Jenjang","Paket","Status","Masa Aktif","Tanggal Daftar"]],
+          body:data.map((x)=>[x.no,x.nama,"@"+x.username,x.email,x.sekolah,x.kelas,x.jenjang,x.paket,x.status,x.berakhir,x.daftar]),
+          theme:"grid",
+          styles:{font:"helvetica",fontSize:6.1,cellPadding:1.6,valign:"middle",overflow:"linebreak",lineColor:[232,220,242],lineWidth:.15,textColor:[55,40,66]},
+          headStyles:{fillColor:[122,40,196],textColor:255,fontStyle:"bold",fontSize:6.2,halign:"left"},
+          alternateRowStyles:{fillColor:[249,245,253]},
+          columnStyles:{
+            0:{cellWidth:9,halign:"center"},1:{cellWidth:30},2:{cellWidth:25},3:{cellWidth:39},4:{cellWidth:32},5:{cellWidth:14,halign:"center"},
+            6:{cellWidth:17,halign:"center"},7:{cellWidth:29},8:{cellWidth:20,halign:"center"},9:{cellWidth:25},10:{cellWidth:31}
+          },
+          didDrawPage:()=>{
+            doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(110);
+            doc.text("KlinikFisikapku • Data Peserta",6,pageH-5);
+            doc.text(`Halaman ${doc.internal.getNumberOfPages()}`,pageW-6,pageH-5,{align:"right"});
+          }
         });
         doc.save(namaFileMember("pdf"));
       }
@@ -1748,6 +1826,131 @@ async function renderSupabasePackageStatus(){
 }
 window.addEventListener("load",()=>setTimeout(renderSupabasePackageStatus,1200));
 
+
+/* ===== V15 Paket Mandiri Integration ===== */
+let KF_PACKAGES_NEW=[], KF_TOPICS_NEW=[], KF_PAYMENT_NEW=[];
+function kfdb(){const c=window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client;if(!c)throw new Error("Supabase Admin belum siap.");return c}
+function moneyID(v){return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(v)||0)}
+async function loadPackageCore(){
+ const db=kfdb();
+ const [{data:p,error:pe},{data:t,error:te}]=await Promise.all([
+  db.from("member_packages").select("*").neq("nama","_PAYMENT_CONFIG_").order("urutan").order("nama"),
+  db.from("member_package_topics").select("*").order("urutan").order("judul")
+ ]);
+ if(pe)throw pe;if(te)throw te;KF_PACKAGES_NEW=p||[];KF_TOPICS_NEW=t||[];
+ fillPackageSelectors(); return KF_PACKAGES_NEW;
+}
+function fillPackageSelectors(){
+ const sel=document.getElementById("topicPackageSelect");if(sel){const old=sel.value;sel.innerHTML=KF_PACKAGES_NEW.map(p=>`<option value="${p.id}">${escMember(p.nama)}</option>`).join("");if(KF_PACKAGES_NEW.some(p=>p.id===old))sel.value=old}
+ ["modul","video"].forEach(k=>{const box=document.getElementById(k+"PackageChecks");if(box)box.innerHTML=KF_PACKAGES_NEW.filter(p=>p.aktif).map(p=>`<label class="package-check"><input type="checkbox" value="${p.id}" onchange="updateTopicChoices('${k}')"><span>${escMember(p.nama)}</span></label>`).join("")});
+ updateTopicChoices("modul");updateTopicChoices("video");renderTopikPaket();
+}
+function selectedPackages(kind){return [...document.querySelectorAll(`#${kind}PackageChecks input:checked`)].map(x=>x.value)}
+function updateTopicChoices(kind){
+ const ids=selectedPackages(kind),sel=document.getElementById(kind+"PackageTopic");if(!sel)return;
+ const topics=KF_TOPICS_NEW.filter(t=>ids.includes(t.package_id)&&t.visible);
+ sel.innerHTML='<option value="">Tanpa topik paket</option>'+topics.map(t=>`<option value="${t.id}">${escMember(KF_PACKAGES_NEW.find(p=>p.id===t.package_id)?.nama||"Paket")} — ${escMember(t.judul)}</option>`).join("");
+}
+async function renderPaketBaru(){
+ try{await loadPackageCore();const box=document.getElementById("paketListBaru");if(!box)return;
+ box.innerHTML=KF_PACKAGES_NEW.length?KF_PACKAGES_NEW.map(p=>`<div class="package-card-new"><div class="head"><div><b style="font-size:16px">${escMember(p.nama)}</b><div class="meta"><span class="soft-chip">${moneyID(p.harga)}</span><span class="soft-chip">${p.durasi_hari} hari</span><span class="soft-chip">${p.aktif?"Aktif":"Nonaktif"}</span><span class="soft-chip">${KF_TOPICS_NEW.filter(t=>t.package_id===p.id).length} topik</span></div><p class="sub">${escMember(p.deskripsi||"Tanpa deskripsi")}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editPaketBaru('${p.id}')">Edit</button><button class="btn ghost small" onclick="togglePaketBaru('${p.id}',${!p.aktif})">${p.aktif?"Nonaktifkan":"Aktifkan"}</button><button class="btn danger small" onclick="hapusPaketBaru('${p.id}')">Hapus</button></div></div></div>`).join(""):'<div class="sub">Belum ada paket.</div>';
+ }catch(e){alert("Gagal memuat paket: "+e.message)}
+}
+async function tambahPaketBaru(){
+ const nama=prompt("Nama paket baru:","Paket 1");if(!nama||!nama.trim())return;
+ const durasi=Number(prompt("Durasi akses (hari):","30"));if(!durasi||durasi<1)return;
+ const harga=Number(prompt("Harga (Rp):","0"));if(Number.isNaN(harga)||harga<0)return;
+ const deskripsi=prompt("Deskripsi singkat:","")||"";
+ const urutan=Number(prompt("Urutan tampil:","1"))||0;
+ const {error}=await kfdb().from("member_packages").insert({nama:nama.trim(),durasi_hari:durasi,harga,deskripsi,urutan,aktif:true});
+ if(error)return alert("Gagal menambah paket: "+error.message);await renderPaketBaru();
+}
+async function editPaketBaru(id){
+ const p=KF_PACKAGES_NEW.find(x=>x.id===id);if(!p)return;
+ const nama=prompt("Nama paket:",p.nama);if(nama===null)return;const durasi=prompt("Durasi (hari):",p.durasi_hari);if(durasi===null)return;const harga=prompt("Harga (Rp):",p.harga);if(harga===null)return;const desc=prompt("Deskripsi:",p.deskripsi||"");if(desc===null)return;const urutan=prompt("Urutan:",p.urutan||0);if(urutan===null)return;
+ const {error}=await kfdb().from("member_packages").update({nama:nama.trim(),durasi_hari:Number(durasi),harga:Number(harga),deskripsi:desc.trim(),urutan:Number(urutan)}).eq("id",id);
+ if(error)return alert("Gagal mengubah paket: "+error.message);await renderPaketBaru();
+}
+async function togglePaketBaru(id,val){const {error}=await kfdb().from("member_packages").update({aktif:val}).eq("id",id);if(error)return alert(error.message);await renderPaketBaru()}
+async function hapusPaketBaru(id){
+ const p=KF_PACKAGES_NEW.find(x=>x.id===id);if(!p||!confirm(`Hapus ${p.nama}? Jika sudah punya transaksi/kepemilikan, sistem akan menolak penghapusan demi menjaga riwayat.`))return;
+ const {error}=await kfdb().from("member_packages").delete().eq("id",id);if(error)return alert("Paket tidak dapat dihapus: "+error.message+"\\nGunakan Nonaktifkan jika paket sudah pernah dibeli.");await renderPaketBaru();
+}
+async function renderTopikPaket(){
+ const box=document.getElementById("topicPackageList"),pid=document.getElementById("topicPackageSelect")?.value;if(!box)return;
+ const rows=KF_TOPICS_NEW.filter(t=>t.package_id===pid);box.innerHTML=rows.length?rows.map(t=>`<div class="manage-item"><div><b>${escMember(t.judul)}</b><p>${escMember(t.deskripsi||"Tanpa deskripsi")} · Urutan ${t.urutan} · ${t.visible?"Tampil":"Disembunyikan"}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editTopikPaket('${t.id}')">Edit</button><button class="btn ghost small" onclick="toggleTopikPaket('${t.id}',${!t.visible})">${t.visible?"Sembunyikan":"Tampilkan"}</button><button class="btn danger small" onclick="hapusTopikPaket('${t.id}')">Hapus</button></div></div>`).join(""):'<div class="sub">Belum ada topik pada paket ini.</div>';
+}
+async function tambahTopikPaket(){
+ const pid=document.getElementById("topicPackageSelect").value,title=document.getElementById("topicTitleInput").value.trim();if(!pid||!title)return alert("Pilih paket dan isi nama topik.");
+ const item={package_id:pid,judul:title,deskripsi:document.getElementById("topicDescInput").value.trim(),urutan:Number(document.getElementById("topicOrderInput").value)||0,visible:true};
+ const {error}=await kfdb().from("member_package_topics").insert(item);if(error)return alert("Gagal menambah topik: "+error.message);document.getElementById("topicTitleInput").value="";document.getElementById("topicDescInput").value="";await renderPaketBaru();
+}
+async function editTopikPaket(id){const t=KF_TOPICS_NEW.find(x=>x.id===id);if(!t)return;const j=prompt("Nama topik:",t.judul);if(j===null)return;const d=prompt("Deskripsi:",t.deskripsi||"");if(d===null)return;const u=prompt("Urutan:",t.urutan);if(u===null)return;const {error}=await kfdb().from("member_package_topics").update({judul:j.trim(),deskripsi:d.trim(),urutan:Number(u)||0}).eq("id",id);if(error)return alert(error.message);await renderPaketBaru()}
+async function toggleTopikPaket(id,v){const {error}=await kfdb().from("member_package_topics").update({visible:v}).eq("id",id);if(error)return alert(error.message);await renderPaketBaru()}
+async function hapusTopikPaket(id){if(!confirm("Hapus topik ini? Konten tidak ikut terhapus, tetapi hubungan topiknya akan dilepas."))return;const {error}=await kfdb().from("member_package_topics").delete().eq("id",id);if(error)return alert(error.message);await renderPaketBaru()}
+
+/* Multi payment */
+async function renderMetodePembayaran(){
+ try{const {data,error}=await kfdb().from("member_payment_methods").select("*").order("urutan").order("nama");if(error)throw error;KF_PAYMENT_NEW=data||[];const box=document.getElementById("paymentMethodsList");if(!box)return;
+ box.innerHTML=KF_PAYMENT_NEW.length?KF_PAYMENT_NEW.map(x=>`<div class="manage-item"><div><b>${escMember(x.nama)}</b><p>${escMember(x.jenis.toUpperCase())} · ${escMember(x.nomor_akun||"Tanpa nomor")} · ${escMember(x.pemilik||"")} · ${x.aktif?"Aktif":"Nonaktif"}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editMetodePembayaran('${x.id}')">Edit</button><button class="btn ghost small" onclick="toggleMetodePembayaran('${x.id}',${!x.aktif})">${x.aktif?"Nonaktifkan":"Aktifkan"}</button><button class="btn danger small" onclick="hapusMetodePembayaran('${x.id}')">Hapus</button></div></div>`).join(""):'<div class="sub">Belum ada metode pembayaran.</div>';
+ }catch(e){alert("Gagal memuat metode pembayaran: "+e.message)}
+}
+function bukaFormPembayaran(x){document.getElementById("paymentMethodFormCard").style.display="block";document.getElementById("paymentMethodId").value=x?.id||"";document.getElementById("paymentFormTitle").textContent=x?"Edit Metode Pembayaran":"Tambah Metode Pembayaran";document.getElementById("paymentJenis").value=x?.jenis||"bank";document.getElementById("paymentNama").value=x?.nama||"";document.getElementById("paymentNomor").value=x?.nomor_akun||"";document.getElementById("paymentPemilik").value=x?.pemilik||"";document.getElementById("paymentWA").value=x?.whatsapp||"";document.getElementById("paymentUrutan").value=x?.urutan??1;document.getElementById("paymentInstruksi").value=x?.instruksi||"";document.getElementById("paymentQR").value=x?.qr_image||""}
+function tutupFormPembayaran(){document.getElementById("paymentMethodFormCard").style.display="none"}
+function editMetodePembayaran(id){bukaFormPembayaran(KF_PAYMENT_NEW.find(x=>x.id===id))}
+async function simpanMetodePembayaran(e){e.preventDefault();const id=document.getElementById("paymentMethodId").value,item={jenis:paymentJenis.value,nama:paymentNama.value.trim(),nomor_akun:paymentNomor.value.trim(),pemilik:paymentPemilik.value.trim(),whatsapp:paymentWA.value.trim(),urutan:Number(paymentUrutan.value)||0,instruksi:paymentInstruksi.value.trim(),qr_image:paymentQR.value.trim(),aktif:true};let q=id?kfdb().from("member_payment_methods").update(item).eq("id",id):kfdb().from("member_payment_methods").insert(item);const {error}=await q;if(error)return alert("Gagal menyimpan: "+error.message);tutupFormPembayaran();await renderMetodePembayaran()}
+async function toggleMetodePembayaran(id,v){const {error}=await kfdb().from("member_payment_methods").update({aktif:v}).eq("id",id);if(error)return alert(error.message);await renderMetodePembayaran()}
+async function hapusMetodePembayaran(id){if(!confirm("Hapus metode pembayaran ini? Jika pernah dipakai transaksi, lebih aman pilih Nonaktifkan."))return;const {error}=await kfdb().from("member_payment_methods").delete().eq("id",id);if(error)return alert("Tidak dapat dihapus: "+error.message);await renderMetodePembayaran()}
+
+/* Mapping konten ke paket */
+async function saveContentDistribution(contentId,kind){
+ const pids=selectedPackages(kind),topic=document.getElementById(kind+"PackageTopic")?.value||null;if(!pids.length)return;
+ const db=kfdb();await db.from("member_content_packages").delete().eq("content_id",contentId);
+ const rows=pids.map(pid=>({content_id:contentId,package_id:pid,topic_id:topic&&KF_TOPICS_NEW.find(t=>t.id===topic)?.package_id===pid?topic:null}));
+ const {error}=await db.from("member_content_packages").insert(rows);if(error)throw error;
+}
+async function distributeExistingContent(id){
+ await loadPackageCore();const x=KONTEN_CACHE.find(v=>v.id===id);if(!x)return;
+ const names=KF_PACKAGES_NEW.filter(p=>p.aktif).map((p,i)=>`${i+1}. ${p.nama}`).join("\\n");
+ const ans=prompt(`Distribusikan "${x.judul}" ke paket mana?\\nMasukkan nomor dipisahkan koma.\\n\\n${names}`);if(ans===null)return;
+ const indexes=ans.split(",").map(v=>Number(v.trim())-1).filter(i=>i>=0&&i<KF_PACKAGES_NEW.filter(p=>p.aktif).length), active=KF_PACKAGES_NEW.filter(p=>p.aktif),pids=[...new Set(indexes.map(i=>active[i].id))];if(!pids.length)return alert("Tidak ada paket dipilih.");
+ const db=kfdb();await db.from("member_content_packages").delete().eq("content_id",id);const {error}=await db.from("member_content_packages").insert(pids.map(package_id=>({content_id:id,package_id})));if(error)return alert(error.message);alert("✓ Distribusi konten tersimpan.");
+}
+
+/* Access mapping paket latihan/tryout final */
+async function renderAccessManagers(){
+ if(!window.KFPackagePublisher)return;
+ try{await loadPackageCore();const finals=await KFPackagePublisher.adminList();for(const kind of ["latihan","tryout"]){const box=document.getElementById(kind+"AccessManager");if(!box)continue;const rows=finals.filter(x=>x.kind===kind);box.innerHTML=rows.length?rows.map(x=>`<div class="manage-item"><div><b>${escMember(x.name)}</b><p>Atur akses berdasarkan paket yang benar-benar dimiliki peserta.</p></div><button class="btn ghost small" onclick="aturAksesFinal('${x.id}','${kind}')">Atur Distribusi</button></div>`).join(""):'<div class="sub">Belum ada paket final di Supabase.</div>'}}
+ catch(e){console.warn(e)}
+}
+async function aturAksesFinal(kfid,kind){
+ const active=KF_PACKAGES_NEW.filter(p=>p.aktif),names=active.map((p,i)=>`${i+1}. ${p.nama}`).join("\\n"),ans=prompt(`Pilih paket peserta untuk ${kind}. Masukkan nomor dipisahkan koma:\\n\\n${names}`);if(ans===null)return;
+ const ids=[...new Set(ans.split(",").map(v=>Number(v.trim())-1).filter(i=>i>=0&&i<active.length).map(i=>active[i].id))];if(!ids.length)return alert("Tidak ada paket dipilih.");
+ const db=kfdb();await db.from("kf_package_access").delete().eq("kf_package_id",kfid);const {error}=await db.from("kf_package_access").insert(ids.map(member_package_id=>({kf_package_id:kfid,member_package_id})));if(error)return alert(error.message);alert("✓ Distribusi paket final tersimpan.");
+}
+
+/* V12 Focus */
+function reloadV12Studio(){const f=document.getElementById("v12Frame");if(f&&f.contentWindow)f.contentWindow.location.reload()}
+function toggleV12Studio(force){const c=document.getElementById("v12StudioCard"),h=document.getElementById("v12CollapsedHint"),b=document.getElementById("v12ToggleBtn");if(!c)return;const open=force===true?true:c.classList.contains("is-collapsed");c.classList.toggle("is-collapsed",!open);h.hidden=open;b.textContent=open?"— Sembunyikan":"✦ Buka Studio";localStorage.setItem("kf_v12_studio_open",open?"1":"0")}
+async function fullscreenV12Studio(){const c=document.getElementById("v12StudioCard");if(!c)return;if(c.classList.contains("is-collapsed"))toggleV12Studio(true);try{if(!document.fullscreenElement)await c.requestFullscreen();else await document.exitFullscreen()}catch(e){alert("Mode layar penuh tidak didukung browser ini.")}}
+
+/* Tambahkan tombol distribusi ke daftar konten yang sudah dirender */
+const _renderKontenAdminV15=renderKontenAdmin;
+renderKontenAdmin=async function(){await _renderKontenAdminV15();document.querySelectorAll("#modulList .manage-item,#videoList .manage-item,#latihanList .manage-item,#tryoutList .manage-item").forEach(el=>{const btn=el.querySelector("button[onclick*='editKonten']");if(!btn)return;const m=(btn.getAttribute("onclick")||"").match(/'([^']+)'/);if(!m)return;if(!el.querySelector(".dist-btn")){const b=document.createElement("button");b.className="btn ghost small dist-btn";b.textContent="Paket";b.onclick=()=>distributeExistingContent(m[1]);btn.parentElement.insertBefore(b,btn)}})};
+
+/* Override simpan modul/video: simpan dulu, lalu mapping paket jika dipilih */
+const _tambahItemV15=tambahItem;
+tambahItem=async function(jenjang,item){
+ try{
+  const before=new Set(KONTEN_CACHE.map(x=>x.id));
+  await _tambahItemV15(jenjang,item);
+  const fresh=KONTEN_CACHE.find(x=>!before.has(x.id)&&x.jenis===item.jenis&&x.judul===item.judul) || KONTEN_CACHE.find(x=>x.jenis===item.jenis&&x.judul===item.judul);
+  const kind=item.jenis==="pdf"?"modul":item.jenis==="video"?"video":"";
+  if(fresh&&kind&&selectedPackages(kind).length)await saveContentDistribution(fresh.id,kind);
+ }catch(e){alert("Konten tersimpan tetapi distribusi paket gagal: "+e.message)}
+};
+
+window.addEventListener("load",()=>setTimeout(async()=>{try{await renderPaketBaru();await renderMetodePembayaran();await renderAccessManagers();if(localStorage.getItem("kf_v12_studio_open")==="0")toggleV12Studio(false)}catch(e){console.warn("Upgrade UI:",e)}},1400));
 </script>
 </body>
 </html>
