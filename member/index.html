@@ -625,6 +625,24 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         </div>
       </section>
 
+      <section id="profil" class="page auth-page">
+        <h1 class="auth-heading">Profil Saya</h1>
+        <form class="auth-card" onsubmit="simpanProfilPeserta(event)">
+          <h2>Edit Data Peserta</h2>
+          <p class="auth-sub">Perbaiki data pendaftaran Anda. Email, status akun, paket aktif, progress, dan riwayat belajar tidak dapat diubah dari sini.</p>
+          <div class="field"><label>Nama Lengkap</label><input id="profilNama" required maxlength="120"></div>
+          <div class="field"><label>Username</label><input id="profilUsername" required maxlength="30"></div>
+          <div class="field"><label>WhatsApp</label><input id="profilWA" required maxlength="20"></div>
+          <div class="field"><label>Asal Sekolah</label><input id="profilSekolah" required maxlength="150"></div>
+          <div class="field"><label>Kelas</label><select id="profilKelas" required><option value="1">Kelas 1</option><option value="2">Kelas 2</option><option value="3">Kelas 3</option><option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option><option value="7">Kelas 7</option><option value="8">Kelas 8</option><option value="9">Kelas 9</option><option value="10">Kelas 10</option><option value="11">Kelas 11</option><option value="12">Kelas 12</option></select></div>
+          <div class="field"><label>Jenjang</label><select id="profilJenjang" required><option value="sd">SD</option><option value="smp">SMP</option><option value="sma">SMA</option></select></div>
+          <div class="field"><label>Email akun</label><input id="profilEmail" disabled></div>
+          <button class="btn btn-main" style="width:100%">Simpan Perubahan</button>
+          <button class="btn btn-ghost" type="button" onclick="buka(profilAktif&&profilAktif.status==='aktif'?'dash':'pending')" style="width:100%;margin-top:8px">Kembali</button>
+          <div id="profilNotice" class="auth-notice"></div>
+        </form>
+      </section>
+
       <section id="dash" class="page">
         <div class="dash-welcome"><h1>Halo, <span id="namaDash">Member</span> 👋</h1><p id="sub"></p><span id="badgePaket" class="badge-paket">Paket Member</span></div>
         <div id="expiryNotice" class="notice-expiry"></div>
@@ -934,6 +952,27 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
       async function updateBundleSummary(){const p=document.getElementById("bundleSummary"),ids=[...KF_BUNDLE_SELECTED];if(!ids.length){p.style.display="none";KF_BUNDLE_QUOTE=null;return}p.style.display="flex";try{const r=await KFMemberAuth.quoteBundle(ids);KF_BUNDLE_QUOTE=r.data;bundleCount.textContent=r.data.package_count+" paket dipilih";bundleSubtotal.textContent=formatRupiah(r.data.subtotal);bundleDiscount.textContent=Number(r.data.discount_percent)+"% (−"+formatRupiah(r.data.discount_amount)+")";bundleTotal.textContent=formatRupiah(r.data.total_amount)}catch(e){alert("Gagal menghitung total: "+e.message)}}
       async function lanjutPembayaranBundle(){const ids=[...KF_BUNDLE_SELECTED];if(!ids.length)return alert("Pilih minimal satu paket.");try{if(!KF_BUNDLE_QUOTE)await updateBundleSummary();const mr=await KFMemberAuth.metodePembayaran(),m=mr.data||[];if(!m.length)throw Error("Kontak Admin belum diatur.");const r=await KFMemberAuth.buatOrderBundle(ids,m[0].id);const names=(window.PAKET_CACHE||[]).filter(p=>KF_BUNDLE_SELECTED.has(p.id)).map(p=>p.nama).join(", ");const wa=document.getElementById("paymentWhatsAppLink");if(wa&&m[0].whatsapp){wa.href="https://wa.me/"+String(m[0].whatsapp).replace(/\D/g,"")+"?text="+encodeURIComponent(`Halo Admin KlinikFisikapku 👋\n\nSaya ingin mengaktifkan paket belajar berikut:\n\n👤 Nama: ${profilAktif&&profilAktif.nama?profilAktif.nama:'Member'}\n🎓 Jenjang: ${KF_LEVEL_SELECTED}\n📦 Paket dipilih:\n${names.split(', ').map((n,i)=>(i+1)+'. '+n).join('\\n')}\n\n🆔 ID Permintaan: ${r.id}\n\nMohon dibantu untuk proses aktivasi paket. Terima kasih. 🙏`);window.open(wa.href,"_blank","noopener");}alert("✓ Pilihan paket sudah tersimpan dan dikirim sebagai permintaan aktivasi. Hubungi Admin. Paket akan terbuka setelah Admin mengaktifkannya.")}catch(e){alert("Gagal menyimpan pilihan paket: "+e.message)}}
       function renderMetodePembayaranMember(a){window.KF_PAYMENT_METHODS=a||[];const m=a&&a[0],b=document.getElementById("paymentBank"),n=document.getElementById("paymentAccountNumber"),o=document.getElementById("paymentAccountOwner");if(!m){if(b)b.textContent="Belum diatur Admin";if(n)n.textContent="-";if(o)o.textContent="-";return}if(b)b.textContent=((m.jenis||"").toUpperCase()+" · "+(m.nama||"")).replace(/^ · /,"");if(n)n.textContent=m.nomor_akun||"-";if(o)o.textContent=m.pemilik||"-"}
+      function bukaProfilPeserta(){
+        if(!profilAktif)return;
+        profilNama.value=profilAktif.nama||"";
+        profilUsername.value=profilAktif.username||"";
+        profilWA.value=profilAktif.wa||"";
+        profilSekolah.value=profilAktif.sekolah||"";
+        profilKelas.value=String(profilAktif.kelas||"");
+        profilJenjang.value=String(profilAktif.jenjang||"").toLowerCase();
+        profilEmail.value=profilAktif.email||"";
+        buka("profil");
+      }
+      async function simpanProfilPeserta(e){
+        e.preventDefault();const btn=e.submitter;const old=btn.textContent;btn.disabled=true;btn.textContent="Menyimpan…";
+        try{
+          const r=await KFMemberAuth.updateProfil({nama:profilNama.value,username:profilUsername.value,wa:profilWA.value,sekolah:profilSekolah.value,kelas:profilKelas.value,jenjang:profilJenjang.value});
+          profilAktif=r.data;jenjangAktif=r.data.jenjang||jenjangAktif;
+          profilNotice.textContent="✓ Data profil berhasil diperbarui.";
+          setTimeout(()=>{masukPeserta(profilAktif)},600);
+        }catch(err){profilNotice.textContent="Gagal menyimpan: "+(err.message||err)}
+        finally{btn.disabled=false;btn.textContent=old}
+      }
       async function masukPeserta(p) {
         profilAktif = p;
         jenjangAktif = p.jenjang || "sd";
@@ -942,7 +981,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         const expired = st === "aktif" && p.berakhir && new Date(p.berakhir).getTime() <= Date.now();
         if (st !== "aktif" || expired) {
           document.getElementById("navBtns").innerHTML =
-            '<button onclick="keluar()">Keluar</button>';
+            '<button onclick="bukaProfilPeserta()">Profil Saya</button><button onclick="keluar()">Keluar</button>';
           const txt = document.getElementById("pendingText");
           if (txt) {
             if (st === "ditolak") txt.textContent = "Pendaftaran ditolak. Hubungi admin jika ada pertanyaan.";
@@ -963,7 +1002,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           "Materi jenjang " + jenjangAktif.toUpperCase() + " · " + (p.paket || "") + " · Tahap " + tahap + "/12 · aktif s.d. " + berakhir;
         document.getElementById("badgePaket").textContent=(p.paket||"Paket Member")+" · Tahap "+tahap+"/12 ✓";
         document.getElementById("navBtns").innerHTML =
-          '<button onclick="buka(\'dash\')">Dashboard</button><button onclick="keluar()">Keluar</button>';
+          '<button onclick="buka(\'dash\')">Dashboard</button><button onclick="bukaProfilPeserta()">Profil Saya</button><button onclick="keluar()">Keluar</button>';
         document.getElementById("list").innerHTML =
           '<div class="empty">Memuat materi…</div>';
         buka("dash");
@@ -1469,7 +1508,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
-    <script src="supabase-auth.js?v=20261003-final1"></script>
+    <script src="supabase-auth.js?v=20261003-profile1"></script>
     <script src="supabase-data-v15.js?v=20261003-final1"></script>
   
 <script>
