@@ -805,8 +805,7 @@ table{max-width:100%}
 <div class="card">
 <div class="head"><div><h2>Diskon Pembelian Multi-Paket</h2><p class="sub">Atur diskon berdasarkan jumlah paket dalam satu transaksi.</p></div><button class="btn" onclick="tambahAturanDiskon()">+ Tambah Aturan</button></div>
 <div id="discountRulesAdmin" class="manage-list"><div class="sub">Memuat aturan diskon…</div></div></div>
-<div class="card"><div class="head"><div><h2>Transaksi Multi-Paket</h2><p class="sub">Satu verifikasi mengaktifkan seluruh paket yang dibayar peserta.</p></div><button class="btn ghost small" onclick="renderBundleOrders()">↻ Muat Ulang</button></div>
-<div id="bundleOrdersAdmin" class="manage-list"><div class="sub">Memuat transaksi…</div></div></div>
+
   <div class="card">
     <div class="head"><div><h2>Topik per Paket</h2><p class="sub" style="margin:4px 0 0">Topik yang dibuat di sini dapat dipilih saat mendistribusikan Modul, Video, Latihan, dan Tryout.</p></div></div>
     <div class="form">
@@ -836,6 +835,10 @@ table{max-width:100%}
       <div class="wide"><label>URL gambar QRIS (opsional)</label><input id="paymentQR" placeholder="https://..."></div>
       <div class="wide"><button class="btn">Simpan Metode Pembayaran</button></div>
     </form>
+  </div>
+  <div class="card">
+    <div class="head"><div><h2>Verifikasi Pembayaran & Aktivasi Paket</h2><p class="sub" style="margin:4px 0 0">Peserta memilih paket terlebih dahulu. Admin cukup memverifikasi pembayaran; paket yang dibayar akan diaktifkan otomatis.</p></div><button class="btn ghost small" onclick="renderBundleOrders()">↻ Muat Ulang</button></div>
+    <div id="bundleOrdersAdmin" class="manage-list"><div class="sub">Memuat transaksi…</div></div>
   </div>
   <div class="card">
     <div class="head"><div><h2>Metode Tersimpan</h2><p class="sub" style="margin:4px 0 0">Aktif/nonaktifkan tanpa menghapus riwayat transaksi.</p></div><button class="btn ghost small" onclick="renderMetodePembayaran()">↻ Muat Ulang</button></div>
@@ -1263,7 +1266,7 @@ table{max-width:100%}
           return `<tr><td><b>${escMember(x.nama)}</b><br><small>${escMember(x.email)}</small></td><td>${escMember(String(x.jenjang||"-").toUpperCase())}</td><td><span class="status-pill ${s}">${escMember(STATUS_LABEL[s]||s)}</span></td></tr>`;
         }).join("") || '<tr><td colspan="3">Belum ada pendaftar.</td></tr>';
         if (pending) pending.innerHTML=MEMBER_CACHE.filter((x)=>x.status==="pending").map((x)=>
-          `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username||"-")}</small></td><td>${escMember(x.email)}</td><td>${escMember(String(x.jenjang||"").toUpperCase())} · Kelas ${escMember(x.kelas||"-")}<br>${escMember(x.sekolah)}<br><span class="tag">${escMember(x.paket||"Paket belum dipilih")}</span><br><i>Verifikasi pembayaran melalui admin</i></td><td><div class="row-actions"><button class="btn small" onclick="aktifkanMember('${x.id}')">Aktifkan</button><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn danger small" onclick="tolakMember('${x.id}')">Tolak</button></div></td></tr>`
+          `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username||"-")}</small></td><td>${escMember(x.email)}</td><td>${escMember(String(x.jenjang||"").toUpperCase())} · Kelas ${escMember(x.kelas||"-")}<br>${escMember(x.sekolah)}<br><span class="tag">${escMember(x.paket||"Belum memilih paket")}</span><br><i>${x.paket?"Periksa transaksi pembayaran":"Peserta perlu login dan memilih paket"}</i></td><td><div class="row-actions"><button class="btn small" onclick="bukaPembayaranMember('${x.id}')">${x.paket?"Verifikasi Pembayaran":"Lihat Pembayaran"}</button><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn danger small" onclick="tolakMember('${x.id}')">Tolak</button></div></td></tr>`
         ).join("") || '<tr><td colspan="4">Tidak ada peserta yang menunggu aktivasi.</td></tr>';
       }
       function renderTabelMember() {
@@ -1274,7 +1277,11 @@ table{max-width:100%}
           const s=statusEfektifMember(x), nama=String(x.nama||"Member").trim(), inisial=(nama.charAt(0)||"M").toUpperCase();
           const aksi=s==="aktif"
             ? `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',false)">Nonaktifkan</button>`
-            : `<button class="btn small" onclick="aktifkanMember('${x.id}')">Aktifkan</button>`;
+            : s==="nonaktif"
+              ? `<button class="btn small" onclick="ubahAktifMember('${x.id}',true)">Aktifkan kembali</button>`
+              : s==="pending"
+                ? `<button class="btn small" onclick="bukaPembayaranMember('${x.id}')">Pembayaran</button>`
+                : "";
           return `<tr>
             <td>${i+1}</td>
             <td><div class="member-name"><div class="member-avatar">${escMember(inisial)}</div><div><b>${escMember(nama)}</b><br><small>${escMember(x.email||"-")}</small></div></div></td>
@@ -1367,11 +1374,19 @@ table{max-width:100%}
           perbaruiRingkasanMember(); renderPendaftaranMember(); renderTabelMember();
         } catch(err) { alert("Gagal memuat data member: "+err.message); }
       }
+      function bukaPembayaranMember(id) {
+        const m=MEMBER_CACHE.find(x=>x.id===id);
+        if(!m)return;
+        openPanel("transaksi");
+        setTimeout(async()=>{await renderBundleOrders();},50);
+        if(!m.paket){
+          alert("Peserta belum memilih paket.\n\nMinta peserta login ke Member Area, pilih satu atau beberapa paket, lalu lanjutkan pembayaran. Setelah transaksi muncul di halaman ini, Admin cukup klik Verifikasi & Aktifkan.");
+        }
+      }
       async function aktifkanMember(id) {
-        const m=MEMBER_CACHE.find(x=>x.id===id);if(!m)return;
-        const paket=prompt("Paket yang akan diaktifkan untuk "+m.nama+":",(m&&m.paket)||"Paket 1 Bulan");if(paket===null||!paket.trim())return;
-        if(!confirm(`PERIKSA KEMBALI\n\nPeserta: ${m.nama}\nPaket: ${paket.trim()}\n\nAktifkan peserta?`))return;
-        try{await adminApi("adminVerifikasi",{id,paket:paket.trim()});alert("✓ Peserta berhasil diaktifkan.");renderMemberAdmin()}catch(err){alert("Gagal mengaktifkan: "+err.message)}
+        /* V15: aktivasi baru tidak boleh lagi membuat paket manual/legacy.
+           Paket harus berasal dari order peserta dan diaktifkan melalui RPC approval. */
+        bukaPembayaranMember(id);
       }
       async function tolakMember(id) {
         const m=MEMBER_CACHE.find(x=>x.id===id);if(!m)return;
@@ -2248,8 +2263,8 @@ async function tambahAturanDiskon(){const a=Number(prompt("Minimal paket:","2"))
 async function editAturanDiskon(id){const q=await kfdb().from("member_discount_rules").select("*").eq("id",id).single();if(q.error)return alert(q.error.message);const r=q.data,a=Number(prompt("Minimal paket:",r.min_packages));if(!a)return;const z=prompt("Maksimal paket (kosong = tanpa batas):",r.max_packages??"");if(z===null)return;const d=Number(prompt("Diskon (%):",r.discount_percent));if(d<0||d>100||Number.isNaN(d))return;const l=prompt("Label:",r.label||"");if(l===null)return;const u=await kfdb().from("member_discount_rules").update({min_packages:a,max_packages:z.trim()===""?null:Number(z),discount_percent:d,label:l}).eq("id",id);if(u.error)return alert(u.error.message);renderDiscountRules()}
 async function toggleAturanDiskon(id,v){const q=await kfdb().from("member_discount_rules").update({active:v}).eq("id",id);if(q.error)return alert(q.error.message);renderDiscountRules()}
 async function hapusAturanDiskon(id){if(!confirm("Hapus aturan diskon?"))return;const q=await kfdb().from("member_discount_rules").delete().eq("id",id);if(q.error)return alert(q.error.message);renderDiscountRules()}
-async function renderBundleOrders(){const b=document.getElementById("bundleOrdersAdmin");if(!b)return;try{const q=await kfdb().from("member_bundle_orders").select("*").order("created_at",{ascending:false}).limit(100);if(q.error)throw q.error;const os=q.data||[],ids=os.map(o=>o.id);let it=[];if(ids.length){const x=await kfdb().from("member_bundle_order_items").select("*").in("order_id",ids);if(x.error)throw x.error;it=x.data||[]}b.innerHTML=os.map(o=>{const n=it.filter(i=>i.order_id===o.id).map(i=>i.package_name).join(", ");return `<div class="bundle-order-row"><div><b>${escMember(o.jenjang)} · ${o.package_count} paket · ${moneyID(o.total_amount)}</b><p class="sub">${escMember(n)}<br>Subtotal ${moneyID(o.subtotal)} · Diskon ${Number(o.discount_percent)}% · Status ${escMember(o.status)}</p></div><div>${o.status==="pending"?`<button class="btn small" onclick="approveBundleOrder('${o.id}',${o.package_count})">✓ Verifikasi & Aktifkan ${o.package_count} Paket</button>`:"✓ "+escMember(o.status)}</div></div>`}).join("")||'<div class="sub">Belum ada transaksi.</div>'}catch(e){b.innerHTML='<div class="sub">'+escMember(e.message)+'</div>'}}
-async function approveBundleOrder(id,c){if(!confirm("Pastikan pembayaran sudah benar.\n\nAktifkan seluruh "+c+" paket?"))return;const n=prompt("Catatan Admin:","Pembayaran telah diverifikasi");if(n===null)return;const q=await kfdb().rpc("kf_admin_approve_bundle_order",{p_order:id,p_note:n});if(q.error)return alert(q.error.message);alert("✓ "+c+" paket aktif.");renderBundleOrders()}
+async function renderBundleOrders(){const b=document.getElementById("bundleOrdersAdmin");if(!b)return;try{const q=await kfdb().from("member_bundle_orders").select("*").order("created_at",{ascending:false}).limit(100);if(q.error)throw q.error;const os=q.data||[],ids=os.map(o=>o.id);let it=[];if(ids.length){const x=await kfdb().from("member_bundle_order_items").select("*").in("order_id",ids);if(x.error)throw x.error;it=x.data||[]}b.innerHTML=os.map(o=>{const n=it.filter(i=>i.order_id===o.id).map(i=>i.package_name).join(", ");const uid=String(o.user_id||o.member_id||"");const m=MEMBER_CACHE.find(x=>String(x.id)===uid);const who=m?(m.nama+" · "+(m.email||"")):(o.email||"Peserta");return `<div class="bundle-order-row"><div><b>${escMember(who)}</b><p class="sub">${escMember(o.jenjang)} · ${o.package_count} paket · ${moneyID(o.total_amount)}<br>${escMember(n||"Nama paket belum tersedia")}<br>Subtotal ${moneyID(o.subtotal)} · Diskon ${Number(o.discount_percent||0)}% · Status ${escMember(o.status)}</p></div><div>${o.status==="pending"?`<button class="btn small" onclick="approveBundleOrder('${o.id}',${o.package_count})">✓ Verifikasi & Aktifkan ${o.package_count} Paket</button>`:"✓ "+escMember(o.status)}</div></div>`}).join("")||'<div class="sub">Belum ada transaksi.</div>'}catch(e){b.innerHTML='<div class="sub">'+escMember(e.message)+'</div>'}}
+async function approveBundleOrder(id,c){if(!confirm("Pastikan pembayaran sudah benar.\n\nAktifkan seluruh "+c+" paket?"))return;const n=prompt("Catatan Admin:","Pembayaran telah diverifikasi");if(n===null)return;const q=await kfdb().rpc("kf_admin_approve_bundle_order",{p_order:id,p_note:n});if(q.error)return alert(q.error.message);alert("✓ "+c+" paket aktif.");await renderBundleOrders();await renderMemberAdmin()}
 window.addEventListener("load",()=>setTimeout(()=>{renderDiscountRules();renderBundleOrders()},1400));
 </script>
 <script>
