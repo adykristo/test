@@ -1572,7 +1572,7 @@ table{max-width:100%}
             ? rows
                 .map(
                   (x) =>
-                    `<div class="manage-item ${x.visible === false || x.visible === "FALSE" ? "muted-item" : ""}"><div><b>${escMember(x.judul || x.topik || "Tanpa judul")}</b><p>${escMember(String(x.jenjang || "").toUpperCase())} · ${escMember(x.topik || "Tanpa topik")}${x.visible === false || x.visible === "FALSE" ? " · Disembunyikan" : ""}</p></div><div class="row-actions"><button type="button" class="btn ghost small content-preview-btn" onclick="${x.jenis === "soal" || x.tujuan === "tryout" ? `previewSoalAdmin('${x.id}')` : `previewKontenAdmin('${x.id}')`}">◉ Preview</button><button type="button" class="btn ghost small dist-btn" onclick="distributeExistingContent('${x.id}')">📦 Paket</button><button type="button" class="btn ghost small" onclick="editKonten('${x.id}')">Ubah</button>${x.jenis === "soal" ? `<button type="button" class="btn ghost small" onclick="rapikanSoalGemini('${x.id}')">✦ Gemini</button>` : ""}<button type="button" class="btn ghost small" onclick="toggleKonten('${x.id}')">${x.visible === false || x.visible === "FALSE" ? "Tampilkan" : "Sembunyikan"}</button><button type="button" class="btn danger small" onclick="hapusKonten('${x.id}')">Hapus</button></div></div>`,
+                    `<div class="manage-item ${x.visible === false || x.visible === "FALSE" ? "muted-item" : ""}"><div><b>${escMember(x.judul || x.topik || "Tanpa judul")}</b><p>${escMember(String(x.jenjang || "").toUpperCase())} · ${escMember(x.topik || "Tanpa topik")}${x.visible === false || x.visible === "FALSE" ? " · Disembunyikan" : ""}</p></div><div class="row-actions"><button type="button" class="btn ghost small content-preview-btn kf-action-btn" data-kf-action="preview" data-kf-id="${x.id}">◉ Preview</button><button type="button" class="btn ghost small dist-btn kf-action-btn" data-kf-action="package" data-kf-id="${x.id}">📦 Paket</button><button type="button" class="btn ghost small kf-action-btn" data-kf-action="edit" data-kf-id="${x.id}">Ubah</button>${x.jenis === "soal" ? `<button type="button" class="btn ghost small kf-action-btn" data-kf-action="gemini" data-kf-id="${x.id}">✦ Gemini</button>` : ""}<button type="button" class="btn ghost small kf-action-btn" data-kf-action="toggle" data-kf-id="${x.id}">${x.visible === false || x.visible === "FALSE" ? "Tampilkan" : "Sembunyikan"}</button><button type="button" class="btn danger small kf-action-btn" data-kf-action="delete" data-kf-id="${x.id}">Hapus</button></div></div>`,
                 )
                 .join("")
             : empty;
@@ -2323,9 +2323,9 @@ function enhanceBulkContentMapping(){
  fillBulkPackageOptions();
  document.querySelectorAll("#modulList .manage-item,#videoList .manage-item,#latihanList .manage-item,#tryoutList .manage-item").forEach(el=>{
    if(el.querySelector(".content-map-check"))return;
-   const edit=el.querySelector("button[onclick*='editKonten']");if(!edit)return;
-   const mt=(edit.getAttribute("onclick")||"").match(/'([^']+)'/);if(!mt)return;
-   const id=mt[1],label=document.createElement("label");label.className="content-map-select";
+   const edit=el.querySelector('[data-kf-action="edit"],button[onclick*="editKonten"]');if(!edit)return;
+   const mt=(edit.getAttribute("onclick")||"").match(/'([^']+)'/);
+   const id=edit.dataset.kfId||mt?.[1];if(!id)return;const label=document.createElement("label");label.className="content-map-select";
    label.innerHTML='<input type="checkbox" class="content-map-check" data-id="'+escMember(id)+'" '+(KF_BULK_CONTENT_SELECTED.has(id)?"checked":"")+'><span>Pilih</span>';
    label.querySelector("input").addEventListener("change",e=>toggleBulkContent(id,e.target.checked));
    el.insertBefore(label,el.firstChild);
@@ -2462,6 +2462,22 @@ const _renderAccessManagersPreview=renderAccessManagers;
 renderAccessManagers=async function(){await _renderAccessManagersPreview();for(const kind of ["latihan","tryout"]){document.querySelectorAll(`#${kind}AccessManager .manage-item`).forEach(el=>{if(el.querySelector(".final-preview-btn"))return;const access=el.querySelector("button[onclick*='aturAksesFinal']");if(!access)return;const m=(access.getAttribute("onclick")||"").match(/'([^']+)'/);if(!m)return;const b=document.createElement("button");b.className="btn ghost small final-preview-btn";b.innerHTML="◉ Preview";b.onclick=()=>previewFinalPackage(m[1]);access.parentElement?.insertBefore(b,access)})}}
 const kfMutationObserver=new MutationObserver(()=>{compactMemberActions();enhanceContentPreviewButtons()});
 window.addEventListener("load",()=>{setTimeout(()=>{compactMemberActions();enhanceContentPreviewButtons();kfMutationObserver.observe(document.body,{childList:true,subtree:true})},1700)});
+
+/* Stable action controller for Modul, Video, Latihan, Tryout. */
+document.addEventListener("click",async function(e){
+ const b=e.target.closest(".kf-action-btn");if(!b)return;
+ e.preventDefault();e.stopPropagation();
+ const id=b.dataset.kfId,action=b.dataset.kfAction;if(!id)return;
+ try{
+  const item=KONTEN_CACHE.find(x=>String(x.id)===String(id));
+  if(action==="preview"){item&&(item.jenis==="soal"||item.tujuan==="tryout")?previewSoalAdmin(id):previewKontenAdmin(id);return}
+  if(action==="package"){await distributeExistingContent(id);return}
+  if(action==="edit"){await editKonten(id);return}
+  if(action==="toggle"){await toggleKonten(id);return}
+  if(action==="delete"){await hapusKonten(id);return}
+  if(action==="gemini"){await rapikanSoalGemini(id);return}
+ }catch(err){console.error("KF action",action,err);alert("Fitur gagal dijalankan: "+(err&&err.message?err.message:err))}
+},true);
 
 /* ===== V12 Dedicated Tab Launcher ===== */
 function openV12NewTab(){
