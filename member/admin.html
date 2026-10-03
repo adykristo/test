@@ -820,6 +820,13 @@ table{max-width:100%}
       <button class="package-filter" data-level="SMA" onclick="setPackageLevelFilter('SMA',this)">SMA <span id="countPaketSMA">0</span></button>
     </div>
     <div class="package-toolbar-note">Jumlah paket tidak dibatasi 12. Paket tambahan otomatis masuk ke jenjang yang dipilih.</div>
+    <div class="card" style="margin:12px 0;padding:14px;background:#fbf7ff">
+      <div class="head" style="align-items:end">
+        <div style="flex:1"><label style="display:block;font-weight:800;margin-bottom:6px">Harga seragam untuk semua paket (Rp)</label><input id="bulkPackagePrice" type="number" min="0" step="1000" placeholder="Contoh: 50000" style="width:100%;max-width:300px"></div>
+        <button class="btn" type="button" onclick="simpanHargaSemuaPaket()">Terapkan ke Semua Paket</button>
+      </div>
+      <p class="sub" style="margin:8px 0 0">Sekali simpan, harga yang diketik akan diterapkan ke seluruh paket SD, SMP, dan SMA yang ada. Harga per paket tetap bisa diubah melalui tombol Edit.</p>
+    </div>
     <div id="paketListBaru" class="manage-list"><div class="sub">Memuat paket…</div></div>
   </div>
 <div class="card">
@@ -2062,6 +2069,22 @@ async function tambahPaketBaru(){
  KF_PACKAGE_LEVEL_FILTER=jenjang;
  document.querySelectorAll(".package-filter").forEach(x=>x.classList.toggle("active",x.dataset.level===jenjang));
  await renderPaketBaru();
+}
+async function simpanHargaSemuaPaket(){
+ const input=document.getElementById("bulkPackagePrice");
+ const harga=Number(input?.value);
+ if(!Number.isFinite(harga)||harga<0)return alert("Masukkan harga yang valid.");
+ const total=KF_PACKAGES_NEW.filter(p=>!["_PAYMENT_CONFIG_","__PENGATURAN_PEMBAYARAN__"].includes(p.nama)).length;
+ if(!total)return alert("Belum ada paket.");
+ if(!confirm("Terapkan "+moneyID(harga)+" ke semua "+total+" paket SD, SMP, dan SMA?"))return;
+ const btn=document.activeElement,old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent="Menyimpan…"}
+ try{
+   const {error}=await kfdb().from("member_packages").update({harga}).neq("nama","_PAYMENT_CONFIG_").neq("nama","__PENGATURAN_PEMBAYARAN__");
+   if(error)throw error;
+   await renderPaketBaru();
+   alert("✓ Harga "+moneyID(harga)+" sudah diterapkan ke "+total+" paket.");
+ }catch(e){alert("Gagal mengubah harga semua paket: "+e.message)}
+ finally{if(btn){btn.disabled=false;btn.textContent=old}}
 }
 async function editPaketBaru(id){
  const p=KF_PACKAGES_NEW.find(x=>x.id===id);if(!p)return;
