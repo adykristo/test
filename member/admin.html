@@ -686,6 +686,8 @@
       #member .member-card-head,#member .member-card-grid,#member .member-card-actions{display:unset}
 
 .bulk-map-bar{margin:0 0 16px;padding:15px;border:1px solid #dfc9f2;border-radius:15px;background:linear-gradient(135deg,#fbf6ff,#fff);display:grid;gap:10px}.bulk-map-bar p{margin:4px 0 0;color:#735d82;font-size:12px}.bulk-map-controls{display:flex;gap:8px;flex-wrap:wrap}.bulk-map-controls select{flex:1 1 260px;min-height:38px}.content-map-select{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:9px;background:#f4ebfb;color:#5b2185;font-size:11px;font-weight:800;cursor:pointer}.content-map-select input{width:15px;height:15px}@media(max-width:700px){.bulk-map-controls>*{width:100%}}
+
+.bulk-filter-row{display:grid;grid-template-columns:160px 1fr 1.2fr;gap:8px}.bulk-filter-row select,.bulk-filter-row input{min-height:38px;border:1px solid #ddc7ef;border-radius:10px;padding:7px 10px;background:#fff}@media(max-width:760px){.bulk-filter-row{grid-template-columns:1fr}}
 </style>
   
 <style id="kf-final-responsive-fix">
@@ -991,7 +993,12 @@ table{max-width:100%}
               </p>
               <div id="bulkContentMapBar" class="bulk-map-bar">
   <div><b>📦 Pemetaan Massal Konten ke Paket</b><p>Pilih beberapa Modul/Video/Latihan/Tryout di bawah, pilih paket tujuan, lalu terapkan sekaligus.</p></div>
-  <div class="bulk-map-controls"><select id="bulkMapPackage"><option value="">Pilih paket tujuan…</option></select><button type="button" class="btn small" onclick="applyBulkContentMapping()">Terapkan ke Konten Terpilih</button><button type="button" class="btn ghost small" onclick="clearBulkContentSelection()">Batal Pilih</button></div>
+  <div class="bulk-filter-row">
+    <select id="bulkFilterJenjang" onchange="applyBulkContentFilters()"><option value="">Semua jenjang</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option></select>
+    <select id="bulkFilterPackage" onchange="applyBulkContentFilters()"><option value="">Semua paket</option><option value="__unmapped">Belum dipetakan</option></select>
+    <input id="bulkFilterSearch" type="search" placeholder="Cari judul atau topik…" oninput="applyBulkContentFilters()">
+  </div>
+  <div class="bulk-map-controls"><select id="bulkMapPackage" onchange="syncBulkTargetLevel()"><option value="">Pilih paket tujuan…</option></select><button type="button" class="btn small" onclick="selectAllVisibleContent()">Pilih Semua yang Tampil</button><button type="button" class="btn small" onclick="applyBulkContentMapping()">Terapkan ke Konten Terpilih</button><button type="button" class="btn ghost small" onclick="clearBulkContentSelection()">Batal Pilih</button></div>
   <div id="bulkMapInfo" class="sub">0 konten dipilih</div>
 </div><div id="modulList" class="manage-list"></div>
             </div>
@@ -2243,10 +2250,39 @@ function refreshBulkMapInfo(){
 }
 function toggleBulkContent(id,checked){checked?KF_BULK_CONTENT_SELECTED.add(id):KF_BULK_CONTENT_SELECTED.delete(id);refreshBulkMapInfo()}
 function clearBulkContentSelection(){KF_BULK_CONTENT_SELECTED.clear();refreshBulkMapInfo()}
+function bulkPackageNameForContent(id){
+ const maps=(window.KF_CONTENT_PACKAGE_MAP||[]);
+ return maps.filter(m=>String(m.content_id)===String(id)).map(m=>String(m.package_id));
+}
+async function loadBulkContentMappings(){
+ const db=kfdb(),{data,error}=await db.from("member_content_packages").select("content_id,package_id");if(!error)window.KF_CONTENT_PACKAGE_MAP=data||[];
+}
+function fillBulkFilterPackages(){
+ const s=document.getElementById("bulkFilterPackage");if(!s)return;
+ const keep=s.value,j=String(document.getElementById("bulkFilterJenjang")?.value||"").toUpperCase();
+ s.innerHTML='<option value="">Semua paket</option><option value="__unmapped">Belum dipetakan</option>'+KF_PACKAGES_NEW.filter(p=>p.aktif&&(!j||String(p.jenjang||"").toUpperCase()===j)).map(p=>'<option value="'+escMember(p.id)+'">'+escMember(p.nama)+'</option>').join("");
+ if([...s.options].some(o=>o.value===keep))s.value=keep;
+}
+function applyBulkContentFilters(){
+ fillBulkFilterPackages();fillBulkPackageOptions();
+ const j=String(document.getElementById("bulkFilterJenjang")?.value||"").toUpperCase(),pid=document.getElementById("bulkFilterPackage")?.value||"",q=String(document.getElementById("bulkFilterSearch")?.value||"").trim().toLowerCase();
+ document.querySelectorAll("#modulList .manage-item,#videoList .manage-item,#latihanList .manage-item,#tryoutList .manage-item").forEach(el=>{
+   const id=el.querySelector(".content-map-check")?.dataset.id||"",x=KONTEN_CACHE.find(v=>String(v.id)===String(id)),pids=bulkPackageNameForContent(id);
+   const okJ=!j||String(x?.jenjang||"").toUpperCase()===j,okP=!pid||(pid==="__unmapped"?pids.length===0:pids.includes(String(pid))),hay=(String(x?.judul||"")+" "+String(x?.topik||"")).toLowerCase(),okQ=!q||hay.includes(q);
+   el.style.display=okJ&&okP&&okQ?"":"none";
+ });
+}
+function selectAllVisibleContent(){
+ document.querySelectorAll(".content-map-check").forEach(ch=>{const el=ch.closest(".manage-item");if(el&&el.style.display!=="none")KF_BULK_CONTENT_SELECTED.add(ch.dataset.id)});refreshBulkMapInfo();
+}
+function syncBulkTargetLevel(){
+ const pid=document.getElementById("bulkMapPackage")?.value,p=KF_PACKAGES_NEW.find(x=>String(x.id)===String(pid));if(!p)return;
+ const j=document.getElementById("bulkFilterJenjang");if(j){j.value=String(p.jenjang||"").toUpperCase();applyBulkContentFilters()}
+}
 function fillBulkPackageOptions(){
  const s=document.getElementById("bulkMapPackage");if(!s)return;
- const current=s.value;
- s.innerHTML='<option value="">Pilih paket tujuan…</option>'+KF_PACKAGES_NEW.filter(p=>p.aktif).map(p=>'<option value="'+escMember(p.id)+'">'+escMember(p.nama)+'</option>').join("");
+ const current=s.value,j=String(document.getElementById("bulkFilterJenjang")?.value||"").toUpperCase();
+ s.innerHTML='<option value="">Pilih paket tujuan…</option>'+KF_PACKAGES_NEW.filter(p=>p.aktif&&(!j||String(p.jenjang||"").toUpperCase()===j)).map(p=>'<option value="'+escMember(p.id)+'">'+escMember(p.nama)+'</option>').join("");
  if([...s.options].some(o=>o.value===current))s.value=current;
 }
 async function applyBulkContentMapping(){
@@ -2384,7 +2420,7 @@ function compactMemberActions(){
  });
 }
 const _renderKontenPreviewBase=renderKontenAdmin;
-renderKontenAdmin=async function(){await _renderKontenPreviewBase();enhanceContentPreviewButtons();enhanceBulkContentMapping();setTimeout(compactMemberActions,0)};
+renderKontenAdmin=async function(){await _renderKontenPreviewBase();await loadPackageCore();await loadBulkContentMappings();enhanceContentPreviewButtons();enhanceBulkContentMapping();fillBulkFilterPackages();applyBulkContentFilters();setTimeout(compactMemberActions,0)};
 const _renderAccessManagersPreview=renderAccessManagers;
 renderAccessManagers=async function(){await _renderAccessManagersPreview();for(const kind of ["latihan","tryout"]){document.querySelectorAll(`#${kind}AccessManager .manage-item`).forEach(el=>{if(el.querySelector(".final-preview-btn"))return;const access=el.querySelector("button[onclick*='aturAksesFinal']");if(!access)return;const m=(access.getAttribute("onclick")||"").match(/'([^']+)'/);if(!m)return;const b=document.createElement("button");b.className="btn ghost small final-preview-btn";b.innerHTML="◉ Preview";b.onclick=()=>previewFinalPackage(m[1]);access.parentElement?.insertBefore(b,access)})}}
 const kfMutationObserver=new MutationObserver(()=>{compactMemberActions();enhanceContentPreviewButtons()});
