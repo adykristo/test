@@ -518,6 +518,17 @@
 
       @media(max-width:640px){header{padding:10px 12px;gap:8px;align-items:center}.brand{font-size:13px}.nav{gap:6px}.nav button{padding:8px 10px;font-size:12px}.dash-welcome{padding:21px 17px;border-radius:16px}.dash-welcome h1{font-size:24px}.summary-grid{grid-template-columns:1fr 1fr;gap:9px}.summary-card{padding:12px}.dashboard-actions{display:grid;grid-template-columns:1fr}.dashboard-actions .btn{width:100%}.toolbar{gap:7px}.toolbar input[type="search"]{flex-basis:100%;min-width:100%}.chip{padding:8px 11px;font-size:12px}.mcard{padding:13px;gap:9px}.mcard .ic{width:38px;height:38px}.bookmark-btn{padding:6px 8px}.owned-package-grid{grid-template-columns:1fr}.package-progress-row .rowhead{align-items:flex-start}.history-row{align-items:flex-start}.kf-pkg-nav{gap:5px}.kf-pkg-nav button{width:35px;height:35px}.card{padding:16px}}
       @media(max-width:390px){.summary-grid{grid-template-columns:1fr}.brand{max-width:58%;line-height:1.2}.nav button{padding:7px 8px}.dash-welcome h1{font-size:21px}}
+
+    /* Ringkas informasi akun agar fokus utama tetap materi belajar */
+    .compact-account-panel{margin:10px 0 14px;border:1px solid #e6d7f3;border-radius:13px;background:#fff;overflow:hidden}
+    .compact-account-panel>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;font-weight:900;color:#32124d;background:linear-gradient(100deg,#fbf7ff,#fff)}
+    .compact-account-panel>summary::-webkit-details-marker{display:none}
+    .compact-account-panel>summary span{font-size:11px;font-weight:700;color:#80678f}
+    .compact-account-panel>summary:after{content:"▾";font-size:13px;color:#8d35d6}
+    .compact-account-panel[open]>summary:after{content:"▴"}
+    .compact-account-body{padding:12px 14px;max-height:360px;overflow:auto}
+    .compact-account-body h2{display:none}
+    .compact-account-body>p{display:none}
 </style>
   
 <style id="kf-member-v6">
@@ -660,7 +671,10 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           <button class="btn btn-ghost" type="button" onclick="toggleRiwayat()">📈 Riwayat &amp; Sertifikat</button>
           <button class="btn btn-ghost" type="button" onclick="toggleBookmarkFilter(this)">★ Materi tersimpan</button>
         </div>
-        <div id="packageProgressPanel" class="card" style="display:none"></div>
+        <details id="packageProgressDetails" class="compact-account-panel" style="display:none">
+          <summary>📈 Progress per Paket <span>Lihat rincian</span></summary>
+          <div id="packageProgressPanel" class="compact-account-body"></div>
+        </details>
         <div id="riwayatPanel" class="card" style="display:none"></div>
 
         <div class="toolbar">
@@ -1174,7 +1188,8 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         const panel=document.getElementById("packageProgressPanel");
         if(!panel)return;
         const owned=window.KF_OWNED_PACKAGES||[];
-        if(!owned.length){panel.style.display="none";return;}
+        const details=document.getElementById("packageProgressDetails");
+        if(!owned.length){if(details)details.style.display="none";return;}
         const rows=owned.map(p=>{
           const pid=String(p.id||"");
           const pname=String(p.nama||"Paket");
@@ -1189,7 +1204,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           return `<div class="package-progress-row"><div class="rowhead"><span><b>${esc(pname)}</b><br><small>${done} dari ${items.length} materi selesai</small></span><strong>${pct}%</strong></div><div class="mini-track"><div class="mini-fill" style="width:${pct}%"></div></div></div>`;
         }).join("");
         panel.innerHTML='<h2 style="margin-top:0">📈 Progress per Paket</h2><p style="color:#725c82;margin-top:-4px">Kemajuan dihitung dari progress yang tersimpan di Supabase.</p><div class="package-progress-list">'+rows+'</div>';
-        panel.style.display="block";
+        if(details)details.style.display="block";
       }
       function lanjutBelajar(){
         const progres=(dataBelajarAktif.progress||[]).slice().sort((a,b)=>new Date(b.last_opened_at)-new Date(a.last_opened_at));
@@ -1553,7 +1568,7 @@ function kfRenderServerPackageBoxes(){
  }).join("");
  const owned=(window.KF_OWNED_PACKAGES||[]);
  const ownedHtml=owned.length?`<div class="owned-package-grid">${owned.map(p=>`<div class="owned-package"><b>${esc(p.nama)}</b><span>✓ Aktif</span><small>${p.expiresAt?"Berlaku s.d. "+new Date(p.expiresAt).toLocaleDateString("id-ID"):"Akses paket aktif"}</small></div>`).join("")}</div>`:'<div class="empty">Belum ada paket aktif pada akun ini.</div>';
- old.innerHTML=`<h2 style="margin-top:0">📦 Paket Saya</h2>${ownedHtml}<hr style="border:0;border-top:1px solid #eadff2;margin:18px 0"><h2 style="margin-top:0">Latihan & Tryout</h2><p style="color:#5b4374">Hanya paket yang diizinkan Supabase untuk akun Anda yang ditampilkan.</p><h3>Latihan Soal</h3><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty">Belum ada paket latihan.</div>'}</div><h3>Tryout</h3><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
+ old.innerHTML=`<details class="compact-account-panel"><summary>📦 Paket Saya <span>${owned.length} paket aktif · Lihat</span></summary><div class="compact-account-body">${ownedHtml}</div></details><h2 style="margin-top:18px">Latihan & Tryout</h2><p style="color:#5b4374">Hanya paket yang diizinkan Supabase untuk akun Anda yang ditampilkan.</p><h3>Latihan Soal</h3><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty">Belum ada paket latihan.</div>'}</div><h3>Tryout</h3><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
 }
 async function kfStartServerPackage(packageId){
  try{
