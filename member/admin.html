@@ -598,7 +598,57 @@
 .package-level-badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:#f0e5fa;color:#67299b;font-size:11px;font-weight:900}
 .package-code{font-size:11px;color:#8b7897;margin-top:3px;font-weight:800}
 .member-safety-note{display:flex;gap:10px;align-items:flex-start;margin:12px 0 16px;padding:12px 14px;border:1px solid #dfd1ee;border-radius:14px;background:#fcf9ff;color:#5e4970}.member-safety-note b{white-space:nowrap;color:#57227e}.member-safety-note span{font-size:12px;line-height:1.5}.discount-rule-row,.bundle-order-row{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid #eee4f6}.discount-rule-row:last-child,.bundle-order-row:last-child{border-bottom:0}</style>
-  </head>
+  
+<style id="kf-final-responsive-fix">
+.admin-inline-warning{
+  padding:14px 16px;border:1px solid #ead9f5;border-radius:12px;
+  background:#fff8ff;color:#5b2b70;line-height:1.55
+}
+html,body{max-width:100%;overflow-x:hidden}
+img,video,iframe{max-width:100%}
+table{max-width:100%}
+.card,.panel,.manage-item,.package-card-new{min-width:0}
+@media(max-width:900px){
+  header{position:sticky;top:0;z-index:40;gap:10px;flex-wrap:wrap}
+  header>div:last-child{width:100%;display:flex;gap:8px}
+  header .btn{flex:1;min-width:0}
+  .layout{display:block}
+  aside{
+    position:sticky;top:0;z-index:35;width:100%;display:flex!important;
+    overflow-x:auto;overflow-y:hidden;gap:6px;padding:8px 10px;
+    background:#fff;border-right:0;border-bottom:1px solid #eadff0;
+    -webkit-overflow-scrolling:touch
+  }
+  aside button{flex:0 0 auto;white-space:nowrap;width:auto!important}
+  main{width:100%;padding:16px 12px!important}
+  .head{gap:10px;align-items:flex-start;flex-wrap:wrap}
+  .head>.btn,.head>.row-actions{max-width:100%}
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .row-actions .btn{flex:1 1 auto}
+  .form,.stats,.member-summary,.pkg-editor-grid{grid-template-columns:1fr!important}
+  .wide{grid-column:auto!important}
+  .manage-item,.bundle-order-row,.discount-rule-row,.package-card-new .head{
+    align-items:stretch!important;flex-direction:column!important
+  }
+  .table-wrap,.member-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  dialog.member-dialog{width:calc(100vw - 20px);max-width:none;margin:10px}
+}
+@media(max-width:520px){
+  body{font-size:14px}
+  header{padding:10px 12px}
+  header h1,main h1{font-size:22px}
+  main{padding:12px 9px!important}
+  .card{padding:14px!important;border-radius:14px}
+  .stats,.member-summary{grid-template-columns:1fr!important}
+  .btn{min-height:42px}
+  input,select,textarea{font-size:16px!important}
+  .package-filter{flex:1 1 42%;text-align:center}
+  .preview-modal{padding:4px!important}
+  .preview-shell{width:100%;max-height:98vh;border-radius:12px}
+}
+</style>
+
+</head>
   <body>
     <header class="top">
       <div class="brand">
@@ -982,9 +1032,9 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
-    <script src="supabase-admin.js?v=20261003-2"></script>
-    <script src="supabase-publisher-v15.js"></script>
-    <script src="gas-workspace-bridge-v15.js"></script>
+    <script src="supabase-admin.js?v=20261003-final1"></script>
+    <script src="supabase-publisher-v15.js?v=20261003-final1"></script>
+    <script src="gas-workspace-bridge-v15.js?v=20261003-final1"></script>
     <script>
       window.addEventListener("load", function () {
         if (!window.KFSupabaseAdmin || !window.KFSupabaseAdmin.configured) {
@@ -1099,20 +1149,6 @@
               <button class="btn" onclick="lihatStatusSuperAdmin()">Kembali ke Admin Utama</button>
             </div>
           </main>`;
-      }
-
-      async function loginAdminLoop() {
-        while (true) {
-          const p = prompt("Masukkan password admin Member Area:");
-          if (p === null) continue;
-          ADMIN_PASS = p;
-          try {
-            await adminApi("adminLogin", {});
-            return;
-          } catch (err) {
-            alert(err.message);
-          }
-        }
       }
 
       const enc = (v) => encodeURIComponent(String(v || ""));
@@ -1741,11 +1777,8 @@
           muatPilihanPaket();
           return;
         }
-        if (!backendMemberSiap()) {
-          tampilkanPetunjukBackend();
-          return;
-        }
-        await loginAdminLoop();
+        tampilkanPetunjukBackend();
+        return;
         await renderMemberAdmin();
         await renderKontenAdmin();
         await renderPaketAdmin();
@@ -1899,14 +1932,26 @@ window.addEventListener("load",()=>setTimeout(renderSupabasePackageStatus,1200))
 let KF_PACKAGES_NEW=[], KF_TOPICS_NEW=[], KF_PAYMENT_NEW=[];
 function kfdb(){const c=window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client;if(!c)throw new Error("Supabase Admin belum siap.");return c}
 function moneyID(v){return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(v)||0)}
+let KF_TOPIC_ACCESS_OK=true;
 async function loadPackageCore(){
  const db=kfdb();
- const [{data:p,error:pe},{data:t,error:te}]=await Promise.all([
-  db.from("member_packages").select("*").neq("nama","_PAYMENT_CONFIG_").order("urutan").order("nama"),
-  db.from("member_package_topics").select("*").order("urutan").order("judul")
- ]);
- if(pe)throw pe;if(te)throw te;KF_PACKAGES_NEW=p||[];KF_TOPICS_NEW=t||[];
- fillPackageSelectors(); return KF_PACKAGES_NEW;
+ const pkg=await db.from("member_packages").select("*").neq("nama","_PAYMENT_CONFIG_").order("urutan").order("nama");
+ if(pkg.error) throw pkg.error;
+ KF_PACKAGES_NEW=pkg.data||[];
+
+ // Topik adalah data tambahan. Jika privilege tabel pada database yang SUDAH ADA
+ // menolak akses, daftar paket tetap harus tampil dan seluruh Admin tidak boleh macet.
+ const top=await db.from("member_package_topics").select("*").order("urutan").order("judul");
+ if(top.error){
+   KF_TOPICS_NEW=[];
+   KF_TOPIC_ACCESS_OK=false;
+   console.warn("[KlinikFisikapku] Topik paket tidak dapat dibaca:", top.error.message);
+ }else{
+   KF_TOPICS_NEW=top.data||[];
+   KF_TOPIC_ACCESS_OK=true;
+ }
+ fillPackageSelectors();
+ return KF_PACKAGES_NEW;
 }
 function fillPackageSelectors(){
  const level=(document.getElementById("topicLevelFilter")?.value||"SEMUA").toUpperCase();
@@ -1959,7 +2004,11 @@ async function renderPaketBaru(reload=true){
    const rows=KF_PACKAGE_LEVEL_FILTER==="SEMUA"?all:all.filter(p=>packageLevel(p)===KF_PACKAGE_LEVEL_FILTER);
    const box=document.getElementById("paketListBaru");if(!box)return;
    box.innerHTML=rows.length?rows.map(p=>`<div class="package-card-new"><div class="head"><div><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><b style="font-size:16px">${escMember(p.nama)}</b><span class="package-level-badge">${escMember(packageLevel(p))}</span></div><div class="package-code">${escMember(p.kode||"Tanpa kode")}</div><div class="meta"><span class="soft-chip">${moneyID(p.harga)}</span><span class="soft-chip">${p.durasi_hari} hari</span><span class="soft-chip">${p.aktif?"Aktif":"Nonaktif"}</span><span class="soft-chip">${KF_TOPICS_NEW.filter(t=>t.package_id===p.id).length} topik</span></div><p class="sub">${escMember(p.deskripsi||"Deskripsi belum diisi")}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editPaketBaru('${p.id}')">Edit</button><button class="btn ghost small" onclick="togglePaketBaru('${p.id}',${!p.aktif})">${p.aktif?"Nonaktifkan":"Aktifkan"}</button><button class="btn danger small" onclick="hapusPaketBaru('${p.id}')">Hapus</button></div></div></div>`).join(""):'<div class="sub">Belum ada paket pada jenjang ini.</div>';
- }catch(e){alert("Gagal memuat paket: "+e.message)}
+ }catch(e){
+   console.error("Gagal memuat paket:",e);
+   const box=document.getElementById("paketListBaru");
+   if(box)box.innerHTML='<div class="admin-inline-warning"><b>Paket belum dapat dimuat.</b><br>'+escMember(e.message||e)+'</div>';
+ }
 }
 async function tambahPaketBaru(){
  const jenjang=(prompt("Jenjang paket: ketik SD, SMP, atau SMA","SD")||"").trim().toUpperCase();
@@ -1998,6 +2047,10 @@ async function hapusPaketBaru(id){
 }
 async function renderTopikPaket(){
  const box=document.getElementById("topicPackageList"),pid=document.getElementById("topicPackageSelect")?.value;if(!box)return;
+ if(!KF_TOPIC_ACCESS_OK){
+   box.innerHTML='<div class="admin-inline-warning"><b>Data paket tetap berhasil dimuat.</b><br>Fitur topik belum dapat dibaca oleh hak akses database yang sekarang. Halaman Admin lainnya tetap dapat digunakan.</div>';
+   return;
+ }
  const rows=KF_TOPICS_NEW.filter(t=>t.package_id===pid);box.innerHTML=rows.length?rows.map(t=>`<div class="manage-item"><div><b>${escMember(t.judul)}</b><p>${escMember(t.deskripsi||"Tanpa deskripsi")} · Urutan ${t.urutan} · ${t.visible?"Tampil":"Disembunyikan"}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editTopikPaket('${t.id}')">Edit</button><button class="btn ghost small" onclick="toggleTopikPaket('${t.id}',${!t.visible})">${t.visible?"Sembunyikan":"Tampilkan"}</button><button class="btn danger small" onclick="hapusTopikPaket('${t.id}')">Hapus</button></div></div>`).join(""):'<div class="sub">Belum ada topik pada paket ini.</div>';
 }
 async function tambahTopikPaket(){

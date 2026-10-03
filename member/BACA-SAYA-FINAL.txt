@@ -1,0 +1,23 @@
+KLINIKFISIKAPKU MEMBER AREA — FINAL BERSIH
+Tanggal audit: 03-10-2026
+
+Yang diperbaiki:
+1. Login Admin hanya mengikuti Supabase/Google OAuth; fallback password lama di admin.html dibuang.
+2. Cache-busting ditambahkan agar browser tidak menjalankan JS versi lama.
+3. Kegagalan membaca member_package_topics tidak lagi menjatuhkan seluruh Paket & Harga.
+   Daftar member_packages tetap dimuat dan error ditampilkan sebagai pesan non-blocking.
+4. Admin diperkuat untuk tampilan HP/tablet: menu horizontal scroll, card/form satu kolom,
+   tombol wrap, tabel scroll, dialog dan input mobile-friendly.
+5. File SQL, CSV hasil eksekusi, audit lama, dan panduan instalasi tidak dimasukkan ke ZIP runtime.
+   Supabase TIDAK diubah oleh paket ini.
+
+Catatan penting:
+- SQL yang disertakan pengguna menunjukkan member_package_topics seharusnya memiliki GRANT dan RLS Admin.
+- Namun screenshot produksi menunjukkan database aktual mengembalikan:
+  permission denied for table member_package_topics.
+- Karena permintaan adalah TIDAK mengubah Supabase, frontend final dibuat fail-safe:
+  error topik tidak lagi membuat seluruh halaman Paket menjadi 0/kacau.
+- CRUD topik tetap bergantung pada izin database yang sudah ada. Frontend tidak dapat
+  menambah privilege database dari browser secara aman.
+
+Isi ZIP ini adalah file runtime /member yang perlu di-upload menggantikan file lama.
