@@ -862,9 +862,17 @@ function savePackageDraftLocal(){
 function loadPackageDraftLocal(){try{let x=JSON.parse(localStorage.getItem(PACKAGE_DRAFT_KEY)||'null');if(x&&Array.isArray(x.questions)){packageDraft=x;$('packageName').value=x.name||'';$('packageCount').value=x.questions.length}}catch(e){}}
 function startQuestionPackage(){let count=Math.max(1,Math.min(50,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
 function packageQuestionValid(q){if(!q||!(q.question||q.image))return false;if(['pg5','pg4','mcma'].includes(q.type))return (q.answers?.options||[]).filter(x=>String(x||'').trim()).length>=2&&(q.answers?.keys||[]).length>0;if(q.type==='kategori')return (q.answers?.statements||[]).some(x=>String(x.text||'').trim());if(q.type==='isian')return !!String(q.answers?.short||'').trim();return true}
-function saveCurrentToPackage(){packageDraft.name=($('packageName').value||'').trim()||'Paket Soal';let q=collect();q.id=q.id||uid();q.packageIndex=packageDraft.current+1;q.updatedAt=new Date().toISOString();packageDraft.questions[packageDraft.current]=q;savePackageDraftLocal();renderPackageNavigator();$('draftStatus').textContent='✓ Soal '+(packageDraft.current+1)+' tersimpan di draft paket.'}
+function saveCurrentToPackage(){
+ packageDraft.name=($('packageName').value||'').trim()||'Paket Soal';
+ let q=collect(),issues=packageQuestionIssues(q);
+ q.id=q.id||uid();q.packageIndex=packageDraft.current+1;q.updatedAt=new Date().toISOString();
+ packageDraft.questions[packageDraft.current]=q;
+ savePackageDraftLocal();renderPackageNavigator();
+ $('draftStatus').textContent=issues.length?'⚠ Soal '+(packageDraft.current+1)+' tersimpan, tetapi: '+issues.join(' • '):'✓ Soal '+(packageDraft.current+1)+' tersimpan dan lengkap.';
+ return issues.length===0;
+}
 function renderPackageNavigator(){let n=packageDraft.questions.length||1,done=packageDraft.questions.filter(packageQuestionValid).length;$('packagePosition').textContent='Soal '+(packageDraft.current+1)+' dari '+n;$('packageDone').textContent='• '+done+' selesai';$('packageProgressBar').style.width=(done/n*100)+'%';$('questionNumberNav').innerHTML=packageDraft.questions.map((q,i)=>`<button class="${i===packageDraft.current?'current ':''}${packageQuestionValid(q)?'done':''}" onclick="goPackageQuestion(${i})">${i+1}${packageQuestionValid(q)?'✓':''}</button>`).join('')}
-function editorHasContent(){return !!(($('question')?.value||'').trim()||(answerState.options||[]).some(x=>String(x||'').trim())||($('explanation')?.value||'').trim()||imageData)}
+function editorHasContent(){return !!(($('question')?.value||'').trim()||($('explanation')?.value||'').trim()||imageData||($('qImageUrl')?.value||'').trim()||(answerState.options||[]).some(x=>String(x||'').trim())||String(answerState.short||'').trim()||String(answerState.essayKey||'').trim()||(answerState.statements||[]).some(x=>String(x?.text||'').trim()))}
 function goPackageQuestion(i){if(i<0||i>=packageDraft.questions.length)return;if(editorHasContent())saveCurrentToPackage();packageDraft.current=i;let q=packageDraft.questions[i];q?loadPackageQuestionToEditor(q):clearPackageEditor(false);renderPackageNavigator();savePackageDraftLocal()}
 function packagePrev(){if(packageDraft.current>0)goPackageQuestion(packageDraft.current-1)}
 function packageNext(){if(packageDraft.current<packageDraft.questions.length-1)goPackageQuestion(packageDraft.current+1)}
@@ -899,6 +907,7 @@ function reviewPackage(){
   ? '<div class="notice"><b>Perlu diperbaiki:</b></div>'+bad.map(x=>`<div class="result-item wrong"><b>Soal ${x.i+1}</b><div class="small">${x.issues.map(esc).join(' • ')}</div><button class="btn sm" style="margin-top:7px" onclick="closeModal('reviewPackageModal');goPackageQuestion(${x.i})">Perbaiki Soal</button></div>`).join('')
   : '<div class="notice" style="border-color:#86d7a2;background:#ecfdf3!important"><b>✓ Semua soal sudah lengkap dan siap disimpan ke Bank Soal.</b></div>';
  $('reviewSaveBtn').disabled=bad.length>0;
+ $('reviewSaveBtn').title=bad.length?'Lengkapi soal yang ditandai sebelum menyimpan paket.':'Simpan paket ke Bank Soal';
  $('reviewPackageModal').classList.add('show');
 }
 
