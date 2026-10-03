@@ -7,6 +7,8 @@
 #modeInfo{line-height:1.55}#modeInfo b{font-size:15px;color:#6822a4}#modeInfo span{color:#715e7d}#bankRow{display:contents}
 
 .exercise-modes{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid #eee}.exercise-modes.hidden{display:none!important}
+
+.locked-mode #modePanel{margin-top:0}.locked-mode .wrap{padding-top:4px}
 </style></head><body>
 <header class="top"><h1>Admin Konten V2 · KlinikFisikapku</h1><a href="admin.html">← Admin Utama</a></header>
 <main class="wrap">
@@ -112,9 +114,11 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]")
 document.querySelectorAll("[data-exmode]").forEach(b=>b.onclick=()=>{exerciseMode=b.dataset.exmode;updateModeInfo();render()});
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));b.classList.add("on");kind=b.dataset.kind;updateModeInfo();render()});$("level").onchange=()=>{fillPackages();render()};$("pkg").onchange=render;$("search").oninput=render;$("add").onclick=()=>openEdit(null);$("saveEdit").onclick=saveEdit;$("savePkg").onclick=savePkg;$("eLevel").onchange=()=>fillEditPackages("");$("eSourceType").onchange=syncSourceFields;
 (async()=>{try{
- const qs=new URLSearchParams(location.search),embed=qs.get("embed")==="1",requested=qs.get("kind");
+ const qs=new URLSearchParams(location.search),embed=qs.get("embed")==="1",locked=qs.get("locked")==="1",requested=qs.get("kind");
  if(embed){document.querySelector(".top").style.display="none";document.body.style.background="#fff"}
- if(["pdf","soal","video","tryout"].includes(requested)){kind=requested;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.kind===kind))}updateModeInfo()
+ if(["pdf","soal","video","tryout"].includes(requested)){kind=requested;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.kind===kind))}
+ if(locked){const tabs=document.querySelector(".tabs");if(tabs)tabs.style.display="none";document.body.classList.add("locked-mode")}
+ updateModeInfo()
  const ok=await KFSupabaseAdmin.ensureAdmin();if(!ok)return;DB=KFSupabaseAdmin.client;$("status").remove();$("app").classList.remove("hidden");await load()
 }catch(e){$("status").textContent="Gagal membuka Admin Konten V2: "+e.message}})();
 </script></body></html>
