@@ -574,6 +574,14 @@
     .member-level-only span{display:block;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#8b5aa4}
     .member-level-only strong{display:block;font-size:22px;color:#5c168c;margin:3px 0}
     .member-level-only small{display:block;color:#735d82;line-height:1.4}
+
+    .server-section-head{margin:16px 0 14px;padding:16px 18px;border-radius:16px;background:linear-gradient(135deg,#fff7fb,#fff);border:1px solid #f0d9e8}
+    .server-section-head small{font-size:10px;font-weight:900;letter-spacing:.12em;color:#d43b87}
+    .server-section-head h2{margin:4px 0 5px;font-size:23px}
+    .server-section-head p{margin:0;color:#735d82}
+    .server-section-head.tryout-head{background:linear-gradient(135deg,#fffaf0,#fff);border-color:#eed9b5}
+    .server-section-head.tryout-head small{color:#a76814}
+    .learning-empty{grid-column:1/-1;padding:38px 14px!important;text-align:center}
 </style>
   
 <style id="kf-member-v6">
@@ -1350,7 +1358,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
                 const titles={pdf:"Modul Belajar",soal:"Latihan Soal",video:"Video Pembahasan",tryout:"Tryout"};
         const titleEl=document.getElementById("filterTitle"),countEl=document.getElementById("filterCount");
         if(titleEl)titleEl.textContent=titles[filterAktif]||"Materi Belajar";
-        if(countEl)countEl.textContent=isTryoutView?"Tryout aktif":items.length+" materi";
+        if(countEl)countEl.textContent=filterAktif==="tryout"?"Tryout":filterAktif==="soal"?"Latihan":items.length+" materi";
         document.getElementById("list").innerHTML = items
           .map((x) => {
             const terkunci = !bolehBuka(x),
@@ -1371,29 +1379,15 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
     </div>`;
           })
           .join("");
-        document.getElementById("emptyMsg").style.display = (!isTryoutView && !items.length) ? "block" : "none";
+        document.getElementById("emptyMsg").style.display = (!isTryoutView && filterAktif!=="soal" && !items.length) ? "block" : "none";
         const listEl=document.getElementById("list");
         if(listEl)listEl.style.display=isTryoutView?"none":"grid";
         renderTryoutMingguan();
       }
 
       function renderTryoutMingguan() {
-        let box=document.getElementById("tryoutMingguanBox");
-        if(!box){
-          box=document.createElement("div");
-          box.id="tryoutMingguanBox";
-          box.className="card tryout-view";
-          document.getElementById("list").parentNode.appendChild(box);
-        }
-        if(filterAktif!=="tryout"){box.style.display="none";return;}
-        box.style.display="block";
-        const server=(window.KF_SERVER_PACKAGES||[]).filter(p=>String(p.kind||"").toLowerCase()==="tryout");
-        box.innerHTML='<div class="tryout-hero"><div><small>TRYOUT KLINIKFISIKAPKU</small><h2>🏆 Tryout</h2><p>Tryout hanya tampil jika sudah diaktifkan Admin untuk paket Anda.</p></div></div>'+
-          (server.length?'<div class="kf-pkg-grid">'+server.map(p=>{
-            const used=Number(p.attempts_used||0),max=Number(p.max_attempts||1);
-            const blocked=max>0&&used>=max;
-            return `<div class="kf-pkg-card ${blocked?"kf-pkg-locked":""}"><h3>🏆 ${esc(p.name||"Tryout")}</h3><div class="kf-pkg-meta">${Number(p.question_count||0)} soal · ${Number(p.duration_minutes||0)} menit<br>Percobaan ${used}/${max}</div><button class="btn ${blocked?"btn-ghost":"btn-main"}" ${blocked?"disabled":`onclick="kfStartServerPackage('${p.id}')"`}>${blocked?"Percobaan habis":"Mulai Tryout"}</button></div>`;
-          }).join("")+'</div>':'<div class="empty tryout-empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>');
+        const box=document.getElementById("tryoutMingguanBox");
+        if(box)box.style.display="none";
       }
 
       function ytId(url) {
@@ -1618,7 +1612,15 @@ function kfRenderServerPackageBoxes(){
  }).join("");
  const owned=(window.KF_OWNED_PACKAGES||[]);
  const ownedHtml=owned.length?`<div class="owned-package-grid">${owned.map(p=>`<div class="owned-package"><b>${esc(p.nama)}</b><span>✓ Aktif</span><small>${p.expiresAt?"Berlaku s.d. "+new Date(p.expiresAt).toLocaleDateString("id-ID"):"Akses paket aktif"}</small></div>`).join("")}</div>`:'<div class="empty">Belum ada paket aktif pada akun ini.</div>';
- old.innerHTML=`<details class="compact-account-panel"><summary>📦 Paket Saya <span>${owned.length} paket aktif · Lihat</span></summary><div class="compact-account-body">${ownedHtml}</div></details><h2 style="margin-top:18px">Latihan & Tryout</h2><p style="color:#5b4374">Hanya paket yang diizinkan Supabase untuk akun Anda yang ditampilkan.</p><h3>Latihan Soal</h3><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty">Belum ada paket latihan.</div>'}</div><h3>Tryout</h3><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
+ const account=`<details class="compact-account-panel"><summary>📦 Paket Saya <span>${owned.length} paket aktif · Lihat</span></summary><div class="compact-account-body">${ownedHtml}</div></details>`;
+ if(filterAktif==="soal"){
+   old.innerHTML=account+`<div class="server-section-head"><small>LATIHAN INTERAKTIF</small><h2>✍️ Latihan Soal</h2><p>Latihan yang tersedia untuk paket aktif Anda.</p></div><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty learning-empty">Belum ada latihan yang tersedia pada paket Anda.</div>'}</div>`;
+ }else if(filterAktif==="tryout"){
+   old.innerHTML=account+`<div class="server-section-head tryout-head"><small>SIMULASI OLIMPIADE</small><h2>🏆 Tryout</h2><p>Tryout hanya tersedia setelah diaktifkan Admin untuk paket Anda.</p></div><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty learning-empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
+ }else{
+   old.innerHTML=account;
+ }
+ old.style.display=(filterAktif==="soal"||filterAktif==="tryout")?"block":"none";
 }
 async function kfStartServerPackage(packageId){
  try{
