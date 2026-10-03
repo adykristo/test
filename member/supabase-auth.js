@@ -104,7 +104,10 @@
         deskripsi:p.deskripsi,
         jenjang:(p.jenjang||((String(p.nama||"").match(/^(SD|SMP|SMA)\b/i)||[])[1])||"").toUpperCase(),
         kode:p.kode||"",
-        owned:!!p.owned,
+        // RPC kf_member_package_catalog returns ownership as owned_status
+        // ("active", "pending", "expired", "locked"), not a boolean owned field.
+        owned:String(p.owned_status||"").toLowerCase()==="active",
+        ownedStatus:String(p.owned_status||"locked").toLowerCase(),
         expiresAt:p.expires_at||null
       }))};
     },
