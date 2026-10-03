@@ -138,6 +138,20 @@
     },
     quoteBundle: async function(packageIds){const {data,error}=await supabase.rpc("kf_bundle_quote",{p_package_ids:packageIds});if(error)throw error;return {ok:true,data:(data||[])[0]||{package_count:0,subtotal:0,discount_percent:0,discount_amount:0,total_amount:0}};},
     buatOrderBundle: async function(packageIds,paymentMethodId){const {data,error}=await supabase.rpc("kf_create_bundle_order",{p_package_ids:packageIds,p_payment_method:paymentMethodId||null});if(error)throw error;return {ok:true,id:data};},
+    orderBundleSaya: async function(){
+      const {data:u,error:ue}=await supabase.auth.getUser();if(ue||!u.user)throw new Error("Sesi peserta berakhir.");
+      const {data,error}=await supabase.from("member_bundle_orders").select("*").eq("user_id",u.user.id).order("created_at",{ascending:false}).limit(20);
+      if(error)throw error;
+      const orders=data||[],ids=orders.map(x=>x.id);let items=[];
+      if(ids.length){const q=await supabase.from("member_bundle_order_items").select("*").in("order_id",ids);if(!q.error)items=q.data||[];}
+      return {ok:true,data:orders.map(o=>({...o,items:items.filter(i=>i.order_id===o.id)}))};
+    },
+    batalkanOrderBundle: async function(orderId){
+      const {data:u,error:ue}=await supabase.auth.getUser();if(ue||!u.user)throw new Error("Sesi peserta berakhir.");
+      const {data,error}=await supabase.from("member_bundle_orders").update({status:"cancelled"}).eq("id",orderId).eq("user_id",u.user.id).eq("status","pending").select("id,status");
+      if(error)throw error;if(!data||!data.length)throw new Error("Permintaan tidak dapat dibatalkan. Mungkin sudah diproses Admin.");
+      return {ok:true};
+    },
     kontenMember: async function(jenjang){
       const results=await Promise.all([
         supabase.rpc("kf_member_content_v2"),
