@@ -164,7 +164,8 @@
       const primary=Array.isArray(results[0].data)?results[0].data:[];
       const legacyQuestions=results[1].error?[]:(results[1].data||[]);
       const list=primary.map(flattenContent).concat(legacyQuestions.map(flattenContent));
-      return {ok:true,data:jenjang?list.filter(x=>x.jenjang===jenjang):list};
+      const wanted=clean(jenjang).toLowerCase();
+      return {ok:true,data:wanted?list.filter(x=>clean(x&&x.jenjang).toLowerCase()===wanted):list};
     },
     dataBelajar: async function(){
       const {data:s}=await supabase.auth.getSession(); if(!s.session)return {progress:[],bookmarks:[],attempts:[],certificates:[]};
