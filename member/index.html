@@ -1127,8 +1127,29 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
       function toggleRiwayat(){
         const box=document.getElementById("riwayatPanel"), tampil=box.style.display==="none";
         if(!tampil){box.style.display="none";return;}
-        const attempts=dataBelajarAktif.attempts||[], certs=dataBelajarAktif.certificates||[];
-        box.innerHTML='<h2 style="margin-top:0">Riwayat Belajar</h2>'+(attempts.length?'<div class="history-list">'+attempts.map(x=>`<div class="history-row"><span><b>${esc(x.paket_tryout||x.topik||"Tryout")}</b><br><small>${esc(new Date(x.selesai_at).toLocaleString("id-ID"))}</small></span><strong>${Math.round(Number(x.skor||0))}</strong></div>`).join("")+'</div>':'<p class="empty">Belum ada riwayat tryout.</p>')+'<h3>Sertifikat</h3>'+(certs.length?certs.map(x=>{const url=safeDownloadUrl(x.file_url);return `<p>🏅 <b>${esc(x.judul)}</b> · ${esc(x.nomor)}${url?` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Unduh</a>`:""}</p>`;}).join(""):'<p class="empty">Sertifikat akan tampil setelah diterbitkan.</p>');
+        const attempts=(dataBelajarAktif.attempts||[]).slice();
+        const certs=dataBelajarAktif.certificates||[];
+        const pkgName=a=>{
+          const direct=String(a.package_name||a.paket_name||a.paket_tryout||a.package||"").trim();
+          if(direct)return direct;
+          const pid=String(a.package_id||a.paket_id||"");
+          const p=(window.KF_OWNED_PACKAGES||[]).find(x=>String(x.id)===pid);
+          return p&&p.nama?p.nama:"";
+        };
+        const when=a=>a.selesai_at||a.submitted_at||a.created_at||a.updated_at||null;
+        const history=attempts.length?'<div class="history-list">'+attempts.map(a=>{
+          const paket=pkgName(a),judul=String(a.topik||a.judul||a.nama||"Latihan / Tryout");
+          const rawScore=a.skor!=null?a.skor:(a.score!=null?a.score:null);
+          const score=rawScore==null?"—":Math.round(Number(rawScore));
+          const dt=when(a),date=dt?new Date(dt):null;
+          const dateText=date&&!Number.isNaN(date.getTime())?date.toLocaleString("id-ID"):"Waktu belum tersedia";
+          return `<div class="history-row"><span><b>${esc(judul)}</b>${paket?`<br><small>📦 ${esc(paket)}</small>`:""}<br><small>${esc(dateText)}</small></span><strong>${esc(String(score))}</strong></div>`;
+        }).join("")+'</div>':'<p class="empty">Belum ada riwayat latihan/tryout.</p>';
+        const certificates=certs.length?certs.map(x=>{
+          const url=safeDownloadUrl(x.file_url);
+          return `<p>🏅 <b>${esc(x.judul||"Sertifikat")}</b> · ${esc(x.nomor||"")}${url?` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Unduh</a>`:""}</p>`;
+        }).join(""):'<p class="empty">Sertifikat akan tampil setelah diterbitkan.</p>';
+        box.innerHTML='<h2 style="margin-top:0">📊 Riwayat Latihan & Tryout</h2><p style="color:#725c82;margin-top:-4px">Riwayat ini berasal dari data belajar akun Anda di Supabase.</p>'+history+'<h3>Sertifikat</h3>'+certificates;
         box.style.display="block";
       }
       function tujuanItem(x) {
