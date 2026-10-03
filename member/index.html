@@ -637,6 +637,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           <button class="btn btn-ghost" type="button" onclick="toggleRiwayat()">📈 Riwayat &amp; Sertifikat</button>
           <button class="btn btn-ghost" type="button" onclick="toggleBookmarkFilter(this)">★ Materi tersimpan</button>
         </div>
+        <div id="packageProgressPanel" class="card" style="display:none"></div>
         <div id="riwayatPanel" class="card" style="display:none"></div>
 
         <div class="toolbar">
@@ -1003,6 +1004,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         gabungkanProgresDatabase();
         renderRingkasan();
         renderList();
+        renderProgressPerPaket();
       }
 
       function keluar() {
@@ -1094,6 +1096,27 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           const maxStage=stages.length?Math.max(...stages):0;
           elTahap.textContent=maxStage?maxStage+" tersedia":"—";
         }
+      }
+      function renderProgressPerPaket(){
+        const panel=document.getElementById("packageProgressPanel");
+        if(!panel)return;
+        const owned=window.KF_OWNED_PACKAGES||[];
+        if(!owned.length){panel.style.display="none";return;}
+        const rows=owned.map(p=>{
+          const pid=String(p.id||"");
+          const pname=String(p.nama||"Paket");
+          const items=dataMateri.filter(x=>{
+            const xid=String(x.package_id||x.packageId||"");
+            const xn=String(paketNamaKonten(x)||topikDiPaketSaya(x)||"");
+            return x.visible!==false&&x.jenis!=="tryout"&&tujuanItem(x)!=="tryout"&&
+              ((pid&&xid===pid)||xn===pname);
+          });
+          const done=items.filter(selesaiItem).length;
+          const pct=items.length?Math.round(done/items.length*100):0;
+          return `<div class="package-progress-row"><div class="rowhead"><span><b>${esc(pname)}</b><br><small>${done} dari ${items.length} materi selesai</small></span><strong>${pct}%</strong></div><div class="mini-track"><div class="mini-fill" style="width:${pct}%"></div></div></div>`;
+        }).join("");
+        panel.innerHTML='<h2 style="margin-top:0">📈 Progress per Paket</h2><p style="color:#725c82;margin-top:-4px">Kemajuan dihitung dari progress yang tersimpan di Supabase.</p><div class="package-progress-list">'+rows+'</div>';
+        panel.style.display="block";
       }
       function lanjutBelajar(){
         const progres=(dataBelajarAktif.progress||[]).slice().sort((a,b)=>new Date(b.last_opened_at)-new Date(a.last_opened_at));
@@ -1334,7 +1357,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           const p=bacaProgres(),topik=String(item.topik||"Tanpa Topik"),tujuan=tujuanItem(item);
           const semua=dataMateri.filter(x=>x.jenis==="soal"&&String(x.topik||"Tanpa Topik")===topik&&tujuanItem(x)===tujuan).map(x=>x.id).filter(Boolean);
           if(semua.length&&semua.every(id=>p.soal[id])&&hasil) hasil.innerHTML+='<div class="result ok">🎉 Semua soal pada topik ini selesai.</div>';
-          renderRingkasan();renderList();
+          renderRingkasan();renderList();renderProgressPerPaket();
         }catch(err){
           console.warn("Progress jawaban belum tersinkron:",err);
           if(hasil)hasil.innerHTML+='<div class="result bad">Jawaban benar, tetapi progress belum berhasil disinkronkan. Coba muat ulang halaman.</div>';
