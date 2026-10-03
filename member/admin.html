@@ -531,6 +531,27 @@
       #member .member-avatar{display:none}
     }
 
+/* ===== Data Peserta Member: tampilan ringkas dan terbaca ===== */
+#member .table-wrap table{min-width:980px!important;table-layout:auto!important}
+#member .table-wrap th,#member .table-wrap td{padding:13px 12px!important;vertical-align:middle!important}
+#member .table-wrap th:nth-child(1),#member .table-wrap td:nth-child(1){min-width:245px}
+#member .table-wrap th:nth-child(2),#member .table-wrap td:nth-child(2){min-width:180px}
+#member .table-wrap th:nth-child(3),#member .table-wrap td:nth-child(3){min-width:190px}
+#member .table-wrap th:nth-child(4),#member .table-wrap td:nth-child(4){min-width:105px}
+#member .table-wrap th:nth-child(5),#member .table-wrap td:nth-child(5){min-width:130px}
+#member .table-wrap th:nth-child(6),#member .table-wrap td:nth-child(6){min-width:150px}
+#member .member-name{min-width:0}
+#member .member-name small{line-height:1.45;color:var(--muted)}
+#member .member-package-status b{display:inline-block;margin-bottom:6px}
+#member .member-actions{display:flex!important;flex-wrap:wrap!important;min-width:140px!important}
+#member .member-actions .btn{width:auto!important;white-space:nowrap!important}
+@media(max-width:760px){
+ #member .member-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #member .member-toolbar{grid-template-columns:1fr!important}
+ #member .member-export{justify-content:flex-start}
+ #member .table-wrap table{min-width:900px!important}
+}
+
 /* ===== FIX tabel peserta: cegah kolom aksi/status pecah vertikal ===== */
 #member .table-wrap table{min-width:1320px!important;table-layout:auto!important}
 #member .table-wrap th,#member .table-wrap td{padding:10px 8px!important;vertical-align:middle}
@@ -784,16 +805,11 @@ table{max-width:100%}
             <div class="table-wrap">
               <table>
                 <thead><tr>
-                  <th>No.</th>
                   <th>Peserta</th>
-                  <th>Username</th>
-                  <th>Sekolah</th>
-                  <th>Kelas</th>
-                  <th>Jenjang</th>
-                  <th>Paket</th>
-                  <th>Status</th>
+                  <th>Data Sekolah</th>
+                  <th>Paket &amp; Status</th>
                   <th>Masa Aktif</th>
-                  <th>Tanggal Daftar</th>
+                  <th>Terdaftar</th>
                   <th>Aksi</th>
                 </tr></thead>
                 <tbody id="allMemberList"></tbody>
@@ -1279,34 +1295,28 @@ table{max-width:100%}
         ).join("") || '<tr><td colspan="4">Tidak ada peserta yang menunggu aktivasi.</td></tr>';
       }
       function renderTabelMember() {
-        const all=document.getElementById("allMemberList");
-        if (!all) return;
+        const all=document.getElementById("allMemberList"); if(!all)return;
         const tersaring=dataMemberTersaring();
-        all.innerHTML=tersaring.map((x,i)=>{
-          const s=statusEfektifMember(x), nama=String(x.nama||"Member").trim(), inisial=(nama.charAt(0)||"M").toUpperCase();
-          const aksi=s==="aktif"
+        all.innerHTML=tersaring.map((x)=>{
+          const st=statusEfektifMember(x),nama=String(x.nama||"Member").trim(),inisial=(nama.charAt(0)||"M").toUpperCase();
+          const paket=String(x.paket||"").trim();
+          const aksi=st==="aktif"
             ? `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',false)">Nonaktifkan</button>`
-            : s==="nonaktif"
+            : st==="nonaktif"
               ? `<button class="btn small" onclick="ubahAktifMember('${x.id}',true)">Aktifkan kembali</button>`
-              : s==="pending"
-                ? `<button class="btn small" onclick="bukaPembayaranMember('${x.id}')">Pembayaran</button>`
+              : st==="pending"
+                ? `<button class="btn small" onclick="aktifkanPaketDariPendaftaran('${x.id}')">Aktifkan Paket</button>`
                 : "";
           return `<tr>
-            <td>${i+1}</td>
-            <td><div class="member-name"><div class="member-avatar">${escMember(inisial)}</div><div><b>${escMember(nama)}</b><br><small>${escMember(x.email||"-")}</small></div></div></td>
-            <td>@${escMember(x.username||"-")}</td>
-            <td><b>${escMember(x.sekolah||"-")}</b></td>
-            <td><span class="member-cell-pill">${escMember(x.kelas||"-")}</span></td>
-            <td><span class="member-cell-pill">${escMember(String(x.jenjang||"-").toUpperCase())}</span></td>
-            <td><b>${escMember(x.paket||"Paket belum dipilih")}</b></td>
-            <td><span class="status-pill ${s}">${escMember(STATUS_LABEL[s]||s)}</span></td>
+            <td><div class="member-name"><div class="member-avatar">${escMember(inisial)}</div><div><b>${escMember(nama)}</b><br><small>${escMember(x.email||"-")}</small><br><small>@${escMember(x.username||"-")}${x.wa?" · "+escMember(x.wa):""}</small></div></div></td>
+            <td><b>${escMember(x.sekolah||"-")}</b><br><small>${escMember(String(x.jenjang||"-").toUpperCase())} · Kelas ${escMember(x.kelas||"-")}</small></td>
+            <td><div class="member-package-status"><b>${escMember(paket||"Belum ada paket aktif")}</b><br><span class="status-pill ${st}">${escMember(STATUS_LABEL[st]||st)}</span></div></td>
             <td><small class="member-date-cell">${escMember(formatTanggalMember(x.berakhir))}</small></td>
-            <td>${escMember(formatTanggalMember(x.created_at,true))}</td>
-            <td><div class="row-actions"><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button>${aksi}<button class="btn danger small" onclick="hapusMember('${x.id}')">Hapus</button></div></td>
+            <td><small class="member-date-cell">${escMember(formatTanggalMember(x.created_at,true))}</small></td>
+            <td><div class="row-actions member-actions"><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button>${aksi}<button class="btn danger small" onclick="hapusMember('${x.id}')">Arsipkan</button></div></td>
           </tr>`;
-        }).join("") || '<tr><td colspan="11" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
-        const info=document.getElementById("memberHasilInfo");
-        if(info) info.textContent=`${tersaring.length} dari ${MEMBER_CACHE.length} peserta ditampilkan`;
+        }).join("") || '<tr><td colspan="6" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
+        const info=document.getElementById("memberHasilInfo");if(info)info.textContent=`${tersaring.length} dari ${MEMBER_CACHE.length} peserta ditampilkan`;
       }
       function lihatDetailMember(id) {
         const x=MEMBER_CACHE.find((m)=>m.id===id); if(!x) return;
