@@ -216,6 +216,9 @@
       .btn.pdf {
         background: #c73762;
       }
+      .member-scroll-toolbar { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin:0 0 8px; }
+      .member-scroll-toolbar span { color:var(--muted); font-size:11px; margin-right:auto; }
+      .member-scroll-toolbar button { min-width:82px; }
       .table-wrap {
         width: 100%;
         max-width: 100%;
@@ -811,7 +814,12 @@ table{max-width:100%}
                 <button class="btn pdf" onclick="downloadMemberPDF()">⬇ PDF</button>
               </div>
             </div>
-            <div class="table-wrap">
+            <div class="member-scroll-toolbar">
+              <button class="btn ghost small" type="button" onclick="geserTabelMember(-1)">← Kiri</button>
+              <span>Geser tabel untuk melihat seluruh kolom</span>
+              <button class="btn ghost small" type="button" onclick="geserTabelMember(1)">Kanan →</button>
+            </div>
+            <div class="table-wrap" id="memberTableScroll">
               <table>
                 <thead><tr>
                   <th>Peserta</th>
@@ -1302,6 +1310,10 @@ table{max-width:100%}
         if (pending) pending.innerHTML=MEMBER_CACHE.filter((x)=>x.status==="pending").map((x)=>
           `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username||"-")}</small></td><td>${escMember(x.email)}</td><td>${escMember(String(x.jenjang||"").toUpperCase())} · Kelas ${escMember(x.kelas||"-")}<br>${escMember(x.sekolah)}<br><span class="tag">${escMember(x.paket||"Paket dipilih melalui Member Area")}</span><br><i>Pilih paket peserta lalu aktifkan dari sini.</i></td><td><div class="row-actions"><button class="btn small" onclick="aktifkanPaketDariPendaftaran('${x.id}')">✓ Aktifkan Paket</button><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn danger small" onclick="tolakMember('${x.id}')">Tolak</button></div></td></tr>`
         ).join("") || '<tr><td colspan="4">Tidak ada peserta yang menunggu aktivasi.</td></tr>';
+      }
+      function geserTabelMember(arah){
+        const el=document.getElementById("memberTableScroll"); if(!el)return;
+        el.scrollBy({left:(arah<0?-420:420),behavior:"smooth"});
       }
       function renderTabelMember() {
         const all=document.getElementById("allMemberList"); if(!all)return;
