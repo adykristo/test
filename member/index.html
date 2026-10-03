@@ -593,6 +593,119 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
 @media(max-width:700px){main{padding-left:12px!important;padding-right:12px!important}.card,.lesson-card,.course-card,.content-card,.dashboard-card{border-radius:12px!important}}
 .level-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.level-picker button{padding:13px;border:1px solid #dec9f2;border-radius:13px;background:#fff;color:#552178;font-weight:900;cursor:pointer}.level-picker button.active{background:linear-gradient(135deg,#6f27bd,#ec3d9c);color:#fff;border-color:transparent}.bundle-choice{cursor:pointer;text-align:left}.bundle-choice.checked{outline:2px solid #a43bd0;background:#fcf7ff}.bundle-check-row{display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:800;color:#67317f}.bundle-check-row input{width:19px;height:19px}.owned-mark{color:#188452}.bundle-summary{position:sticky;bottom:12px;z-index:8;display:flex;justify-content:space-between;gap:18px;align-items:center;padding:14px 16px;margin:16px 0;border-radius:16px;background:#fff;box-shadow:0 12px 35px #3d14502b;border:1px solid #dfccef;text-align:left}.bundle-summary span{display:block;font-size:12px;color:#725e7e;margin-top:3px}.bundle-total{text-align:right}.bundle-total small,.bundle-total strong{display:block}.bundle-total strong{font-size:22px;color:#c92886;margin:2px 0 7px}@media(max-width:650px){.bundle-summary{align-items:stretch;flex-direction:column}.bundle-total{text-align:left}}</style>
 
+
+<style id="kf-responsive-final-20261003">
+/* KlinikFisikapku Member — final responsive layer */
+html{overflow-x:hidden;-webkit-text-size-adjust:100%}
+body{overflow-x:hidden}
+img,svg,video,canvas{max-width:100%}
+button,input,select,textarea{max-width:100%}
+button,.btn,.chip,.bookmark-btn,.kf-pkg-nav button{touch-action:manipulation}
+.page{width:min(100%,1040px);max-width:1040px}
+#home,#daftar,#login,#pending,#profil{max-width:900px}
+.mcard>div:not(.ic){min-width:0}
+.mcard .judul,.mcard .topik,.kf-pkg-card,.owned-package,.package-choice{overflow-wrap:anywhere}
+.opt>span,.opt>div,.category-question{min-width:0;overflow-wrap:anywhere}
+iframe.pdfview{display:block;min-height:520px}
+.videowrap{width:100%}
+
+/* Tablet landscape / small laptop */
+@media (min-width:1025px){
+  header{padding-left:max(6%,calc((100vw - 1180px)/2));padding-right:max(6%,calc((100vw - 1180px)/2))}
+  #dash{max-width:1040px}
+  #dash .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .page{padding-top:30px}
+}
+@media (min-width:641px) and (max-width:1024px){
+  header{padding:13px 22px}
+  .page{padding:26px 22px 52px}
+  #dash{max-width:100%}
+  #dash .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kf-pkg-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .owned-package-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #dash .toolbar{top:64px}
+  iframe.pdfview{height:68vh;min-height:500px}
+}
+
+/* Phones */
+@media (max-width:640px){
+  body{font-size:15px}
+  header{position:sticky;top:0;padding:9px 12px;min-height:58px;gap:8px;flex-wrap:nowrap}
+  header .brand{min-width:0;max-width:48%;font-size:12.5px;line-height:1.25;gap:6px}
+  header .brand span.dot{width:7px;height:7px;flex:0 0 7px}
+  header .nav{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:5px;min-width:0}
+  header .nav button{margin:0!important;padding:8px 9px!important;min-height:38px;font-size:11.5px;white-space:nowrap}
+  .page{width:100%;padding:20px 12px 42px!important}
+  .hero{padding:22px 2px}
+  .hero h1{font-size:clamp(23px,7vw,28px);line-height:1.18}
+  .hero .btn{width:100%;margin:5px 0}
+  .card{padding:15px;margin:12px 0;border-radius:14px}
+  .auth-page{padding-top:22px!important}
+  .auth-heading{font-size:24px;margin-bottom:14px}
+  .auth-card{padding:18px 15px;border-radius:15px}
+  input,select,textarea{font-size:16px!important;min-height:44px}
+  textarea{min-height:96px}
+  .btn{min-height:44px}
+  .dash-welcome{padding:20px 16px!important}
+  .dash-welcome h1{font-size:22px!important;line-height:1.2}
+  .dash-welcome #sub{font-size:12.5px;line-height:1.5}
+  .badge-paket{font-size:11px;padding:5px 10px}
+  .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px}
+  .summary-card{min-width:0;padding:12px!important}
+  .summary-card small{font-size:11px;line-height:1.3}
+  .summary-card strong{font-size:18px!important}
+  .dashboard-actions{display:grid!important;grid-template-columns:1fr!important;gap:8px}
+  .dashboard-actions .btn{width:100%}
+  #dash .toolbar{top:58px!important;padding:8px!important;gap:6px!important;border-radius:13px}
+  #dash .toolbar input[type="search"]{flex:1 0 100%!important;width:100%;min-width:0!important}
+  #dash .toolbar .chip{flex:1 1 calc(50% - 6px);min-height:40px!important;padding:0 8px!important;font-size:11.5px!important;white-space:nowrap}
+  #dash .grid,.grid,.kf-pkg-grid,.owned-package-grid{grid-template-columns:1fr!important}
+  .mcard{padding:13px!important;gap:10px!important}
+  .mcard .ic{width:38px!important;height:38px!important;flex:0 0 38px}
+  .mcard .judul{font-size:14px;line-height:1.35}
+  .bookmark-btn{margin-left:auto;padding:7px 8px;flex:0 0 auto}
+  .learning-section-head,.paket-saya-head{align-items:flex-start;flex-direction:column}
+  .learning-section-head h2,.server-section-head h2{font-size:19px!important}
+  .server-section-head{padding:14px}
+  .package-choice{padding:14px}
+  .package-choice-head{flex-direction:column;gap:4px}
+  .package-choice .price{white-space:normal}
+  .payment-row{align-items:flex-start;flex-direction:column;gap:2px}
+  .payment-row strong{text-align:left}
+  .history-row{flex-direction:column;gap:3px}
+  .category-options{display:grid!important;grid-template-columns:1fr 1fr}
+  .category-options label{min-height:42px}
+  .opt{padding:11px;line-height:1.45}
+  .question-image{max-height:52vh}
+  .kf-pkg-runner{width:100%}
+  .kf-pkg-nav{display:grid!important;grid-template-columns:repeat(6,1fr);gap:5px!important}
+  .kf-pkg-nav button{width:100%!important;height:38px!important;min-width:0}
+  iframe.pdfview{height:72dvh;min-height:430px;border-radius:9px}
+  .videowrap{border-radius:9px}
+  .compact-account-panel>summary{padding:11px 12px}
+  .compact-account-body{padding:10px 12px}
+  .kf-site-footer{padding-bottom:72px}
+}
+@media (max-width:390px){
+  header .brand{max-width:43%;font-size:11.5px}
+  header .nav button{padding:7px 7px!important;font-size:10.5px}
+  .page{padding-left:10px!important;padding-right:10px!important}
+  .summary-grid{grid-template-columns:1fr!important}
+  #dash .toolbar .chip{font-size:11px!important}
+  .kf-pkg-nav{grid-template-columns:repeat(5,1fr)}
+  .category-options{grid-template-columns:1fr}
+}
+@media (max-width:350px){
+  header .brand{max-width:38%}
+  header .brand .dot{display:none}
+  .kf-pkg-nav{grid-template-columns:repeat(4,1fr)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+
 </head>
   <body>
     <header>
