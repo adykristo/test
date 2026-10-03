@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self' blob: https://www.youtube-nocookie.com https://docs.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self' blob: https://www.youtube-nocookie.com https://docs.google.com; object-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>Member Area · KlinikFisikapku</title>
     <script>
@@ -1114,6 +1114,16 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
             ? await window.KFMemberAuth.kontenMember(jenjangAktif)
             : await apiGet({ action: "kontenMember", jenjang: jenjangAktif });
           dataMateri = res.data || [];
+          // Sinkronkan format konten V2 Admin agar Modul/Latihan/Video tetap dikenali Member Area.
+          dataMateri = dataMateri.map(function(x){
+            const y=Object.assign({},x||{});
+            const j=String(y.jenis||"").toLowerCase(),t=String(y.tujuan||"").toLowerCase();
+            if(j==="modul"||j==="module"||j==="materi")y.jenis="pdf";
+            if(j==="latihan"||j==="exercise")y.jenis="soal";
+            if(j==="youtube")y.jenis="video";
+            if(t==="latihan"&&j!=="pdf"&&j!=="video")y.jenis="soal";
+            return y;
+          });
           if (window.KFMemberAuth && window.KFMemberAuth.dataBelajar) {
             try { dataBelajarAktif = await window.KFMemberAuth.dataBelajar(); }
             catch (sinkronError) { dataBelajarAktif={progress:[],bookmarks:[],attempts:[],orders:[],certificates:[]}; console.warn("Data belajar Supabase belum dapat dimuat:", sinkronError); }
