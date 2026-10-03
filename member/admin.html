@@ -1396,11 +1396,11 @@ table{max-width:100%}
       async function aktifkanPaketDariPendaftaran(memberId){
         const m=MEMBER_CACHE.find(x=>x.id===memberId);if(!m)return;
         try{
-          const q=await kfdb().from("member_bundle_orders").select("*").eq("user_id",memberId).eq("status","pending").order("created_at",{ascending:false}).limit(1);
+          const q=await kfdb().rpc("kf_admin_bundle_orders");
           if(q.error)throw q.error;
-          const o=(q.data||[])[0];
+          const o=(q.data||[]).filter(x=>String(x.user_id)===String(memberId)&&String(x.status||"").toLowerCase()==="pending").sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
           if(!o)return alert("Peserta belum mengirim pilihan paket.\n\nMinta peserta login ke Member Area, pilih paket, lalu tekan Kirim Pilihan Paket & Bukti via WhatsApp.");
-          const iq=await kfdb().from("member_bundle_order_items").select("*").eq("order_id",o.id);
+          const iq=await kfdb().rpc("kf_admin_bundle_order_items",{p_order:o.id});
           if(iq.error)throw iq.error;
           const names=(iq.data||[]).map(x=>x.package_name).filter(Boolean);
           const pesan="AKTIFKAN PAKET\n\nPeserta: "+(m.nama||"-")+"\nJenjang: "+String(o.jenjang||m.jenjang||"-").toUpperCase()+"\nPaket:\n"+names.map((n,i)=>(i+1)+". "+n).join("\n")+"\nBiaya: "+moneyID(o.total_amount||0)+"\n\nAktifkan paket ini sekarang?";
@@ -2321,9 +2321,9 @@ async function renderBundleOrders(){
  const b=document.getElementById("bundleOrdersAdmin");if(!b)return;
  try{
   if(!MEMBER_CACHE.length){try{const res=await adminApi("adminListMember",{});MEMBER_CACHE=res.data||[]}catch(_){}}
-  const q=await kfdb().from("member_bundle_orders").select("*").order("created_at",{ascending:false}).limit(100);if(q.error)throw q.error;
-  const all=q.data||[],os=all.filter(o=>String(o.status||"").toLowerCase()==="pending"),ids=os.map(o=>o.id);let it=[];
-  if(ids.length){const x=await kfdb().from("member_bundle_order_items").select("*").in("order_id",ids);if(x.error)throw x.error;it=x.data||[]}
+  const q=await kfdb().rpc("kf_admin_bundle_orders");if(q.error)throw q.error;
+  const all=q.data||[],os=all.filter(o=>String(o.status||"").toLowerCase()==="pending").slice(0,100);let it=[];
+  for(const o of os){const x=await kfdb().rpc("kf_admin_bundle_order_items",{p_order:o.id});if(x.error)throw x.error;it.push(...(x.data||[]));}
   b.innerHTML=os.map(o=>{
    const names=it.filter(i=>i.order_id===o.id).map(i=>i.package_name).filter(Boolean);
    const uid=String(o.user_id||o.member_id||""),m=MEMBER_CACHE.find(x=>String(x.id)===uid);
