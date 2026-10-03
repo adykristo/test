@@ -531,6 +531,26 @@
       #member .member-avatar{display:none}
     }
 
+/* ===== FIX tabel peserta: cegah kolom aksi/status pecah vertikal ===== */
+#member .table-wrap table{min-width:1320px!important;table-layout:auto!important}
+#member .table-wrap th,#member .table-wrap td{padding:10px 8px!important;vertical-align:middle}
+#member .table-wrap th:nth-child(2),#member .table-wrap td:nth-child(2){min-width:190px}
+#member .table-wrap th:nth-child(3),#member .table-wrap td:nth-child(3){min-width:105px}
+#member .table-wrap th:nth-child(4),#member .table-wrap td:nth-child(4){min-width:120px}
+#member .table-wrap th:nth-child(7),#member .table-wrap td:nth-child(7){min-width:135px}
+#member .table-wrap th:nth-child(8),#member .table-wrap td:nth-child(8){min-width:110px}
+#member .table-wrap th:nth-child(9),#member .table-wrap td:nth-child(9){min-width:100px}
+#member .table-wrap th:nth-child(10),#member .table-wrap td:nth-child(10){min-width:115px}
+#member .table-wrap th:nth-child(11),#member .table-wrap td:nth-child(11){min-width:135px;width:135px}
+#member .table-wrap td:nth-child(11) .row-actions{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:120px}
+#member .table-wrap td:nth-child(11) .btn{width:100%;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;line-height:1.25}
+#member .status-pill{white-space:nowrap!important;word-break:normal!important}
+#member .member-date-cell{white-space:nowrap!important}
+@media(max-width:1100px){
+  #member .table-wrap table{min-width:1260px!important}
+  #member .table-wrap th,#member .table-wrap td{font-size:10px!important;padding:8px 6px!important}
+}
+
 /* ===== Paket Mandiri / Topik / Pembayaran / V12 Focus ===== */
 .package-check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0 12px}
 .package-check{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid #eadcf8;border-radius:11px;background:#fff}
