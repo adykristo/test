@@ -741,6 +741,23 @@ table{max-width:100%}
 }
 </style>
 
+
+<style id="kf-member-profile-admin-sync">
+#member .table-wrap{overflow-x:auto!important}
+#member .table-wrap table{min-width:1380px!important}
+#member .member-wa-link{color:#17884f;font-weight:800;text-decoration:none;white-space:nowrap}
+#member .member-wa-link:hover{text-decoration:underline}
+#member .table-wrap th:nth-child(1),#member .table-wrap td:nth-child(1){min-width:190px}
+#member .table-wrap th:nth-child(2),#member .table-wrap td:nth-child(2){min-width:210px}
+#member .table-wrap th:nth-child(3),#member .table-wrap td:nth-child(3){min-width:135px}
+#member .table-wrap th:nth-child(4),#member .table-wrap td:nth-child(4){min-width:180px}
+#member .table-wrap th:nth-child(5),#member .table-wrap td:nth-child(5){min-width:120px}
+#member .table-wrap th:nth-child(6),#member .table-wrap td:nth-child(6){min-width:190px}
+#member .table-wrap th:nth-child(7),#member .table-wrap td:nth-child(7){min-width:125px}
+#member .table-wrap th:nth-child(8),#member .table-wrap td:nth-child(8){min-width:150px}
+#member .table-wrap th:nth-child(9),#member .table-wrap td:nth-child(9){min-width:155px}
+</style>
+
 </head>
   <body>
     <header class="top">
@@ -863,10 +880,13 @@ table{max-width:100%}
               <table>
                 <thead><tr>
                   <th>Peserta</th>
-                  <th>Data Sekolah</th>
+                  <th>Email</th>
+                  <th>WhatsApp</th>
+                  <th>Sekolah</th>
+                  <th>Kelas / Jenjang</th>
                   <th>Paket &amp; Status</th>
                   <th>Masa Aktif</th>
-                  <th>Terdaftar</th>
+                  <th>Diperbarui</th>
                   <th>Aksi</th>
                 </tr></thead>
                 <tbody id="allMemberList"></tbody>
@@ -1388,16 +1408,28 @@ function openPanel(id, b) {
         all.innerHTML=tersaring.map((x)=>{
           const st=statusEfektifMember(x),nama=String(x.nama||"Member").trim(),inisial=(nama.charAt(0)||"M").toUpperCase();
           const aksi=st==="aktif"?`<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',false)">Nonaktifkan</button>`:st==="nonaktif"?`<button class="btn small" onclick="ubahAktifMember('${x.id}',true)">Aktifkan kembali</button>`:st==="pending"?`<button class="btn small" onclick="aktifkanPaketDariPendaftaran('${x.id}')">Aktifkan Paket</button>`:"";
-          return `<tr><td><div class="member-name"><div class="member-avatar">${escMember(inisial)}</div><div><b>${escMember(nama)}</b><br><small>${escMember(x.email||"-")}</small><br><small>@${escMember(x.username||"-")}${x.wa?" · "+escMember(x.wa):""}</small></div></div></td><td><b>${escMember(x.sekolah||"-")}</b><br><small>${escMember(String(x.jenjang||"-").toUpperCase())} · Kelas ${escMember(x.kelas||"-")}</small></td><td><b>${escMember(x.paket||"Belum ada paket aktif")}</b><br><span class="status-pill ${st}">${escMember(STATUS_LABEL[st]||st)}</span></td><td>${escMember(formatTanggalMember(x.berakhir))}</td><td>${escMember(formatTanggalMember(x.created_at,true))}</td><td><div class="row-actions"><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn ghost small" onclick="kelolaPaketMember('${x.id}')">Kelola Paket</button>${aksi}<button class="btn danger small" onclick="hapusMember('${x.id}')">Arsipkan</button></div></td></tr>`;
-        }).join("")||'<tr><td colspan="6" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
-        const info=document.getElementById("memberHasilInfo");if(info)info.textContent=`${tersaring.length} dari ${MEMBER_CACHE.length} peserta ditampilkan`;
+          const wa=String(x.wa||"").trim();
+          const waHref=wa?("https://wa.me/"+wa.replace(/\D/g,"").replace(/^0/,"62")):"";
+          return `<tr>
+            <td><div class="member-name"><div class="member-avatar">${escMember(inisial)}</div><div><b>${escMember(nama)}</b><br><small>@${escMember(x.username||"-")}</small></div></div></td>
+            <td><small>${escMember(x.email||"-")}</small></td>
+            <td>${wa?`<a class="member-wa-link" href="${escMember(waHref)}" target="_blank" rel="noopener">${escMember(wa)}</a>`:"-"}</td>
+            <td><b>${escMember(x.sekolah||"-")}</b></td>
+            <td><span class="member-cell-pill">${escMember(String(x.jenjang||"-").toUpperCase())}</span><br><small>Kelas ${escMember(x.kelas||"-")}</small></td>
+            <td><b>${escMember(x.paket||"Belum ada paket aktif")}</b><br><span class="status-pill ${st}">${escMember(STATUS_LABEL[st]||st)}</span></td>
+            <td>${escMember(formatTanggalMember(x.berakhir))}</td>
+            <td><span class="member-date-cell">${escMember(formatTanggalMember(x.updated_at||x.created_at,true))}</span></td>
+            <td><div class="row-actions member-actions"><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn ghost small" onclick="kelolaPaketMember('${x.id}')">Kelola Paket</button>${aksi}<button class="btn danger small" onclick="hapusMember('${x.id}')">Arsipkan</button></div></td>
+          </tr>`;
+        }).join("")||'<tr><td colspan="9" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
+        const info=document.getElementById("memberHasilInfo");if(info)info.textContent=`${tersaring.length} dari ${MEMBER_CACHE.length} peserta ditampilkan · data profil tersinkron dari akun peserta`;
       }
       function lihatDetailMember(id) {
         const x=MEMBER_CACHE.find((m)=>m.id===id); if(!x) return;
         const s=statusEfektifMember(x), body=document.getElementById("memberDetailBody"), dialog=document.getElementById("memberDetailDialog");
         const item=(label,value)=>`<div class="detail-item"><span>${escMember(label)}</span><b>${escMember(value||"-")}</b></div>`;
         body.innerHTML=`<div class="detail-grid">
-          ${item("Nama lengkap",x.nama)}${item("Email Google",x.email)}${item("Username",x.username)}${item("Asal sekolah",x.sekolah)}
+          ${item("Nama lengkap",x.nama)}${item("Email Google",x.email)}${item("Username",x.username)}${item("WhatsApp",x.wa)}${item("Asal sekolah",x.sekolah)}
           ${item("Kelas",x.kelas)}${item("Jenjang",String(x.jenjang||"-").toUpperCase())}${item("Paket",x.paket)}${item("Status",STATUS_LABEL[s]||s)}${item("Masa aktif",formatTanggalMember(x.berakhir))}
           ${item("Tanggal pendaftaran",formatTanggalMember(x.created_at,true))}${item("Terakhir diperbarui",formatTanggalMember(x.updated_at,true))}
           <div class="detail-item" style="grid-column:1/-1"><span>Catatan admin</span><b>${escMember(x.catatan_admin||"Belum ada catatan")}</b></div>
