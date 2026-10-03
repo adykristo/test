@@ -218,13 +218,22 @@
       }
       .table-wrap {
         width: 100%;
-        overflow-x: auto;
+        max-width: 100%;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
         border: 1px solid #f0e7f7;
         border-radius: 12px;
+        scrollbar-gutter: stable;
       }
       .table-wrap table {
-        min-width: 1040px;
+        width: max-content;
+        min-width: 1250px;
       }
+      .table-wrap::-webkit-scrollbar { height: 12px; }
+      .table-wrap::-webkit-scrollbar-track { background:#f5ecfb; border-radius:999px; }
+      .table-wrap::-webkit-scrollbar-thumb { background:#b57bdd; border-radius:999px; border:2px solid #f5ecfb; }
+      .table-wrap::after { content:"← Geser tabel ke kanan untuk melihat seluruh kolom →"; display:block; min-width:1250px; padding:7px 12px; font-size:11px; color:#725c82; background:#fbf7ff; }
       .table-wrap th {
         background: #fbf7ff;
         white-space: nowrap;
@@ -2371,9 +2380,21 @@ async function renderBundleOrders(){
    const uid=String(o.user_id||o.member_id||""),m=MEMBER_CACHE.find(x=>String(x.id)===uid);
    const who=m?(m.nama+" · "+(m.email||"")):(o.email||"Peserta");
    const aktif=m&&String(m.status||"").toLowerCase()==="aktif";
-   return `<div class="bundle-order-row"><div><b>${escMember(who)}</b><p class="sub">${aktif?'<span class="tag">Member aktif · pembelian tambahan</span><br>':'<span class="tag">Pendaftaran baru</span><br>'}${escMember(String(o.jenjang||"").toUpperCase())} · ${Number(o.package_count||names.length)} paket · ${moneyID(o.total_amount||0)}<br>${escMember(names.join(", ")||"Nama paket belum tersedia")}</p></div><div><button class="btn small" onclick="approveBundleOrder('${o.id}',${Number(o.package_count||names.length)},'${uid}')">✓ Aktifkan ${Number(o.package_count||names.length)} Paket</button></div></div>`;
+   return `<div class="bundle-order-row"><div><b>${escMember(who)}</b><p class="sub">${aktif?'<span class="tag">Member aktif · pembelian tambahan</span><br>':'<span class="tag">Pendaftaran baru</span><br>'}${escMember(String(o.jenjang||"").toUpperCase())} · ${Number(o.package_count||names.length)} paket · ${moneyID(o.total_amount||0)}<br>${escMember(names.join(", ")||"Nama paket belum tersedia")}</p></div><div class="row-actions"><button class="btn small" onclick="approveBundleOrder('${o.id}',${Number(o.package_count||names.length)},'${uid}')">✓ Aktifkan ${Number(o.package_count||names.length)} Paket</button><button class="btn ghost small" onclick="batalkanBundleOrder('${o.id}')">Batalkan</button><button class="btn danger small" onclick="hapusBundleOrder('${o.id}')">Hapus</button></div></div>`;
   }).join("")||'<div class="sub">Tidak ada permintaan paket yang menunggu aktivasi.</div>';
  }catch(e){b.innerHTML='<div class="sub">'+escMember(e.message)+'</div>'}
+}
+async function batalkanBundleOrder(id){
+ if(!confirm("Batalkan permintaan paket ini?\n\nPaket tidak akan diaktifkan dan data transaksi tetap tersimpan sebagai riwayat."))return;
+ const q=await kfdb().rpc("kf_admin_cancel_bundle_order",{p_order:id,p_note:"Dibatalkan oleh Admin"});
+ if(q.error)return alert("Gagal membatalkan: "+q.error.message);
+ alert("✓ Permintaan paket dibatalkan.");await renderBundleOrders();
+}
+async function hapusBundleOrder(id){
+ if(!confirm("HAPUS / ARSIPKAN PERMINTAAN\n\nGunakan ini untuk permintaan salah/duplikat. Paket aktif peserta tidak akan dicabut.\n\nLanjutkan?"))return;
+ const q=await kfdb().rpc("kf_admin_archive_bundle_order",{p_order:id,p_note:"Diarsipkan oleh Admin"});
+ if(q.error)return alert("Gagal mengarsipkan: "+q.error.message);
+ alert("✓ Permintaan diarsipkan.");await renderBundleOrders();
 }
 async function approveBundleOrder(id,c,uid){
  const m=MEMBER_CACHE.find(x=>String(x.id)===String(uid));
