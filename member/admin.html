@@ -668,6 +668,22 @@
       .member-card-actions{justify-content:flex-end;border-top:1px solid #f0e7f7;padding-top:12px}
       @media(max-width:900px){.member-card-grid{grid-template-columns:1fr 1fr}}
       @media(max-width:560px){.member-card-grid{grid-template-columns:1fr}.member-card-head{flex-direction:column}.member-card-actions{justify-content:stretch}.member-card-actions .btn{flex:1 1 45%}}
+
+      /* Data Peserta: tabel rapi dengan scroll horizontal native */
+      #member .member-scroll-toolbar{display:none!important}
+      #member .table-wrap{display:block!important;width:100%!important;max-width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;border:1px solid #eadcf5;border-radius:12px;padding-bottom:2px}
+      #member .table-wrap::after{display:none!important}
+      #member .table-wrap table,#member .member-card-table{display:table!important;width:1250px!important;min-width:1250px!important;border-collapse:collapse!important}
+      #member .table-wrap thead,#member .member-card-table thead{display:table-header-group!important}
+      #member .table-wrap tbody,#member .member-card-table tbody{display:table-row-group!important}
+      #member .table-wrap tr,#member .member-card-row{display:table-row!important}
+      #member .table-wrap td,#member .member-card-row td{display:table-cell!important;width:auto!important;padding:12px 10px!important;border:0!important;border-bottom:1px solid #f0e7f7!important;border-radius:0!important;background:#fff!important;box-shadow:none!important;white-space:nowrap!important;vertical-align:middle}
+      #member .table-wrap th{padding:10px!important;white-space:nowrap!important}
+      #member .table-wrap::-webkit-scrollbar{height:16px!important}
+      #member .table-wrap::-webkit-scrollbar-track{background:#efe5f7!important;border-radius:999px!important}
+      #member .table-wrap::-webkit-scrollbar-thumb{background:#8f43c7!important;border-radius:999px!important;border:3px solid #efe5f7!important}
+      #member .table-wrap{scrollbar-width:auto;scrollbar-color:#8f43c7 #efe5f7}
+      #member .member-card-head,#member .member-card-grid,#member .member-card-actions{display:unset}
 </style>
   
 <style id="kf-final-responsive-fix">
@@ -1334,33 +1350,16 @@ table{max-width:100%}
         el.scrollBy({left:(arah<0?-420:420),behavior:"smooth"});
       }
       function renderTabelMember() {
-        const all=document.getElementById("allMemberList"); if(!all)return;
+        const all=document.getElementById("allMemberList");if(!all)return;
         const tersaring=dataMemberTersaring();
-        const table=all.closest("table");
-        const wrap=all.closest(".table-wrap");
-        if(table)table.classList.add("member-card-table");
-        if(wrap)wrap.classList.add("member-card-wrap");
+        const table=all.closest("table"),wrap=all.closest(".table-wrap");
+        if(table)table.classList.remove("member-card-table");
+        if(wrap)wrap.classList.remove("member-card-wrap");
         all.innerHTML=tersaring.map((x)=>{
           const st=statusEfektifMember(x),nama=String(x.nama||"Member").trim(),inisial=(nama.charAt(0)||"M").toUpperCase();
-          const paket=String(x.paket||"").trim();
-          const aksi=st==="aktif"
-            ? `<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',false)">Nonaktifkan</button>`
-            : st==="nonaktif"
-              ? `<button class="btn small" onclick="ubahAktifMember('${x.id}',true)">Aktifkan kembali</button>`
-              : st==="pending"
-                ? `<button class="btn small" onclick="aktifkanPaketDariPendaftaran('${x.id}')">Aktifkan Paket</button>`
-                : "";
-          return `<tr class="member-card-row"><td colspan="6">
-            <div class="member-card-head"><div class="member-name"><div class="member-avatar">${escMember(inisial)}</div><div><b>${escMember(nama)}</b><br><small>${escMember(x.email||"-")}</small><br><small>@${escMember(x.username||"-")}${x.wa?" · "+escMember(x.wa):""}</small></div></div><span class="status-pill ${st}">${escMember(STATUS_LABEL[st]||st)}</span></div>
-            <div class="member-card-grid">
-              <div><span>Sekolah</span><b>${escMember(x.sekolah||"-")}</b><small>${escMember(String(x.jenjang||"-").toUpperCase())} · Kelas ${escMember(x.kelas||"-")}</small></div>
-              <div><span>Paket</span><b>${escMember(paket||"Belum ada paket aktif")}</b></div>
-              <div><span>Masa aktif</span><b>${escMember(formatTanggalMember(x.berakhir))}</b></div>
-              <div><span>Terdaftar</span><b>${escMember(formatTanggalMember(x.created_at,true))}</b></div>
-            </div>
-            <div class="row-actions member-card-actions"><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn ghost small" onclick="kelolaPaketMember('${x.id}')">Kelola Paket</button>${aksi}<button class="btn danger small" onclick="hapusMember('${x.id}')">Arsipkan</button></div>
-          </td></tr>`;
-        }).join("") || '<tr><td colspan="6" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
+          const aksi=st==="aktif"?`<button class="btn ghost small" onclick="ubahAktifMember('${x.id}',false)">Nonaktifkan</button>`:st==="nonaktif"?`<button class="btn small" onclick="ubahAktifMember('${x.id}',true)">Aktifkan kembali</button>`:st==="pending"?`<button class="btn small" onclick="aktifkanPaketDariPendaftaran('${x.id}')">Aktifkan Paket</button>`:"";
+          return `<tr><td><div class="member-name"><div class="member-avatar">${escMember(inisial)}</div><div><b>${escMember(nama)}</b><br><small>${escMember(x.email||"-")}</small><br><small>@${escMember(x.username||"-")}${x.wa?" · "+escMember(x.wa):""}</small></div></div></td><td><b>${escMember(x.sekolah||"-")}</b><br><small>${escMember(String(x.jenjang||"-").toUpperCase())} · Kelas ${escMember(x.kelas||"-")}</small></td><td><b>${escMember(x.paket||"Belum ada paket aktif")}</b><br><span class="status-pill ${st}">${escMember(STATUS_LABEL[st]||st)}</span></td><td>${escMember(formatTanggalMember(x.berakhir))}</td><td>${escMember(formatTanggalMember(x.created_at,true))}</td><td><div class="row-actions"><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn ghost small" onclick="kelolaPaketMember('${x.id}')">Kelola Paket</button>${aksi}<button class="btn danger small" onclick="hapusMember('${x.id}')">Arsipkan</button></div></td></tr>`;
+        }).join("")||'<tr><td colspan="6" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
         const info=document.getElementById("memberHasilInfo");if(info)info.textContent=`${tersaring.length} dari ${MEMBER_CACHE.length} peserta ditampilkan`;
       }
       function lihatDetailMember(id) {
