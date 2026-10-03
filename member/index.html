@@ -957,6 +957,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
       async function bukaPilihPaket(){
         buka("pending");
         const back=document.getElementById("pendingBackBtn");if(back)back.style.display=profilAktif&&profilAktif.status==="aktif"?"inline-flex":"none";
+        if(profilAktif) await renderPendingPackages(profilAktif);
         try{await muatPermintaanPaketSaya()}catch(e){console.warn("Riwayat permintaan paket:",e)}
       }
       async function muatPermintaanPaketSaya(){
