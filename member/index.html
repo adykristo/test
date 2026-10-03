@@ -961,7 +961,21 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         document.getElementById("list").innerHTML =
           '<div class="empty">Memuat materi…</div>';
         buka("dash");
-        renderPaketSaya();
+        try {
+          const ownedRes = window.KFMemberAuth && window.KFMemberAuth.paketSaya
+            ? await window.KFMemberAuth.paketSaya()
+            : {ok:true,data:[]};
+          window.KF_OWNED_PACKAGES = ownedRes.data || [];
+          const ownedNames = window.KF_OWNED_PACKAGES.map(x=>x.nama).filter(Boolean);
+          document.getElementById("sub").textContent =
+            "Materi jenjang " + jenjangAktif.toUpperCase() + " · " +
+            (ownedNames.length ? ownedNames.length+" paket aktif" : "belum ada paket aktif");
+          document.getElementById("badgePaket").textContent =
+            ownedNames.length ? ownedNames.length+" Paket Saya ✓" : "Belum ada paket";
+        } catch(packageError) {
+          window.KF_OWNED_PACKAGES = [];
+          console.warn("Paket peserta belum dapat dimuat:", packageError);
+        }
         try {
           const res = window.KFMemberAuth
             ? await window.KFMemberAuth.kontenMember(jenjangAktif)
@@ -1006,36 +1020,23 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           ...new Set(dataMateri.map((x) => String(x.topik || "Tanpa Topik"))),
         ];
       }
+      /* Progress V15: Supabase adalah sumber utama. Browser tidak menentukan status selesai. */
       function bacaProgres() {
-        try {
-          const p =
-            JSON.parse(localStorage.getItem(PROGRES + "_" + jenjangAktif)) ||
-            {};
-          return {
-            soal: p.soal || {},
-            latihanSelesai: p.latihanSelesai || [],
-            tryoutSelesai: p.tryoutSelesai || [],
-          };
-        } catch (e) {
-          return { soal: {}, latihanSelesai: [], tryoutSelesai: [] };
-        }
-      }
-      function simpanProgres(p) {
-        localStorage.setItem(PROGRES + "_" + jenjangAktif, JSON.stringify(p));
-      }
-      function gabungkanProgresDatabase() {
-        const p=bacaProgres();
-        (dataBelajarAktif.progress||[]).forEach((row)=>{
-          if(row.selesai) p.soal[row.content_id]=true;
+        const soal = {};
+        (dataBelajarAktif.progress || []).forEach(row=>{
+          if(row && row.content_id && row.selesai) soal[row.content_id]=true;
         });
-        daftarTopik().forEach((topik)=>{
+        const latihanSelesai=[], tryoutSelesai=[];
+        daftarTopik().forEach(topik=>{
           const latihan=dataMateri.filter(x=>x.jenis==="soal"&&tujuanItem(x)!=="tryout"&&String(x.topik||"Tanpa Topik")===topik);
           const tryout=dataMateri.filter(x=>x.jenis==="soal"&&tujuanItem(x)==="tryout"&&String(x.topik||"Tanpa Topik")===topik);
-          if(latihan.length&&latihan.every(x=>p.soal[x.id])) { if(!p.latihanSelesai.includes(topik))p.latihanSelesai.push(topik); }
-          if(tryout.length&&tryout.every(x=>p.soal[x.id])) { if(!p.tryoutSelesai.includes(topik))p.tryoutSelesai.push(topik); }
+          if(latihan.length&&latihan.every(x=>soal[x.id])) latihanSelesai.push(topik);
+          if(tryout.length&&tryout.every(x=>soal[x.id])) tryoutSelesai.push(topik);
         });
-        simpanProgres(p);
+        return {soal,latihanSelesai,tryoutSelesai};
       }
+      function simpanProgres(){ /* legacy no-op: progress disimpan melalui Supabase */ }
+      function gabungkanProgresDatabase(){ return bacaProgres(); }
       function selesaiItem(x) { return !!bacaProgres().soal[x.id]; }
       function bookmarked(id) { return (dataBelajarAktif.bookmarks||[]).some(x=>x.content_id===id); }
       async function toggleBookmark(event,id) {
