@@ -997,15 +997,14 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         jenjangAktif = p.jenjang || "sd";
         // Status gate: pending / nonaktif / ditolak / expired → halaman pembayaran/info
         const st = String(p.status || "pending");
-        const expired = st === "aktif" && p.berakhir && new Date(p.berakhir).getTime() <= Date.now();
-        if (st !== "aktif" || expired) {
+        // Akses paket V15 ditentukan oleh ownership/RPC, bukan tanggal paket lama pada profil.
+        if (st !== "aktif") {
           document.getElementById("navBtns").innerHTML =
             '<button onclick="bukaProfilPeserta()">Profil Saya</button><button onclick="keluar()">Keluar</button>';
           const txt = document.getElementById("pendingText");
           if (txt) {
             if (st === "ditolak") txt.textContent = "Pendaftaran ditolak. Hubungi admin jika ada pertanyaan.";
             else if (st === "nonaktif") txt.textContent = "Akun dinonaktifkan. Hubungi admin untuk mengaktifkan kembali.";
-            else if (expired) txt.textContent = "Masa aktif paket telah berakhir. Perpanjang paket dan kirim bukti pembayaran ke admin.";
             else txt.textContent = "Akun Anda sudah dapat digunakan. Pilih paket, lakukan pembayaran, lalu kirim bukti kepada admin untuk membuka dashboard belajar.";
           }
           renderPendingPackages(p);
