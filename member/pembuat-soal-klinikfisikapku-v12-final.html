@@ -263,7 +263,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <script src="https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.umd.cjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js"></script></head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js?v=20261003-v12"></script><script src="supabase-publisher-v15.js?v=20261003-v12"></script></head>
 <body><div id="kfV12AuthGate" style="position:fixed;inset:0;z-index:2147483647;background:#f7f1fb;display:grid;place-items:center;font-family:Arial,sans-serif"><div style="max-width:460px;margin:24px;padding:28px;border-radius:20px;background:white;box-shadow:0 18px 60px rgba(74,25,100,.18);text-align:center"><div style="font-size:34px">🔐</div><h2 style="margin:10px 0 6px;color:#381452">Memeriksa Akses Admin</h2><p id="kfV12AuthText" style="margin:0;color:#725f7c;line-height:1.5">Studio V12 hanya dapat digunakan oleh Super Admin yang aktif.</p></div></div>
 <style id="kfV12GateStyle">body > *:not(#kfV12AuthGate):not(#kfV12GateStyle):not(script){visibility:hidden!important}</style>
 <script>
@@ -902,23 +902,53 @@ function reviewPackage(){
  $('reviewPackageModal').classList.add('show');
 }
 
-function savePackageToBank(fromReview=false){
+async function savePackageToBank(fromReview=false){
  if(editorHasContent())saveCurrentToPackage();
  let bad=packageDraft.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
  if(bad.length){reviewPackage();return}
  if(!fromReview){reviewPackage();return}
- let arr=packageBank(),pack={id:'PKG-'+Date.now(),name:($('packageName').value||packageDraft.name||'Paket Soal').trim(),count:packageDraft.questions.length,questions:packageDraft.questions,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+ let arr=packageBank(),now=new Date().toISOString(),pack={
+   id:'PKG-'+Date.now(),
+   name:($('packageName').value||packageDraft.name||'Paket Soal').trim(),
+   kind:'bank_soal',
+   count:packageDraft.questions.length,
+   questions:JSON.parse(JSON.stringify(packageDraft.questions)),
+   duration:0,attempts:1,subscription:'Semua Paket Aktif',
+   createdAt:now,updatedAt:now
+ };
  arr.unshift(pack);setPackageBank(arr);localStorage.removeItem(PACKAGE_DRAFT_KEY);
- alert('Paket "'+pack.name+'" ('+pack.count+' soal) berhasil disimpan ke Bank Soal.');
+ let onlineMsg='';
+ try{
+   if(!window.KFPackagePublisher||typeof window.KFPackagePublisher.publish!=='function') throw new Error('Penghubung Supabase V15 belum tersedia.');
+   await window.KFPackagePublisher.publish(pack);
+   pack.published=true;pack.publishedAt=new Date().toISOString();
+   setPackageBank(packageBank().map(x=>x.id===pack.id?pack:x));
+   onlineMsg='\n\n✓ Juga tersimpan ke Bank Soal Supabase V15.';
+ }catch(e){
+   console.error('[V12 publish]',e);
+   onlineMsg='\n\n⚠ Paket aman tersimpan di browser, tetapi belum masuk Supabase: '+(e?.message||e);
+ }
+ alert('Paket "'+pack.name+'" ('+pack.count+' soal) berhasil disimpan ke Bank Soal.'+onlineMsg);
+}
+async function publishSavedPackage(id){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ try{
+   if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');
+   await window.KFPackagePublisher.publish(p);
+   p.published=true;p.publishedAt=new Date().toISOString();p.updatedAt=p.publishedAt;
+   setPackageBank(packageBank().map(x=>x.id===id?p:x));
+   alert('✓ Paket berhasil dipublikasikan ke Supabase V15.');
+ }catch(e){console.error('[V12 publish]',e);alert('Gagal publish ke Supabase: '+(e?.message||e));}
 }
 function renderPackageBank(){
  let el=$('packageBankList');if(!el)return;let arr=packageBank();
  if($('packageBankStats'))$('packageBankStats').textContent=arr.length+' Paket • '+arr.reduce((n,p)=>n+(p.questions?.length||0),0)+' Soal';
  if(!arr.length){el.innerHTML='<div class="notice">Belum ada paket soal.</div>';return}
  el.innerHTML=arr.map(p=>`<div class="bank-item">
-   <div><b>📦 ${esc(p.name)}</b><div class="small">${p.questions.length} soal</div></div>
+   <div><b>📦 ${esc(p.name)}</b><div class="small">${p.questions.length} soal • ${p.published?'☁️ Supabase':'💾 Lokal'}</div></div>
    <div class="actions">
     <button class="btn sm ok" onclick="startPractice('${p.id}')">▶ Kerjakan</button>
+    <button class="btn sm primary" onclick="publishSavedPackage('${p.id}')">☁️ Publish</button>
     <button class="btn sm" onclick="openSavedPackage('${p.id}')">Buka/Edit</button>
     <button class="btn sm" onclick="showExportMenu('${p.id}','docx')">⬇ DOCX</button>
     <button class="btn sm" onclick="showExportMenu('${p.id}','pdf')">⬇ PDF</button>
