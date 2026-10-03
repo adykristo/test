@@ -688,7 +688,7 @@ table{max-width:100%}
           ◷ Pendaftaran Baru</button
         ><button onclick="openPanel('member', this)">♙ Daftar Member</button
         ><button onclick="openPanel('paket', this);renderPaketBaru()">💳 Paket &amp; Harga</button
-        ><button onclick="openPanel('transaksi', this);renderMetodePembayaran();renderBundleOrders()">🏦 Pembayaran & Aktivasi</button
+        ><button onclick="openPanel('transaksi', this);renderBundleOrders()">➕ Permintaan Paket</button
         ><button onclick="openPanel('laporan', this);muatLaporan()">▥ Laporan</button
         ><button onclick="openPanel('keamanan', this);muatKeamananAdmin()">🛡 Keamanan</button>
         <div class="label">KONTEN BELAJAR</div>
@@ -847,29 +847,11 @@ table{max-width:100%}
   </div>
 </section>
 <section id="transaksi" class="panel">
-  <div class="head"><div><h1>Metode Pembayaran</h1><p class="sub">Tambahkan beberapa rekening, e-wallet, QRIS, atau metode lainnya. Hanya metode aktif yang tampil kepada peserta.</p></div><button class="btn" onclick="bukaFormPembayaran()">+ Tambah Metode</button></div>
-  <div id="paymentMethodFormCard" class="card" style="display:none">
-    <div class="head"><h2 id="paymentFormTitle">Tambah Metode Pembayaran</h2><button class="btn ghost small" onclick="tutupFormPembayaran()">Tutup</button></div>
-    <form class="form" onsubmit="simpanMetodePembayaran(event)">
-      <input id="paymentMethodId" type="hidden">
-      <div><label>Jenis</label><select id="paymentJenis"><option value="bank">Transfer Bank</option><option value="ewallet">E-Wallet</option><option value="qris">QRIS</option><option value="lainnya">Lainnya</option></select></div>
-      <div><label>Nama metode</label><input id="paymentNama" required placeholder="BCA / BRI / DANA / QRIS"></div>
-      <div><label>Nomor rekening / akun</label><input id="paymentNomor" placeholder="Nomor rekening atau nomor e-wallet"></div>
-      <div><label>Nama pemilik</label><input id="paymentPemilik" placeholder="Nama pemilik rekening"></div>
-      <div><label>WhatsApp bukti pembayaran</label><input id="paymentWA" placeholder="62812..."></div>
-      <div><label>Urutan tampil</label><input id="paymentUrutan" type="number" min="0" value="1"></div>
-      <div class="wide"><label>Instruksi pembayaran</label><textarea id="paymentInstruksi" placeholder="Instruksi tambahan untuk peserta"></textarea></div>
-      <div class="wide"><label>URL gambar QRIS (opsional)</label><input id="paymentQR" placeholder="https://..."></div>
-      <div class="wide"><button class="btn">Simpan Metode Pembayaran</button></div>
-    </form>
-  </div>
+  <h1>Permintaan Paket</h1>
+  <p class="sub">Untuk peserta yang sudah aktif dan ingin membeli paket tambahan. Peserta tidak perlu mendaftar ulang.</p>
   <div class="card">
-    <div class="head"><div><h2>Verifikasi Pembayaran & Aktivasi Paket</h2><p class="sub" style="margin:4px 0 0">Peserta memilih paket terlebih dahulu. Admin cukup memverifikasi pembayaran; paket yang dibayar akan diaktifkan otomatis.</p></div><button class="btn ghost small" onclick="renderBundleOrders()">↻ Muat Ulang</button></div>
-    <div id="bundleOrdersAdmin" class="manage-list"><div class="sub">Memuat transaksi…</div></div>
-  </div>
-  <div class="card">
-    <div class="head"><div><h2>Metode Tersimpan</h2><p class="sub" style="margin:4px 0 0">Aktif/nonaktifkan tanpa menghapus riwayat transaksi.</p></div><button class="btn ghost small" onclick="renderMetodePembayaran()">↻ Muat Ulang</button></div>
-    <div id="paymentMethodsList" class="manage-list"><div class="sub">Memuat metode pembayaran…</div></div>
+    <div class="head"><div><h2>Menunggu Aktivasi Paket Tambahan</h2><p class="sub" style="margin:4px 0 0">Peserta memilih paket dari akun lama. Admin mengaktifkan permintaan paket yang dipilih; paket sebelumnya tetap tersimpan.</p></div><button class="btn ghost small" onclick="renderBundleOrders()">↻ Muat Ulang</button></div>
+    <div id="bundleOrdersAdmin" class="manage-list"><div class="sub">Memuat permintaan…</div></div>
   </div>
 </section>
 <section id="laporan" class="panel">
@@ -2325,8 +2307,31 @@ async function tambahAturanDiskon(){const a=Number(prompt("Minimal paket:","2"))
 async function editAturanDiskon(id){const q=await kfdb().from("member_discount_rules").select("*").eq("id",id).single();if(q.error)return alert(q.error.message);const r=q.data,a=Number(prompt("Minimal paket:",r.min_packages));if(!a)return;const z=prompt("Maksimal paket (kosong = tanpa batas):",r.max_packages??"");if(z===null)return;const d=Number(prompt("Diskon (%):",r.discount_percent));if(d<0||d>100||Number.isNaN(d))return;const l=prompt("Label:",r.label||"");if(l===null)return;const u=await kfdb().from("member_discount_rules").update({min_packages:a,max_packages:z.trim()===""?null:Number(z),discount_percent:d,label:l}).eq("id",id);if(u.error)return alert(u.error.message);renderDiscountRules()}
 async function toggleAturanDiskon(id,v){const q=await kfdb().from("member_discount_rules").update({active:v}).eq("id",id);if(q.error)return alert(q.error.message);renderDiscountRules()}
 async function hapusAturanDiskon(id){if(!confirm("Hapus aturan diskon?"))return;const q=await kfdb().from("member_discount_rules").delete().eq("id",id);if(q.error)return alert(q.error.message);renderDiscountRules()}
-async function renderBundleOrders(){const b=document.getElementById("bundleOrdersAdmin");if(!b)return;try{const q=await kfdb().from("member_bundle_orders").select("*").order("created_at",{ascending:false}).limit(100);if(q.error)throw q.error;const os=q.data||[],ids=os.map(o=>o.id);let it=[];if(ids.length){const x=await kfdb().from("member_bundle_order_items").select("*").in("order_id",ids);if(x.error)throw x.error;it=x.data||[]}b.innerHTML=os.map(o=>{const n=it.filter(i=>i.order_id===o.id).map(i=>i.package_name).join(", ");const uid=String(o.user_id||o.member_id||"");const m=MEMBER_CACHE.find(x=>String(x.id)===uid);const who=m?(m.nama+" · "+(m.email||"")):(o.email||"Peserta");return `<div class="bundle-order-row"><div><b>${escMember(who)}</b><p class="sub">${escMember(o.jenjang)} · ${o.package_count} paket · ${moneyID(o.total_amount)}<br>${escMember(n||"Nama paket belum tersedia")}<br>Subtotal ${moneyID(o.subtotal)} · Diskon ${Number(o.discount_percent||0)}% · Status ${escMember(o.status)}</p></div><div>${o.status==="pending"?`<button class="btn small" onclick="approveBundleOrder('${o.id}',${o.package_count})">✓ Verifikasi & Aktifkan ${o.package_count} Paket</button>`:"✓ "+escMember(o.status)}</div></div>`}).join("")||'<div class="sub">Belum ada transaksi.</div>'}catch(e){b.innerHTML='<div class="sub">'+escMember(e.message)+'</div>'}}
-async function approveBundleOrder(id,c){if(!confirm("Pastikan pembayaran sudah benar.\n\nAktifkan seluruh "+c+" paket?"))return;const n=prompt("Catatan Admin:","Pembayaran telah diverifikasi");if(n===null)return;const q=await kfdb().rpc("kf_admin_approve_bundle_order",{p_order:id,p_note:n});if(q.error)return alert(q.error.message);alert("✓ "+c+" paket aktif.");await renderBundleOrders();await renderMemberAdmin()}
+async function renderBundleOrders(){
+ const b=document.getElementById("bundleOrdersAdmin");if(!b)return;
+ try{
+  if(!MEMBER_CACHE.length){try{const res=await adminApi("adminListMember",{});MEMBER_CACHE=res.data||[]}catch(_){}}
+  const q=await kfdb().from("member_bundle_orders").select("*").order("created_at",{ascending:false}).limit(100);if(q.error)throw q.error;
+  const all=q.data||[],os=all.filter(o=>String(o.status||"").toLowerCase()==="pending"),ids=os.map(o=>o.id);let it=[];
+  if(ids.length){const x=await kfdb().from("member_bundle_order_items").select("*").in("order_id",ids);if(x.error)throw x.error;it=x.data||[]}
+  b.innerHTML=os.map(o=>{
+   const names=it.filter(i=>i.order_id===o.id).map(i=>i.package_name).filter(Boolean);
+   const uid=String(o.user_id||o.member_id||""),m=MEMBER_CACHE.find(x=>String(x.id)===uid);
+   const who=m?(m.nama+" · "+(m.email||"")):(o.email||"Peserta");
+   const aktif=m&&String(m.status||"").toLowerCase()==="aktif";
+   return `<div class="bundle-order-row"><div><b>${escMember(who)}</b><p class="sub">${aktif?'<span class="tag">Member aktif · pembelian tambahan</span><br>':'<span class="tag">Pendaftaran baru</span><br>'}${escMember(String(o.jenjang||"").toUpperCase())} · ${Number(o.package_count||names.length)} paket · ${moneyID(o.total_amount||0)}<br>${escMember(names.join(", ")||"Nama paket belum tersedia")}</p></div><div><button class="btn small" onclick="approveBundleOrder('${o.id}',${Number(o.package_count||names.length)},'${uid}')">✓ Aktifkan ${Number(o.package_count||names.length)} Paket</button></div></div>`;
+  }).join("")||'<div class="sub">Tidak ada permintaan paket yang menunggu aktivasi.</div>';
+ }catch(e){b.innerHTML='<div class="sub">'+escMember(e.message)+'</div>'}
+}
+async function approveBundleOrder(id,c,uid){
+ const m=MEMBER_CACHE.find(x=>String(x.id)===String(uid));
+ const tambahan=m&&String(m.status||"").toLowerCase()==="aktif";
+ if(!confirm((tambahan?"AKTIFKAN PAKET TAMBAHAN":"AKTIFKAN PAKET")+(m?"\n\nPeserta: "+m.nama:"")+"\nJumlah: "+c+" paket\n\nPaket lama tidak akan dihapus. Lanjutkan?"))return;
+ const n=prompt("Catatan Admin:",tambahan?"Paket tambahan diaktifkan oleh Admin":"Paket diaktifkan oleh Admin");if(n===null)return;
+ const q=await kfdb().rpc("kf_admin_approve_bundle_order",{p_order:id,p_note:n});if(q.error)return alert(q.error.message);
+ alert("✓ "+c+" paket berhasil diaktifkan"+(tambahan?" sebagai paket tambahan. Paket lama tetap tersimpan.":"."));
+ await renderBundleOrders();await renderMemberAdmin();
+}
 window.addEventListener("load",()=>setTimeout(()=>{renderDiscountRules();renderBundleOrders()},1400));
 </script>
 <script>
