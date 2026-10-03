@@ -9,6 +9,13 @@
 .exercise-modes{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid #eee}.exercise-modes.hidden{display:none!important}
 
 .locked-mode #modePanel{margin-top:0}.locked-mode .wrap{padding-top:4px}
+
+.editor-dialog{width:min(880px,94vw);max-height:92vh;border:0;border-radius:22px;padding:0;overflow:hidden;background:#f8f6fb;box-shadow:0 28px 90px #24102f55}.editor-dialog::backdrop{background:#1d0c278c;backdrop-filter:blur(2px)}
+.editor-head{display:grid;grid-template-columns:52px 1fr 38px;gap:12px;align-items:center;padding:18px 22px;background:linear-gradient(110deg,#5f1c94,#9d2cc2 58%,#ed3d9b);color:#fff}.editor-head b{display:block;font-size:19px;letter-spacing:-.2px}.editor-head small{display:block;margin-top:4px;opacity:.88}.editor-icon{width:48px;height:48px;display:grid;place-items:center;background:#ffffff20;border:1px solid #ffffff35;border-radius:14px;font-size:23px}.editor-close{width:36px;height:36px;border:0;border-radius:11px;background:#fff;color:#74229f;font-size:21px;font-weight:700;cursor:pointer}
+.editor-body{padding:18px 20px;overflow:auto;max-height:calc(92vh - 150px)}.editor-section{background:#fff;border:1px solid #eadff1;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 3px 12px #4b176408}.editor-section.compact{margin-bottom:0}.editor-section-title{display:flex;align-items:center;gap:10px;margin-bottom:14px}.editor-section-title>span{width:28px;height:28px;border-radius:9px;background:#f0e4f8;color:#7222a4;font-weight:800;display:grid;place-items:center}.editor-section-title b{display:block;color:#30143f;font-size:14px}.editor-section-title small{display:block;color:#8a7894;margin-top:2px;font-size:11px}
+.editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.editor-grid.three{grid-template-columns:140px minmax(190px,1fr) minmax(190px,1fr)}.editor-grid label{display:block}.editor-grid label>span{display:block;font-size:11px;font-weight:800;color:#604c6b;margin:0 0 6px 2px}.editor-grid input,.editor-grid select,.editor-grid textarea{width:100%;border:1px solid #ddcde7;background:#fff;border-radius:11px;padding:11px 12px;outline:0;transition:.15s}.editor-grid input:focus,.editor-grid select:focus,.editor-grid textarea:focus{border-color:#9b45c9;box-shadow:0 0 0 3px #9b45c916}.editor-grid .full{grid-column:1/-1}.field-help{display:block;color:#95849f;margin:5px 2px 0;font-size:10px}
+.editor-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 20px;background:#fff;border-top:1px solid #e9deef}.editor-foot>div:last-child{display:flex;gap:8px}.save-note{font-size:11px;color:#8a7894}.save-main{min-width:170px}
+@media(max-width:700px){.editor-dialog{width:96vw}.editor-body{padding:12px}.editor-grid,.editor-grid.three{grid-template-columns:1fr}.editor-grid .full{grid-column:auto}.editor-foot{align-items:stretch;flex-direction:column}.editor-foot>div:last-child{display:grid;grid-template-columns:1fr 1fr}.save-main{min-width:0}}
 </style></head><body>
 <header class="top"><h1>Admin Konten V2 · KlinikFisikapku</h1><a href="admin.html">← Admin Utama</a></header>
 <main class="wrap">
@@ -18,16 +25,24 @@
  <section class="panel" id="modePanel"><div id="modeInfo"></div><div id="exerciseModes" class="exercise-modes hidden"><button type="button" class="btn primary" data-exmode="pdf">📄 Latihan PDF</button><button type="button" class="btn" data-exmode="interactive">⚡ Latihan Interaktif / Bank Soal V12</button></div></section>
  <section class="panel"><div class="filters"><select id="level"><option value="">Semua jenjang</option><option>SD</option><option>SMP</option><option>SMA</option></select><select id="pkg"><option value="">Semua paket</option><option value="__unmapped">Belum dipetakan</option></select><input id="search" placeholder="Cari judul atau topik…"><button class="btn primary" id="add">+ Tambah</button></div><div class="summary" id="summary"></div><div id="list"></div></section>
 </div></main>
-<dialog id="editDlg"><div class="dh"><b id="editTitle">Konten</b><button class="btn" onclick="editDlg.close()">×</button></div><div class="db"><div class="form">
-<label>Jenjang</label><select id="eLevel"><option>SD</option><option>SMP</option><option>SMA</option></select>
-<label>Paket tujuan</label><select id="ePackage"><option value="">Pilih paket…</option></select>
-<label>Topik</label><input id="eTopic"><label>Judul</label><input id="eTitle">
-<div id="sourceTypeRow" style="display:contents"><label>Sumber latihan</label><select id="eSourceType"><option value="pdf">PDF manual</option><option value="interactive">Interaktif / Bank Soal V12</option></select></div>
-<div id="bankRow" style="display:none"><label>ID/Set Bank Soal V12</label><input id="eBankSet" placeholder="ID set soal dari Pembuat Soal V12"></div>
-<div id="urlRow" style="display:contents"><label id="urlLabel">URL</label><input id="eUrl"></div>
-<div id="questionRow" style="display:contents"><label>Teks soal</label><textarea id="eQuestion" rows="5"></textarea><label>Kunci/Pedoman</label><input id="eKey"><label>Pembahasan</label><textarea id="eExplain" rows="5"></textarea></div>
-<label>Status</label><select id="eVisible"><option value="true">Tampil</option><option value="false">Disembunyikan</option></select>
-</div></div><div class="df"><button class="btn" onclick="editDlg.close()">Batal</button><button class="btn primary" id="saveEdit">Simpan</button></div></dialog>
+<dialog id="editDlg" class="editor-dialog">
+ <div class="editor-head"><div class="editor-icon" id="editIcon">📘</div><div><b id="editTitle">Konten</b><small id="editSubtitle">Lengkapi informasi bahan belajar</small></div><button type="button" class="editor-close" onclick="editDlg.close()">×</button></div>
+ <div class="editor-body">
+  <div class="editor-section"><div class="editor-section-title"><span>1</span><div><b>Penempatan Materi</b><small>Tentukan jenjang, paket, dan topik bahan belajar.</small></div></div>
+   <div class="editor-grid three"><label><span>Jenjang</span><select id="eLevel"><option>SD</option><option>SMP</option><option>SMA</option></select></label><label><span>Paket tujuan</span><select id="ePackage"><option value="">Pilih paket…</option></select></label><label><span>Topik / Materi</span><input id="eTopic" placeholder="Contoh: Kinematika"></label></div>
+  </div>
+  <div class="editor-section"><div class="editor-section-title"><span>2</span><div><b>Informasi Konten</b><small>Beri nama yang jelas agar mudah dicari dan dikelola.</small></div></div>
+   <div class="editor-grid"><label class="full"><span>Judul bahan belajar</span><input id="eTitle" placeholder="Masukkan judul bahan belajar"></label>
+   <div id="sourceTypeRow" style="display:none"><label><span>Sumber latihan</span><select id="eSourceType"><option value="pdf">PDF manual</option><option value="interactive">Interaktif / Bank Soal V12</option></select></label></div>
+   <div id="urlRow" style="display:contents"><label class="full"><span id="urlLabel">URL</span><input id="eUrl" placeholder="Tempel URL di sini…"><small class="field-help" id="urlHelp">Pastikan tautan dapat diakses peserta.</small></label></div>
+   <div id="bankRow" style="display:none"><label class="full"><span>Set Bank Soal V12</span><input id="eBankSet" placeholder="Masukkan ID set soal dari Pembuat Soal V12"><small class="field-help">Set soal ini akan digunakan untuk latihan/tryout interaktif.</small></label></div>
+   <div id="questionRow" style="display:none"><label class="full"><span>Teks soal</span><textarea id="eQuestion" rows="5"></textarea></label><label><span>Kunci/Pedoman</span><input id="eKey"></label><label class="full"><span>Pembahasan</span><textarea id="eExplain" rows="5"></textarea></label></div>
+   </div>
+  </div>
+  <div class="editor-section compact"><div class="editor-section-title"><span>3</span><div><b>Publikasi</b><small>Atur apakah bahan langsung terlihat oleh peserta.</small></div></div><div class="editor-grid"><label><span>Status konten</span><select id="eVisible"><option value="true">● Tampil</option><option value="false">○ Disembunyikan</option></select></label></div></div>
+ </div>
+ <div class="editor-foot"><div class="save-note">Perubahan disimpan ke Supabase</div><div><button class="btn" type="button" onclick="editDlg.close()">Batal</button><button class="btn primary save-main" type="button" id="saveEdit">Simpan Bahan Belajar</button></div></div>
+</dialog>
 <dialog id="pkgDlg"><div class="dh"><b id="pkgTitle">Pemetaan Paket</b><button class="btn" onclick="pkgDlg.close()">×</button></div><div class="db"><div id="pkgChoices" class="pkggrid"></div></div><div class="df"><button class="btn" onclick="pkgDlg.close()">Batal</button><button class="btn primary" id="savePkg">Simpan Pemetaan</button></div></dialog>
 <dialog id="prevDlg"><div class="dh"><b id="prevTitle">Preview</b><button class="btn" onclick="prevDlg.close()">×</button></div><div class="db preview" id="prevBody"></div><div class="df"><button class="btn" onclick="prevDlg.close()">Tutup</button></div></dialog>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js"></script><script src="supabase-admin.js?v=20261003-v2"></script>
@@ -73,7 +88,10 @@ function syncSourceFields(){
 }
 function openEdit(x){
  editing=x||null;const k=x?(x.tujuan==="tryout"?"tryout":x.jenis):kind,d=x?parseData(x):{},mapped=x?idsFor(x.id):[];
- $("editTitle").textContent=(x?"Ubah ":"Tambah ")+kindName(k);$("eLevel").value=x?.jenjang||$("level").value||"SMA";fillEditPackages(mapped[0]||"");
+ $("editTitle").textContent=(x?"Ubah ":"Tambah ")+kindName(k);
+ const visual={pdf:["📘","Modul PDF","Tambahkan modul terstruktur untuk paket belajar."],soal:["✍️","Soal Latihan","Kelola latihan PDF atau latihan interaktif."],video:["🎥","Video Pembahasan","Tambahkan video pembahasan untuk peserta."],tryout:["🏆","Tryout Mingguan","Hubungkan paket dengan set soal Bank Soal V12."]}[k]||["📚","Bahan Belajar","Lengkapi informasi bahan belajar."];
+ $("editIcon").textContent=visual[0];$("editSubtitle").textContent=visual[2];$("urlHelp").textContent=k==="video"?"Gunakan URL YouTube/video yang dapat diputar peserta.":"Gunakan URL PDF yang dapat diakses peserta.";
+ $("eLevel").value=x?.jenjang||$("level").value||"SMA";fillEditPackages(mapped[0]||"");
  $("eTopic").value=x?.topik||"";$("eTitle").value=x?.judul||"";$("eVisible").value=String(x?.visible!==false);
  $("eSourceType").value=x?(d.source_type||((d.bank_set_id||d.qset_id)?"interactive":"pdf")):(k==="soal"?exerciseMode:"pdf");$("eBankSet").value=d.bank_set_id||d.qset_id||"";
  $("eUrl").value=k==="video"?(d.youtube||d.video_url||d.url||""):(d.pdfUrl||d.pdf_url||d.url||"");
