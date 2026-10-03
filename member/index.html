@@ -1142,7 +1142,6 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           ? "none"
           : "block";
         renderTryoutMingguan();
-        kfRenderPackageBoxes();
       }
 
       function renderTryoutMingguan() {
@@ -1153,11 +1152,9 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           box.className = "card";
           document.getElementById("list").parentNode.appendChild(box);
         }
-        const list = dataMateri.filter(
-          (x) =>
-            x.visible !== false &&
-            (tujuanItem(x) === "tryout" || x.jenis === "tryout"),
-        );
+        // Tryout interaktif V15 dirender hanya dari RPC kf_list_available_packages.
+        // Konten tryout lama tidak boleh menjadi jalur alternatif yang dapat dibuka langsung.
+        const list = [];
         box.innerHTML =
           '<h2 style="margin-top:0">🏆 Tryout Mingguan</h2><p style="color:#5b4374">Tryout hanya dapat diakses setelah diaktifkan oleh Admin.</p>' +
           (list.length
@@ -1178,11 +1175,12 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
 
       function bukaDetail(i) {
         const x = dataMateri[i];
-        if (
-          x.jenis !== "tryout" &&
-          tujuanItem(x) !== "tryout" &&
-          !bolehBuka(x)
-        ) {
+        if (!x) return;
+        if (x.jenis === "tryout" || tujuanItem(x) === "tryout") {
+          alert("Tryout dibuka dari bagian Paket Latihan & Tryout setelah diaktifkan Admin.");
+          return;
+        }
+        if (!bolehBuka(x)) {
           alert("🔒 Selesaikan latihan topik sebelumnya terlebih dahulu.");
           return;
         }
@@ -1379,7 +1377,15 @@ function kfRenderServerPackageBoxes(){
 }
 async function kfStartServerPackage(packageId){
  try{
-  const p=KF_SERVER_PACKAGES.find(x=>x.id===packageId),a=await KFPackageDB.startAttempt(packageId),qs=await KFPackageDB.questions(a.attempt_id);
+  // Jangan percaya ID dari onclick/console. Paket harus ada pada daftar server
+  // yang sudah difilter berdasarkan kepemilikan, jadwal, visible, dan attempt.
+  const p=KF_SERVER_PACKAGES.find(x=>String(x.id)===String(packageId));
+  if(!p) throw new Error("Paket tidak tersedia untuk akun ini.");
+  const now=Date.now(),start=p.starts_at?new Date(p.starts_at).getTime():0,end=p.ends_at?new Date(p.ends_at).getTime():0;
+  if(start&&now<start) throw new Error("Paket belum dimulai.");
+  if(end&&now>end) throw new Error("Paket sudah berakhir.");
+  if(p.kind==="tryout"&&Number(p.attempts_used)>=Number(p.max_attempts)) throw new Error("Percobaan Tryout sudah habis.");
+  const a=await KFPackageDB.startAttempt(p.id),qs=await KFPackageDB.questions(a.attempt_id);
   kfRun={server:true,attemptId:a.attempt_id,kind:p.kind,name:p.name,questions:(qs||[]).map(q=>({id:q.id,tipe:q.type,topik:q.topic,soal:q.question,gambar:q.image,opsi:q.options||[],statements:q.statements||[],category_labels:q.category_labels||[]})),index:0,answers:{},startedAt:Date.now(),deadline:a.deadline_at?new Date(a.deadline_at).getTime():0,attempt:a.attempt_no};
   kfRenderRunner();buka("paketRunner");if(kfRun.deadline)kfStartTimer();
  }catch(e){alert("Tidak dapat memulai: "+e.message);await kfLoadServerPackages()}
