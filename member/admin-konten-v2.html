@@ -16,6 +16,8 @@
 .editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.editor-grid.three{grid-template-columns:140px minmax(190px,1fr) minmax(190px,1fr)}.editor-grid label{display:block}.editor-grid label>span{display:block;font-size:11px;font-weight:800;color:#604c6b;margin:0 0 6px 2px}.editor-grid input,.editor-grid select,.editor-grid textarea{width:100%;border:1px solid #ddcde7;background:#fff;border-radius:11px;padding:11px 12px;outline:0;transition:.15s}.editor-grid input:focus,.editor-grid select:focus,.editor-grid textarea:focus{border-color:#9b45c9;box-shadow:0 0 0 3px #9b45c916}.editor-grid .full{grid-column:1/-1}.field-help{display:block;color:#95849f;margin:5px 2px 0;font-size:10px}
 .editor-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 20px;background:#fff;border-top:1px solid #e9deef}.editor-foot>div:last-child{display:flex;gap:8px}.save-note{font-size:11px;color:#8a7894}.save-main{min-width:170px}
 @media(max-width:700px){.editor-dialog{width:96vw}.editor-body{padding:12px}.editor-grid,.editor-grid.three{grid-template-columns:1fr}.editor-grid .full{grid-column:auto}.editor-foot{align-items:stretch;flex-direction:column}.editor-foot>div:last-child{display:grid;grid-template-columns:1fr 1fr}.save-main{min-width:0}}
+
+.upload-box{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 14px;border:1px dashed #cda9df;border-radius:12px;background:#fbf7fd}.upload-box>div:first-child{flex:1;min-width:230px}.upload-box b{display:block;color:#4d2860;font-size:12px}.upload-box small{display:block;color:#8d7898;margin-top:3px}.upload-btn{cursor:pointer;padding:9px 13px;border-radius:9px;background:#f0e3f8;color:#6f209f;font-weight:800}.upload-state{width:100%;font-size:11px;color:#6f5b7a}
 </style></head><body>
 <header class="top"><h1>Admin Konten V2 · KlinikFisikapku</h1><a href="admin.html">← Admin Utama</a></header>
 <main class="wrap">
@@ -34,7 +36,7 @@
   <div class="editor-section"><div class="editor-section-title"><span>2</span><div><b>Informasi Konten</b><small>Beri nama yang jelas agar mudah dicari dan dikelola.</small></div></div>
    <div class="editor-grid"><label class="full"><span>Judul bahan belajar</span><input id="eTitle" placeholder="Masukkan judul bahan belajar"></label>
    <div id="sourceTypeRow" style="display:none"><label><span>Sumber latihan</span><select id="eSourceType"><option value="pdf">PDF manual</option><option value="interactive">Interaktif / Bank Soal V12</option></select></label></div>
-   <div id="urlRow" style="display:contents"><label class="full"><span id="urlLabel">URL</span><input id="eUrl" placeholder="Tempel URL di sini…"><small class="field-help" id="urlHelp">Pastikan tautan dapat diakses peserta.</small></label></div>
+   <div id="urlRow" style="display:contents"><label class="full"><span id="urlLabel">URL</span><input id="eUrl" placeholder="Tempel URL di sini…"><small class="field-help" id="urlHelp">Pastikan tautan dapat diakses peserta.</small></label><div id="uploadRow" class="full upload-box"><div><b>atau Upload File PDF</b><small>Pilih PDF dari komputer. File akan diunggah ke Supabase Storage dan URL terisi otomatis.</small></div><label class="upload-btn">⬆ Pilih PDF<input id="eFile" type="file" accept="application/pdf,.pdf" hidden></label><div id="uploadState" class="upload-state"></div></div></div>
    <div id="bankRow" style="display:none"><label class="full"><span>Set Bank Soal V12</span><input id="eBankSet" placeholder="Masukkan ID set soal dari Pembuat Soal V12"><small class="field-help">Set soal ini akan digunakan untuk latihan/tryout interaktif.</small></label></div>
    <div id="questionRow" style="display:none"><label class="full"><span>Teks soal</span><textarea id="eQuestion" rows="5"></textarea></label><label><span>Kunci/Pedoman</span><input id="eKey"></label><label class="full"><span>Pembahasan</span><textarea id="eExplain" rows="5"></textarea></label></div>
    </div>
@@ -84,7 +86,7 @@ function syncSourceFields(){
  $("bankRow").style.display=(k==="tryout"||(k==="soal"&&st==="interactive"))?"contents":"none";
  $("urlRow").style.display=(k==="pdf"||k==="video"||(k==="soal"&&st==="pdf"))?"contents":"none";
  $("questionRow").style.display="none";
- $("urlLabel").textContent=k==="video"?"URL Video / YouTube":"URL PDF";
+ $("urlLabel").textContent=k==="video"?"URL Video / YouTube":"URL PDF";const ur=$("uploadRow");if(ur)ur.style.display=(k==="pdf"||(k==="soal"&&st==="pdf"))?"flex":"none";
 }
 function openEdit(x){
  editing=x||null;const k=x?(x.tujuan==="tryout"?"tryout":x.jenis):kind,d=x?parseData(x):{},mapped=x?idsFor(x.id):[];
@@ -94,15 +96,32 @@ function openEdit(x){
  $("eLevel").value=x?.jenjang||$("level").value||"SMA";fillEditPackages(mapped[0]||"");
  $("eTopic").value=x?.topik||"";$("eTitle").value=x?.judul||"";$("eVisible").value=String(x?.visible!==false);
  $("eSourceType").value=x?(d.source_type||((d.bank_set_id||d.qset_id)?"interactive":"pdf")):(k==="soal"?exerciseMode:"pdf");$("eBankSet").value=d.bank_set_id||d.qset_id||"";
- $("eUrl").value=k==="video"?(d.youtube||d.video_url||d.url||""):(d.pdfUrl||d.pdf_url||d.url||"");
+ $("eUrl").value=k==="video"?(d.youtube||d.video_url||d.url||""):(d.pdfUrl||d.pdf_url||d.url||"");if($("eFile"))$("eFile").value="";if($("uploadState"))$("uploadState").textContent="";
  syncSourceFields();editDlg.showModal()
+}
+async function uploadPdfIfSelected(){
+ const file=$("eFile")?.files?.[0];if(!file)return $("eUrl").value.trim();
+ if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf"))throw new Error("File harus berformat PDF.");
+ if(file.size>25*1024*1024)throw new Error("Ukuran PDF maksimal 25 MB.");
+ const st=$("uploadState");st.textContent="Mengunggah "+file.name+"…";
+ const safe=file.name.replace(/[^a-zA-Z0-9._-]+/g,"-"),path="learning/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safe;
+ let bucket="member-content";
+ let up=await DB.storage.from(bucket).upload(path,file,{contentType:"application/pdf",upsert:false});
+ if(up.error){
+   bucket="content";
+   up=await DB.storage.from(bucket).upload(path,file,{contentType:"application/pdf",upsert:false});
+ }
+ if(up.error){st.textContent="Upload gagal.";throw new Error("Upload PDF gagal: "+up.error.message+" (pastikan bucket Storage member-content atau content tersedia dan admin memiliki izin upload).")}
+ const pub=DB.storage.from(bucket).getPublicUrl(path);const url=pub?.data?.publicUrl||"";
+ if(!url)throw new Error("URL file tidak berhasil dibuat.");
+ $("eUrl").value=url;st.textContent="✓ "+file.name+" berhasil diunggah.";return url
 }
 async function saveEdit(){
  const old=editing,d=old?parseData(old):{},k=old?(old.tujuan==="tryout"?"tryout":old.jenis):kind,pid=$("ePackage").value;
  if(!pid)return alert("Pilih paket tujuan.");
- if(k==="pdf"){d.pdfUrl=$("eUrl").value.trim();d.source_type="pdf"}
+ if(k==="pdf"){d.pdfUrl=await uploadPdfIfSelected();d.source_type="pdf";if(!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}
  if(k==="video"){d.youtube=$("eUrl").value.trim();d.source_type="video"}
- if(k==="soal"){d.source_type=$("eSourceType").value;if(d.source_type==="pdf")d.pdfUrl=$("eUrl").value.trim();else d.bank_set_id=$("eBankSet").value.trim()}
+ if(k==="soal"){d.source_type=$("eSourceType").value;if(d.source_type==="pdf"){d.pdfUrl=await uploadPdfIfSelected();if(!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}else d.bank_set_id=$("eBankSet").value.trim()}
  if(k==="tryout"){d.source_type="interactive";d.bank_set_id=$("eBankSet").value.trim();if(!d.bank_set_id)return alert("Masukkan ID/Set Bank Soal V12 untuk Tryout.")}
  d.learning_stage=d.learning_stage||1;
  const row={jenjang:$("eLevel").value,jenis:k==="tryout"?"tryout":k,tujuan:k==="tryout"?"tryout":k==="soal"?"latihan":k,topik:$("eTopic").value.trim(),judul:$("eTitle").value.trim(),visible:$("eVisible").value==="true",data:d};
@@ -130,7 +149,7 @@ async function openPkg(x){mapping=x;const current=new Set(idsFor(x.id)),j=String
 async function savePkg(){if(!mapping)return;const ids=[...document.querySelectorAll("#pkgChoices input:checked")].map(x=>x.value);const d=await DB.from("member_content_packages").delete().eq("content_id",mapping.id);if(d.error)return alert("Gagal: "+d.error.message);if(ids.length){const r=await DB.from("member_content_packages").insert(ids.map(package_id=>({content_id:mapping.id,package_id})));if(r.error)return alert("Gagal: "+r.error.message)}pkgDlg.close();await load()}
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const x=item(b.dataset.id);if(!x)return alert("Konten tidak ditemukan.");const a=b.dataset.a;if(a==="preview")preview(x);if(a==="package")openPkg(x);if(a==="edit")openEdit(x);if(a==="toggle"){const r=await DB.from("member_content").update({visible:x.visible===false}).eq("id",x.id);if(r.error)alert(r.error.message);else load()}if(a==="delete"&&confirm('Hapus "'+x.judul+'"?')){const r=await DB.from("member_content").delete().eq("id",x.id);if(r.error)alert(r.error.message);else load()}});
 document.querySelectorAll("[data-exmode]").forEach(b=>b.onclick=()=>{exerciseMode=b.dataset.exmode;updateModeInfo();render()});
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));b.classList.add("on");kind=b.dataset.kind;updateModeInfo();render()});$("level").onchange=()=>{fillPackages();render()};$("pkg").onchange=render;$("search").oninput=render;$("add").onclick=()=>openEdit(null);$("saveEdit").onclick=saveEdit;$("savePkg").onclick=savePkg;$("eLevel").onchange=()=>fillEditPackages("");$("eSourceType").onchange=syncSourceFields;
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));b.classList.add("on");kind=b.dataset.kind;updateModeInfo();render()});$("level").onchange=()=>{fillPackages();render()};$("pkg").onchange=render;$("search").oninput=render;$("add").onclick=()=>openEdit(null);$("saveEdit").onclick=saveEdit;$("savePkg").onclick=savePkg;$("eLevel").onchange=()=>fillEditPackages("");$("eSourceType").onchange=syncSourceFields;$("eFile").onchange=()=>{const f=$("eFile").files[0];$("uploadState").textContent=f?"Dipilih: "+f.name:""};
 (async()=>{try{
  const qs=new URLSearchParams(location.search),embed=qs.get("embed")==="1",locked=qs.get("locked")==="1",requested=qs.get("kind");
  if(embed){document.querySelector(".top").style.display="none";document.body.style.background="#fff"}
