@@ -1026,10 +1026,13 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           '<div class="empty">Memuat materi…</div>';
         buka("dash");
         try {
-          const ownedRes = window.KFMemberAuth && window.KFMemberAuth.paketSaya
-            ? await window.KFMemberAuth.paketSaya()
+          // Katalog penuh dipakai untuk menerjemahkan package_id konten ke nama paket.
+          const catalogRes = window.KFMemberAuth && window.KFMemberAuth.listPaket
+            ? await window.KFMemberAuth.listPaket()
             : {ok:true,data:[]};
-          window.KF_OWNED_PACKAGES = ownedRes.data || [];
+          window.KF_PACKAGE_CATALOG = catalogRes.data || [];
+          window.PAKET_CACHE = window.KF_PACKAGE_CATALOG;
+          window.KF_OWNED_PACKAGES = window.KF_PACKAGE_CATALOG.filter(x=>x && x.owned);
           const ownedNames = window.KF_OWNED_PACKAGES.map(x=>x.nama).filter(Boolean);
           document.getElementById("sub").textContent =
             "Materi jenjang " + jenjangAktif.toUpperCase() + " · " +
@@ -1244,11 +1247,15 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
       }
 
       function paketNamaKonten(x){
-        const pid=String(x&&x.package_id||x&&x.packageId||"");
+        const pid=String(x&&x.package_id||x&&x.packageId||"").trim();
         const direct=String(x&&x.package_name||x&&x.package||"").trim();
         if(direct)return direct;
-        const p=(window.KF_OWNED_PACKAGES||[]).find(v=>String(v.id)===pid);
-        return p&&p.nama?p.nama:"";
+        if(!pid)return "";
+        const catalog=window.KF_PACKAGE_CATALOG||window.PAKET_CACHE||[];
+        const p=catalog.find(v=>String(v&&v.id||"")===pid);
+        if(p&&p.nama)return p.nama;
+        const owned=(window.KF_OWNED_PACKAGES||[]).find(v=>String(v&&v.id||"")===pid);
+        return owned&&owned.nama?owned.nama:"";
       }
       function topikDiPaketSaya(x){
         const topics=window.KF_OWNED_TOPICS||[];
