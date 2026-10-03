@@ -688,6 +688,8 @@
 .bulk-map-bar{margin:0 0 16px;padding:15px;border:1px solid #dfc9f2;border-radius:15px;background:linear-gradient(135deg,#fbf6ff,#fff);display:grid;gap:10px}.bulk-map-bar p{margin:4px 0 0;color:#735d82;font-size:12px}.bulk-map-controls{display:flex;gap:8px;flex-wrap:wrap}.bulk-map-controls select{flex:1 1 260px;min-height:38px}.content-map-select{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:9px;background:#f4ebfb;color:#5b2185;font-size:11px;font-weight:800;cursor:pointer}.content-map-select input{width:15px;height:15px}@media(max-width:700px){.bulk-map-controls>*{width:100%}}
 
 .bulk-filter-row{display:grid;grid-template-columns:160px 1fr 1.2fr;gap:8px}.bulk-filter-row select,.bulk-filter-row input{min-height:38px;border:1px solid #ddc7ef;border-radius:10px;padding:7px 10px;background:#fff}@media(max-width:760px){.bulk-filter-row{grid-template-columns:1fr}}
+
+.package-map-dialog{width:min(720px,92vw);max-height:82vh;border:0;border-radius:18px;padding:0;box-shadow:0 24px 70px #2b123955}.package-map-dialog::backdrop{background:#18092388}.package-map-dialog .dialog-head{padding:16px 18px;background:linear-gradient(135deg,#5c218f,#ec3d9e);color:#fff;display:flex;justify-content:space-between;align-items:center}.package-map-dialog .dialog-head b{display:block;font-size:17px}.package-map-dialog .dialog-head small{display:block;margin-top:3px;opacity:.9}.package-map-dialog .dialog-head button{border:0;background:#ffffff22;color:#fff;width:32px;height:32px;border-radius:9px;font-size:20px}.package-map-dialog .dialog-body{padding:16px;overflow:auto;max-height:58vh}.dialog-tools{display:flex;gap:8px;margin-bottom:12px}.package-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.package-choice{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e2d0ef;border-radius:12px;background:#fff;cursor:pointer}.package-choice:has(input:checked){border-color:#9e48d3;background:#faf3ff}.package-choice input{width:17px;height:17px}.package-choice span,.package-choice small{display:block}.package-choice small{color:#80678f;margin-top:2px}.package-map-dialog .dialog-foot{padding:12px 16px;border-top:1px solid #eee0f5;display:flex;justify-content:flex-end;gap:8px}.preview-media-actions{margin-bottom:10px}.preview-content iframe{width:100%;min-height:520px;border:1px solid #e2d0ef;border-radius:12px}@media(max-width:600px){.package-choice-grid{grid-template-columns:1fr}}
 </style>
   
 <style id="kf-final-responsive-fix">
@@ -2320,13 +2322,31 @@ async function saveContentDistribution(contentId,kind){
  const rows=pids.map(pid=>({content_id:contentId,package_id:pid,topic_id:topic&&KF_TOPICS_NEW.find(t=>t.id===topic)?.package_id===pid?topic:null}));
  const {error}=await db.from("member_content_packages").insert(rows);if(error)throw error;
 }
+let KF_DIST_CONTENT_ID=null;
 async function distributeExistingContent(id){
- await loadPackageCore();const x=KONTEN_CACHE.find(v=>v.id===id);if(!x)return;
- const names=KF_PACKAGES_NEW.filter(p=>p.aktif).map((p,i)=>`${i+1}. ${p.nama}`).join("\\n");
- const ans=prompt(`Distribusikan "${x.judul}" ke paket mana?\\nMasukkan nomor dipisahkan koma.\\n\\n${names}`);if(ans===null)return;
- const indexes=ans.split(",").map(v=>Number(v.trim())-1).filter(i=>i>=0&&i<KF_PACKAGES_NEW.filter(p=>p.aktif).length), active=KF_PACKAGES_NEW.filter(p=>p.aktif),pids=[...new Set(indexes.map(i=>active[i].id))];if(!pids.length)return alert("Tidak ada paket dipilih.");
- const db=kfdb();await db.from("member_content_packages").delete().eq("content_id",id);const {error}=await db.from("member_content_packages").insert(pids.map(package_id=>({content_id:id,package_id})));if(error)return alert(error.message);alert("✓ Distribusi konten tersimpan.");
+ await loadPackageCore();await loadBulkContentMappings();
+ const x=KONTEN_CACHE.find(v=>String(v.id)===String(id));if(!x)return alert("Konten tidak ditemukan.");
+ KF_DIST_CONTENT_ID=id;
+ const current=new Set(bulkPackageNameForContent(id));
+ const jenjang=String(x.jenjang||"").toUpperCase();
+ const dlg=document.getElementById("contentPackageDialog"),title=document.getElementById("contentPackageTitle"),sub=document.getElementById("contentPackageSub"),list=document.getElementById("contentPackageChoices");
+ title.textContent="Atur Paket · "+(x.judul||"Konten");
+ sub.textContent=(jenjang||"Semua jenjang")+" · Centang paket yang boleh menampilkan konten ini.";
+ const rows=KF_PACKAGES_NEW.filter(p=>p.aktif&&(!jenjang||String(p.jenjang||"").toUpperCase()===jenjang));
+ list.innerHTML=rows.map(p=>'<label class="package-choice"><input type="checkbox" value="'+escMember(p.id)+'" '+(current.has(String(p.id))?"checked":"")+'><span><b>'+escMember(p.nama)+'</b><small>'+escMember(String(p.jenjang||""))+'</small></span></label>').join("")||'<div class="empty">Tidak ada paket aktif untuk jenjang ini.</div>';
+ dlg.showModal();
 }
+async function saveExistingContentDistribution(){
+ const id=KF_DIST_CONTENT_ID;if(!id)return;
+ const dlg=document.getElementById("contentPackageDialog"),ids=[...dlg.querySelectorAll("#contentPackageChoices input:checked")].map(x=>x.value);
+ if(!ids.length&&!confirm("Tidak ada paket dipilih. Konten akan menjadi belum dipetakan. Lanjutkan?"))return;
+ try{
+  const db=kfdb(),del=await db.from("member_content_packages").delete().eq("content_id",id);if(del.error)throw del.error;
+  if(ids.length){const ins=await db.from("member_content_packages").insert(ids.map(package_id=>({content_id:id,package_id})));if(ins.error)throw ins.error}
+  dlg.close();KF_DIST_CONTENT_ID=null;await renderKontenAdmin();alert("✓ Pemetaan paket berhasil disimpan.");
+ }catch(err){alert("Gagal menyimpan pemetaan: "+err.message)}
+}
+
 
 /* Access mapping paket latihan/tryout final */
 async function renderAccessManagers(){
@@ -2376,11 +2396,11 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAdminPreview()}
 function safeText(v){return escMember(String(v??""))}
 function fieldPreview(label,val){return `<div class="preview-field"><b>${safeText(label)}</b><div>${safeText(val||"-")}</div></div>`}
 function previewKontenAdmin(id){
- const x=KONTEN_CACHE.find(v=>v.id===id);if(!x)return alert("Data konten tidak ditemukan.");
- const d=x.data||{};let media="";
+ const x=KONTEN_CACHE.find(v=>String(v.id)===String(id));if(!x)return alert("Data konten tidak ditemukan. Muat ulang daftar lalu coba lagi.");
+ let d=x.data||{};if(typeof d==="string"){try{d=JSON.parse(d)}catch(e){d={url:d}}}let media="";
  if(x.jenis==="pdf"){
    const u=d.pdf_url||d.url||d.file_url||d.pdf||"";
-   media=u?`<iframe src="${safeText(u)}" title="Preview PDF"></iframe>`:`<div class="empty">File PDF belum tersedia.</div>`;
+   media=u?`<div class="preview-media-actions"><a class="btn small" href="${safeText(u)}" target="_blank" rel="noopener">↗ Buka PDF</a></div><iframe src="${safeText(u)}" title="Preview PDF"></iframe>`:`<div class="empty">File PDF belum tersedia pada data konten ini.</div>`;
  }else if(x.jenis==="video"){
    const u=d.video_url||d.url||d.youtube_url||d.link||"";
    if(/youtube\.com|youtu\.be/.test(u)){let embed=u.replace("watch?v=","embed/").replace("youtu.be/","youtube.com/embed/");media=`<iframe src="${safeText(embed)}" allowfullscreen></iframe>`}
@@ -2464,6 +2484,11 @@ renderAccessManagers=async function(){
 };
 </script>
 
+<dialog id="contentPackageDialog" class="package-map-dialog">
+  <div class="dialog-head"><div><b id="contentPackageTitle">Atur Paket</b><small id="contentPackageSub"></small></div><button type="button" onclick="this.closest('dialog').close()">×</button></div>
+  <div class="dialog-body"><div class="dialog-tools"><button class="btn ghost small" type="button" onclick="document.querySelectorAll('#contentPackageChoices input').forEach(x=>x.checked=true)">Pilih Semua</button><button class="btn ghost small" type="button" onclick="document.querySelectorAll('#contentPackageChoices input').forEach(x=>x.checked=false)">Kosongkan</button></div><div id="contentPackageChoices" class="package-choice-grid"></div></div>
+  <div class="dialog-foot"><button class="btn ghost" type="button" onclick="this.closest('dialog').close()">Batal</button><button class="btn" type="button" onclick="saveExistingContentDistribution()">Simpan Pemetaan</button></div>
+</dialog>
 <div id="kfPreviewModal" class="preview-modal" onclick="if(event.target===this)closeAdminPreview()">
   <div class="preview-shell">
     <div class="preview-head">
