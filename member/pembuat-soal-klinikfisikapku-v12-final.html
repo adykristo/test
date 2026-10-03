@@ -390,7 +390,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </div>
 <div class="card">
 <h3>Gemini AI melalui Apps Script</h3>
-<div class="notice">HTML akan mengirim permintaan AI ke Apps Script dengan action <b>generateAI</b>. Simpan GEMINI_API_KEY di <b>Script Properties</b> agar kunci tidak terlihat di browser.</div>
+<div class="notice">HTML akan mengirim permintaan AI ke Apps Script dengan action <b>generate</b> dan sesi Super Admin Supabase. Simpan GEMINI_API_KEY di <b>Script Properties</b> agar kunci tidak terlihat di browser.</div>
 <div class="actions" style="margin-top:12px"><button class="btn primary" onclick="testAIConnection()">Tes Gemini AI</button></div>
 </div>
 <div class="card">
@@ -554,14 +554,22 @@ function aiQuestion(i){
 }
 let aiDrafts=[];
 async function generateAIBatch(batchCount){
- let n=Math.max(1,Math.min(50,Number($('aiCount').value)||1)),c=getConnection();
- let payload={jenjang:$('aiJenjang').value,mapel:$('aiMapel').value,topik:$('aiTopik').value,difficulty:$('aiDiff').value,type:$('aiType').value,count:n,mode:$('aiMode').value,material:$('aiMaterial').value};
- if(c.url){
-   $('aiResults').innerHTML='<div class="notice">✨ Meminta Gemini membuat soal...</div>';
-   try{let r=await postGAS('generateAI',payload);if(r&&Array.isArray(r.questions)){aiDrafts=r.questions.map(normalizeAIQuestion);renderAI();return}throw new Error('Format respons AI tidak sesuai')}
-   catch(e){$('aiResults').innerHTML='<div class="notice bad">Gemini belum dapat dihubungi: '+esc(e.message)+'. Mode demo digunakan.</div>'}
- }
- aiDrafts=Array.from({length:n},(_,i)=>aiQuestion(i));renderAI();
+ let n=Math.max(1,Math.min(10,Number(batchCount)||1)),c=getConnection();
+ let payload={
+   jenjang:$('aiJenjang').value,
+   topik:$('aiTopik').value,
+   tipe:$('aiType').value,
+   sulit:$('aiDiff').value,
+   jumlah:n,
+   instruksi:[($('aiMaterial').value||''), 'Mata pelajaran: '+($('aiMapel').value||'Fisika'), 'Mode: '+($('aiMode').value||'topic')].filter(Boolean).join('\n')
+ };
+ if(!c.url)throw new Error('URL Apps Script belum diisi pada menu Koneksi.');
+ $('aiResults').innerHTML='<div class="notice">✨ Gemini sedang membuat '+n+' soal...</div>';
+ let r=await postGAS('generate',payload);
+ if(!r||!Array.isArray(r.questions))throw new Error('Format respons Gemini tidak sesuai.');
+ let batch=r.questions.map(normalizeAIQuestion);
+ aiDrafts=batch;renderAI();
+ return batch;
 }
 
 async function generateAI(){
@@ -629,8 +637,20 @@ function getConnection(){try{return JSON.parse(localStorage.getItem(CONN)||'{"ur
 function saveConnection(){let c={url:($('gasUrl').value||'').trim(),mode:$('storageMode').value};localStorage.setItem(CONN,JSON.stringify(c));$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Konfigurasi tersimpan.'}
 async function postGAS(action,data={}){
  let c=getConnection();if(!c.url)throw new Error('URL Apps Script belum diisi');
- let res=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...data})});
- if(!res.ok)throw new Error('HTTP '+res.status);let txt=await res.text();try{return JSON.parse(txt)}catch(e){return {ok:true,text:txt}}
+ let accessToken='';
+ try{
+   if(window.supabase&&window.KF_SUPABASE_CONFIG){
+     const sb=window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);
+     const {data:sess}=await sb.auth.getSession();
+     accessToken=sess?.session?.access_token||'';
+   }
+ }catch(e){}
+ if(!accessToken)throw new Error('Sesi Super Admin Supabase tidak ditemukan. Login ulang dari Admin.');
+ let res=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,accessToken,...data})});
+ if(!res.ok)throw new Error('HTTP '+res.status);
+ let txt=await res.text(),out;try{out=JSON.parse(txt)}catch(e){throw new Error('Respons Apps Script bukan JSON yang valid.')}
+ if(out&&out.ok===false)throw new Error(out.error||out.message||'Apps Script menolak permintaan.');
+ return out;
 }
 async function testConnection(){saveConnection();$('connectionStatus').className='notice';$('connectionStatus').textContent='Menguji koneksi...';try{let r=await postGAS('ping');$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Apps Script terhubung'+(r.message?' — '+r.message:'')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ '+e.message}}
 async function syncOnline(){
@@ -646,10 +666,17 @@ async function syncOnline(){
    $('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Sinkron selesai. '+merged.length+' soal tersedia.';
  }catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ Sinkron gagal: '+e.message}
 }
-async function testAIConnection(){try{let r=await postGAS('testAI',{prompt:'Balas hanya dengan kata OK'});$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Gemini merespons: '+(r.text||r.message||'OK')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ Gemini belum terhubung: '+e.message}}
+async function testAIConnection(){try{let r=await postGAS('assistant',{jenis:'uji koneksi',text:'Balas hanya dengan kata OK'});$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Gemini merespons: '+(r.text||r.message||'OK')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ Gemini belum terhubung: '+e.message}}
 function normalizeAIQuestion(q){
- let type=q.type||$('aiType').value,n=type==='pg4'?4:5;
- return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:q.question||'',image:q.image||'',imageRotation:0,answers:q.answers||{options:Array(n).fill(''),keys:[],short:'',essayKey:'',statements:[]},explanation:q.explanation||'',explanationImage:'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:'Gemini AI',updatedAt:new Date().toISOString()}
+ let type=String(q.type||q.tipe||$('aiType').value).toLowerCase(),n=type==='pg4'?4:5;
+ let options=Array.isArray(q.opsi)?q.opsi:(q.answers?.options||[]);
+ let rawKey=q.kunci!==undefined?q.kunci:q.answers?.keys;
+ let keyList=Array.isArray(rawKey)?rawKey:String(rawKey??'').split(',').map(x=>x.trim()).filter(Boolean);
+ let keys=keyList.map(x=>typeof x==='number'?x:'ABCDE'.indexOf(String(x).trim().toUpperCase())).filter(x=>x>=0);
+ let answers=q.answers||{options:options.slice(0,n),keys,short:'',essayKey:'',statements:[]};
+ if(type==='isian')answers={options:[],keys:[],short:String(Array.isArray(rawKey)?rawKey[0]??'':rawKey??''),essayKey:'',statements:[]};
+ if(type==='esai')answers={options:[],keys:[],short:'',essayKey:String(Array.isArray(rawKey)?rawKey[0]??'':rawKey??''),statements:[]};
+ return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:q.question||q.soal||'',image:q.image||'',imageRotation:0,answers,explanation:q.explanation||q.pembahasan||'',explanationImage:'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:'Gemini AI',updatedAt:new Date().toISOString()}
 }
 async function importDocx(file){
  if(!window.mammoth){$('importResult').innerHTML='<div class="notice bad">Library DOCX belum termuat. Pastikan internet aktif saat membuka halaman.</div>';return}
