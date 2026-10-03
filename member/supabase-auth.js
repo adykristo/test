@@ -156,16 +156,42 @@
       return {ok:true};
     },
     kontenMember: async function(jenjang){
+      const wanted=clean(jenjang).toLowerCase();
       const results=await Promise.all([
         supabase.rpc("kf_member_content_v2"),
         supabase.rpc("kf_member_question_content")
       ]);
-      if(results[0].error) throw results[0].error;
-      const primary=Array.isArray(results[0].data)?results[0].data:[];
-      const legacyQuestions=results[1].error?[]:(results[1].data||[]);
+
+      // Sumber utama tetap RPC V2 karena RPC menerapkan hak akses paket di server.
+      let primary=!results[0].error && Array.isArray(results[0].data) ? results[0].data : [];
+      const legacyQuestions=results[1].error ? [] : (results[1].data||[]);
+
+      // Fallback produksi:
+      // SQL/RPC pernah berubah sehingga kf_member_content_v2() dapat mengembalikan []
+      // walaupun member_content masih berisi modul. Query langsung ini TETAP tunduk
+      // pada RLS Supabase, jadi browser tidak dapat melewati policy akses database.
+      if(!primary.length){
+        let q=supabase
+          .from("member_content")
+          .select("id,jenjang,jenis,tujuan,topik,judul,visible,data,created_at")
+          .eq("visible",true);
+        if(wanted) q=q.ilike("jenjang",wanted);
+        const fallback=await q.order("created_at",{ascending:true});
+        if(!fallback.error && Array.isArray(fallback.data) && fallback.data.length){
+          primary=fallback.data;
+          console.warn("kf_member_content_v2 kosong; memakai fallback member_content yang dilindungi RLS.");
+        }else if(results[0].error && fallback.error){
+          throw results[0].error;
+        }else if(results[0].error && !fallback.data){
+          throw results[0].error;
+        }
+      }
+
       const list=primary.map(flattenContent).concat(legacyQuestions.map(flattenContent));
-      const wanted=clean(jenjang).toLowerCase();
-      return {ok:true,data:wanted?list.filter(x=>clean(x&&x.jenjang).toLowerCase()===wanted):list};
+      const filtered=wanted
+        ? list.filter(x=>clean(x&&x.jenjang).toLowerCase()===wanted)
+        : list;
+      return {ok:true,data:filtered};
     },
     dataBelajar: async function(){
       const {data:s}=await supabase.auth.getSession(); if(!s.session)return {progress:[],bookmarks:[],attempts:[],certificates:[]};
