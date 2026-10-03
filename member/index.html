@@ -565,6 +565,10 @@
     .tryout-hero h2{margin:4px 0;font-size:24px}
     .tryout-hero p{margin:0;color:#725c82}
     .tryout-empty{padding:38px 12px!important;text-align:center}
+
+    /* Paket adalah struktur utama konten; Tahap legacy tidak ditampilkan */
+    .card-meta-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:5px}
+    .package-badge{display:inline-flex;align-items:center;min-height:24px;padding:3px 9px;border-radius:999px;background:#f2e8ff;border:1px solid #dfc9f3;color:#5a247b;font-size:10px;font-weight:900}
 </style>
   
 <style id="kf-member-v6">
@@ -700,7 +704,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           <div class="summary-card"><small>Materi selesai</small><strong id="statSelesai">0 / 0</strong></div>
           <div class="summary-card"><small>Paket aktif</small><strong id="statHari">0</strong><span id="statAksesDetail" style="display:block;margin-top:5px;font-size:11px;color:#756782">—</span></div>
           <div class="summary-card"><small>Tryout terakhir</small><strong id="statSkor">—</strong></div>
-          <div class="summary-card"><small>Tahap terbuka</small><strong id="statTahap">0 / 12</strong></div>
+          <div class="summary-card"><small>Paket aktif</small><strong id="statTahap">0 / 12</strong></div>
         </div>
         <div class="dashboard-actions">
           <button id="lanjutBtn" class="btn btn-main" type="button" onclick="lanjutBelajar()">▶ Pilih materi belajar</button>
@@ -1213,11 +1217,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         const last=(dataBelajarAktif.attempts||[])[0];
         document.getElementById("statSkor").textContent=last?Math.round(Number(last.skor||0))+"":"—";
         const elTahap=document.getElementById("statTahap");
-        if(elTahap){
-          const stages=dataMateri.map(x=>Number(x.learning_stage)||0).filter(Boolean);
-          const maxStage=stages.length?Math.max(...stages):0;
-          elTahap.textContent=maxStage?maxStage+" tersedia":"—";
-        }
+        if(elTahap) elTahap.textContent=(window.KF_OWNED_PACKAGES||[]).length+" paket";
       }
       function renderProgressPerPaket(){
         const panel=document.getElementById("packageProgressPanel");
@@ -1334,7 +1334,15 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
             ((x.judul || "").toLowerCase().includes(q) ||
               (x.topik || "").toLowerCase().includes(q)),
         );
-        const titles={pdf:"Modul Belajar",soal:"Latihan Soal",video:"Video Pembahasan",tryout:"Tryout"};
+        const catalog=window.KF_PACKAGE_CATALOG||[];
+        const packageOrder=new Map(catalog.map((p,i)=>[String(p.id||""),Number(p.urutan||i+1)]));
+        items.sort((a,b)=>{
+          const ao=packageOrder.get(String(a.package_id||a.packageId||""))??9999;
+          const bo=packageOrder.get(String(b.package_id||b.packageId||""))??9999;
+          if(ao!==bo)return ao-bo;
+          return String(a.topik||"").localeCompare(String(b.topik||""),"id")||String(a.judul||"").localeCompare(String(b.judul||""),"id");
+        });
+                const titles={pdf:"Modul Belajar",soal:"Latihan Soal",video:"Video Pembahasan",tryout:"Tryout"};
         const titleEl=document.getElementById("filterTitle"),countEl=document.getElementById("filterCount");
         if(titleEl)titleEl.textContent=titles[filterAktif]||"Materi Belajar";
         if(countEl)countEl.textContent=isTryoutView?"Tryout aktif":items.length+" materi";
@@ -1347,10 +1355,11 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
       <div class="ic">${ICON[normalJenis(x)] || "📁"}</div>
       <div>
         <div class="topik">${esc(x.topik || "")}</div>
-        ${(paketNamaKonten(x)||topikDiPaketSaya(x))?`<div style="font-size:11px;color:#7a5b8c;margin-bottom:3px">📦 ${esc(paketNamaKonten(x)||topikDiPaketSaya(x))}</div>`:""}
         <div class="judul">${terkunci ? "🔒 " : ""}${esc(x.judul || "")}</div>
-        <span class="tag ${["pdf","soal","video"].includes(normalJenis(x))?normalJenis(x):""}">${esc(tryout ? "🏆 Tryout Topik" : LABEL[normalJenis(x)] || normalJenis(x))}</span>
-        <span class="tag" style="margin-left:5px;background:#f0e6ff;color:#5b2185">Tahap ${esc(String(x.learning_stage||1))}</span>
+        <div class="card-meta-row">
+          <span class="tag ${["pdf","soal","video"].includes(normalJenis(x))?normalJenis(x):""}">${esc(tryout ? "🏆 Tryout Topik" : LABEL[normalJenis(x)] || normalJenis(x))}</span>
+          <span class="package-badge">${(paketNamaKonten(x)||topikDiPaketSaya(x))?"📦 "+esc(paketNamaKonten(x)||topikDiPaketSaya(x)):"📦 Belum dipetakan ke paket"}</span>
+        </div>
         ${selesai ? '<span class="tag" style="margin-left:5px">✓ Latihan selesai</span>' : ""}
       </div>
       <button class="bookmark-btn ${bookmarked(x.id)?"active":""}" type="button" onclick="toggleBookmark(event,'${esc(String(x.id||"").replace(/[^0-9a-f-]/gi,""))}')" aria-label="Simpan materi">${bookmarked(x.id)?"★":"☆"}</button>
