@@ -692,6 +692,8 @@
 .package-map-dialog{width:min(720px,92vw);max-height:82vh;border:0;border-radius:18px;padding:0;box-shadow:0 24px 70px #2b123955}.package-map-dialog::backdrop{background:#18092388}.package-map-dialog .dialog-head{padding:16px 18px;background:linear-gradient(135deg,#5c218f,#ec3d9e);color:#fff;display:flex;justify-content:space-between;align-items:center}.package-map-dialog .dialog-head b{display:block;font-size:17px}.package-map-dialog .dialog-head small{display:block;margin-top:3px;opacity:.9}.package-map-dialog .dialog-head button{border:0;background:#ffffff22;color:#fff;width:32px;height:32px;border-radius:9px;font-size:20px}.package-map-dialog .dialog-body{padding:16px;overflow:auto;max-height:58vh}.dialog-tools{display:flex;gap:8px;margin-bottom:12px}.package-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.package-choice{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e2d0ef;border-radius:12px;background:#fff;cursor:pointer}.package-choice:has(input:checked){border-color:#9e48d3;background:#faf3ff}.package-choice input{width:17px;height:17px}.package-choice span,.package-choice small{display:block}.package-choice small{color:#80678f;margin-top:2px}.package-map-dialog .dialog-foot{padding:12px 16px;border-top:1px solid #eee0f5;display:flex;justify-content:flex-end;gap:8px}.preview-media-actions{margin-bottom:10px}.preview-content iframe{width:100%;min-height:520px;border:1px solid #e2d0ef;border-radius:12px}@media(max-width:600px){.package-choice-grid{grid-template-columns:1fr}}
 
 .section-map-bar{margin:10px 0 14px;padding:12px;border:1px solid #e1c9f2;border-radius:13px;background:#fcf8ff}.section-map-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:9px}.section-map-title span{font-size:11px;color:#7b6489}.section-map-controls{display:grid;grid-template-columns:140px minmax(210px,1fr) auto auto auto;gap:7px}.section-map-controls select{min-height:36px;border:1px solid #ddc7ef;border-radius:9px;background:#fff;padding:6px 9px}@media(max-width:850px){.section-map-controls{grid-template-columns:1fr 1fr}.section-map-controls button{width:100%}}@media(max-width:560px){.section-map-controls{grid-template-columns:1fr}.section-map-title{align-items:flex-start;flex-direction:column}}
+
+#kfPreviewModal[open]{display:block;width:min(980px,94vw);max-height:90vh;border:0;border-radius:18px;padding:0;overflow:auto;box-shadow:0 24px 80px #25102f66}#kfPreviewModal::backdrop{background:#18092388}
 </style>
   
 <style id="kf-final-responsive-fix">
@@ -1828,7 +1830,7 @@ table{max-width:100%}
         e.target.reset();
       }
       function cariItem(id) {
-        return KONTEN_CACHE.find((x) => x.id === id) || null;
+        return KONTEN_CACHE.find((x) => String(x.id) === String(id)) || null;
       }
       function previewSoalAdmin(id){
         const x=cariItem(id);if(!x)return;const d=document.getElementById("memberDetailDialog"),body=document.getElementById("memberDetailBody"),huruf="ABCDE";
@@ -2401,13 +2403,14 @@ tambahItem=async function(jenjang,item){
 window.addEventListener("load",()=>setTimeout(async()=>{try{await renderPaketBaru();await renderMetodePembayaran();await renderAccessManagers();if(localStorage.getItem("kf_v12_studio_open")==="0")toggleV12Studio(false)}catch(e){console.warn("Upgrade UI:",e)}},1400));
 
 /* ===== Preview Admin + compact member actions ===== */
-function closeAdminPreview(){document.getElementById("kfPreviewModal")?.classList.remove("open")}
+function closeAdminPreview(){const m=document.getElementById("kfPreviewModal");if(!m)return;if(typeof m.close==="function"&&m.open)m.close();else{m.classList.remove("open");m.hidden=true}}
 function openAdminPreview(title,sub,body){
- const m=document.getElementById("kfPreviewModal");if(!m)return;
+ const m=document.getElementById("kfPreviewModal");if(!m)return alert("Panel Preview tidak ditemukan.");
  document.getElementById("kfPreviewTitle").textContent=title||"Preview";
  document.getElementById("kfPreviewSub").textContent=sub||"";
  document.getElementById("kfPreviewBody").innerHTML=body||"";
- m.classList.add("open");
+ m.hidden=false;
+ if(typeof m.showModal==="function"){if(!m.open)m.showModal()}else m.classList.add("open");
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAdminPreview()});
 function safeText(v){return escMember(String(v??""))}
@@ -2462,6 +2465,20 @@ const _renderAccessManagersPreview=renderAccessManagers;
 renderAccessManagers=async function(){await _renderAccessManagersPreview();for(const kind of ["latihan","tryout"]){document.querySelectorAll(`#${kind}AccessManager .manage-item`).forEach(el=>{if(el.querySelector(".final-preview-btn"))return;const access=el.querySelector("button[onclick*='aturAksesFinal']");if(!access)return;const m=(access.getAttribute("onclick")||"").match(/'([^']+)'/);if(!m)return;const b=document.createElement("button");b.className="btn ghost small final-preview-btn";b.innerHTML="◉ Preview";b.onclick=()=>previewFinalPackage(m[1]);access.parentElement?.insertBefore(b,access)})}}
 const kfMutationObserver=new MutationObserver(()=>{compactMemberActions();enhanceContentPreviewButtons()});
 window.addEventListener("load",()=>{setTimeout(()=>{compactMemberActions();enhanceContentPreviewButtons();kfMutationObserver.observe(document.body,{childList:true,subtree:true})},1700)});
+
+/* Compatibility controller for rows rendered by older/cached templates too. */
+document.addEventListener("click",function(e){
+ const b=e.target.closest("#modulList button,#videoList button,#latihanList button,#tryoutList button");if(!b)return;
+ const row=b.closest(".manage-item");if(!row)return;
+ const edit=row.querySelector('[data-kf-id],button[onclick*="editKonten"]');
+ let id=edit?.dataset?.kfId||((edit?.getAttribute("onclick")||"").match(/'([^']+)'/)||[])[1];if(!id)return;
+ const t=(b.textContent||"").trim().toLowerCase();
+ if(t.includes("preview")){e.preventDefault();e.stopImmediatePropagation();const x=cariItem(id);if(!x)return alert("Konten tidak ditemukan.");(x.jenis==="soal"||x.tujuan==="tryout")?previewSoalAdmin(id):previewKontenAdmin(id)}
+ else if(t.includes("paket")){e.preventDefault();e.stopImmediatePropagation();distributeExistingContent(id).catch(err=>alert("Gagal membuka Paket: "+err.message))}
+ else if(t==="ubah"){e.preventDefault();e.stopImmediatePropagation();editKonten(id).catch(err=>alert("Gagal mengubah: "+err.message))}
+ else if(t.includes("sembunyikan")||t.includes("tampilkan")){e.preventDefault();e.stopImmediatePropagation();toggleKonten(id).catch(err=>alert("Gagal mengubah status: "+err.message))}
+ else if(t==="hapus"){e.preventDefault();e.stopImmediatePropagation();hapusKonten(id).catch(err=>alert("Gagal menghapus: "+err.message))}
+},true);
 
 /* Stable action controller for Modul, Video, Latihan, Tryout. */
 document.addEventListener("click",async function(e){
@@ -2522,7 +2539,7 @@ renderAccessManagers=async function(){
   <div class="dialog-body"><div class="dialog-tools"><button class="btn ghost small" type="button" onclick="document.querySelectorAll('#contentPackageChoices input').forEach(x=>x.checked=true)">Pilih Semua</button><button class="btn ghost small" type="button" onclick="document.querySelectorAll('#contentPackageChoices input').forEach(x=>x.checked=false)">Kosongkan</button></div><div id="contentPackageChoices" class="package-choice-grid"></div></div>
   <div class="dialog-foot"><button class="btn ghost" type="button" onclick="this.closest('dialog').close()">Batal</button><button class="btn" type="button" onclick="saveExistingContentDistribution()">Simpan Pemetaan</button></div>
 </dialog>
-<div id="kfPreviewModal" class="preview-modal" onclick="if(event.target===this)closeAdminPreview()">
+<dialog id="kfPreviewModal" class="preview-modal" onclick="if(event.target===this)closeAdminPreview()">
   <div class="preview-shell">
     <div class="preview-head">
       <div><h2 id="kfPreviewTitle">Preview</h2><div id="kfPreviewSub" class="sub"></div></div>
@@ -2530,7 +2547,7 @@ renderAccessManagers=async function(){
     </div>
     <div id="kfPreviewBody" class="preview-body"></div>
   </div>
-</div>
+</dialog>
 <script>
 async function KFLogoutAdminMemberSafe(){
  if(!confirm("Keluar dari Admin Member Area?"))return;
