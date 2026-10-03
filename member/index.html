@@ -513,6 +513,8 @@
       .paket-saya-panel{margin-top:14px}.paket-saya-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.paket-saya-head h2{margin:0 0 4px}.paket-saya-head p{margin:0;color:#725c82;font-size:13px}
       .owned-package-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:14px}.owned-package{padding:14px;border:1px solid #e4d5f2;border-radius:14px;background:linear-gradient(135deg,#fff,#fbf7ff)}.owned-package b,.owned-package span,.owned-package small{display:block}.owned-package span{margin-top:5px;color:#177a4b;font-size:12px;font-weight:800}.owned-package small{margin-top:7px;color:#7b6888;line-height:1.45}
       .member-payment-methods{display:grid;gap:8px;margin-top:12px}.member-pay-card{padding:11px 12px;border:1px solid #e6d8f2;border-radius:12px;background:#fcf9ff}.member-pay-card b,.member-pay-card span,.member-pay-card small{display:block}.member-pay-card span{margin-top:3px}.member-pay-card small{margin-top:4px;color:#786687}
+
+      .package-progress-list{display:grid;gap:9px;margin:12px 0}.package-progress-row{padding:11px 12px;border:1px solid #eadff2;border-radius:12px;background:#fff}.package-progress-row .rowhead{display:flex;justify-content:space-between;gap:12px;font-size:12px}.package-progress-row .mini-track{height:7px;background:#eee7f4;border-radius:999px;overflow:hidden;margin-top:7px}.package-progress-row .mini-fill{height:100%;background:linear-gradient(90deg,#762cc0,#e93d9c);border-radius:999px}
 </style>
   
 <style id="kf-member-v6">
@@ -626,7 +628,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         <div class="summary-grid" aria-label="Ringkasan belajar">
           <div class="summary-card"><small>Progress belajar</small><strong id="statProgress">0%</strong><div class="progress-track"><div id="progressFill" class="progress-fill"></div></div></div>
           <div class="summary-card"><small>Materi selesai</small><strong id="statSelesai">0 / 0</strong></div>
-          <div class="summary-card"><small>Sisa akses</small><strong id="statHari">—</strong></div>
+          <div class="summary-card"><small>Paket aktif</small><strong id="statHari">0</strong><span id="statAksesDetail" style="display:block;margin-top:5px;font-size:11px;color:#756782">—</span></div>
           <div class="summary-card"><small>Tryout terakhir</small><strong id="statSkor">—</strong></div>
           <div class="summary-card"><small>Tahap terbuka</small><strong id="statTahap">0 / 12</strong></div>
         </div>
@@ -1066,15 +1068,32 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         document.getElementById("statProgress").textContent=persen+"%";
         document.getElementById("progressFill").style.width=persen+"%";
         document.getElementById("statSelesai").textContent=selesai+" / "+bahan.length;
-        const akhir=profilAktif&&profilAktif.berakhir?new Date(profilAktif.berakhir):null;
-        const hari=akhir?Math.max(0,Math.ceil((akhir-Date.now())/86400000)):null;
-        document.getElementById("statHari").textContent=hari===null?"—":hari+" hari";
+        const owned=window.KF_OWNED_PACKAGES||[];
+        document.getElementById("statHari").textContent=String(owned.length);
+        const expiring=owned.map(p=>({nama:p.nama||"Paket",date:p.expiresAt?new Date(p.expiresAt):null}))
+          .filter(x=>x.date&&!Number.isNaN(x.date.getTime()))
+          .sort((a,b)=>a.date-b.date);
+        const detail=document.getElementById("statAksesDetail");
+        if(detail) detail.textContent=expiring.length
+          ? "Terdekat: "+expiring[0].date.toLocaleDateString("id-ID")
+          : (owned.length?"Akses aktif":"Belum ada paket");
         const notice=document.getElementById("expiryNotice");
-        if(hari!==null&&hari<=7){notice.style.display="block";notice.textContent=hari?"Paket Anda akan berakhir dalam "+hari+" hari. Hubungi admin untuk memperpanjang akses.":"Masa akses telah berakhir. Hubungi admin untuk memperpanjang paket.";}else notice.style.display="none";
+        const soon=expiring.filter(x=>Math.ceil((x.date-Date.now())/86400000)<=7);
+        if(soon.length){
+          notice.style.display="block";
+          notice.innerHTML=soon.map(x=>{
+            const h=Math.max(0,Math.ceil((x.date-Date.now())/86400000));
+            return "<b>"+esc(x.nama)+"</b> "+(h?"berakhir dalam "+h+" hari.":"telah mencapai tanggal berakhir.");
+          }).join("<br>");
+        }else notice.style.display="none";
         const last=(dataBelajarAktif.attempts||[])[0];
         document.getElementById("statSkor").textContent=last?Math.round(Number(last.skor||0))+"":"—";
         const elTahap=document.getElementById("statTahap");
-        if(elTahap) elTahap.textContent=(Number(profilAktif&&profilAktif.tahap_terbuka)||0)+" / 12";
+        if(elTahap){
+          const stages=dataMateri.map(x=>Number(x.learning_stage)||0).filter(Boolean);
+          const maxStage=stages.length?Math.max(...stages):0;
+          elTahap.textContent=maxStage?maxStage+" tersedia":"—";
+        }
       }
       function lanjutBelajar(){
         const progres=(dataBelajarAktif.progress||[]).slice().sort((a,b)=>new Date(b.last_opened_at)-new Date(a.last_opened_at));
