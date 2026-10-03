@@ -690,6 +690,8 @@
 .bulk-filter-row{display:grid;grid-template-columns:160px 1fr 1.2fr;gap:8px}.bulk-filter-row select,.bulk-filter-row input{min-height:38px;border:1px solid #ddc7ef;border-radius:10px;padding:7px 10px;background:#fff}@media(max-width:760px){.bulk-filter-row{grid-template-columns:1fr}}
 
 .package-map-dialog{width:min(720px,92vw);max-height:82vh;border:0;border-radius:18px;padding:0;box-shadow:0 24px 70px #2b123955}.package-map-dialog::backdrop{background:#18092388}.package-map-dialog .dialog-head{padding:16px 18px;background:linear-gradient(135deg,#5c218f,#ec3d9e);color:#fff;display:flex;justify-content:space-between;align-items:center}.package-map-dialog .dialog-head b{display:block;font-size:17px}.package-map-dialog .dialog-head small{display:block;margin-top:3px;opacity:.9}.package-map-dialog .dialog-head button{border:0;background:#ffffff22;color:#fff;width:32px;height:32px;border-radius:9px;font-size:20px}.package-map-dialog .dialog-body{padding:16px;overflow:auto;max-height:58vh}.dialog-tools{display:flex;gap:8px;margin-bottom:12px}.package-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.package-choice{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e2d0ef;border-radius:12px;background:#fff;cursor:pointer}.package-choice:has(input:checked){border-color:#9e48d3;background:#faf3ff}.package-choice input{width:17px;height:17px}.package-choice span,.package-choice small{display:block}.package-choice small{color:#80678f;margin-top:2px}.package-map-dialog .dialog-foot{padding:12px 16px;border-top:1px solid #eee0f5;display:flex;justify-content:flex-end;gap:8px}.preview-media-actions{margin-bottom:10px}.preview-content iframe{width:100%;min-height:520px;border:1px solid #e2d0ef;border-radius:12px}@media(max-width:600px){.package-choice-grid{grid-template-columns:1fr}}
+
+.section-map-bar{margin:10px 0 14px;padding:12px;border:1px solid #e1c9f2;border-radius:13px;background:#fcf8ff}.section-map-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:9px}.section-map-title span{font-size:11px;color:#7b6489}.section-map-controls{display:grid;grid-template-columns:140px minmax(210px,1fr) auto auto auto;gap:7px}.section-map-controls select{min-height:36px;border:1px solid #ddc7ef;border-radius:9px;background:#fff;padding:6px 9px}@media(max-width:850px){.section-map-controls{grid-template-columns:1fr 1fr}.section-map-controls button{width:100%}}@media(max-width:560px){.section-map-controls{grid-template-columns:1fr}.section-map-title{align-items:flex-start;flex-direction:column}}
 </style>
   
 <style id="kf-final-responsive-fix">
@@ -1570,7 +1572,7 @@ table{max-width:100%}
             ? rows
                 .map(
                   (x) =>
-                    `<div class="manage-item ${x.visible === false || x.visible === "FALSE" ? "muted-item" : ""}"><div><b>${escMember(x.judul || x.topik || "Tanpa judul")}</b><p>${escMember(String(x.jenjang || "").toUpperCase())} · ${escMember(x.topik || "Tanpa topik")}${x.visible === false || x.visible === "FALSE" ? " · Disembunyikan" : ""}</p></div><div class="row-actions">${x.jenis === "soal" ? `<button class="btn ghost small" onclick="previewSoalAdmin('${x.id}')">Preview</button>` : ""}<button class="btn ghost small" onclick="editKonten('${x.id}')">Ubah</button>${x.jenis === "soal" ? `<button class="btn ghost small" onclick="rapikanSoalGemini('${x.id}')">✦ Gemini</button>` : ""}<button class="btn ghost small" onclick="toggleKonten('${x.id}')">${x.visible === false || x.visible === "FALSE" ? "Tampilkan" : "Sembunyikan"}</button><button class="btn danger small" onclick="hapusKonten('${x.id}')">Hapus</button></div></div>`,
+                    `<div class="manage-item ${x.visible === false || x.visible === "FALSE" ? "muted-item" : ""}"><div><b>${escMember(x.judul || x.topik || "Tanpa judul")}</b><p>${escMember(String(x.jenjang || "").toUpperCase())} · ${escMember(x.topik || "Tanpa topik")}${x.visible === false || x.visible === "FALSE" ? " · Disembunyikan" : ""}</p></div><div class="row-actions"><button type="button" class="btn ghost small content-preview-btn" onclick="${x.jenis === "soal" || x.tujuan === "tryout" ? `previewSoalAdmin('${x.id}')` : `previewKontenAdmin('${x.id}')`}">◉ Preview</button><button type="button" class="btn ghost small dist-btn" onclick="distributeExistingContent('${x.id}')">📦 Paket</button><button type="button" class="btn ghost small" onclick="editKonten('${x.id}')">Ubah</button>${x.jenis === "soal" ? `<button type="button" class="btn ghost small" onclick="rapikanSoalGemini('${x.id}')">✦ Gemini</button>` : ""}<button type="button" class="btn ghost small" onclick="toggleKonten('${x.id}')">${x.visible === false || x.visible === "FALSE" ? "Tampilkan" : "Sembunyikan"}</button><button type="button" class="btn danger small" onclick="hapusKonten('${x.id}')">Hapus</button></div></div>`,
                 )
                 .join("")
             : empty;
@@ -2302,6 +2304,21 @@ async function applyBulkContentMapping(){
  alert("✓ "+ids.length+" konten berhasil dipetakan ke "+(pkg?.nama||"paket")+".");
  clearBulkContentSelection();await renderKontenAdmin();
 }
+function sectionKindForList(id){return id==="modulList"?"Modul":id==="videoList"?"Video":id==="latihanList"?"Latihan":id==="tryoutList"?"Tryout":"Konten"}
+function ensureSectionMappingBars(){
+ ["modulList","videoList","latihanList","tryoutList"].forEach(listId=>{
+   const list=document.getElementById(listId);if(!list||document.getElementById("mapbar-"+listId))return;
+   const bar=document.createElement("div");bar.id="mapbar-"+listId;bar.className="section-map-bar";
+   bar.innerHTML='<div class="section-map-title"><b>📦 Pemetaan '+sectionKindForList(listId)+' ke Paket</b><span>Centang item di bawah lalu pilih jenjang dan paket.</span></div><div class="section-map-controls"><select class="section-level"><option value="">Semua jenjang</option><option>SD</option><option>SMP</option><option>SMA</option></select><select class="section-package"><option value="">Pilih paket tujuan…</option></select><button type="button" class="btn small section-select">Pilih Semua Tampil</button><button type="button" class="btn small section-apply">Terapkan</button><button type="button" class="btn ghost small section-clear">Batal Pilih</button></div>';
+   list.parentElement.insertBefore(bar,list);
+   const level=bar.querySelector(".section-level"),pkg=bar.querySelector(".section-package");
+   const refill=()=>{const j=level.value.toUpperCase();pkg.innerHTML='<option value="">Pilih paket tujuan…</option>'+KF_PACKAGES_NEW.filter(p=>p.aktif&&(!j||String(p.jenjang||"").toUpperCase()===j)).map(p=>'<option value="'+escMember(p.id)+'">'+escMember(p.nama)+'</option>').join("");document.querySelectorAll("#"+listId+" .manage-item").forEach(el=>{const id=el.querySelector(".content-map-check")?.dataset.id,x=KONTEN_CACHE.find(v=>String(v.id)===String(id));el.style.display=!j||String(x?.jenjang||"").toUpperCase()===j?"":"none"})};
+   level.onchange=refill;refill();
+   bar.querySelector(".section-select").onclick=()=>{document.querySelectorAll("#"+listId+" .content-map-check").forEach(ch=>{if(ch.closest(".manage-item")?.style.display!=="none")KF_BULK_CONTENT_SELECTED.add(ch.dataset.id)});refreshBulkMapInfo()};
+   bar.querySelector(".section-clear").onclick=()=>{document.querySelectorAll("#"+listId+" .content-map-check").forEach(ch=>KF_BULK_CONTENT_SELECTED.delete(ch.dataset.id));refreshBulkMapInfo()};
+   bar.querySelector(".section-apply").onclick=async()=>{const ids=[...document.querySelectorAll("#"+listId+" .content-map-check:checked")].map(ch=>ch.dataset.id),pid=pkg.value;if(!pid)return alert("Pilih paket tujuan.");if(!ids.length)return alert("Centang minimal satu "+sectionKindForList(listId).toLowerCase()+".");const p=KF_PACKAGES_NEW.find(v=>String(v.id)===String(pid));if(!confirm("Petakan "+ids.length+" "+sectionKindForList(listId).toLowerCase()+" ke "+(p?.nama||"paket")+"?"))return;try{const db=kfdb();for(const id of ids){const d=await db.from("member_content_packages").delete().eq("content_id",id);if(d.error)throw d.error;const ins=await db.from("member_content_packages").insert({content_id:id,package_id:pid});if(ins.error)throw ins.error}ids.forEach(id=>KF_BULK_CONTENT_SELECTED.delete(id));await renderKontenAdmin();alert("✓ Pemetaan berhasil disimpan.")}catch(e){alert("Gagal memetakan: "+e.message)}};
+ });
+}
 function enhanceBulkContentMapping(){
  fillBulkPackageOptions();
  document.querySelectorAll("#modulList .manage-item,#videoList .manage-item,#latihanList .manage-item,#tryoutList .manage-item").forEach(el=>{
@@ -2399,10 +2416,10 @@ function previewKontenAdmin(id){
  const x=KONTEN_CACHE.find(v=>String(v.id)===String(id));if(!x)return alert("Data konten tidak ditemukan. Muat ulang daftar lalu coba lagi.");
  let d=x.data||{};if(typeof d==="string"){try{d=JSON.parse(d)}catch(e){d={url:d}}}let media="";
  if(x.jenis==="pdf"){
-   const u=d.pdf_url||d.url||d.file_url||d.pdf||"";
+   const u=d.pdf_url||d.url||d.file_url||d.pdf||x.pdfUrl||x.pdf_url||x.url||"";
    media=u?`<div class="preview-media-actions"><a class="btn small" href="${safeText(u)}" target="_blank" rel="noopener">↗ Buka PDF</a></div><iframe src="${safeText(u)}" title="Preview PDF"></iframe>`:`<div class="empty">File PDF belum tersedia pada data konten ini.</div>`;
  }else if(x.jenis==="video"){
-   const u=d.video_url||d.url||d.youtube_url||d.link||"";
+   const u=d.video_url||d.url||d.youtube_url||d.link||x.youtube||x.videoUrl||x.url||"";
    if(/youtube\.com|youtu\.be/.test(u)){let embed=u.replace("watch?v=","embed/").replace("youtu.be/","youtube.com/embed/");media=`<iframe src="${safeText(embed)}" allowfullscreen></iframe>`}
    else media=u?`<video controls src="${safeText(u)}"></video>`:`<div class="empty">Video belum tersedia.</div>`;
  }else{
@@ -2440,7 +2457,7 @@ function compactMemberActions(){
  });
 }
 const _renderKontenPreviewBase=renderKontenAdmin;
-renderKontenAdmin=async function(){await _renderKontenPreviewBase();await loadPackageCore();await loadBulkContentMappings();enhanceContentPreviewButtons();enhanceBulkContentMapping();fillBulkFilterPackages();applyBulkContentFilters();setTimeout(compactMemberActions,0)};
+renderKontenAdmin=async function(){await _renderKontenPreviewBase();await loadPackageCore();await loadBulkContentMappings();enhanceContentPreviewButtons();enhanceBulkContentMapping();ensureSectionMappingBars();fillBulkFilterPackages();applyBulkContentFilters();setTimeout(compactMemberActions,0)};
 const _renderAccessManagersPreview=renderAccessManagers;
 renderAccessManagers=async function(){await _renderAccessManagersPreview();for(const kind of ["latihan","tryout"]){document.querySelectorAll(`#${kind}AccessManager .manage-item`).forEach(el=>{if(el.querySelector(".final-preview-btn"))return;const access=el.querySelector("button[onclick*='aturAksesFinal']");if(!access)return;const m=(access.getAttribute("onclick")||"").match(/'([^']+)'/);if(!m)return;const b=document.createElement("button");b.className="btn ghost small final-preview-btn";b.innerHTML="◉ Preview";b.onclick=()=>previewFinalPackage(m[1]);access.parentElement?.insertBefore(b,access)})}}
 const kfMutationObserver=new MutationObserver(()=>{compactMemberActions();enhanceContentPreviewButtons()});
