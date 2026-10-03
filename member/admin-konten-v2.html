@@ -102,7 +102,7 @@ function openEdit(x){
 async function uploadPdfIfSelected(){
  const file=$("eFile")?.files?.[0];if(!file)return $("eUrl").value.trim();
  if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf"))throw new Error("File harus berformat PDF.");
- if(file.size>50*1024*1024)throw new Error("Ukuran PDF maksimal 50 MB.");
+ if(file.size>100*1024*1024)throw new Error("Ukuran PDF maksimal 100 MB.");
  const st=$("uploadState");st.textContent="Mengunggah "+file.name+"…";
  const safe=file.name.replace(/[^a-zA-Z0-9._-]+/g,"-"),path="learning/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safe,bucket="learning-files";
  const up=await DB.storage.from(bucket).upload(path,file,{contentType:"application/pdf",upsert:false,cacheControl:"3600"});
