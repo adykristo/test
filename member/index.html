@@ -619,8 +619,10 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
             <div class="payment-row"><span>Transaksi</span><strong id="paymentAmount">Pilih paket terlebih dahulu</strong></div>
             <button class="payment-copy" type="button" onclick="salinNomorRekening()">⧉ Salin Nomor Rekening</button>
           </div>
+          <div id="pendingOrdersBox" style="margin:14px 0;text-align:left"></div>
           <div id="paymentNotice" class="auth-notice" role="status"></div>
           <button id="paymentWhatsAppLink" class="btn btn-main" type="button" onclick="lanjutPembayaranBundle()" style="display:inline-flex;justify-content:center;width:100%">Kirim Pilihan Paket &amp; Bukti via WhatsApp</button>
+          <button id="pendingBackBtn" class="btn btn-ghost" type="button" onclick="buka('dash')" style="margin-top:10px;display:none">Kembali ke Dashboard</button>
           <button class="btn btn-ghost" type="button" onclick="keluar()" style="margin-top:10px">Keluar</button>
         </div>
       </section>
@@ -950,8 +952,25 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
       function renderPaketLevel(){const b=document.getElementById("pendingPackageOptions"),a=(window.PAKET_CACHE||[]).filter(p=>paketLevel(p)===KF_LEVEL_SELECTED);b.innerHTML=a.length?a.map(p=>{const o=!!p.owned,c=KF_BUNDLE_SELECTED.has(p.id);return `<label class="package-choice bundle-choice${o?" selected":""}${c?" checked":""}"><div class="package-choice-head"><div><h3>${esc(p.nama)}</h3><p>${esc(p.deskripsi||"Deskripsi akan ditambahkan Admin.")}</p></div><div class="price">${formatRupiah(p.harga)}</div></div><div class="bundle-check-row">${o?'<span class="owned-mark">✓ Sudah Dimiliki</span>':`<input type="checkbox" ${c?"checked":""} onchange="toggleBundlePackage('${p.id}',this.checked)"><span>Pilih paket ini</span>`}</div></label>`}).join(""):'<div class="empty">Belum ada paket aktif.</div>'}
       async function toggleBundlePackage(id,c){if(c)KF_BUNDLE_SELECTED.add(id);else KF_BUNDLE_SELECTED.delete(id);renderPaketLevel();await updateBundleSummary()}
       async function updateBundleSummary(){const p=document.getElementById("bundleSummary"),ids=[...KF_BUNDLE_SELECTED];if(!ids.length){p.style.display="none";KF_BUNDLE_QUOTE=null;return}p.style.display="flex";try{const r=await KFMemberAuth.quoteBundle(ids);KF_BUNDLE_QUOTE=r.data;bundleCount.textContent=r.data.package_count+" paket dipilih";bundleSubtotal.textContent=formatRupiah(r.data.subtotal);bundleDiscount.textContent=Number(r.data.discount_percent)+"% (−"+formatRupiah(r.data.discount_amount)+")";bundleTotal.textContent=formatRupiah(r.data.total_amount);const bp=document.getElementById("bundlePayable");if(bp)bp.textContent=formatRupiah(r.data.total_amount)}catch(e){alert("Gagal menghitung total: "+e.message)}}
-      async function lanjutPembayaranBundle(){const ids=[...KF_BUNDLE_SELECTED];if(!ids.length)return alert("Pilih minimal satu paket.");try{if(!KF_BUNDLE_QUOTE)await updateBundleSummary();const mr=await KFMemberAuth.metodePembayaran(),m=mr.data||[];if(!m.length)throw Error("Kontak Admin belum diatur.");const r=await KFMemberAuth.buatOrderBundle(ids,m[0].id);const selectedNames=(window.PAKET_CACHE||[]).filter(p=>KF_BUNDLE_SELECTED.has(p.id)).map(p=>p.nama);const packageLines=selectedNames.map((n,i)=>(i+1)+". "+n).join("%0A");const wa=document.getElementById("paymentWhatsAppLink");if(wa&&m[0].whatsapp){const adminNo=String(m[0].whatsapp).replace(/\D/g,"");const nama=profilAktif&&profilAktif.nama?profilAktif.nama:"Member";const msg="Halo Admin KlinikFisikapku%0A%0A"+"Saya ingin mengaktifkan paket belajar berikut:%0A%0A"+"Nama: "+encodeURIComponent(nama)+"%0A"+"Jenjang: "+encodeURIComponent(KF_LEVEL_SELECTED)+"%0A"+"Paket dipilih:%0A"+packageLines+"%0A%0A"+"Biaya yang harus dibayar: "+encodeURIComponent(formatRupiah(KF_BUNDLE_QUOTE.total_amount||0))+"%0A%0A"+"ID Permintaan:%0A"+encodeURIComponent(r.id)+"%0A%0A"+"Saya akan mengirim bukti pembayaran pada chat ini.%0A"+"Mohon dibantu proses aktivasi paket.%0A%0A"+"Terima kasih.";window.open("https://wa.me/"+adminNo+"?text="+msg,"_blank","noopener");}alert("✓ Pilihan paket sudah tersimpan dan dikirim sebagai permintaan aktivasi. Hubungi Admin. Paket akan terbuka setelah Admin mengaktifkannya.")}catch(e){alert("Gagal menyimpan pilihan paket: "+e.message)}}
+      async function lanjutPembayaranBundle(){const ids=[...KF_BUNDLE_SELECTED];if(!ids.length)return alert("Pilih minimal satu paket.");try{if(!KF_BUNDLE_QUOTE)await updateBundleSummary();const mr=await KFMemberAuth.metodePembayaran(),m=mr.data||[];if(!m.length)throw Error("Kontak Admin belum diatur.");const r=await KFMemberAuth.buatOrderBundle(ids,m[0].id);const selectedNames=(window.PAKET_CACHE||[]).filter(p=>KF_BUNDLE_SELECTED.has(p.id)).map(p=>p.nama);const packageLines=selectedNames.map((n,i)=>(i+1)+". "+n).join("%0A");const wa=document.getElementById("paymentWhatsAppLink");if(wa&&m[0].whatsapp){const adminNo=String(m[0].whatsapp).replace(/\D/g,"");const nama=profilAktif&&profilAktif.nama?profilAktif.nama:"Member";const msg="Halo Admin KlinikFisikapku%0A%0A"+"Saya ingin mengaktifkan paket belajar berikut:%0A%0A"+"Nama: "+encodeURIComponent(nama)+"%0A"+"Jenjang: "+encodeURIComponent(KF_LEVEL_SELECTED)+"%0A"+"Paket dipilih:%0A"+packageLines+"%0A%0A"+"Biaya yang harus dibayar: "+encodeURIComponent(formatRupiah(KF_BUNDLE_QUOTE.total_amount||0))+"%0A%0A"+"ID Permintaan:%0A"+encodeURIComponent(r.id)+"%0A%0A"+"Saya akan mengirim bukti pembayaran pada chat ini.%0A"+"Mohon dibantu proses aktivasi paket.%0A%0A"+"Terima kasih.";window.open("https://wa.me/"+adminNo+"?text="+msg,"_blank","noopener");}await muatPermintaanPaketSaya();alert("✓ Pilihan paket sudah tersimpan. Admin akan mengaktifkan paket setelah pembayaran diverifikasi.")}catch(e){alert("Gagal menyimpan pilihan paket: "+e.message)}}
       function renderMetodePembayaranMember(a){window.KF_PAYMENT_METHODS=a||[];const m=a&&a[0],b=document.getElementById("paymentBank"),n=document.getElementById("paymentAccountNumber"),o=document.getElementById("paymentAccountOwner");if(!m){if(b)b.textContent="Belum diatur Admin";if(n)n.textContent="-";if(o)o.textContent="-";return}if(b)b.textContent=((m.jenis||"").toUpperCase()+" · "+(m.nama||"")).replace(/^ · /,"");if(n)n.textContent=m.nomor_akun||"-";if(o)o.textContent=m.pemilik||"-"}
+      async function bukaPilihPaket(){
+        buka("pending");
+        const back=document.getElementById("pendingBackBtn");if(back)back.style.display=profilAktif&&profilAktif.status==="aktif"?"inline-flex":"none";
+        try{await muatPermintaanPaketSaya()}catch(e){console.warn("Riwayat permintaan paket:",e)}
+      }
+      async function muatPermintaanPaketSaya(){
+        const box=document.getElementById("pendingOrdersBox");if(!box||!window.KFMemberAuth?.orderBundleSaya)return;
+        try{
+          const r=await KFMemberAuth.orderBundleSaya(),rows=(r.data||[]).filter(o=>["pending","cancelled"].includes(String(o.status||"").toLowerCase())).slice(0,5);
+          box.innerHTML=rows.length?'<div style="font-weight:900;margin-bottom:8px">Permintaan Paket Terbaru</div>'+rows.map(o=>{const names=(o.items||[]).map(i=>i.package_name).filter(Boolean).join(", ");const pending=String(o.status).toLowerCase()==="pending";return '<div style="border:1px solid #eadcf5;border-radius:12px;padding:10px;margin:7px 0;background:#fff"><b>'+esc(names||((o.package_count||0)+" paket"))+'</b><div style="font-size:12px;color:#765f86;margin:4px 0">Biaya '+formatRupiah(o.total_amount||0)+' · '+(pending?"Menunggu Admin":"Dibatalkan")+'</div>'+(pending?'<button class="btn btn-ghost" type="button" onclick="batalkanPermintaanPaket(\''+o.id+'\')">Batalkan / Ubah Pilihan</button>':'')+'</div>'}).join(""):'';
+        }catch(e){box.innerHTML='';console.warn(e)}
+      }
+      async function batalkanPermintaanPaket(id){
+        if(!confirm("Batalkan permintaan paket ini? Setelah dibatalkan Anda dapat memilih paket kembali."))return;
+        try{await KFMemberAuth.batalkanOrderBundle(id);KF_BUNDLE_SELECTED.clear();KF_BUNDLE_QUOTE=null;await muatPermintaanPaketSaya();alert("✓ Permintaan dibatalkan. Silakan pilih paket yang benar lalu kirim kembali.");}
+        catch(e){alert("Tidak dapat membatalkan: "+e.message)}
+      }
       function bukaProfilPeserta(){
         if(!profilAktif)return;
         profilNama.value=profilAktif.nama||"";
@@ -1002,7 +1021,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           "Materi jenjang " + jenjangAktif.toUpperCase() + " · " + (p.paket || "") + " · Tahap " + tahap + "/12 · aktif s.d. " + berakhir;
         document.getElementById("badgePaket").textContent=(p.paket||"Paket Member")+" · Tahap "+tahap+"/12 ✓";
         document.getElementById("navBtns").innerHTML =
-          '<button onclick="buka(\'dash\')">Dashboard</button><button onclick="bukaProfilPeserta()">Profil Saya</button><button onclick="keluar()">Keluar</button>';
+          '<button onclick="buka(\'dash\')">Dashboard</button><button onclick="bukaPilihPaket()">Beli Paket</button><button onclick="bukaProfilPeserta()">Profil Saya</button><button onclick="keluar()">Keluar</button>';
         document.getElementById("list").innerHTML =
           '<div class="empty">Memuat materi…</div>';
         buka("dash");
@@ -1508,7 +1527,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
-    <script src="supabase-auth.js?v=20261003-profile1"></script>
+    <script src="supabase-auth.js?v=20261003-orders2"></script>
     <script src="supabase-data-v15.js?v=20261003-final1"></script>
   
 <script>
