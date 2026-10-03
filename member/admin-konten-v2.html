@@ -3,17 +3,23 @@
 <title>Admin Konten V2 · KlinikFisikapku</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font:14px Arial,sans-serif;background:#faf7fd;color:#251536}button,input,select,textarea{font:inherit}.top{position:sticky;top:0;z-index:5;background:linear-gradient(100deg,#6822a4,#ed3e9c);color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:center}.top h1{font-size:19px;margin:0}.top a{color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:9px}.wrap{max-width:1250px;margin:auto;padding:18px}.tabs,.filters,.actions{display:flex;gap:8px;flex-wrap:wrap}.tabs{margin-bottom:14px}.tab,.btn{border:1px solid #d8bce9;background:#fff;color:#6822a4;border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointer}.tab.on,.btn.primary{background:#7c27b8;color:#fff;border-color:#7c27b8}.btn.danger{color:#c42357;border-color:#f2b5c8}.panel{background:#fff;border:1px solid #eadcf3;border-radius:16px;padding:15px;margin-bottom:14px}.filters{display:grid;grid-template-columns:150px 1fr 1.3fr auto;gap:8px}.filters select,.filters input,.form input,.form select,.form textarea{width:100%;padding:10px;border:1px solid #dac5e8;border-radius:9px;background:#fff}.summary{margin:12px 0;color:#755f82}.item{display:grid;grid-template-columns:28px minmax(220px,1fr) auto;gap:12px;align-items:center;padding:13px 4px;border-top:1px solid #f0e7f6}.item:first-child{border-top:0}.meta small{display:block;color:#806b8d;margin-top:4px}.actions{justify-content:flex-end}.empty{text-align:center;padding:35px;color:#806b8d}.form{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center}.form .wide{grid-column:1/-1}.hidden{display:none!important}dialog{width:min(760px,94vw);max-height:88vh;border:0;border-radius:16px;padding:0;box-shadow:0 25px 80px #29123755}dialog::backdrop{background:#1c0c2788}.dh{background:linear-gradient(100deg,#6822a4,#ed3e9c);color:#fff;padding:15px 18px;display:flex;justify-content:space-between}.db{padding:16px;overflow:auto;max-height:68vh}.df{padding:12px 16px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px}.pkggrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.pkg{padding:10px;border:1px solid #dfc8ed;border-radius:10px}.preview iframe,.preview video{width:100%;min-height:480px;border:1px solid #ddd;border-radius:10px}@media(max-width:750px){.filters,.form{grid-template-columns:1fr}.form .wide{grid-column:auto}.item{grid-template-columns:26px 1fr}.actions{grid-column:2;justify-content:flex-start}.pkggrid{grid-template-columns:1fr}}
+
+#modeInfo{line-height:1.55}#modeInfo b{font-size:15px;color:#6822a4}#modeInfo span{color:#715e7d}#bankRow{display:contents}
 </style></head><body>
 <header class="top"><h1>Admin Konten V2 · KlinikFisikapku</h1><a href="admin.html">← Admin Utama</a></header>
 <main class="wrap">
 <div id="status" class="panel">Memeriksa akses Super Admin…</div>
 <div id="app" class="hidden">
  <div class="tabs"><button class="tab on" data-kind="pdf">📘 Modul</button><button class="tab" data-kind="soal">✍️ Latihan</button><button class="tab" data-kind="video">🎥 Video</button><button class="tab" data-kind="tryout">🏆 Tryout</button></div>
+ <section class="panel" id="modePanel"><div id="modeInfo"></div></section>
  <section class="panel"><div class="filters"><select id="level"><option value="">Semua jenjang</option><option>SD</option><option>SMP</option><option>SMA</option></select><select id="pkg"><option value="">Semua paket</option><option value="__unmapped">Belum dipetakan</option></select><input id="search" placeholder="Cari judul atau topik…"><button class="btn primary" id="add">+ Tambah</button></div><div class="summary" id="summary"></div><div id="list"></div></section>
 </div></main>
 <dialog id="editDlg"><div class="dh"><b id="editTitle">Konten</b><button class="btn" onclick="editDlg.close()">×</button></div><div class="db"><div class="form">
 <label>Jenjang</label><select id="eLevel"><option>SD</option><option>SMP</option><option>SMA</option></select>
+<label>Paket tujuan</label><select id="ePackage"><option value="">Pilih paket…</option></select>
 <label>Topik</label><input id="eTopic"><label>Judul</label><input id="eTitle">
+<div id="sourceTypeRow" style="display:contents"><label>Sumber latihan</label><select id="eSourceType"><option value="pdf">PDF manual</option><option value="interactive">Interaktif / Bank Soal V12</option></select></div>
+<div id="bankRow" style="display:none"><label>ID/Set Bank Soal V12</label><input id="eBankSet" placeholder="ID set soal dari Pembuat Soal V12"></div>
 <div id="urlRow" style="display:contents"><label id="urlLabel">URL</label><input id="eUrl"></div>
 <div id="questionRow" style="display:contents"><label>Teks soal</label><textarea id="eQuestion" rows="5"></textarea><label>Kunci/Pedoman</label><input id="eKey"><label>Pembahasan</label><textarea id="eExplain" rows="5"></textarea></div>
 <label>Status</label><select id="eVisible"><option value="true">Tampil</option><option value="false">Disembunyikan</option></select>
@@ -34,11 +40,50 @@ async function load(){
 function fillPackages(){const j=$("level").value,keep=$("pkg").value;$("pkg").innerHTML='<option value="">Semua paket</option><option value="__unmapped">Belum dipetakan</option>'+packages.filter(p=>!j||String(p.jenjang).toUpperCase()===j).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nama)+'</option>').join("");if([...$("pkg").options].some(o=>o.value===keep))$("pkg").value=keep}
 function render(){const j=$("level").value,pid=$("pkg").value,q=$("search").value.trim().toLowerCase();const rows=items.filter(isKind).filter(x=>!j||String(x.jenjang).toUpperCase()===j).filter(x=>{const ps=idsFor(x.id);return !pid||(pid==="__unmapped"?ps.length===0:ps.includes(pid))}).filter(x=>!q||(String(x.judul)+" "+String(x.topik)).toLowerCase().includes(q));$("summary").textContent=rows.length+" konten ditemukan";$("list").innerHTML=rows.length?rows.map(x=>'<div class="item"><input type="checkbox"><div class="meta"><b>'+esc(x.judul||"Tanpa judul")+'</b><small>'+esc(x.jenjang||"")+" · "+esc(x.topik||"-")+' · '+(idsFor(x.id).length?idsFor(x.id).length+" paket":"Belum dipetakan")+'</small></div><div class="actions"><button class="btn" data-a="preview" data-id="'+esc(x.id)+'">◉ Preview</button><button class="btn" data-a="package" data-id="'+esc(x.id)+'">📦 Paket</button><button class="btn" data-a="edit" data-id="'+esc(x.id)+'">Ubah</button><button class="btn" data-a="toggle" data-id="'+esc(x.id)+'">'+(x.visible===false?"Tampilkan":"Sembunyikan")+'</button><button class="btn danger" data-a="delete" data-id="'+esc(x.id)+'">Hapus</button></div></div>').join(""):'<div class="empty">Belum ada konten pada kategori/filter ini.</div>'}
 function item(id){return items.find(x=>String(x.id)===String(id))}
-function openEdit(x){editing=x||null;const k=x?(x.tujuan==="tryout"?"tryout":x.jenis):kind,d=x?parseData(x):{};$("editTitle").textContent=(x?"Ubah ":"Tambah ")+(k==="pdf"?"Modul":k==="video"?"Video":k==="tryout"?"Tryout":"Latihan");$("eLevel").value=x?.jenjang||$("level").value||"SMA";$("eTopic").value=x?.topik||"";$("eTitle").value=x?.judul||"";$("eVisible").value=String(x?.visible!==false);$("urlRow").style.display=(k==="pdf"||k==="video")?"contents":"none";$("questionRow").style.display=(k==="soal"||k==="tryout")?"contents":"none";$("urlLabel").textContent=k==="pdf"?"URL PDF":"URL Video";$("eUrl").value=k==="pdf"?(d.pdfUrl||d.pdf_url||d.url||""):(d.youtube||d.video_url||d.url||"");$("eQuestion").value=d.soal||"";$("eKey").value=Array.isArray(d.kunci)?d.kunci.join(","):d.kunci??"";$("eExplain").value=d.pembahasan||"";editDlg.showModal()}
-async function saveEdit(){const old=editing,d=old?parseData(old):{},k=old?(old.tujuan==="tryout"?"tryout":old.jenis):kind;if(k==="pdf")d.pdfUrl=$("eUrl").value.trim();if(k==="video")d.youtube=$("eUrl").value.trim();if(k==="soal"||k==="tryout"){d.soal=$("eQuestion").value;d.kunci=$("eKey").value;d.pembahasan=$("eExplain").value}d.learning_stage=d.learning_stage||1;const row={jenjang:$("eLevel").value,jenis:k==="tryout"?"tryout":k,tujuan:k==="tryout"?"tryout":k==="soal"?"latihan":k,topik:$("eTopic").value.trim(),judul:$("eTitle").value.trim(),visible:$("eVisible").value==="true",data:d};if(!row.judul)return alert("Judul wajib diisi.");const r=old?await DB.from("member_content").update(row).eq("id",old.id):await DB.from("member_content").insert(row);if(r.error)return alert("Gagal menyimpan: "+r.error.message);editDlg.close();await load()}
-function validWebUrl(v){try{const u=new URL(String(v||"").trim());return /^https?:$/.test(u.protocol)?u.href:""}catch{return ""}}
-function pdfSource(d){for(const v of [d.pdfUrl,d.pdf_url,d.file_url,d.url,d.pdf]){const u=validWebUrl(v);if(u)return u}return ""}
-function youtubeEmbed(v){const u=validWebUrl(v);if(!u)return "";try{const z=new URL(u);if(z.hostname==="youtu.be"){const id=z.pathname.slice(1).split("/")[0];return id?"https://www.youtube.com/embed/"+encodeURIComponent(id):""}if(z.hostname.includes("youtube.com")){if(z.pathname.startsWith("/embed/"))return u;const id=z.searchParams.get("v");return id?"https://www.youtube.com/embed/"+encodeURIComponent(id):""}return u}catch{return ""}}
+function kindName(k){return k==="pdf"?"Modul PDF":k==="video"?"Video Pembahasan":k==="soal"?"Soal Latihan":"Tryout Mingguan"}
+function updateModeInfo(){
+ const info={
+  pdf:"<b>📘 Modul & Topik</b><br><span>Input modul PDF manual → pilih jenjang SD/SMP/SMA → paket → topik. Setiap paket dapat memiliki modulnya sendiri.</span>",
+  soal:"<b>✍️ Soal Latihan</b><br><span>Dua sumber: <b>PDF manual</b> atau <b>Latihan Interaktif dari Bank Soal V12</b>. Keduanya dipetakan ke paket.</span>",
+  video:"<b>🎥 Video Pembahasan</b><br><span>Input URL YouTube/video → pilih jenjang → paket → topik.</span>",
+  tryout:"<b>🏆 Tryout Mingguan</b><br><span>Tryout interaktif mengambil set soal dari <b>Bank Soal V12</b>, lalu dipetakan ke paket. Aktivasi peserta tetap mengikuti akses paket.</span>"
+ };$("modeInfo").innerHTML=info[kind]||"";$("add").textContent=kind==="pdf"?"+ Tambah Modul PDF":kind==="video"?"+ Tambah Video":kind==="soal"?"+ Tambah Latihan":"+ Tambah Tryout";
+}
+function fillEditPackages(selected){
+ const j=$("eLevel").value.toUpperCase(),s=$("ePackage");s.innerHTML='<option value="">Pilih paket…</option>'+packages.filter(p=>String(p.jenjang||"").toUpperCase()===j).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nama)+'</option>').join("");if(selected&&[...s.options].some(o=>String(o.value)===String(selected)))s.value=selected;
+}
+function syncSourceFields(){
+ const k=editing?(editing.tujuan==="tryout"?"tryout":editing.jenis):kind,st=$("eSourceType").value;
+ $("sourceTypeRow").style.display=k==="soal"?"contents":"none";
+ $("bankRow").style.display=(k==="tryout"||(k==="soal"&&st==="interactive"))?"contents":"none";
+ $("urlRow").style.display=(k==="pdf"||k==="video"||(k==="soal"&&st==="pdf"))?"contents":"none";
+ $("questionRow").style.display="none";
+ $("urlLabel").textContent=k==="video"?"URL Video / YouTube":"URL PDF";
+}
+function openEdit(x){
+ editing=x||null;const k=x?(x.tujuan==="tryout"?"tryout":x.jenis):kind,d=x?parseData(x):{},mapped=x?idsFor(x.id):[];
+ $("editTitle").textContent=(x?"Ubah ":"Tambah ")+kindName(k);$("eLevel").value=x?.jenjang||$("level").value||"SMA";fillEditPackages(mapped[0]||"");
+ $("eTopic").value=x?.topik||"";$("eTitle").value=x?.judul||"";$("eVisible").value=String(x?.visible!==false);
+ $("eSourceType").value=d.source_type||((d.bank_set_id||d.qset_id)?"interactive":"pdf");$("eBankSet").value=d.bank_set_id||d.qset_id||"";
+ $("eUrl").value=k==="video"?(d.youtube||d.video_url||d.url||""):(d.pdfUrl||d.pdf_url||d.url||"");
+ syncSourceFields();editDlg.showModal()
+}
+async function saveEdit(){
+ const old=editing,d=old?parseData(old):{},k=old?(old.tujuan==="tryout"?"tryout":old.jenis):kind,pid=$("ePackage").value;
+ if(!pid)return alert("Pilih paket tujuan.");
+ if(k==="pdf"){d.pdfUrl=$("eUrl").value.trim();d.source_type="pdf"}
+ if(k==="video"){d.youtube=$("eUrl").value.trim();d.source_type="video"}
+ if(k==="soal"){d.source_type=$("eSourceType").value;if(d.source_type==="pdf")d.pdfUrl=$("eUrl").value.trim();else d.bank_set_id=$("eBankSet").value.trim()}
+ if(k==="tryout"){d.source_type="interactive";d.bank_set_id=$("eBankSet").value.trim();if(!d.bank_set_id)return alert("Masukkan ID/Set Bank Soal V12 untuk Tryout.")}
+ d.learning_stage=d.learning_stage||1;
+ const row={jenjang:$("eLevel").value,jenis:k==="tryout"?"tryout":k,tujuan:k==="tryout"?"tryout":k==="soal"?"latihan":k,topik:$("eTopic").value.trim(),judul:$("eTitle").value.trim(),visible:$("eVisible").value==="true",data:d};
+ if(!row.judul)return alert("Judul wajib diisi.");
+ let r;if(old)r=await DB.from("member_content").update(row).eq("id",old.id).select("id").single();else r=await DB.from("member_content").insert(row).select("id").single();
+ if(r.error)return alert("Gagal menyimpan: "+r.error.message);const cid=old?old.id:r.data.id;
+ const del=await DB.from("member_content_packages").delete().eq("content_id",cid);if(del.error)return alert("Konten tersimpan, tetapi pemetaan paket gagal: "+del.error.message);
+ const mp=await DB.from("member_content_packages").insert({content_id:cid,package_id:pid});if(mp.error)return alert("Konten tersimpan, tetapi pemetaan paket gagal: "+mp.error.message);
+ editDlg.close();await load()
+}
 function preview(x){
  const d=parseData(x);let body='<p><b>'+esc(x.judul)+'</b><br><small>'+esc(x.jenjang)+" · "+esc(x.topik||"-")+'</small></p>';
  if(x.jenis==="pdf"){
@@ -55,11 +100,11 @@ function preview(x){
 async function openPkg(x){mapping=x;const current=new Set(idsFor(x.id)),j=String(x.jenjang||"").toUpperCase();$("pkgTitle").textContent="Paket · "+x.judul;$("pkgChoices").innerHTML=packages.filter(p=>!j||String(p.jenjang).toUpperCase()===j).map(p=>'<label class="pkg"><input type="checkbox" value="'+esc(p.id)+'" '+(current.has(String(p.id))?"checked":"")+'> '+esc(p.nama)+'</label>').join("");pkgDlg.showModal()}
 async function savePkg(){if(!mapping)return;const ids=[...document.querySelectorAll("#pkgChoices input:checked")].map(x=>x.value);const d=await DB.from("member_content_packages").delete().eq("content_id",mapping.id);if(d.error)return alert("Gagal: "+d.error.message);if(ids.length){const r=await DB.from("member_content_packages").insert(ids.map(package_id=>({content_id:mapping.id,package_id})));if(r.error)return alert("Gagal: "+r.error.message)}pkgDlg.close();await load()}
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const x=item(b.dataset.id);if(!x)return alert("Konten tidak ditemukan.");const a=b.dataset.a;if(a==="preview")preview(x);if(a==="package")openPkg(x);if(a==="edit")openEdit(x);if(a==="toggle"){const r=await DB.from("member_content").update({visible:x.visible===false}).eq("id",x.id);if(r.error)alert(r.error.message);else load()}if(a==="delete"&&confirm('Hapus "'+x.judul+'"?')){const r=await DB.from("member_content").delete().eq("id",x.id);if(r.error)alert(r.error.message);else load()}});
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));b.classList.add("on");kind=b.dataset.kind;render()});$("level").onchange=()=>{fillPackages();render()};$("pkg").onchange=render;$("search").oninput=render;$("add").onclick=()=>openEdit(null);$("saveEdit").onclick=saveEdit;$("savePkg").onclick=savePkg;
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));b.classList.add("on");kind=b.dataset.kind;updateModeInfo();render()});$("level").onchange=()=>{fillPackages();render()};$("pkg").onchange=render;$("search").oninput=render;$("add").onclick=()=>openEdit(null);$("saveEdit").onclick=saveEdit;$("savePkg").onclick=savePkg;$("eLevel").onchange=()=>fillEditPackages("");$("eSourceType").onchange=syncSourceFields;
 (async()=>{try{
  const qs=new URLSearchParams(location.search),embed=qs.get("embed")==="1",requested=qs.get("kind");
  if(embed){document.querySelector(".top").style.display="none";document.body.style.background="#fff"}
- if(["pdf","soal","video","tryout"].includes(requested)){kind=requested;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.kind===kind))}
+ if(["pdf","soal","video","tryout"].includes(requested)){kind=requested;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.kind===kind))}updateModeInfo()
  const ok=await KFSupabaseAdmin.ensureAdmin();if(!ok)return;DB=KFSupabaseAdmin.client;$("status").remove();$("app").classList.remove("hidden");await load()
 }catch(e){$("status").textContent="Gagal membuka Admin Konten V2: "+e.message}})();
 </script></body></html>
