@@ -736,7 +736,7 @@ table{max-width:100%}
         <section id="pendaftaran" class="panel">
           <h1>Pendaftaran Baru</h1>
           <p class="sub">
-            Verifikasi data siswa dan paket, lalu aktifkan akses member.
+            Periksa data siswa lalu aktifkan paket yang sudah dipilih peserta. Pengelolaan pembayaran terpisah tidak diperlukan di halaman ini.
           </p>
           <div class="card">
             <table>
@@ -1293,7 +1293,7 @@ table{max-width:100%}
           return `<tr><td><b>${escMember(x.nama)}</b><br><small>${escMember(x.email)}</small></td><td>${escMember(String(x.jenjang||"-").toUpperCase())}</td><td><span class="status-pill ${s}">${escMember(STATUS_LABEL[s]||s)}</span></td></tr>`;
         }).join("") || '<tr><td colspan="3">Belum ada pendaftar.</td></tr>';
         if (pending) pending.innerHTML=MEMBER_CACHE.filter((x)=>x.status==="pending").map((x)=>
-          `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username||"-")}</small></td><td>${escMember(x.email)}</td><td>${escMember(String(x.jenjang||"").toUpperCase())} · Kelas ${escMember(x.kelas||"-")}<br>${escMember(x.sekolah)}<br><span class="tag">${escMember(x.paket||"Belum memilih paket")}</span><br><i>${x.paket?"Periksa transaksi pembayaran":"Peserta perlu login dan memilih paket"}</i></td><td><div class="row-actions"><button class="btn small" onclick="bukaPembayaranMember('${x.id}')">${x.paket?"Verifikasi Pembayaran":"Lihat Pembayaran"}</button><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn danger small" onclick="tolakMember('${x.id}')">Tolak</button></div></td></tr>`
+          `<tr><td><b>${escMember(x.nama)}</b><br><small>@${escMember(x.username||"-")}</small></td><td>${escMember(x.email)}</td><td>${escMember(String(x.jenjang||"").toUpperCase())} · Kelas ${escMember(x.kelas||"-")}<br>${escMember(x.sekolah)}<br><span class="tag">${escMember(x.paket||"Paket dipilih melalui Member Area")}</span><br><i>Pilih paket peserta lalu aktifkan dari sini.</i></td><td><div class="row-actions"><button class="btn small" onclick="aktifkanPaketDariPendaftaran('${x.id}')">✓ Aktifkan Paket</button><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn danger small" onclick="tolakMember('${x.id}')">Tolak</button></div></td></tr>`
         ).join("") || '<tr><td colspan="4">Tidak ada peserta yang menunggu aktivasi.</td></tr>';
       }
       function renderTabelMember() {
@@ -1400,6 +1400,25 @@ table{max-width:100%}
           MEMBER_CACHE=(res.data||[]).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
           perbaruiRingkasanMember(); renderPendaftaranMember(); renderTabelMember();
         } catch(err) { alert("Gagal memuat data member: "+err.message); }
+      }
+      async function aktifkanPaketDariPendaftaran(memberId){
+        const m=MEMBER_CACHE.find(x=>x.id===memberId);if(!m)return;
+        try{
+          const q=await kfdb().from("member_bundle_orders").select("*").eq("user_id",memberId).eq("status","pending").order("created_at",{ascending:false}).limit(1);
+          if(q.error)throw q.error;
+          const o=(q.data||[])[0];
+          if(!o)return alert("Peserta belum mengirim pilihan paket.\n\nMinta peserta login ke Member Area, pilih paket, lalu tekan Kirim Pilihan Paket & Bukti via WhatsApp.");
+          const iq=await kfdb().from("member_bundle_order_items").select("*").eq("order_id",o.id);
+          if(iq.error)throw iq.error;
+          const names=(iq.data||[]).map(x=>x.package_name).filter(Boolean);
+          const pesan="AKTIFKAN PAKET\n\nPeserta: "+(m.nama||"-")+"\nJenjang: "+String(o.jenjang||m.jenjang||"-").toUpperCase()+"\nPaket:\n"+names.map((n,i)=>(i+1)+". "+n).join("\n")+"\nBiaya: "+moneyID(o.total_amount||0)+"\n\nAktifkan paket ini sekarang?";
+          if(!confirm(pesan))return;
+          const n=prompt("Catatan Admin:","Paket diaktifkan oleh Admin");if(n===null)return;
+          const r=await kfdb().rpc("kf_admin_approve_bundle_order",{p_order:o.id,p_note:n});
+          if(r.error)throw r.error;
+          alert("✓ Paket berhasil diaktifkan untuk "+m.nama+".");
+          await renderMemberAdmin();await renderBundleOrders();
+        }catch(e){alert("Gagal mengaktifkan paket: "+e.message)}
       }
       function bukaPembayaranMember(id) {
         const m=MEMBER_CACHE.find(x=>x.id===id);
