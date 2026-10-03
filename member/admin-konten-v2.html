@@ -127,6 +127,9 @@ async function saveEdit(){
  const mp=await DB.from("member_content_packages").insert({content_id:cid,package_id:pid});if(mp.error)return alert("Konten tersimpan, tetapi pemetaan paket gagal: "+mp.error.message);
  editDlg.close();await load()
 }
+function validWebUrl(v){try{const u=new URL(String(v||"").trim());return /^https?:$/.test(u.protocol)?u.href:""}catch{return ""}}
+function pdfSource(d){for(const v of [d.pdfUrl,d.pdf_url,d.file_url,d.url,d.pdf]){const u=validWebUrl(v);if(u)return u}return ""}
+function youtubeEmbed(v){const u=validWebUrl(v);if(!u)return "";try{const z=new URL(u);if(z.hostname==="youtu.be"){const id=z.pathname.slice(1).split("/")[0];return id?"https://www.youtube.com/embed/"+encodeURIComponent(id):""}if(z.hostname.includes("youtube.com")){if(z.pathname.startsWith("/embed/"))return u;const id=z.searchParams.get("v");return id?"https://www.youtube.com/embed/"+encodeURIComponent(id):""}return u}catch{return ""}}
 function preview(x){
  const d=parseData(x);let body='<p><b>'+esc(x.judul)+'</b><br><small>'+esc(x.jenjang)+" · "+esc(x.topik||"-")+'</small></p>';
  if(x.jenis==="pdf"){
