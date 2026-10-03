@@ -26,11 +26,11 @@ begin
     raise exception 'Akses super_admin diperlukan';
   end if;
   update public.member_package_ownerships
-     set status='revoked'
+     set status='expired', expires_at=now()
    where user_id=p_user and package_id=p_package and status='active';
   get diagnostics n=row_count;
   if n=0 then raise exception 'Paket aktif tidak ditemukan'; end if;
-  return jsonb_build_object('ok',true,'action','revoked','user_id',p_user,'package_id',p_package,'note',coalesce(p_note,''));
+  return jsonb_build_object('ok',true,'action','expired','user_id',p_user,'package_id',p_package,'note',coalesce(p_note,''));
 end $$;
 
 create or replace function public.kf_admin_grant_member_package(p_user uuid,p_package uuid,p_note text default null)
