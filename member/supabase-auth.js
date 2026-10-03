@@ -76,6 +76,23 @@
 
   window.KFMemberAuth = {
     configured:true, client:supabase,
+    updateProfil: async function(input){
+      const {data:u,error:ue}=await supabase.auth.getUser();
+      if(ue||!u||!u.user) throw new Error("Sesi peserta sudah berakhir.");
+      const current=await supabase.from("member_profiles").select("username").eq("id",u.user.id).single();
+      if(current.error) throw current.error;
+      const nama=clean(input.nama), sekolah=clean(input.sekolah), wa=clean(input.wa);
+      const kelas=clean(input.kelas), jenjang=clean(input.jenjang).toLowerCase();
+      const username=clean(input.username).toLowerCase();
+      if(!nama||!sekolah||!wa) throw new Error("Nama, sekolah, dan WhatsApp wajib diisi.");
+      if(!/^[a-z0-9._]{4,30}$/.test(username)) throw new Error("Username 4–30 karakter: huruf kecil, angka, titik, atau underscore.");
+      if(!/^(1|2|3|4|5|6|7|8|9|10|11|12)$/.test(kelas)) throw new Error("Kelas tidak valid.");
+      if(!["sd","smp","sma"].includes(jenjang)) throw new Error("Jenjang tidak valid.");
+      if(username!==String(current.data.username||"").toLowerCase() && !(await usernameAvailable(username))) throw new Error("Username sudah digunakan.");
+      const {data,error}=await supabase.from("member_profiles").update({nama,username,sekolah,wa,kelas,jenjang}).eq("id",u.user.id).select(PROFILE_FIELDS).single();
+      if(error) throw error;
+      return {ok:true,data};
+    },
     listPaket: async function () {
       const {data,error}=await supabase.rpc("kf_member_package_catalog");
       if(error) throw error;
