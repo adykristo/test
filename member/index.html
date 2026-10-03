@@ -553,6 +553,18 @@
     @keyframes kfFilterIn{from{opacity:.45;transform:translateY(5px)}to{opacity:1;transform:none}}
     #dash #tryoutMingguanBox{margin-top:18px;border:1px solid #eadcf5;border-radius:17px;background:linear-gradient(135deg,#fff,#fbf6ff);box-shadow:0 7px 22px rgba(65,23,88,.05)}
     @media(max-width:720px){#dash .grid{grid-template-columns:1fr}#dash .toolbar{top:52px}#dash .toolbar .chip{flex:1 1 auto;font-size:11px}.learning-section-head h2{font-size:19px}}
+
+    /* Empat ruang belajar eksklusif: Modul, Latihan, Video, Tryout */
+    #dash .toolbar .chip[data-f="pdf"].active{background:linear-gradient(135deg,#6f35dc,#a63ee8)}
+    #dash .toolbar .chip[data-f="soal"].active{background:linear-gradient(135deg,#ec4c93,#ef3fa6)}
+    #dash .toolbar .chip[data-f="video"].active{background:linear-gradient(135deg,#4d2a91,#7e35c5)}
+    #dash .toolbar .chip[data-f="tryout"].active{background:linear-gradient(135deg,#9b5a12,#d48a1e)}
+    .tryout-view{margin-top:10px!important;border-radius:18px!important}
+    .tryout-hero{padding:4px 2px 12px;border-bottom:1px solid #eee1f6;margin-bottom:14px}
+    .tryout-hero small{font-size:10px;font-weight:900;letter-spacing:.12em;color:#a06a20}
+    .tryout-hero h2{margin:4px 0;font-size:24px}
+    .tryout-hero p{margin:0;color:#725c82}
+    .tryout-empty{padding:38px 12px!important;text-align:center}
 </style>
   
 <style id="kf-member-v6">
@@ -708,21 +720,10 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
             placeholder="Cari topik atau judul materi…"
             oninput="renderList()"
           />
-          <span
-            class="chip active"
-            data-f="semua"
-            onclick="filterJenis('semua', this)"
-            >Semua</span
-          >
-          <span class="chip" data-f="pdf" onclick="filterJenis('pdf', this)"
-            >📄 Modul PDF</span
-          >
-          <span class="chip" data-f="soal" onclick="filterJenis('soal', this)"
-            >📝 Latihan Soal</span
-          >
-          <span class="chip" data-f="video" onclick="filterJenis('video', this)"
-            >🎥 Video</span
-          >
+          <span class="chip active" data-f="pdf" onclick="filterJenis('pdf', this)">📘 Modul</span>
+          <span class="chip" data-f="soal" onclick="filterJenis('soal', this)">✍️ Latihan</span>
+          <span class="chip" data-f="video" onclick="filterJenis('video', this)">🎥 Video</span>
+          <span class="chip" data-f="tryout" onclick="filterJenis('tryout', this)">🏆 Tryout</span>
         </div>
 
         <div class="learning-section-head"><div><small id="filterEyebrow">RUANG BELAJAR</small><h2 id="filterTitle">Semua Materi</h2></div><span id="filterCount" class="learning-count">0 materi</span></div>
@@ -1322,20 +1323,21 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
 
       function renderList() {
         const q = (document.getElementById("cari").value || "").toLowerCase();
-        const items = dataMateri.filter(
+        const isTryoutView=filterAktif==="tryout";
+        const items = isTryoutView ? [] : dataMateri.filter(
           (x) =>
             x.visible !== false &&
-            x.jenis !== "tryout" &&
+            normalJenis(x) !== "tryout" &&
             tujuanItem(x) !== "tryout" &&
             (!hanyaBookmark || bookmarked(x.id)) &&
-            (filterAktif === "semua" || normalJenis(x) === filterAktif) &&
+            normalJenis(x) === filterAktif &&
             ((x.judul || "").toLowerCase().includes(q) ||
               (x.topik || "").toLowerCase().includes(q)),
         );
-        const titles={semua:"Semua Materi",pdf:"Modul Belajar",soal:"Latihan Soal",video:"Video Pembahasan"};
+        const titles={pdf:"Modul Belajar",soal:"Latihan Soal",video:"Video Pembahasan",tryout:"Tryout"};
         const titleEl=document.getElementById("filterTitle"),countEl=document.getElementById("filterCount");
         if(titleEl)titleEl.textContent=titles[filterAktif]||"Materi Belajar";
-        if(countEl)countEl.textContent=items.length+" materi";
+        if(countEl)countEl.textContent=isTryoutView?"Tryout aktif":items.length+" materi";
         document.getElementById("list").innerHTML = items
           .map((x) => {
             const terkunci = !bolehBuka(x),
@@ -1355,33 +1357,29 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
     </div>`;
           })
           .join("");
-        document.getElementById("emptyMsg").style.display = items.length
-          ? "none"
-          : "block";
+        document.getElementById("emptyMsg").style.display = (!isTryoutView && !items.length) ? "block" : "none";
+        const listEl=document.getElementById("list");
+        if(listEl)listEl.style.display=isTryoutView?"none":"grid";
         renderTryoutMingguan();
       }
 
       function renderTryoutMingguan() {
-        let box = document.getElementById("tryoutMingguanBox");
-        if (!box) {
-          box = document.createElement("div");
-          box.id = "tryoutMingguanBox";
-          box.className = "card";
+        let box=document.getElementById("tryoutMingguanBox");
+        if(!box){
+          box=document.createElement("div");
+          box.id="tryoutMingguanBox";
+          box.className="card tryout-view";
           document.getElementById("list").parentNode.appendChild(box);
         }
-        // Tryout interaktif V15 dirender hanya dari RPC kf_list_available_packages.
-        // Konten tryout lama tidak boleh menjadi jalur alternatif yang dapat dibuka langsung.
-        const list = [];
-        box.innerHTML =
-          '<h2 style="margin-top:0">🏆 Tryout Mingguan</h2><p style="color:#5b4374">Tryout hanya dapat diakses setelah diaktifkan oleh Admin.</p>' +
-          (list.length
-            ? list
-                .map(
-                  (x) =>
-                    `<div class="mcard" onclick="bukaDetail(${dataMateri.indexOf(x)})"><div class="ic">🏆</div><div><div class="topik">${esc(x.topik || "Tryout Mingguan")}</div><div class="judul">${esc(x.judul || "Tryout")}</div><span class="tag soal">Lihat Jadwal</span></div></div>`,
-                )
-                .join("")
-            : '<div class="empty">Belum ada Tryout Mingguan yang dijadwalkan admin.</div>');
+        if(filterAktif!=="tryout"){box.style.display="none";return;}
+        box.style.display="block";
+        const server=(window.KF_SERVER_PACKAGES||[]).filter(p=>String(p.kind||"").toLowerCase()==="tryout");
+        box.innerHTML='<div class="tryout-hero"><div><small>TRYOUT KLINIKFISIKAPKU</small><h2>🏆 Tryout</h2><p>Tryout hanya tampil jika sudah diaktifkan Admin untuk paket Anda.</p></div></div>'+
+          (server.length?'<div class="kf-pkg-grid">'+server.map(p=>{
+            const used=Number(p.attempts_used||0),max=Number(p.max_attempts||1);
+            const blocked=max>0&&used>=max;
+            return `<div class="kf-pkg-card ${blocked?"kf-pkg-locked":""}"><h3>🏆 ${esc(p.name||"Tryout")}</h3><div class="kf-pkg-meta">${Number(p.question_count||0)} soal · ${Number(p.duration_minutes||0)} menit<br>Percobaan ${used}/${max}</div><button class="btn ${blocked?"btn-ghost":"btn-main"}" ${blocked?"disabled":`onclick="kfStartServerPackage('${p.id}')"`}>${blocked?"Percobaan habis":"Mulai Tryout"}</button></div>`;
+          }).join("")+'</div>':'<div class="empty tryout-empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>');
       }
 
       function ytId(url) {
