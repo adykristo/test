@@ -992,7 +992,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           dataMateri = res.data || [];
           if (window.KFMemberAuth && window.KFMemberAuth.dataBelajar) {
             try { dataBelajarAktif = await window.KFMemberAuth.dataBelajar(); }
-            catch (sinkronError) { console.warn("Data belajar memakai salinan lokal:", sinkronError); }
+            catch (sinkronError) { dataBelajarAktif={progress:[],bookmarks:[],attempts:[],orders:[],certificates:[]}; console.warn("Data belajar Supabase belum dapat dimuat:", sinkronError); }
           }
         } catch (err) {
           dataMateri = [];
@@ -1210,7 +1210,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         }
         detailAktif = i;
         if(window.KFMemberAuth&&window.KFMemberAuth.simpanProgress&&x.id) {
-          window.KFMemberAuth.simpanProgress(x.id,{selesai:selesaiItem(x)}).catch(err=>console.warn("Progress belum tersinkron:",err));
+          window.KFMemberAuth.simpanProgress(x.id,{dibuka:true}).catch(err=>console.warn("Waktu buka materi belum tersinkron:",err));
         }
         let html = `<div class="topik">${esc(x.topik || "")}</div><h2 style="margin-top:4px">${esc(x.judul || "")}</h2>`;
 
@@ -1288,7 +1288,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         box.innerHTML=r.review_locked?'<b>Mode tryout:</b><br>Kunci dan pembahasan masih dikunci. Anda memiliki maksimal 3 percobaan per jam.':('<b>Pembahasan:</b><br>'+textWithBreaks(r.pembahasan||"Belum ada pembahasan.")+(idVideo?`<div class="videowrap" style="margin-top:14px"><iframe title="Video pembahasan" src="https://www.youtube-nocookie.com/embed/${idVideo}" allowfullscreen></iframe></div>`:""));
         box.style.display="block";
         hasil.innerHTML=r.benar===true?'<div class="result ok">✓ Benar! Jawabanmu tepat.</div>':r.benar===false?'<div class="result bad">✗ Belum tepat. Pelajari pembahasan berikut.</div>':'<div class="result ok">✓ Jawaban tersimpan. Gunakan pedoman untuk menilai jawabanmu.</div>';
-        if(r.benar===true)catatJawabanBenarAktif(hasil);
+        if(r.benar===true)await catatJawabanBenarAktif(hasil);
         return r;
       }
 
@@ -1301,11 +1301,25 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         }catch(err){hasil.innerHTML='<div class="result bad">'+esc(err.message)+'</div>';}
       }
 
-      function catatJawabanBenarAktif(hasil) {
-        if(detailAktif<0)return;const p=bacaProgres(),item=dataMateri[detailAktif],topik=String(item.topik||"Tanpa Topik"),tujuan=tujuanItem(item);p.soal[item.id||detailAktif]=true;
-        const semua=dataMateri.filter(x=>x.jenis==="soal"&&String(x.topik||"Tanpa Topik")===topik&&tujuanItem(x)===tujuan).map((x,i)=>x.id||i);
-        if(semua.length&&semua.every(id=>p.soal[id])){const key=tujuan==="tryout"?"tryoutSelesai":"latihanSelesai";if(!p[key].includes(topik))p[key].push(topik);if(hasil)hasil.innerHTML+='<div class="result ok">🎉 Semua soal pada topik ini selesai.</div>';}
-        simpanProgres(p);if(window.KFMemberAuth&&window.KFMemberAuth.simpanProgress&&item.id)window.KFMemberAuth.simpanProgress(item.id,{selesai:true,skor:100}).catch(()=>{});renderRingkasan();
+      async function catatJawabanBenarAktif(hasil) {
+        if(detailAktif<0)return;
+        const item=dataMateri[detailAktif];
+        if(!item||!item.id)return;
+        try{
+          if(window.KFMemberAuth&&window.KFMemberAuth.simpanProgress){
+            await window.KFMemberAuth.simpanProgress(item.id,{selesai:true,skor:100});
+          }
+          if(window.KFMemberAuth&&window.KFMemberAuth.dataBelajar){
+            dataBelajarAktif=await window.KFMemberAuth.dataBelajar();
+          }
+          const p=bacaProgres(),topik=String(item.topik||"Tanpa Topik"),tujuan=tujuanItem(item);
+          const semua=dataMateri.filter(x=>x.jenis==="soal"&&String(x.topik||"Tanpa Topik")===topik&&tujuanItem(x)===tujuan).map(x=>x.id).filter(Boolean);
+          if(semua.length&&semua.every(id=>p.soal[id])&&hasil) hasil.innerHTML+='<div class="result ok">🎉 Semua soal pada topik ini selesai.</div>';
+          renderRingkasan();renderList();
+        }catch(err){
+          console.warn("Progress jawaban belum tersinkron:",err);
+          if(hasil)hasil.innerHTML+='<div class="result bad">Jawaban benar, tetapi progress belum berhasil disinkronkan. Coba muat ulang halaman.</div>';
+        }
       }
       async function cekJawabanBanyak() {
         const pilihan=[...document.querySelectorAll('input[name="jawabBanyak"]:checked')].map(x=>Number(x.value)).sort(),hasil=document.getElementById("hasilJawab");
