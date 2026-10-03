@@ -529,6 +529,30 @@
     .compact-account-body{padding:12px 14px;max-height:360px;overflow:auto}
     .compact-account-body h2{display:none}
     .compact-account-body>p{display:none}
+
+    /* Learning-first dashboard */
+    #dash{max-width:1040px;margin:auto}
+    #dash .toolbar{position:sticky;top:58px;z-index:12;background:rgba(248,246,252,.94);backdrop-filter:blur(12px);padding:10px;border:1px solid #eadcf5;border-radius:16px;box-shadow:0 8px 24px rgba(80,30,110,.07);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    #dash .toolbar input{flex:1 1 280px;min-height:42px;border-radius:12px}
+    #dash .toolbar .chip{cursor:pointer;user-select:none;min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid #e4d5f0;border-radius:12px;background:#fff;transition:.18s ease;box-shadow:0 2px 7px rgba(60,20,90,.03)}
+    #dash .toolbar .chip:hover{transform:translateY(-1px);border-color:#bb7de3;background:#fbf5ff}
+    #dash .toolbar .chip.active{color:#fff!important;border-color:transparent;background:linear-gradient(135deg,#7b2be2,#ef3fa6);box-shadow:0 7px 18px rgba(158,48,201,.22)}
+    .learning-section-head{display:flex;align-items:end;justify-content:space-between;margin:22px 2px 12px;gap:12px}
+    .learning-section-head small{font-size:10px;font-weight:900;letter-spacing:.12em;color:#9b52c6}
+    .learning-section-head h2{margin:3px 0 0;font-size:22px;color:#251039}
+    .learning-count{font-size:11px;font-weight:800;color:#704c83;background:#f2e8f9;padding:6px 10px;border-radius:999px}
+    #dash .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    #dash .mcard{position:relative;min-height:108px;border:1px solid #eadcf5!important;border-radius:17px!important;background:#fff!important;padding:16px!important;box-shadow:0 7px 22px rgba(65,23,88,.06)!important;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;overflow:hidden}
+    #dash .mcard:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(#8d35d6,#f23c9e)}
+    #dash .mcard:hover{transform:translateY(-3px);border-color:#d8b9ed!important;box-shadow:0 12px 30px rgba(88,33,120,.12)!important}
+    #dash .mcard .ic{width:48px;height:48px;border-radius:14px;background:linear-gradient(145deg,#f3e8ff,#fff0f8);display:flex;align-items:center;justify-content:center;font-size:23px;flex:none}
+    #dash .mcard .judul{font-size:15px;font-weight:900;color:#28103d;margin:3px 0 8px;line-height:1.35}
+    #dash .mcard .topik{font-size:10px;font-weight:900;letter-spacing:.06em;color:#9b52c6;text-transform:uppercase}
+    #dash .bookmark-btn{top:12px;right:12px}
+    #dash .filter-flash{animation:kfFilterIn .22s ease}
+    @keyframes kfFilterIn{from{opacity:.45;transform:translateY(5px)}to{opacity:1;transform:none}}
+    #dash #tryoutMingguanBox{margin-top:18px;border:1px solid #eadcf5;border-radius:17px;background:linear-gradient(135deg,#fff,#fbf6ff);box-shadow:0 7px 22px rgba(65,23,88,.05)}
+    @media(max-width:720px){#dash .grid{grid-template-columns:1fr}#dash .toolbar{top:52px}#dash .toolbar .chip{flex:1 1 auto;font-size:11px}.learning-section-head h2{font-size:19px}}
 </style>
   
 <style id="kf-member-v6">
@@ -701,6 +725,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           >
         </div>
 
+        <div class="learning-section-head"><div><small id="filterEyebrow">RUANG BELAJAR</small><h2 id="filterTitle">Semua Materi</h2></div><span id="filterCount" class="learning-count">0 materi</span></div>
         <div class="grid" id="list"></div>
         <div class="empty" id="emptyMsg" style="display: none">
           Belum ada materi untuk jenjang / filter ini.
@@ -1106,12 +1131,21 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         buka("home");
       }
 
+      function normalJenis(x){
+        const raw=String(x&&x.jenis||x&&x.type||x&&x.tipe||"").trim().toLowerCase();
+        if(["pdf","modul","module","materi"].includes(raw))return "pdf";
+        if(["soal","latihan","quiz","question","qset"].includes(raw))return "soal";
+        if(["video","youtube","yt"].includes(raw))return "video";
+        return raw;
+      }
       function filterJenis(f, el) {
         filterAktif = f;
-        document
-          .querySelectorAll(".chip")
-          .forEach((c) => c.classList.remove("active"));
-        el.classList.add("active");
+        document.querySelectorAll(".toolbar .chip").forEach((c) => {
+          c.classList.toggle("active", c===el);
+          c.setAttribute("aria-pressed", c===el ? "true" : "false");
+        });
+        const list=document.getElementById("list");
+        if(list){list.classList.remove("filter-flash");void list.offsetWidth;list.classList.add("filter-flash");}
         renderList();
       }
 
@@ -1279,7 +1313,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         const t=topics.find(v=>String(v.judul||"").trim().toLowerCase()===title);
         return t&&t.package_name?t.package_name:"";
       }
-      const ICON = { pdf: "📄", soal: "📝", video: "🎥" };
+      const ICON = { pdf: "📘", soal: "✍️", video: "▶️" };
       const LABEL = {
         pdf: "Modul PDF",
         soal: "Latihan Soal",
@@ -1294,22 +1328,26 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
             x.jenis !== "tryout" &&
             tujuanItem(x) !== "tryout" &&
             (!hanyaBookmark || bookmarked(x.id)) &&
-            (filterAktif === "semua" || x.jenis === filterAktif) &&
+            (filterAktif === "semua" || normalJenis(x) === filterAktif) &&
             ((x.judul || "").toLowerCase().includes(q) ||
               (x.topik || "").toLowerCase().includes(q)),
         );
+        const titles={semua:"Semua Materi",pdf:"Modul Belajar",soal:"Latihan Soal",video:"Video Pembahasan"};
+        const titleEl=document.getElementById("filterTitle"),countEl=document.getElementById("filterCount");
+        if(titleEl)titleEl.textContent=titles[filterAktif]||"Materi Belajar";
+        if(countEl)countEl.textContent=items.length+" materi";
         document.getElementById("list").innerHTML = items
           .map((x) => {
             const terkunci = !bolehBuka(x),
               selesai = selesaiItem(x) || statusTopik(x.topik),
               tryout = false;
             return `<div class="mcard ${terkunci ? "locked" : ""}" onclick="${terkunci ? "alert('Selesaikan seluruh latihan topik sebelumnya terlebih dahulu.')" : "bukaDetail(" + dataMateri.indexOf(x) + ")"}">
-      <div class="ic">${ICON[x.jenis] || "📁"}</div>
+      <div class="ic">${ICON[normalJenis(x)] || "📁"}</div>
       <div>
         <div class="topik">${esc(x.topik || "")}</div>
         ${(paketNamaKonten(x)||topikDiPaketSaya(x))?`<div style="font-size:11px;color:#7a5b8c;margin-bottom:3px">📦 ${esc(paketNamaKonten(x)||topikDiPaketSaya(x))}</div>`:""}
         <div class="judul">${terkunci ? "🔒 " : ""}${esc(x.judul || "")}</div>
-        <span class="tag ${["pdf","soal","video"].includes(x.jenis)?x.jenis:""}">${esc(tryout ? "🏆 Tryout Topik" : LABEL[x.jenis] || x.jenis)}</span>
+        <span class="tag ${["pdf","soal","video"].includes(normalJenis(x))?normalJenis(x):""}">${esc(tryout ? "🏆 Tryout Topik" : LABEL[normalJenis(x)] || normalJenis(x))}</span>
         <span class="tag" style="margin-left:5px;background:#f0e6ff;color:#5b2185">Tahap ${esc(String(x.learning_stage||1))}</span>
         ${selesai ? '<span class="tag" style="margin-left:5px">✓ Latihan selesai</span>' : ""}
       </div>
