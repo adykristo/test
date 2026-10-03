@@ -977,6 +977,15 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
           console.warn("Paket peserta belum dapat dimuat:", packageError);
         }
         try {
+          if (window.KFMemberAuth && window.KFMemberAuth.topikSaya) {
+            try {
+              const topicRes = await window.KFMemberAuth.topikSaya();
+              window.KF_OWNED_TOPICS = topicRes.data || [];
+            } catch(topicError) {
+              window.KF_OWNED_TOPICS = [];
+              console.warn("Topik paket belum dapat dimuat:", topicError);
+            }
+          }
           const res = window.KFMemberAuth
             ? await window.KFMemberAuth.kontenMember(jenjangAktif)
             : await apiGet({ action: "kontenMember", jenjang: jenjangAktif });
@@ -1101,6 +1110,20 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
         );
       }
 
+      function paketNamaKonten(x){
+        const pid=String(x&&x.package_id||x&&x.packageId||"");
+        const direct=String(x&&x.package_name||x&&x.package||"").trim();
+        if(direct)return direct;
+        const p=(window.KF_OWNED_PACKAGES||[]).find(v=>String(v.id)===pid);
+        return p&&p.nama?p.nama:"";
+      }
+      function topikDiPaketSaya(x){
+        const topics=window.KF_OWNED_TOPICS||[];
+        if(!topics.length)return "";
+        const title=String(x&&x.topik||"").trim().toLowerCase();
+        const t=topics.find(v=>String(v.judul||"").trim().toLowerCase()===title);
+        return t&&t.package_name?t.package_name:"";
+      }
       const ICON = { pdf: "📄", soal: "📝", video: "🎥" };
       const LABEL = {
         pdf: "Modul PDF",
@@ -1129,6 +1152,7 @@ input,select,textarea{border-radius:9px!important}table{border-radius:12px;overf
       <div class="ic">${ICON[x.jenis] || "📁"}</div>
       <div>
         <div class="topik">${esc(x.topik || "")}</div>
+        ${(paketNamaKonten(x)||topikDiPaketSaya(x))?`<div style="font-size:11px;color:#7a5b8c;margin-bottom:3px">📦 ${esc(paketNamaKonten(x)||topikDiPaketSaya(x))}</div>`:""}
         <div class="judul">${terkunci ? "🔒 " : ""}${esc(x.judul || "")}</div>
         <span class="tag ${["pdf","soal","video"].includes(x.jenis)?x.jenis:""}">${esc(tryout ? "🏆 Tryout Topik" : LABEL[x.jenis] || x.jenis)}</span>
         <span class="tag" style="margin-left:5px;background:#f0e6ff;color:#5b2185">Tahap ${esc(String(x.learning_stage||1))}</span>
@@ -1373,7 +1397,9 @@ function kfRenderServerPackageBoxes(){
   let now=Date.now(),start=p.starts_at?new Date(p.starts_at).getTime():0,end=p.ends_at?new Date(p.ends_at).getTime():0,blocked=start&&now<start?"Belum dimulai":end&&now>end?"Sudah berakhir":kind==="tryout"&&Number(p.attempts_used)>=Number(p.max_attempts)?"Percobaan habis":"";
   return `<div class="kf-pkg-card ${blocked?"kf-pkg-locked":""}"><h3>${kind==="tryout"?"🏆":"✎"} ${esc(p.name)}</h3><div class="kf-pkg-meta">${p.question_count} soal${kind==="tryout"?` · ${p.duration_minutes||0} menit · Percobaan ${p.attempts_used}/${p.max_attempts}`:""}<br>${blocked||"Tersedia untuk paket langganan Anda"}</div><button class="btn ${blocked?"btn-ghost":"btn-main"}" ${blocked?"disabled":`onclick="kfStartServerPackage('${p.id}')"`}>${blocked?"Tidak tersedia":"Mulai"}</button></div>`;
  }).join("");
- old.innerHTML=`<h2 style="margin-top:0">📦 Paket Latihan & Tryout</h2><p style="color:#5b4374">Data dipanggil langsung dari Supabase sesuai langganan akun Anda.</p><h3>Latihan Soal</h3><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty">Belum ada paket latihan.</div>'}</div><h3>Tryout</h3><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
+ const owned=(window.KF_OWNED_PACKAGES||[]);
+ const ownedHtml=owned.length?`<div class="owned-package-grid">${owned.map(p=>`<div class="owned-package"><b>${esc(p.nama)}</b><span>✓ Aktif</span><small>${p.expiresAt?"Berlaku s.d. "+new Date(p.expiresAt).toLocaleDateString("id-ID"):"Akses paket aktif"}</small></div>`).join("")}</div>`:'<div class="empty">Belum ada paket aktif pada akun ini.</div>';
+ old.innerHTML=`<h2 style="margin-top:0">📦 Paket Saya</h2>${ownedHtml}<hr style="border:0;border-top:1px solid #eadff2;margin:18px 0"><h2 style="margin-top:0">Latihan & Tryout</h2><p style="color:#5b4374">Hanya paket yang diizinkan Supabase untuk akun Anda yang ditampilkan.</p><h3>Latihan Soal</h3><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty">Belum ada paket latihan.</div>'}</div><h3>Tryout</h3><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
 }
 async function kfStartServerPackage(packageId){
  try{
