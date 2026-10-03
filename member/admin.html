@@ -1148,7 +1148,7 @@ table{max-width:100%}
   const names={pdf:"Modul & Topik",soal:"Soal Latihan",video:"Video Pembahasan",tryout:"Tryout Mingguan"};
   const h=document.getElementById("kontenV2Heading");if(h)h.textContent=names[kind]||"Konten Belajar";
   const fr=document.getElementById("kontenV2Frame");
-  const src="admin-konten-v2.html?embed=1&kind="+encodeURIComponent(kind)+"&v=20261003";
+  const src="admin-konten-v2.html?embed=1&locked=1&kind="+encodeURIComponent(kind)+"&v=20261003b";
   if(fr&&fr.getAttribute("src")!==src)fr.src=src;
 }
 function openPanel(id, b) {
