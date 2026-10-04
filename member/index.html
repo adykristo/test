@@ -594,6 +594,16 @@
     .server-section-head.tryout-head{background:linear-gradient(135deg,#fffaf0,#fff);border-color:#eed9b5}
     .server-section-head.tryout-head small{color:#a76814}
     .learning-empty{grid-column:1/-1;padding:38px 14px!important;text-align:center}
+
+/* ===== KlinikFisikapku Member UI Polish 2026-10 ===== */
+:root{--kf-card-radius:16px;--kf-soft-shadow:0 10px 30px rgba(57,27,93,.07)}
+.card,.content-card,.kf-pkg-card,.kf-pkg-result{border-radius:var(--kf-card-radius)!important}
+.card,.content-card,.kf-pkg-card{box-shadow:var(--kf-soft-shadow)}
+button,.btn,input,select,textarea{transition:border-color .18s ease,box-shadow .18s ease,transform .12s ease}
+button:hover,.btn:hover{transform:translateY(-1px)}
+button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(204,50,199,.18)!important;outline-offset:2px}
+.empty,.empty-state{border:1px dashed #dec9ef!important;border-radius:14px!important;background:#fcf9ff!important}
+@media(max-width:720px){.wrap,.container{padding-left:14px!important;padding-right:14px!important}.btn,button{min-height:38px}}
 </style>
   
 <style id="kf-member-v6">
