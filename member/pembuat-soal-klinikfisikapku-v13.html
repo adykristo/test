@@ -717,15 +717,14 @@ function insertImageMarker(id){
  input.click();
 }
 function readFormulaPhoto(target){const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async function(){const file=input.files&&input.files[0];if(!file)return;try{const image=await fileToBase64Payload(file),r=await postGAS('imageToLatex',{image});if(!r?.latex)throw new Error(r?.message||'Rumus tidak terbaca');const el=$(target);if(!el)throw new Error('Kolom tujuan tidak ditemukan');const p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+r.latex+el.value.slice(p);el.dispatchEvent(new Event('input'));el.focus()}catch(e){alert('Gagal membaca rumus: '+e.message)}};input.click()}
-function changeTypeSelect(v){currentType=v;initAnswersForType(true);renderAnswerEditor();changed()}
+function changeTypeSelect(v){currentType=v;initAnswersForType(true);renderAnswerEditor();updateEditorTypeVisibility();changed();setTimeout(()=>{if(['pg4','pg5','mcma'].includes(currentType)&&$('answerEditor')&&!$('answerEditor').children.length)renderAnswerEditor()},0)}
 function updateEditorTypeVisibility(){
  const isEssay=currentType==='esai',isMCMA=currentType==='mcma';
  const answerCard=$('answerCard'),ex=$('explanationSection'),score=$('scoringSection');
  if(answerCard)answerCard.style.display=isEssay?'none':'';
  if(ex)ex.style.display=isEssay?'none':'';
  if(score)score.style.display=isMCMA?'':'none';
- if(isEssay){answerState.essayKey='';if($('explanation'))$('explanation').value='';explanationImageData='';}
-}
+ }
 function renderAnswerEditor(){
  let h='';
  if(['pg5','pg4','mcma'].includes(currentType)){
@@ -734,7 +733,7 @@ function renderAnswerEditor(){
  } else if(currentType==='kategori'){h='<div class="notice">Tambahkan pernyataan lalu tentukan Benar/Salah.</div>';answerState.statements.forEach((x,i)=>h+=`<div class="statement"><textarea style="min-height:60px" oninput="answerState.statements[${i}].text=this.value;changed()">${esc(x.text)}</textarea><select onchange="answerState.statements[${i}].answer=this.value;changed()"><option ${x.answer==='Benar'?'selected':''}>Benar</option><option ${x.answer==='Salah'?'selected':''}>Salah</option></select><button class="btn sm danger" onclick="removeStatement(${i})">Hapus</button></div>`);h+='<button class="btn sm" onclick="addStatement()">+ Pernyataan</button>'}
  else if(currentType==='isian')h=`${formulaBar('shortAnswer')}<input id="shortAnswer" value="${esc(answerState.short||'')}" oninput="answerState.short=this.value;changed()" placeholder="Jawaban benar">`;
  else h='';
- $('answerEditor').innerHTML=h;updateEditorTypeVisibility();setTimeout(()=>{updateMathPreviews();updateOptionImagePreviews()},0);
+ $('answerEditor').innerHTML=h;updateEditorTypeVisibility();if($('qFormulaBar'))$('qFormulaBar').innerHTML=formulaBar('question');if($('exFormulaBar'))$('exFormulaBar').innerHTML=formulaBar('explanation');setTimeout(()=>{updateMathPreviews();updateOptionImagePreviews()},0);
 }
 function clearQuestionImage(){imageData='';imageRotation=0;if($('qImageUrl'))$('qImageUrl').value='';if($('qImageFile'))$('qImageFile').value='';showImage();changed()}
 function loadExplanationImage(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{explanationImage=r.result;showExplanationImage();changed()};r.readAsDataURL(f)}
