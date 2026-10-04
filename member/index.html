@@ -1823,11 +1823,25 @@ iframe.pdfview{display:block;min-height:520px}
         else if(tipe==="mcma")html+=(q.opsi||[]).map((o,n)=>`<label class="opt"><input type="checkbox" name="kfAnsMulti" value="${n}" ${Array.isArray(ans)&&ans.includes(n)?"checked":""} onchange="kfSaveMulti()"><span><b>${"ABCDE"[n]}.</b> ${esc(kfOptionText(o))}${kfOptionImage(o)?`<img class="question-image" src="${kfOptionImage(o)}" alt="Gambar opsi ${"ABCDE"[n]}">`:""}</span></label>`).join("");
         else if(tipe==="kategori")html+=(q.statements||[]).map((st,n)=>`<div class="category-question"><p><b>${n+1}.</b> ${esc(st.text||st)}</p><div class="category-options">${(q.category_labels||["Benar","Salah"]).map((l)=>`<label><input type="radio" name="kfCat${n}" value="${esc(l)}" ${Array.isArray(ans)&&String(ans[n]??"")===String(l)?"checked":""} onchange="kfSaveCat()">${esc(l)}</label>`).join("")}</div></div>`).join("");
         else if(tipe==="isian")html+=`<label>Jawaban</label><input id="kfTextAns" value="${esc(ans||"")}" oninput="kfRun.answers[${i}]=this.value">`;
-        else {let ea=(ans&&typeof ans==='object')?ans:{text:String(ans||''),file_url:''};html+=`<div class="kf-essay-submit"><label><b>Jawaban Esai</b></label><textarea id="kfTextAns" style="min-height:150px" placeholder="Tuliskan jawaban Anda di sini..." oninput="kfRun.answers[${i}]=Object.assign({},kfRun.answers[${i}]||{},{text:this.value,file_url:(kfRun.answers[${i}]||{}).file_url||''});kfRenderNavOnly()">${esc(ea.text||"")}</textarea><label style="margin-top:10px"><b>Link file/gambar jawaban (opsional)</b></label><input id="kfEssayFileUrl" type="url" placeholder="https://... link file atau gambar jawaban" value="${esc(ea.file_url||"")}" oninput="kfRun.answers[${i}]=Object.assign({},kfRun.answers[${i}]||{},{text:(kfRun.answers[${i}]||{}).text||'',file_url:this.value});kfRenderNavOnly()"><div class="small" style="margin-top:6px">Jawaban akan disimpan ke Supabase saat berpindah soal atau menekan Selesai & Kirim.</div></div>`;}
+        else {let ea=(ans&&typeof ans==='object')?ans:{text:String(ans||''),file_url:''};html+=`<div class="kf-essay-submit"><label><b>Jawaban Esai</b></label><textarea id="kfTextAns" style="min-height:150px" placeholder="Tuliskan jawaban Anda di sini..." oninput="kfRun.answers[${i}]=Object.assign({},kfRun.answers[${i}]||{},{text:this.value,file_url:(kfRun.answers[${i}]||{}).file_url||''});kfRenderNavOnly()">${esc(ea.text||"")}</textarea><label style="margin-top:10px"><b>File jawaban (opsional)</b></label><input id="kfEssayFileInput" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" onchange="kfUploadEssayFile(this)"><div id="kfEssayFileStatus" class="small" style="margin-top:6px">${ea.file_url?("✓ File tersimpan: "+esc(String(ea.file_url).split("/").pop())):"PDF/JPG/PNG/WEBP, maksimal 10 MB. File disimpan secara privat."}</div><div class="small" style="margin-top:4px">Jawaban teks dan file akan disimpan secara aman saat berpindah soal atau menekan Selesai & Kirim.</div></div>`;}
         html+=`<div style="display:flex;justify-content:space-between;gap:8px;margin-top:18px"><button class="btn btn-ghost" onclick="kfGo(${i-1})" ${i===0?"disabled":""}>← Sebelumnya</button>${i<kfRun.questions.length-1?`<button class="btn btn-main" onclick="kfGo(${i+1})">Berikutnya →</button>`:`<button class="btn btn-main" onclick="kfSubmitPackage(false)">✓ Selesai & Kirim</button>`}</div>`;
         document.getElementById("kfPkgRunnerBody").innerHTML=html;
         if(kfRun.deadline)kfStartTimer();
         if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([document.getElementById("kfPkgRunnerBody")]);
+      }
+      async function kfUploadEssayFile(input){
+        const file=input?.files?.[0];if(!file||!kfRun)return;
+        const q=kfRun.questions[kfRun.index],status=document.getElementById("kfEssayFileStatus");
+        try{
+          input.disabled=true;if(status)status.textContent="Mengunggah file...";
+          const path=await KFPackageDB.uploadEssayFile(kfRun.attemptId,q.id,file);
+          const cur=(kfRun.answers[kfRun.index]&&typeof kfRun.answers[kfRun.index]==="object")?kfRun.answers[kfRun.index]:{text:"",file_url:""};
+          kfRun.answers[kfRun.index]={...cur,file_url:path};
+          if(status)status.textContent="✓ File berhasil diunggah secara privat.";
+          kfRenderNavOnly();
+        }catch(e){
+          input.value="";if(status)status.textContent="Upload gagal: "+(e?.message||e);
+        }finally{input.disabled=false}
       }
       function kfSaveAns(v){kfRun.answers[kfRun.index]=Number(v);kfRenderNavOnly()}
       function kfSaveMulti(){kfRun.answers[kfRun.index]=[...document.querySelectorAll('input[name="kfAnsMulti"]:checked')].map(x=>Number(x.value));kfRenderNavOnly()}
