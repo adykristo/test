@@ -155,6 +155,14 @@
       if(error)throw error;if(!data||!data.length)throw new Error("Permintaan tidak dapat dibatalkan. Mungkin sudah diproses Admin.");
       return {ok:true};
     },
+    signedLearningFile: async function(storagePath){
+      const path=clean(storagePath);
+      if(!path) return "";
+      if(path.includes("..") || path.startsWith("/") || !/^[0-9a-f-]{36}\//i.test(path)) throw new Error("Path file belajar tidak valid.");
+      const {data,error}=await supabase.storage.from("learning-files").createSignedUrl(path,600);
+      if(error) throw error;
+      return data&&data.signedUrl ? data.signedUrl : "";
+    },
     kontenMember: async function(jenjang){
       const wanted=clean(jenjang).toLowerCase();
       // SECURITY: fail closed. Konten member hanya boleh berasal dari RPC server
