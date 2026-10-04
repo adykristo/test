@@ -1618,7 +1618,7 @@ function openPanel(id, b) {
           if(topikStat) topikStat.textContent=new Set(KONTEN_CACHE.map(x=>x.topik).filter(Boolean)).size;
           if(tryoutStat) tryoutStat.textContent=KONTEN_CACHE.filter(x=>x.jenis==="tryout").length;
         } catch (err) {
-          alert("Gagal memuat konten: " + err.message);
+          KFUI.toast("Gagal memuat konten: " + err.message,"err",6000);
           return;
         }
         const all = KONTEN_CACHE;
@@ -1661,7 +1661,7 @@ function openPanel(id, b) {
           await adminApi("adminSimpanKonten", { item: { jenjang, visible: true, ...item } });
           await renderKontenAdmin();
         } catch (err) {
-          alert("Gagal menyimpan: " + err.message);
+          KFUI.toast("Gagal menyimpan: " + err.message,"err",6000);
         }
       }
       function simpanModul(e) {
@@ -1680,9 +1680,7 @@ function openPanel(id, b) {
         };
         if (f) {
           if (f.size > 1400000) {
-            alert(
-              "File PDF terlalu besar untuk versi uji coba browser. Gunakan link PDF atau file maksimal 1,4 MB.",
-            );
+            KFUI.toast("File PDF ini terlalu besar untuk penyimpanan inline lama. Gunakan fitur Upload PDF/Storage yang tersedia agar file besar tetap stabil.","err",6500);
             return;
           }
           const r = new FileReader();
@@ -1900,24 +1898,26 @@ function openPanel(id, b) {
         try {
           await adminApi("adminSimpanKonten", { item });
           await renderKontenAdmin();
+          return true;
         } catch (err) {
-          alert("Gagal menyimpan: " + err.message);
+          KFUI.toast("Gagal menyimpan: " + err.message,"err",6000);
+          return false;
         }
       }
       async function toggleKonten(id) {
-        const x = cariItem(id);
-        if (!x) return;
-        await simpanKontenBackend({ ...x, visible: x.visible === false || x.visible === "FALSE" });
+        const x = cariItem(id);if (!x) return;
+        const willShow=x.visible === false || x.visible === "FALSE";
+        const ok=await simpanKontenBackend({ ...x, visible: willShow });
+        if(ok)KFUI.toast(willShow?"Konten sekarang tampil di Member Area.":"Konten disembunyikan dari Member Area.","ok");
       }
       async function hapusKonten(id) {
-        const x = cariItem(id);
-        if (!x) return;
-        if (!confirm('Hapus "' + x.judul + '"? Data ini tidak dapat dipulihkan.')) return;
+        const x = cariItem(id);if (!x) return;
+        if (!(await KFUI.confirm('Hapus "' + (x.judul||x.topik||"konten ini") + '"?\n\nTindakan ini tidak dapat dipulihkan.',"Hapus Konten"))) return;
         try {
           await adminApi("adminHapusKonten", { id });
-          renderKontenAdmin();
+          await renderKontenAdmin();KFUI.toast("Konten berhasil dihapus.","ok");
         } catch (err) {
-          alert("Gagal menghapus: " + err.message);
+          KFUI.toast("Gagal menghapus: " + err.message,"err",6000);
         }
       }
       async function rapikanSoalGemini(id) {
