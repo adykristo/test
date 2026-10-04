@@ -21,7 +21,7 @@
       kelas:p.questions?.[0]?.kelas||null,mapel:p.questions?.[0]?.mapel||"Fisika",
       subscription:p.subscription||"Semua Paket Aktif",duration_minutes:Number(p.duration)||0,
       starts_at:p.start||null,ends_at:p.end||null,max_attempts:Number(p.attempts)||1,
-      visible:true,source:"V12",updated_at:new Date().toISOString()
+      visible:true,source:"V12",source_version:Number(p.sourceVersion)||1,ai_provider:p.aiProvider||p.questions?.find(q=>q.aiProvider)?.aiProvider||null,review_status:"reviewed",published_at:new Date().toISOString(),updated_at:new Date().toISOString()
     };
     let {data:pack,error}=await db.from("kf_packages").upsert(meta,{onConflict:"external_id"}).select().single();
     if(error)throw error;
@@ -32,7 +32,7 @@
       statements:(q.answers?.statements||[]).map(x=>({text:x.text||"",key:x.answer||""})),
       category_labels:q.type==="kategori"?["Benar","Salah"]:[],explanation:q.explanation||"",
       scoring:q.scoring||"exact",source_v12_package:q.sourceV12Package||p.id||null,
-      source_v12_question:q.sourceV12Question||q.id||null,updated_at:new Date().toISOString()
+      source_v12_question:q.sourceV12Question||q.id||null,ai_provider:q.aiProvider||null,review_status:q.reviewStatus||"reviewed",reviewed_at:q.reviewedAt||null,published_at:new Date().toISOString(),updated_at:new Date().toISOString()
     }));
     if(rows.length){const {error:e}=await db.from("kf_questions").insert(rows);if(e)throw e;}
     return pack;
