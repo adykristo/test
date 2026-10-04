@@ -633,7 +633,7 @@ function initAnswersForType(force=true){
 }
 function formulaBar(target){
  const items=[['B','\\mathbf{x}'],['I','\\mathit{x}'],['U','\\underline{x}'],['x²','x^{2}'],['x₂','x_{2}'],['F=ma','F=ma'],['√','\\sqrt{x}'],['frac','\\frac{a}{b}'],['×10ⁿ','\\times10^{n}'],['θ','\\theta'],['Δ','\\Delta'],['→','\\rightarrow'],['∑','\\sum'],['sin','\\sin'],['π','\\pi'],['°C','^{\\circ}C'],['m/s²','\\mathrm{m/s^2}']];
- return `<div class="formula-bar"><span class="small"><b>Rumus:</b></span>${items.map(x=>`<button type="button" onclick="insertFormulaTo('${target}',${JSON.stringify(x[1])})">${x[0]}</button>`).join('')}<select onchange="if(this.value){insertFormulaTo('${target}',this.value);this.selectedIndex=0}"><option value="">⚛ Rumus fisika...</option><option value="F=k\\frac{q_1q_2}{r^2}">Hukum Coulomb</option><option value="V=IR">Hukum Ohm</option><option value="E=mc^2">E=mc²</option><option value="E_k=\\frac12mv^2">Energi kinetik</option><option value="p=mv">Momentum</option></select><button type="button" class="purple" onclick="readFormulaPhoto('${target}')">Σ Baca rumus foto</button><button type="button" onclick="insertImageMarker('${target}')">🖼 Sisip Gambar</button></div>`;
+ return `<div class="formula-bar"><span class="small"><b>Rumus:</b></span>${items.map(x=>`<button type="button" onclick="insertFormulaTo('${target}',${JSON.stringify(x[1])})">${x[0]}</button>`).join('')}<select onchange="if(this.value){insertFormulaTo('${target}',this.value);this.selectedIndex=0}"><option value="">⚛ Rumus fisika...</option><option value="F=k\\frac{q_1q_2}{r^2}">Hukum Coulomb</option><option value="V=IR">Hukum Ohm</option><option value="E=mc^2">E=mc²</option><option value="E_k=\\frac12mv^2">Energi kinetik</option><option value="p=mv">Momentum</option></select><button type="button" class="purple" onclick="readFormulaPhoto('${target}')">Σ Baca rumus foto</button><button type="button" class="purple" onclick="insertImageMarker('${target}')">🖼 Sisip Gambar</button></div>`;
 }
 function insertFormulaTo(id,t){let el=$(id);if(!el)return;let p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+'$'+t+'$'+el.value.slice(p);el.dispatchEvent(new Event('input'));el.focus()}
 function renderRichText(text=''){
@@ -1296,7 +1296,35 @@ function exportPackagePDF(id,mode){
  <scr${'ipt'} src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\/script>
  <style>@page{size:A4;margin:16mm}body{font-family:Arial,sans-serif;color:#111;font-size:12pt;line-height:1.45}h1{text-align:center;font-size:18pt;margin:0 0 4px}.meta{text-align:center;margin-bottom:22px;color:#555}.print-q{page-break-inside:avoid;margin:0 0 20px}.qtext{margin-bottom:8px}.print-opt{margin:5px 0 5px 22px}.print-img{display:block;max-width:520px;max-height:330px;margin:8px 0}.small-img{max-width:300px;max-height:180px}.key{margin-top:8px;padding:6px;background:#f1f1f1}.explain{margin-top:6px;padding:8px;border-left:3px solid #777;background:#fafafa}.answer-line{margin:12px 0}.essay-lines{height:100px;border-bottom:1px solid #aaa;background:repeating-linear-gradient(to bottom,transparent 0,transparent 23px,#ddd 24px)}.toolbar{position:fixed;right:15px;top:15px}@media print{.toolbar{display:none}}</style></head><body>
  <button class="toolbar" onclick="window.print()">🖨 Simpan sebagai PDF</button><h1>${esc(p.name)}</h1><div class="meta">${p.questions.length} soal</div>${body}
- <scr${'ipt'}>window.onload=()=>setTimeout(()=>window.print(),1000)<\/script></body></html>`);w.document.close();
+ <scr${'ipt'}>window.onload=()=>setTimeout(()=>window.print(),1000)<\/script>
+<script id="v13-inline-image-toolbar-fix">
+(function(){
+ function addButtonNearTextarea(id,label){
+   var ta=document.getElementById(id); if(!ta)return;
+   var key='v13-inline-'+id;
+   if(document.getElementById(key))return;
+   var bar=document.createElement('div');
+   bar.id=key; bar.className='actions'; bar.style.margin='6px 0';
+   bar.innerHTML='<button type="button" class="btn sm primary">🖼 '+label+'</button><span class="small">Kursor menentukan posisi gambar.</span>';
+   bar.querySelector('button').addEventListener('click',function(){insertImageMarker(id)});
+   ta.parentNode.insertBefore(bar,ta);
+ }
+ function install(){
+   addButtonNearTextarea('question','Sisip Gambar');
+   addButtonNearTextarea('explanation','Sisip Gambar');
+   document.querySelectorAll('textarea[id^="opt"]').forEach(function(ta){
+     if(/^opt\d+$/.test(ta.id))addButtonNearTextarea(ta.id,'Sisip Gambar');
+   });
+ }
+ document.addEventListener('DOMContentLoaded',function(){
+   install();
+   var root=document.getElementById('answerEditor');
+   if(root)new MutationObserver(install).observe(root,{childList:true,subtree:true});
+   setTimeout(install,300);setTimeout(install,1000);
+ });
+})();
+</script>
+</body></html>`);w.document.close();
 }
 
 function packageBank(){try{return JSON.parse(localStorage.getItem(PACKAGE_BANK_KEY)||'[]')}catch(e){return []}}
