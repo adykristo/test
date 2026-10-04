@@ -1944,7 +1944,7 @@ kfSubmitPackage=async function(auto){
    const attemptId=kfRun.attemptId,kind=kfRun.kind;
    let r=await KFPackageDB.submit(attemptId,!!auto);
    const reviewBtn=kind==="latihan"?`<button class="btn btn-main" style="margin-top:14px" onclick="kfShowReview('${attemptId}')">📖 Lihat Kunci & Pembahasan</button>`:`<button class="btn btn-ghost" style="margin-top:14px" onclick="kfShowReview('${attemptId}')">🔒 Cek Ketersediaan Pembahasan</button>`;
-   document.getElementById("kfPkgRunnerBody").innerHTML=`<h2>✓ ${auto?"Waktu Habis — ":""}Pengerjaan Selesai</h2><div class="kf-pkg-result"><b>Nilai objektif: ${Number(r.score||0).toFixed(0)}</b><br>${r.essay_count||0} esai perlu diperiksa guru.<br>Hasil tersimpan di Supabase.</div><div style="display:flex;gap:10px;flex-wrap:wrap">${reviewBtn}<button class="btn btn-ghost" style="margin-top:14px" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button></div>`;
+   document.getElementById("kfPkgRunnerBody").innerHTML=`<h2>✓ ${auto?"Waktu Habis — ":""}Pengerjaan Selesai</h2><div class="kf-pkg-result"><b>Nilai: ${Number(r.score||0).toFixed(0)}</b>${Number(r.essay_count||0)>0?`<br><span>${Number(r.essay_count)} jawaban esai menunggu penilaian guru.</span>`:""}<br>Hasil tersimpan di Supabase.</div><div style="display:flex;gap:10px;flex-wrap:wrap">${reviewBtn}<button class="btn btn-ghost" style="margin-top:14px" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button></div>`;
    kfRun=null;await kfLoadServerPackages();
  }catch(e){alert("Submit gagal: "+e.message)}
 };
