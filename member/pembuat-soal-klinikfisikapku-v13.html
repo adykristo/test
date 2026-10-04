@@ -393,8 +393,8 @@ window.kfV12Navigate=function(page){
  Klik tepat pada posisi di teks Pertanyaan, Opsi, atau Pembahasan, lalu tekan <b>🖼 Sisip Gambar</b>. Pilih gambar dan tentukan Kiri/Tengah/Kanan. Di editor gambar ditulis singkat sebagai <b>[GAMBAR|tengah]img1[/GAMBAR]</b>, sehingga teks soal tetap mudah diedit. Pada preview gambar asli tetap tampil pada posisi kursor.
  </div>
 </div>
-<div class="sep"></div><div id="answerCard"><label><b>Pilihan jawaban / kunci</b></label><div class="small">Setiap opsi boleh berisi teks, rumus, gambar, atau keduanya.</div><div id="answerEditor"></div></div>
-<div id="explanationSection"><div class="sep"></div><label><b>Pembahasan</b> <span class="small">(opsional: teks + LaTeX + angka)</span></label><div id="exFormulaBar"></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea>
+<div class="sep"></div><div id="answerCard"><label><b>Pilihan jawaban / kunci / jawaban esai</b></label><div class="small">Setiap opsi boleh berisi teks, rumus, gambar, atau keduanya.</div><div id="answerEditor"></div></div>
+<div id="explanationSection"><div class="sep"></div><label><b>Pembahasan</b> <span class="small">(opsional: teks + LaTeX + gambar)</span></label><div id="exFormulaBar"></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea>
 <div id="explanationMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div class="editor-image-row" style="display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:7px"><input type="file" id="explanationImageFile" accept="image/*" onchange="loadExplanationImage(this)"><input id="explanationImageUrl" placeholder="Atau tempel link gambar pembahasan" oninput="explanationImage=this.value;showExplanationImage();changed()"></div><div id="explanationImagePreview" class="math-preview">Pratinjau gambar pembahasan akan muncul di sini...</div>
 <div id="scoringSection" style="margin-top:10px;max-width:360px">
 <label>Penilaian MCMA</label>
@@ -721,8 +721,8 @@ function changeTypeSelect(v){currentType=v;initAnswersForType(true);renderAnswer
 function updateEditorTypeVisibility(){
  const isEssay=currentType==='esai',isMCMA=currentType==='mcma';
  const answerCard=$('answerCard'),ex=$('explanationSection'),score=$('scoringSection');
- if(answerCard)answerCard.style.display=isEssay?'none':'';
- if(ex)ex.style.display=isEssay?'none':'';
+ if(answerCard)answerCard.style.display='';
+ if(ex)ex.style.display='';
  if(score)score.style.display=isMCMA?'':'none';
  }
 function renderAnswerEditor(){
@@ -737,13 +737,19 @@ function renderAnswerEditor(){
  h+='<button class="btn sm" onclick="addStatement()">+ Pernyataan</button>';
 }
  else if(currentType==='isian')h=`${formulaBar('shortAnswer')}<input id="shortAnswer" value="${esc(answerState.short||'')}" oninput="answerState.short=this.value;changed()" placeholder="Jawaban benar">`;
- else h='';
- $('answerEditor').innerHTML=h;updateEditorTypeVisibility();if($('qFormulaBar'))$('qFormulaBar').innerHTML=formulaBar('question');if($('exFormulaBar'))$('exFormulaBar').innerHTML=formulaBar('explanation');setTimeout(()=>{updateMathPreviews();updateOptionImagePreviews();updateStatementPreviews()},0);
+ else if(currentType==='esai'){
+  answerState.essayImage=answerState.essayImage||'';answerState.essayImageData=answerState.essayImageData||'';
+  h=`<div class="ref-option"><label><b>Jawaban / pedoman jawaban esai</b></label>${formulaBar('essayKey')}<textarea id="essayKey" style="min-height:90px" placeholder="Tuliskan jawaban atau pedoman jawaban esai" oninput="answerState.essayKey=this.value;changed()">${esc(answerState.essayKey||'')}</textarea><div class="option-image-row" style="display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-top:7px"><input type="file" accept="image/*" onchange="loadEssayAnswerImage(this)"><input id="essayAnswerImageUrl" value="${esc(answerState.essayImage||'')}" placeholder="Link gambar jawaban / pedoman" oninput="answerState.essayImage=this.value;showEssayAnswerImage();changed()"><button type="button" class="btn sm danger" onclick="clearEssayAnswerImage()">Hapus</button></div><div id="essayKeyPreview" class="math-preview">Pratinjau jawaban akan muncul di sini...</div><div id="essayAnswerImagePreview" class="math-preview"></div></div>`;
+ } else h='';
+ $('answerEditor').innerHTML=h;updateEditorTypeVisibility();if($('qFormulaBar'))$('qFormulaBar').innerHTML=formulaBar('question');if($('exFormulaBar'))$('exFormulaBar').innerHTML=formulaBar('explanation');setTimeout(()=>{updateMathPreviews();updateOptionImagePreviews();updateStatementPreviews();showEssayAnswerImage()},0);
 }
 function clearQuestionImage(){imageData='';imageRotation=0;if($('qImageUrl'))$('qImageUrl').value='';if($('qImageFile'))$('qImageFile').value='';showImage();changed()}
 function loadStatementImage(i,input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{answerState.statementImageData=answerState.statementImageData||{};answerState.statementImageData[i]=r.result;updateStatementPreviews();changed()};r.readAsDataURL(f)}
 function clearStatementImage(i){if(answerState.statementImages)delete answerState.statementImages[i];if(answerState.statementImageData)delete answerState.statementImageData[i];renderAnswerEditor();changed()}
 function updateStatementPreviews(){(answerState.statements||[]).forEach((x,i)=>{let p=$('stmtPrev'+i);if(p){p.innerHTML=formatTeksDenganLatex(x.text||'');typesetMath('stmtPrev'+i)}let ip=$('stmtImgPrev'+i),src=answerState.statementImageData?.[i]||answerState.statementImages?.[i]||'';if(ip)ip.innerHTML=src?'<img src="'+esc(src)+'" style="max-width:100%;height:auto">':''})}
+function loadEssayAnswerImage(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{answerState.essayImageData=r.result;showEssayAnswerImage();changed()};r.readAsDataURL(f)}
+function clearEssayAnswerImage(){answerState.essayImage='';answerState.essayImageData='';if($('essayAnswerImageUrl'))$('essayAnswerImageUrl').value='';showEssayAnswerImage();changed()}
+function showEssayAnswerImage(){const pv=$('essayAnswerImagePreview');if(!pv)return;const src=answerState.essayImageData||answerState.essayImage||'';pv.innerHTML=src?'<img src="'+esc(src)+'" style="max-width:100%;height:auto">':'';const tp=$('essayKeyPreview');if(tp){tp.innerHTML=formatTeksDenganLatex(answerState.essayKey||'');typesetMath(tp)}}
 function loadExplanationImage(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{explanationImage=r.result;showExplanationImage();changed()};r.readAsDataURL(f)}
 function showExplanationImage(){const pv=$('explanationImagePreview');if(!pv)return;const src=explanationImage||$('explanationImageUrl')?.value||'';pv.innerHTML=src?'<img src="'+esc(src)+'" style="max-width:100%;height:auto">':'Pratinjau gambar pembahasan akan muncul di sini...'}
 function updateOptionImagePreviews(){(answerState.options||[]).forEach((_,i)=>{const pv=$('optImgPrev'+i);if(!pv)return;const src=answerState.optionImageData?.[i]||answerState.optionImages?.[i]||'';pv.innerHTML=src?'<img src="'+esc(src)+'" style="max-width:100%;height:auto">':''})}
@@ -761,7 +767,7 @@ function setOptionImage(i){let u=prompt('Masukkan URL gambar untuk opsi '+('ABCD
 function addStatement(){answerState.statements.push({text:'',answer:'Benar'});renderAnswerEditor();changed()}
 function removeStatement(i){answerState.statements.splice(i,1);renderAnswerEditor();changed()}
 function insertLatex(t){let el=$('question'),p=el.selectionStart||el.value.length;el.value=el.value.slice(0,p)+'$'+t+'$'+el.value.slice(p);changed();el.focus()}
-function changed(){updateMathPreviews();updateOptionImagePreviews();updateStatementPreviews();showExplanationImage();validate();saveDraftDebounced()}
+function changed(){updateMathPreviews();updateOptionImagePreviews();updateStatementPreviews();showEssayAnswerImage();showExplanationImage();validate();saveDraftDebounced()}
 function updateMathPreviews(){let pairs=[['question','questionMathPreview'],['explanation','explanationMathPreview']];(answerState.options||[]).forEach((x,i)=>pairs.push(['opt'+i,'optPrev'+i]));pairs.forEach(([a,b])=>{let el=$(a),pv=$(b);if(pv&&el)pv.innerHTML=el.value.trim()?renderRichText(el.value):'Pratinjau akan muncul di sini...'});if(window.MathJax?.typesetPromise)MathJax.typesetPromise(pairs.map(x=>$(x[1])).filter(Boolean)).catch(()=>{})}
 let draftT;function saveDraftDebounced(){clearTimeout(draftT);draftT=setTimeout(()=>{localStorage.setItem(DRAFT,JSON.stringify(collect()));$('draftStatus').textContent='Draft otomatis tersimpan • '+new Date().toLocaleTimeString('id-ID')},400)}
 ['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','explanation','scoring'].forEach(id=>{let el=$(id);if(el)el.addEventListener('input',changed)});$('qImageUrl')?.addEventListener('input',()=>{showImage();changed()});
@@ -804,7 +810,7 @@ setTimeout(()=>{
 },0);
 
 function collect(){
- let inlineImagesUsed={};let joined=[question,...(answerState.options||[]),explanation].join('\n');Object.keys(v13InlineImages).forEach(k=>{if(joined.includes(']'+k+'[/GAMBAR]'))inlineImagesUsed[k]=v13InlineImages[k]});return {id:editingId||uid(),inlineImages:inlineImagesUsed,type:currentType,jenjang:$('jenjang').value,mapel:$('mapel').value,kelas:$('kelas').value,difficulty:$('difficulty').value,topik:$('topik').value,subtopik:$('subtopik').value,status:'Siap Pakai',tags:$('tags').value,question:$('question').value,image:imageData||$('qImageUrl')?.value||'',imageRotation,answers:(()=>{let a=JSON.parse(JSON.stringify(answerState));a.optionImages=a.optionImages||{};Object.keys(a.optionImageData||{}).forEach(k=>{if(a.optionImageData[k])a.optionImages[k]=a.optionImageData[k]});return a})(),explanation:$('explanation').value,explanationImage:explanationImageData||$('explanationImageUrl')?.value||'',explanationImagePosition:$('explanationImagePosition')?.value||'bottom',explanationImageAlign:$('explanationImageAlign')?.value||'center',explanationImageWidth:Number($('explanationImageWidth')?.value||50),score:1,scoring:$('scoring').value,source:'',updatedAt:new Date().toISOString()}
+ let inlineImagesUsed={};let joined=[question,...(answerState.options||[]),explanation].join('\n');Object.keys(v13InlineImages).forEach(k=>{if(joined.includes(']'+k+'[/GAMBAR]'))inlineImagesUsed[k]=v13InlineImages[k]});return {id:editingId||uid(),inlineImages:inlineImagesUsed,type:currentType,jenjang:$('jenjang').value,mapel:$('mapel').value,kelas:$('kelas').value,difficulty:$('difficulty').value,topik:$('topik').value,subtopik:$('subtopik').value,status:'Siap Pakai',tags:$('tags').value,question:$('question').value,image:imageData||$('qImageUrl')?.value||'',imageRotation,answers:(()=>{let a=JSON.parse(JSON.stringify(answerState));a.optionImages=a.optionImages||{};Object.keys(a.optionImageData||{}).forEach(k=>{if(a.optionImageData[k])a.optionImages[k]=a.optionImageData[k]});return a})(),explanation:$('explanation').value,explanationImage:explanationImageData||$('explanationImageUrl')?.value||'',explanationImagePosition:$('explanationImagePosition')?.value||'bottom',explanationImageAlign:$('explanationImageAlign')?.value||'center',explanationImageWidth:Number($('explanationImageWidth')?.value||50),score:1,scoring:$('scoring')?.value||'exact',source:'',updatedAt:new Date().toISOString()}
 }
 function validate(q=collect()){
  let errs=[];if(!q.question.trim())errs.push('Pertanyaan belum diisi');
