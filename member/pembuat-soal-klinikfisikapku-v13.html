@@ -1317,11 +1317,11 @@ function exportPackagePDF(id,mode){
  const w=window.open('','_blank');if(!w)return alert('Pop-up diblokir browser. Izinkan pop-up untuk membuat PDF.');
  const body=p.questions.map((q,i)=>printableQuestionHTML(q,i+1,mode)).join('');
  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(p.name)}</title>
- <scr${'ipt'}>window.MathJax={tex:{inlineMath:[['$','$'],['\\\\(','\\\\)']]},svg:{fontCache:'global'}};<\/script>
- <scr${'ipt'} src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\/script>
+ <scr${'ipt'}>window.MathJax={tex:{inlineMath:[['$','$'],['\\\\(','\\\\)']]},svg:{fontCache:'global'}};<\${""}\/scr${""}ipt>
+ <scr${'ipt'} src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\${""}\/scr${""}ipt>
  <style>@page{size:A4;margin:16mm}body{font-family:Arial,sans-serif;color:#111;font-size:12pt;line-height:1.45}h1{text-align:center;font-size:18pt;margin:0 0 4px}.meta{text-align:center;margin-bottom:22px;color:#555}.print-q{page-break-inside:avoid;margin:0 0 20px}.qtext{margin-bottom:8px}.print-opt{margin:5px 0 5px 22px}.print-img{display:block;max-width:520px;max-height:330px;margin:8px 0}.small-img{max-width:300px;max-height:180px}.key{margin-top:8px;padding:6px;background:#f1f1f1}.explain{margin-top:6px;padding:8px;border-left:3px solid #777;background:#fafafa}.answer-line{margin:12px 0}.essay-lines{height:100px;border-bottom:1px solid #aaa;background:repeating-linear-gradient(to bottom,transparent 0,transparent 23px,#ddd 24px)}.toolbar{position:fixed;right:15px;top:15px}@media print{.toolbar{display:none}}</style></head><body>
  <button class="toolbar" onclick="window.print()">🖨 Simpan sebagai PDF</button><h1>${esc(p.name)}</h1><div class="meta">${p.questions.length} soal</div>${body}
- <scr${'ipt'}>window.onload=()=>setTimeout(()=>window.print(),1000)<\/script>
+ <scr${'ipt'}>window.onload=()=>setTimeout(()=>window.print(),1000)<\${""}\/scr${""}ipt>
 
 </body></html>`);w.document.close();
 }
