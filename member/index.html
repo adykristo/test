@@ -1135,13 +1135,11 @@ iframe.pdfview{display:block;min-height:520px}
             password: passwordDaftar.value,
             paket: "",
           });
-          alert(
-            "✓ Pendaftaran berhasil. Silakan masuk untuk memilih paket member.",
-          );
+          KFMemberUI.toast("Pendaftaran berhasil. Silakan masuk untuk memilih paket member.","ok",5500);
           form.reset();
           buka("login");
         } catch (err) {
-          alert("Pendaftaran gagal: " + err.message);
+          KFMemberUI.toast("Pendaftaran gagal: " + err.message,"err",6000);
         } finally {
           setTombol(form, "");
         }
@@ -1159,7 +1157,7 @@ iframe.pdfview{display:block;min-height:520px}
           localStorage.setItem(P, JSON.stringify(res.member));
           masukPeserta(res.member);
         } catch (err) {
-          alert(err.message);
+          KFMemberUI.toast(err.message,"err",6000);
         } finally {
           setTombol(form, "");
         }
