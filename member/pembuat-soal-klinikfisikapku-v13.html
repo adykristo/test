@@ -392,8 +392,16 @@ window.kfV12Navigate=function(page){
 <button class="btn" onclick="reviewPackage()">🔎 Periksa Semua</button>
 <button class="btn primary" onclick="sendWorkspaceToBank()">📚 Kirim Semua ke Bank Soal</button></div>
 </div>
-<div class="row"><div><label>Jenjang</label><select id="jenjang"><option>SD</option><option>SMP</option><option selected>SMA</option></select></div><div><label>Mata Pelajaran</label><input id="mapel" value="Fisika"></div><div><label>Kelas</label><input id="kelas" placeholder="Contoh: XII"></div><div><label>Tingkat Kesulitan</label><select id="difficulty"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div></div>
-<div class="row two" style="margin-top:8px"><div><label>Topik / Materi</label><input id="topik" placeholder="Listrik Statis"></div><div><label>Subtopik</label><input id="subtopik" placeholder="Hukum Coulomb"></div></div><div style="margin-top:8px"><label>Tag</label><input id="tags" placeholder="coulomb, muatan listrik"></div>
+<!-- Metadata soal tetap dipertahankan untuk kompatibilitas Bank Soal/AI/Supabase, tetapi disembunyikan dari editor. -->
+<div id="questionMetadataCompat" hidden aria-hidden="true">
+<select id="jenjang"><option>SD</option><option>SMP</option><option selected>SMA</option></select>
+<input id="mapel" value="Fisika">
+<input id="kelas" value="">
+<select id="difficulty"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select>
+<input id="topik" value="">
+<input id="subtopik" value="">
+<input id="tags" value="">
+</div>
 <label style="margin-top:10px">Tipe soal</label><select id="typeSelect" onchange="changeTypeSelect(this.value)"><option value="pg5">Pilihan Ganda — 5 opsi (A–E)</option><option value="pg4">Pilihan Ganda — 4 opsi (A–D)</option><option value="mcma">PG Kompleks / MCMA</option><option value="kategori">PG Kompleks Kategori</option><option value="isian">Isian Singkat</option><option value="esai">Esai</option></select>
 <div class="ref-option question-editor-like-option" style="margin-top:10px"><label>Pertanyaan <span class="small">(teks + rumus LaTeX + gambar; untuk Esai tuliskan seluruh soal di sini)</span></label><div id="qFormulaBar"></div><textarea id="question" style="min-height:72px" placeholder="Teks pertanyaan (boleh $LaTeX$)"></textarea><div class="option-image-row" style="display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-top:7px"><input type="file" id="qImageFile" accept="image/*"><input id="qImageUrl" placeholder="Link gambar pertanyaan"><button type="button" class="btn sm danger" onclick="clearQuestionImage()">Hapus</button></div><div id="questionMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div id="qImagePreview" class="math-preview"></div></div><div class="actions" style="margin-top:7px"><button class="btn sm" onclick="aiImprove()">✨ Rapikan soal ini dengan AI</button></div>
 <div class="notice" style="margin-top:10px;background:#fbf7ff;border:1px solid #eadcff">
