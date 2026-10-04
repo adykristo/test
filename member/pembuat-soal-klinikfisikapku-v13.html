@@ -825,7 +825,7 @@ async function saveEssayParticipantSubmission(payload){
  const session=await db.auth.getSession();const user=session?.data?.session?.user;
  if(!user)throw new Error('Peserta belum login.');
  const row={participant_id:user.id,question_id:String(payload.question_id||''),package_id:String(payload.package_id||''),answer_text:String(payload.answer_text||''),answer_file_url:String(payload.answer_file_url||''),submitted_at:new Date().toISOString()};
- const r=await db.from('essay_submissions').insert(row).select().single();
+ const r=await db.from('essay_submissions').upsert(row,{onConflict:'participant_id,package_id,question_id'}).select().single();
  if(r.error)throw r.error;return r.data;
 }
 function saveQuestion(){return saveCurrentToPackage()}
@@ -836,8 +836,30 @@ function questionHTML(q,interactive=true){if(q&&q.inlineImages)Object.assign(v13
  if(['pg5','pg4','mcma'].includes(q.type))q.answers.options.forEach((o,i)=>{let typ=q.type==='mcma'?'checkbox':'radio';h+=`<div class="pv-option"><label>${interactive?`<input type="${typ}" name="pvans" value="${i}">`:''}<b>${'ABCDE'[i]}.</b> <span>${renderRichText(o)}</span></label>${(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i])?positionedImageHTML(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i],'option',q.answers.optionImageAlign?.[i]||'center',q.answers.optionImageWidth?.[i]||50):''}</div>`});
  else if(q.type==='kategori')q.answers.statements.forEach((s,i)=>h+=`<div class="pv-option"><b>${i+1}.</b> ${esc(cleanAIMathText(s.text))} ${interactive?`<select class="catans" data-i="${i}" style="margin-top:7px"><option value="">Pilih...</option><option>Benar</option><option>Salah</option></select>`:''}</div>`);
  else if(q.type==='isian')h+=interactive?'<input id="pvShort" placeholder="Ketik jawaban...">':'<div class="notice">Jawaban singkat</div>';
- else h+=interactive?'<textarea id="pvEssay" placeholder="Tuliskan jawaban esai..."></textarea>':'<div class="notice">Jawaban esai</div>';
+ else if(q.type==='esai'){
+   if(interactive){
+    const qid=esc(String(q.id||q.question_id||q.uid||'preview-question'));
+    const pid=esc(String(q.package_id||q.packageId||q.kf_package_id||'preview-package'));
+    h+='<div class="essay-submit-box" data-question-id="'+qid+'" data-package-id="'+pid+'"><label><b>Jawaban Esai Anda</b></label><textarea id="pvEssay" placeholder="Tuliskan jawaban esai Anda di sini..."></textarea><div style="display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:8px"><input type="file" id="pvEssayFile" accept="image/*,.pdf" onchange="prepareEssaySubmissionFile(this)"><input id="pvEssayFileUrl" placeholder="Atau tempel link file/gambar jawaban"></div><div id="pvEssayUploadStatus" class="small" style="margin-top:6px"></div><button type="button" class="btn primary" style="margin-top:9px" onclick="submitPreviewEssay(this)">💾 Simpan / Perbarui Jawaban</button></div>';
+   }else h+='<div class="notice">Jawaban esai diisi peserta saat Latihan/Tryout.</div>';
+ } else h+=interactive?'<textarea id="pvEssay" placeholder="Tuliskan jawaban..."></textarea>':'<div class="notice">Jawaban</div>';
  return h;
+}
+let v13EssayPreparedFileUrl='';
+function prepareEssaySubmissionFile(input){
+ const f=input.files&&input.files[0],st=$('pvEssayUploadStatus');v13EssayPreparedFileUrl='';
+ if(!f)return;
+ if(f.type==='application/pdf'){if(st)st.textContent='Untuk PDF, tempel link file pada kolom di sebelah kanan. Penyimpanan PDF langsung memerlukan Supabase Storage.';input.value='';return}
+ if(f.size>1500000){if(st)st.textContent='Gambar terlalu besar. Maksimal 1,5 MB untuk penyimpanan langsung; gunakan link untuk file lebih besar.';input.value='';return}
+ const r=new FileReader();r.onload=()=>{v13EssayPreparedFileUrl=String(r.result||'');if(st)st.textContent='✓ Gambar jawaban siap disimpan.'};r.readAsDataURL(f);
+}
+async function submitPreviewEssay(btn){
+ const box=btn.closest('.essay-submit-box'),status=$('pvEssayUploadStatus'),answer=($('pvEssay')?.value||'').trim(),link=($('pvEssayFileUrl')?.value||'').trim();
+ if(!answer&&!link&&!v13EssayPreparedFileUrl)return alert('Tuliskan jawaban atau lampirkan gambar/link jawaban.');
+ const qid=box?.dataset.questionId||'',pid=box?.dataset.packageId||'';
+ if(qid.startsWith('preview-')||pid.startsWith('preview-'))return alert('Ini masih Preview Admin. Jawaban peserta disimpan saat soal sudah dipublish ke Latihan/Tryout.');
+ btn.disabled=true;if(status)status.textContent='Menyimpan jawaban ke Supabase...';
+ try{await saveEssayParticipantSubmission({question_id:qid,package_id:pid,answer_text:answer,answer_file_url:link||v13EssayPreparedFileUrl});if(status)status.textContent='✓ Jawaban berhasil disimpan ke Supabase.';btn.textContent='✓ Jawaban Tersimpan'}catch(e){if(status)status.textContent='Gagal menyimpan: '+(e?.message||e);alert('Gagal menyimpan jawaban Esai: '+(e?.message||e))}finally{btn.disabled=false}
 }
 function positionedImageHTML(src,pos,align,width){
  if(!src)return '';
@@ -861,7 +883,7 @@ function renderExplanationWithImage(q){if(q&&q.inlineImages)Object.assign(v13Inl
 }
 function previewCurrent(){let q=collect();$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button class="btn primary" onclick='checkPreview(${JSON.stringify(q).replace(/'/g,"&#39;")})'>Periksa Jawaban</button></div><div id="pvResult"></div>`;$('previewModal').classList.add('show');typesetMath('studentPreview')}
 function checkPreview(q){let ok=false,detail='';if(['pg5','pg4','mcma'].includes(q.type)){let chosen=[...document.querySelectorAll('#studentPreview input[name=pvans]:checked')].map(x=>Number(x.value)).sort();let keys=[...q.answers.keys].sort();ok=JSON.stringify(chosen)===JSON.stringify(keys);if(q.type==='mcma'&&q.scoring==='partial'){let hit=chosen.filter(x=>keys.includes(x)).length,wrong=chosen.filter(x=>!keys.includes(x)).length;let pct=Math.max(0,(hit-wrong)/keys.length);detail=` Skor parsial: ${Math.round(pct*100)}%.`}}else if(q.type==='kategori'){ok=[...document.querySelectorAll('#studentPreview .catans')].every(x=>x.value===q.answers.statements[Number(x.dataset.i)].answer)}else if(q.type==='isian')ok=($('pvShort').value||'').trim().toLowerCase()===(q.answers.short||'').trim().toLowerCase();else{detail='Esai memerlukan penilaian guru.'}
- let feedback=q.type==='esai'?'Jawaban tersimpan untuk dinilai guru.':ok?'✓ Jawaban benar.':'✗ Jawaban salah.';
+ let feedback=q.type==='esai'?'Preview Esai: jawaban tidak disimpan dari halaman admin.':'✓ Jawaban benar.';if(q.type!=='esai'&&!ok)feedback='✗ Jawaban salah.';
  let explanation=ok?renderExplanationWithImage(q):'';
  $('pvResult').innerHTML=`<div class="notice ${q.type==='esai'?'':ok?'good':'bad'}" style="margin-top:12px">${feedback}${detail}${explanation}</div>`};typesetMath('pvResult')
 function closeModal(id){$(id).classList.remove('show')}
