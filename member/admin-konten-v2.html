@@ -106,19 +106,20 @@ async function uploadPdfIfSelected(){
  if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf"))throw new Error("File harus berformat PDF.");
  if(file.size>100*1024*1024)throw new Error("Ukuran PDF maksimal 100 MB.");
  const st=$("uploadState");st.textContent="Mengunggah "+file.name+"…";
- const safe=file.name.replace(/[^a-zA-Z0-9._-]+/g,"-"),path="learning/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safe,bucket="learning-files";
+ const packageId=$("ePackage").value;
+ if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(packageId))throw new Error("Pilih paket tujuan sebelum upload PDF.");
+ const safe=file.name.replace(/[^a-zA-Z0-9._-]+/g,"-"),path=packageId+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safe,bucket="learning-files";
  const up=await DB.storage.from(bucket).upload(path,file,{contentType:"application/pdf",upsert:false,cacheControl:"3600"});
  if(up.error){st.textContent="Upload gagal: "+up.error.message;throw new Error("Upload PDF gagal: "+up.error.message)}
- const pub=DB.storage.from(bucket).getPublicUrl(path),url=pub?.data?.publicUrl||"";
- if(!url)throw new Error("URL file tidak berhasil dibuat.");
- $("eUrl").value=url;st.textContent="✓ "+file.name+" berhasil diunggah.";return url
+ st.textContent="✓ "+file.name+" berhasil diunggah secara private.";
+ return {storagePath:path}
 }
 async function saveEdit(){
  const old=editing,d=old?parseData(old):{},k=old?(old.tujuan==="tryout"?"tryout":old.jenis):kind,pid=$("ePackage").value;
  if(!pid)return alert("Pilih paket tujuan.");
- if(k==="pdf"){d.pdfUrl=await uploadPdfIfSelected();d.source_type="pdf";if(!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}
+ if(k==="pdf"){const uploaded=await uploadPdfIfSelected();if(uploaded&&uploaded.storagePath){d.storage_path=uploaded.storagePath;d.pdfUrl="";}else if(typeof uploaded==="string"&&uploaded){d.pdfUrl=uploaded;}d.source_type="pdf";if(!d.storage_path&&!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}
  if(k==="video"){d.youtube=$("eUrl").value.trim();d.source_type="video"}
- if(k==="soal"){d.source_type=$("eSourceType").value;if(d.source_type==="pdf"){d.pdfUrl=await uploadPdfIfSelected();if(!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}else d.bank_set_id=$("eBankSet").value.trim()}
+ if(k==="soal"){d.source_type=$("eSourceType").value;if(d.source_type==="pdf"){const uploaded=await uploadPdfIfSelected();if(uploaded&&uploaded.storagePath){d.storage_path=uploaded.storagePath;d.pdfUrl="";}else if(typeof uploaded==="string"&&uploaded){d.pdfUrl=uploaded;}if(!d.storage_path&&!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}else d.bank_set_id=$("eBankSet").value.trim()}
  if(k==="tryout"){d.source_type="interactive";d.bank_set_id=$("eBankSet").value.trim();if(!d.bank_set_id)return alert("Masukkan ID/Set Bank Soal V13 untuk Tryout.")}
  d.learning_stage=d.learning_stage||1;
  const row={jenjang:$("eLevel").value,jenis:k==="tryout"?"tryout":k,tujuan:k==="tryout"?"tryout":k==="soal"?"latihan":k,topik:$("eTopic").value.trim(),judul:$("eTitle").value.trim(),visible:$("eVisible").value==="true",data:d};
