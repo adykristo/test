@@ -734,19 +734,28 @@ async function unduhTemplateWordV13(type,btn){
  }catch(e){alert('Gagal membuat template: '+e.message)}finally{if(btn){btn.disabled=false;btn.textContent=old}}
 }
 function v13ParseWordDirect(raw){
- const blocks=String(raw||'').replace(/\r/g,'').split(/(?=^(?:\[ESAI\]\s*)?(?:\[PGK[^\]]*\]\s*)?\d+[.)]\s+)/gmi).map(x=>x.trim()).filter(Boolean),out=[];
- for(const block of blocks){
+ const text=String(raw||'').replace(/\r/g,'');
+ // Hanya blok yang BENAR-BENAR diawali nomor soal. Teks header/template sebelum nomor pertama diabaikan.
+ const starts=[];const re=/^(?:\[ESAI\]\s*)?(?:\[PGK[^\]]*\]\s*)?\d+[.)]\s+/gmi;let m;
+ while((m=re.exec(text)))starts.push(m.index);
+ if(!starts.length)return [];
+ const out=[];
+ for(let bi=0;bi<starts.length;bi++){
+  const block=text.slice(starts[bi],starts[bi+1]??text.length).trim();
   const lines=block.split('\n').map(x=>x.trim()).filter(Boolean);if(!lines.length)continue;
   let first=lines.shift(),type=/\[ESAI\]/i.test(first)?'esai':/\[PGK\s*MCMA\]/i.test(first)?'mcma':/\[PGK\s*KATEGORI\]/i.test(first)?'kategori':'pg5';
-  first=first.replace(/^\[[^\]]+\]\s*/,'').replace(/^\d+[.)]\s*/,'');
-  let opts=[],key='',exp=[],inExp=false;
+  first=first.replace(/^\[[^\]]+\]\s*/,'').replace(/^\d+[.)]\s*/,'').trim();
+  let opts=[],key='',exp=[],inExp=false,declaredType='';
   for(const line of lines){
-   let m=line.match(/^([A-E])[.)]\s*(.*)$/i);if(m){opts['ABCDE'.indexOf(m[1].toUpperCase())]=m[2];continue}
-   m=line.match(/^(?:Jawaban|Kunci)\s*:\s*(.*)$/i);if(m){key=m[1];continue}
-   m=line.match(/^Pembahasan\s*:\s*(.*)$/i);if(m){inExp=true;if(m[1])exp.push(m[1]);continue}
+   let mm=line.match(/^TIPE\s*:\s*(.*)$/i);if(mm){declaredType=mm[1].trim().toLowerCase();continue}
+   mm=line.match(/^([A-E])[.)]\s*(.*)$/i);if(mm){opts['ABCDE'.indexOf(mm[1].toUpperCase())]=mm[2];continue}
+   mm=line.match(/^(?:Jawaban|Kunci)\s*:\s*(.*)$/i);if(mm){key=mm[1];continue}
+   mm=line.match(/^Pembahasan\s*:\s*(.*)$/i);if(mm){inExp=true;if(mm[1])exp.push(mm[1]);continue}
    if(inExp)exp.push(line);
   }
-  if(type==='pg5'&&opts.filter(Boolean).length===4)type='pg4';
+  if(/pg4/.test(declaredType))type='pg4';else if(/pg5/.test(declaredType))type='pg5';else if(/mcma/.test(declaredType))type='mcma';else if(/kategori/.test(declaredType))type='kategori';else if(/isian/.test(declaredType))type='isian';else if(/esai/.test(declaredType))type='esai';
+  else if(type==='pg5'&&opts.filter(Boolean).length===4)type='pg4';
+  if(!first&&!opts.filter(Boolean).length)continue;
   let keys=(key.match(/[A-E]/gi)||[]).map(x=>'ABCDE'.indexOf(x.toUpperCase()));
   const answers=type==='isian'?{options:[],keys:[],short:key,essayKey:'',statements:[]}:type==='esai'?{options:[],keys:[],short:'',essayKey:key,statements:[]}:{options:opts.filter(x=>x!==undefined),keys,short:'',essayKey:'',statements:[]};
   out.push({id:uid(),type,jenjang:'SMA',mapel:'Fisika',kelas:'',difficulty:'Sedang',topik:'',subtopik:'',status:'Draft',tags:'Import Word',question:cleanAIMathText(first),image:'',imageRotation:0,answers,explanation:cleanAIMathText(exp.join('\n')),explanationImage:'',score:1,scoring:'exact',source:'Import Word',reviewStatus:'draft',updatedAt:new Date().toISOString()});
