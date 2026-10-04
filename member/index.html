@@ -1292,8 +1292,17 @@ iframe.pdfview{display:block;min-height:520px}
             return y;
           });
           if (window.KFMemberAuth && window.KFMemberAuth.dataBelajar) {
-            try { dataBelajarAktif = await window.KFMemberAuth.dataBelajar(); }
-            catch (sinkronError) { dataBelajarAktif={progress:[],bookmarks:[],attempts:[],orders:[],certificates:[]}; console.warn("Data belajar Supabase belum dapat dimuat:", sinkronError); }
+            try {
+              dataBelajarAktif = await window.KFMemberAuth.dataBelajar();
+              // SECURITY: skor/riwayat Latihan & Tryout hanya dari engine V15 server.
+              if(window.KFPackageDB&&typeof window.KFPackageDB.results==="function"){
+                const v15Results=await window.KFPackageDB.results();
+                dataBelajarAktif.attempts=Array.isArray(v15Results)?v15Results:[];
+              }
+            } catch (sinkronError) {
+              dataBelajarAktif={progress:[],bookmarks:[],attempts:[],orders:[],certificates:[]};
+              console.warn("Data belajar Supabase belum dapat dimuat:", sinkronError);
+            }
           }
         } catch (err) {
           dataMateri = [];
