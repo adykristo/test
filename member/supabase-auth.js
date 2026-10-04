@@ -202,7 +202,6 @@
       if(p && typeof masukPeserta==="function"){const d=document.getElementById("dash");if(d&&window.getComputedStyle(d).display==="none")masukPeserta(p);}
     }
   });
-  });
 
   window.kirimResetPassword=async function(){const el=document.getElementById("user")||document.getElementById("email");const e=el?gmail(el.value):"";if(!e){alert("Masukkan alamat Email Google Anda terlebih dahulu.");return;}const {error}=await supabase.auth.resetPasswordForEmail(e,{redirectTo:window.location.origin+window.location.pathname+"#reset"});alert(error?"Gagal mengirim link reset: "+error.message:"Link pemulihan password telah dikirim ke email Anda.");};
 })();
