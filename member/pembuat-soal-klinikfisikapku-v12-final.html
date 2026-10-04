@@ -513,7 +513,7 @@ let currentType='pg5', editingId=null, imageData='', explanationImageData='', im
 let answerState={options:['','','','',''],keys:[0],short:'',essayKey:'',statements:[{text:'',answer:'Benar'},{text:'',answer:'Salah'}]};
 
 function bank(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
-function setBank(v){localStorage.setItem(KEY,JSON.stringify(v));updateCounts();let c=getConnection();if(c.mode==='online'&&c.url)postGAS('saveBank',{questions:v}).catch(()=>{})}
+function setBank(v){localStorage.setItem(KEY,JSON.stringify(v));updateCounts()}
 function uid(){return 'Q'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function typeName(t){return ({pg5:'PG 5 Opsi',pg4:'PG 4 Opsi',mcma:'PG Kompleks / MCMA',kategori:'PG Kompleks Kategori',isian:'Isian Singkat',esai:'Esai'})[t]||t}
@@ -742,21 +742,26 @@ async function postGAS(action,data={}){
  if(out&&out.ok===false)throw new Error(out.error||out.message||'Apps Script menolak permintaan.');
  return out;
 }
-async function testConnection(){saveConnection();$('connectionStatus').className='notice';$('connectionStatus').textContent='Menguji koneksi...';try{let r=await postGAS('ping');$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Apps Script terhubung'+(r.message?' — '+r.message:'')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ '+e.message}}
+async function testConnection(){saveConnection();$('connectionStatus').className='notice';$('connectionStatus').textContent='Menguji koneksi...';try{let r=await postGAS('health');$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Apps Script terhubung'+(r.message?' — '+r.message:'')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ '+e.message}}
 async function syncOnline(){
- let c=getConnection();if(!c.url)return alert('Isi URL Apps Script dahulu.');
- $('connectionStatus').textContent='Sinkronisasi...';
+ const status=$('connectionStatus');
+ if(status){status.className='notice';status.textContent='Menyinkronkan paket ke Supabase...'}
  try{
-   let r=await postGAS('getBank');
-   let remote=Array.isArray(r.questions)?r.questions:[];
-   let local=bank(),map=new Map();
-   [...remote,...local].forEach(q=>{let old=map.get(q.id);if(!old||String(q.updatedAt||'')>=String(old.updatedAt||''))map.set(q.id,q)});
-   let merged=[...map.values()];localStorage.setItem(KEY,JSON.stringify(merged));
-   await postGAS('saveBank',{questions:merged});updateCounts();renderBank();
-   $('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Sinkron selesai. '+merged.length+' soal tersedia.';
- }catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ Sinkron gagal: '+e.message}
+  if(!window.KFPackagePublisher||typeof window.KFPackagePublisher.publish!=='function')throw new Error('Penghubung Supabase V15 belum tersedia.');
+  const packs=packageBank();
+  if(!packs.length){if(status){status.className='notice good';status.textContent='✓ Tidak ada paket yang perlu disinkronkan.'}return}
+  let ok=0,fail=0,lastErr='';
+  for(const p of packs){
+   try{await window.KFPackagePublisher.publish(p);ok++}
+   catch(e){fail++;lastErr=e?.message||String(e)}
+  }
+  if(status){
+   status.className=fail?'notice bad':'notice good';
+   status.textContent=fail?('⚠ Sinkron selesai: '+ok+' paket berhasil, '+fail+' gagal. '+lastErr):('✓ '+ok+' paket berhasil disinkronkan ke Supabase.');
+  }
+ }catch(e){if(status){status.className='notice bad';status.textContent='✗ Sinkron gagal: '+(e?.message||e)}}
 }
-async function testAIConnection(){try{let r=await postGAS('assistant',{jenis:'uji koneksi',text:'Balas hanya dengan kata OK'});$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Gemini merespons: '+(r.text||r.message||'OK')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ Gemini belum terhubung: '+e.message}}
+async function testAIConnection(){try{let r=await postGAS('testAI',{jenis:'uji koneksi',text:'Balas hanya dengan kata OK'});$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Gemini merespons: '+(r.text||r.message||'OK')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ Gemini belum terhubung: '+e.message}}
 function normalizeAIQuestion(q){
  let type=String(q.type||q.tipe||$('aiType').value).toLowerCase(),n=type==='pg4'?4:5;
  let options=Array.isArray(q.opsi)?q.opsi:(q.answers?.options||[]);
