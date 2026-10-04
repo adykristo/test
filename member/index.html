@@ -1931,7 +1931,7 @@ async function kfShowReview(attemptId){
   const displayScore=(r.score===null||r.score===undefined||Number(r.score)===0)&&calculatedScore>0?calculatedScore:Number(r.score||calculatedScore||0);
   body.innerHTML=`<div class="head"><div><div class="topik">REVIEW LATIHAN</div><h2 style="margin:3px 0">${esc(r.name||"Pembahasan")}</h2></div><div class="kf-pkg-result"><b>Nilai: ${Number(displayScore).toFixed(0)}</b></div></div>${cards||'<div class="empty">Belum ada soal untuk direview.</div>'}<button class="btn btn-main" style="margin-top:14px" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button>`;
   if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([body]);
- }catch(e){body.innerHTML='<div class="result bad">Pembahasan belum dapat dimuat: '+esc(e.message)+'</div><button class="btn btn-ghost" onclick="buka(\'dash\')">Kembali</button>'}
+ }catch(e){body.innerHTML='<div class="result bad">Pembahasan belum dapat dimuat: '+esc(e.message)+'</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="btn btn-main" onclick="kfShowReview(\''+attemptId+'\')">Coba Lagi</button><button class="btn btn-ghost" onclick="buka(\'dash\');kfLoadServerPackages()">Kembali ke Dashboard</button></div>';KFMemberUI.toast("Pembahasan belum dapat dimuat.","err",4500)}
 }
 function kfConfirmSubmit(){
  return new Promise(resolve=>{
