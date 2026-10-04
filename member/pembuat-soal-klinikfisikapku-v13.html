@@ -1296,24 +1296,43 @@ async function v12ProcessPaste(){
  const data=v12PasteAssets(),st=$('v12PasteStatus');if(!data.text&&!data.images.length)return alert('Tempel teks atau gambar soal terlebih dahulu.');
  const flags={translate:!!$('v12Translate')?.checked,relevant:!!$('v12RelevantImage')?.checked,solution:!!$('v12MakeKey')?.checked,validate:!!$('v12Validate')?.checked,variant:!!$('v12Variation')?.checked,level:$('v12PasteLevel')?.value||'SMA'};
  try{
-  if(st)st.textContent='✨ Gemini Vision sedang membaca soal ASLI pada gambar…';
+  if(st)st.textContent='✨ Gemini Vision membaca soal, bahasa, diagram, opsi, kunci dan pembahasan…';
   // Penting: action analisisWordTryout menerima gambar sebagai {id,mimeType,data}, sama seperti admin lama.
   const markerText=(data.text?data.text+'\n':'')+data.images.map(x=>'[['+x.id+']]').join('\n');
-  const prompt=['BACA SOAL PERSIS DARI GAMBAR/TEMPELAN YANG DIKIRIM. JANGAN membuat soal baru dan jangan mengganti konteks/topik.','Transkripsikan pertanyaan yang terlihat pada gambar ke field question. Pertahankan semua angka, satuan dan informasi pada diagram.','Jika diagram/gambar diperlukan untuk menjawab soal, set question_image_refs ke id gambar tersebut.','Jika soal belum memiliki pilihan jawaban, buat pilihan PG5 A-E yang relevan berdasarkan soal ASLI. Jika sudah ada opsi, pertahankan dan rapikan.','Hitung jawaban dari soal ASLI, tentukan answer/correct_answer yang benar, lalu buat explanation lengkap: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir.','Semua rumus gunakan LaTeX valid dalam $...$.','Validasi kembali bahwa question, opsi, kunci dan pembahasan semuanya membahas soal yang SAMA dengan gambar.','Jangan mengambil contoh/topik dari soal lain atau riwayat sebelumnya.','Kembalikan tepat 1 soal kecuali gambar memang jelas berisi lebih dari satu nomor soal.'].join('\n');
+  const prompt=[
+   'TUGAS VISION: baca seluruh isi gambar/tempelan secara teliti dan susun soal ASLI ke struktur editor. JANGAN membuat soal baru dan jangan mengganti konteks/topik.',
+   flags.translate?'Jika teks soal, opsi, atau pembahasan berbahasa Inggris/asing, TERJEMAHKAN ke Bahasa Indonesia yang alami dan akurat. Angka, simbol, satuan, variabel, rumus, dan makna fisika wajib dipertahankan.':'Pertahankan bahasa asli.',
+   'Bedakan bagian SOAL, PILIHAN JAWABAN, DIAGRAM/GAMBAR, KUNCI, dan PEMBAHASAN/SOLUTION yang benar-benar tampak pada sumber.',
+   'Transkripsikan narasi pertanyaan ke field question. Jangan masukkan teks pembahasan/solution ke question.',
+   'Jika sumber sudah memiliki opsi A-E/A-D, masukkan masing-masing ke options sesuai urutan dan jangan mengubah nilainya.',
+   flags.solution?'Jika soal belum mempunyai opsi, buat PG5 A-E yang masuk akal dari soal ASLI. Jika kunci belum ada, selesaikan soal dan isi correct_answer/answer.':'Jangan membuat opsi atau kunci yang tidak ada.',
+   flags.solution?'Jika sumber mempunyai pembahasan/solution, TRANSKRIP dan rapikan pembahasan tersebut ke field explanation. Jika tidak ada pembahasan, buat pembahasan sistematis berdasarkan soal ASLI: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir.':'Jika pembahasan terlihat, masukkan ke explanation.',
+   'Jika ada gambar/diagram yang merupakan bagian penting dari soal, set question_image_refs ke id gambar tersebut. Jika gambar hanya berisi pembahasan/ornamen dan tidak diperlukan untuk pertanyaan, jangan jadikan gambar soal.',
+   'Jika satu screenshot memuat soal DAN pembahasan, tetap hasilkan SATU objek soal: question dari bagian soal, options dari pilihan, answer dari kunci/hasil, explanation dari bagian pembahasan.',
+   'Semua rumus wajib LaTeX valid dalam $...$. Jangan keluarkan perintah LaTeX mentah di luar delimiter.',
+   flags.validate?'Periksa ulang angka, satuan, perhitungan, kecocokan opsi dengan kunci, dan konsistensi jawaban akhir.':'',
+   'Validasi bahwa question, options, correct_answer, explanation dan gambar semuanya milik soal yang SAMA. Jangan memakai isi dari riwayat atau contoh lain.',
+   'Kembalikan tepat 1 soal kecuali sumber jelas berisi beberapa nomor soal terpisah.'
+  ].filter(Boolean).join('\n');
   const payload={documentText:markerText,text:markerText,images:data.images.map(({id,mimeType,data})=>({id,mimeType,data})),prompt,instruksi:prompt,jenjang:flags.level,jumlah:1,tipe:'auto'};
   let r=await postGAS('analisisWordTryout',payload);
   const raw=Array.isArray(r?.questions)?r.questions:(Array.isArray(r?.data?.questions)?r.data.questions:[]);
   if(!raw.length)throw new Error(r?.message||'Gemini Vision tidak mengembalikan soal.');
   const qs=raw.map((item,i)=>{
     let refs=Array.isArray(item?.question_image_refs)?item.question_image_refs:[];
-    let chosen=data.images.find(x=>refs.includes(x.id))||data.images[0];
-    return v12GeminiPasteQuestion(item,(flags.relevant&&chosen)?chosen.src:(chosen?.src||''),flags);
+    let chosen=refs.length?data.images.find(x=>refs.includes(x.id)):null;
+    // Hanya pasang gambar ke soal bila Gemini menandainya relevan; jangan otomatis memakai screenshot penuh.
+    let q=v12GeminiPasteQuestion(item,(flags.relevant?(chosen?.src||''):(chosen?.src||data.images[0]?.src||'')),flags);
+    let exRefs=Array.isArray(item?.explanation_image_refs)?item.explanation_image_refs:[];
+    let exImg=data.images.find(x=>exRefs.includes(x.id));
+    if(exImg)q.explanationImage=exImg.src;
+    return q;
   }).filter(q=>q.question);
   if(!qs.length)throw new Error('Teks soal pada gambar belum berhasil dibaca.');
   packageDraft.name='Draft Tempel Gambar';packageDraft.count=qs.length;packageDraft.current=0;packageDraft.questions=qs;
   if($('packageName'))$('packageName').value=packageDraft.name;if($('packageCount'))$('packageCount').value=qs.length;
   savePackageDraftLocal();loadPackageQuestionToEditor(qs[0]);renderPackageNavigator();
-  if(st)st.textContent='✓ Soal asli berhasil dibaca. Pertanyaan, gambar, pilihan, kunci dan pembahasan sudah dimasukkan ke editor.';
+  if(st)st.textContent='✓ Selesai. Soal sudah dibaca'+(flags.translate?' / diterjemahkan bila perlu':'')+', diagram relevan dipilih, opsi & kunci disusun, dan pembahasan ditempatkan di kolom Pembahasan.';
   $('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'});
  }catch(e){if(st)st.textContent='✗ '+(e?.message||e)}
 }
