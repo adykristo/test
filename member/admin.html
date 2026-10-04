@@ -1471,8 +1471,8 @@ function openPanel(id, b) {
       }
       function downloadMemberExcel() {
         const data=dataEksporMember();
-        if(!data.length){alert("Tidak ada data peserta untuk diekspor.");return;}
-        if(!window.XLSX){alert("Mesin Excel belum termuat. Periksa koneksi internet lalu muat ulang halaman.");return;}
+        if(!data.length){KFUI.toast("Tidak ada data peserta untuk diekspor.","info");return;}
+        if(!window.XLSX){KFUI.toast("Mesin Excel belum termuat. Periksa koneksi internet lalu muat ulang halaman.","err",5500);return;}
         const aman=(v)=>typeof v==="string" && /^[=+\-@]/.test(v) ? "'"+v : v;
         const header=["No.","Nama Lengkap","Email","Username","Asal Sekolah","Kelas","Jenjang","Paket","Status","Masa Aktif Berakhir","Tanggal Daftar","Catatan Admin"];
         const baris=data.map((x)=>[x.no,x.nama,x.email,x.username,x.sekolah,x.kelas,x.jenjang,x.paket,x.status,x.berakhir,x.daftar,x.catatan].map(aman));
@@ -1487,7 +1487,7 @@ function openPanel(id, b) {
       function downloadMemberPDF() {
         const data=dataEksporMember();
         if(!data.length){alert("Tidak ada data peserta untuk diekspor.");return;}
-        if(!window.jspdf || !window.jspdf.jsPDF){alert("Mesin PDF belum termuat. Periksa koneksi internet lalu muat ulang halaman.");return;}
+        if(!window.jspdf || !window.jspdf.jsPDF){KFUI.toast("Mesin PDF belum termuat. Periksa koneksi internet lalu muat ulang halaman.","err",5500);return;}
         const {jsPDF}=window.jspdf, doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
         const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight();
         doc.setFillColor(82,33,127); doc.rect(0,0,pageW,29,"F");
