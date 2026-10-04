@@ -108,7 +108,7 @@ async function uploadPdfIfSelected(){
  const st=$("uploadState");st.textContent="Mengunggah "+file.name+"…";
  const packageId=$("ePackage").value;
  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(packageId))throw new Error("Pilih paket tujuan sebelum upload PDF.");
- const safe=file.name.replace(/[^a-zA-Z0-9._-]+/g,"-"),path=packageId+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safe,bucket="learning-files";
+ const safe=file.name.replace(/[^a-zA-Z0-9._-]+/g,"-"),path=packageId+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safe,bucket="learning-files-private";
  const up=await DB.storage.from(bucket).upload(path,file,{contentType:"application/pdf",upsert:false,cacheControl:"3600"});
  if(up.error){st.textContent="Upload gagal: "+up.error.message;throw new Error("Upload PDF gagal: "+up.error.message)}
  st.textContent="✓ "+file.name+" berhasil diunggah secara private.";
