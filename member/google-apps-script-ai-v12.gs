@@ -133,7 +133,8 @@ function kfAnalisisWordTryout_(body) {
   body = body || {};
   var key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
   if (!key) throw new Error('GEMINI_API_KEY belum diisi di Script Properties.');
-  var model = kfGeminiModel_();
+  var preferred = kfGeminiModel_();
+  var models = [preferred,'gemini-2.5-flash','gemini-2.5-flash-lite'].filter(function(v,i,a){return v&&a.indexOf(v)===i;});
   var prompt = [
     String(body.prompt || body.instruksi || ''),
     'Teks/marker dokumen:',
@@ -150,13 +151,21 @@ function kfAnalisisWordTryout_(body) {
     if (data) parts.push({inlineData:{mimeType:mime,data:data}});
   });
   if (parts.length < 2) throw new Error('Gambar soal tidak diterima oleh Gemini Vision.');
-  var url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
   var payload={contents:[{role:'user',parts:parts}],generationConfig:{responseMimeType:'application/json'}};
-  var r=UrlFetchApp.fetch(url,{method:'post',contentType:'application/json',payload:JSON.stringify(payload),muteHttpExceptions:true});
-  if(r.getResponseCode()>=300) throw new Error('Gemini Vision HTTP '+r.getResponseCode()+': '+r.getContentText().slice(0,500));
+  var r=null,lastErr='',usedModel='';
+  for(var mi=0;mi<models.length;mi++){
+    var model=models[mi];
+    var url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
+    r=UrlFetchApp.fetch(url,{method:'post',contentType:'application/json',payload:JSON.stringify(payload),muteHttpExceptions:true});
+    var code=r.getResponseCode();
+    if(code<300){usedModel=model;break;}
+    lastErr='HTTP '+code+': '+r.getContentText().slice(0,500);
+    if(code!==429&&code!==404) break;
+  }
+  if(!r||r.getResponseCode()>=300) throw new Error('Gemini Vision gagal pada semua model cadangan. '+lastErr);
   var j=JSON.parse(r.getContentText());
   var raw=((((j.candidates||[])[0]||{}).content||{}).parts||[]).map(function(p){return p.text||'';}).join('');
   var parsed=JSON.parse(kfStripFence_(raw));
   if(!parsed || !Array.isArray(parsed.questions)) throw new Error('Gemini Vision tidak mengembalikan questions[].');
-  return {status:'ok',ok:true,questions:parsed.questions};
+  return {status:'ok',ok:true,questions:parsed.questions,model:usedModel||preferred};
 }
