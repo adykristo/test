@@ -1784,6 +1784,28 @@ function v13RenderMemberPackages(selected){
  box.innerHTML=rows.length?rows.map(p=>'<label class="v13-package-choice '+(p.aktif?'':'off')+'"><input type="checkbox" value="'+esc(p.id)+'" '+(chosen.has(String(p.id))?'checked ':'')+(p.aktif?'':'disabled ')+'><span><b>'+esc(p.nama||p.kode||'Paket')+'</b><small>'+esc((p.jenjang||'')+(p.kode?' • '+p.kode:'')+(p.aktif?'':' • Nonaktif'))+'</small></span></label>').join(''):'<div class="v13-package-empty">Belum ada paket '+esc(level)+' yang aktif/tersedia di Admin.</div>';
 }
 let v13DistributionState={id:null,kind:'latihan'};
+function v13SendPackageToAdmin(id,kind){
+ const arr=packageBank(),p=arr.find(x=>String(x.id)===String(id));
+ if(!p)return alert('Paket soal tidak ditemukan.');
+ if(!Array.isArray(p.questions)||!p.questions.length)return alert('Paket ini belum memiliki soal.');
+ const key=kind==='tryout'?'kf_member_tryout_packages_v13':'kf_member_training_packages_v13';
+ let rows=[];try{rows=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(rows))rows=[]}catch(e){rows=[]}
+ const bridgeId='V13-'+kind+'-'+String(p.id);
+ let target=rows.find(x=>String(x.sourceV13Package||'')===String(p.id));
+ const now=new Date().toISOString();
+ if(!target){
+   target={id:bridgeId,kind:kind,name:(p.name&&!/^Paket Soal/i.test(p.name))?p.name:(kind==='tryout'?'Tryout dari Bank Soal':'Latihan dari Bank Soal'),questions:[],visible:false,duration:kind==='tryout'?90:0,start:'',end:'',subscription:'Semua Paket Aktif',attempts:1,createdAt:now};
+   rows.unshift(target);
+ }
+ target.questions=JSON.parse(JSON.stringify(p.questions));
+ target.sourceV13Package=p.id;target.source='Bank Soal V13';target.visible=false;target.updatedAt=now;
+ try{localStorage.setItem(key,JSON.stringify(rows))}catch(e){return alert('Gagal mengirim ke Admin: '+e.message)}
+ p.adminStage=kind;p.adminSentAt=now;p.updatedAt=now;setPackageBank(arr);renderPackageBank();
+ const label=kind==='tryout'?'Tryout Mingguan':'Soal Latihan';
+ if(confirm('✓ '+p.questions.length+' soal sudah dikirim ke halaman '+label+' di Admin.\n\nBuka halaman Admin sekarang?')){
+   location.href='admin.html#'+(kind==='tryout'?'tryout':'latihan');
+ }
+}
 function v13MovePackageToQueue(id,kind){
  const arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return alert('Draft soal tidak ditemukan.');
  p.stage=kind;p.kind=kind;p.updatedAt=new Date().toISOString();setPackageBank(arr);
@@ -1931,7 +1953,7 @@ function renderPackageBank(){
    <div><b>📦 ${p.published?esc(p.name):'Draft • '+p.questions.length+' soal'}</b><div class="small">${p.questions.length} soal • ${p.published?'☁️ TERBIT • '+(p.kind==='tryout'?'Tryout':'Latihan'):'📝 Belum diberi nama paket • pilih Latihan/Tryout untuk mengatur'}</div></div>
    <div class="actions">
     <button class="btn sm ok" onclick="startPractice('${p.id}')">▶ Kerjakan</button>
-    ${p.stage?'<button class="btn sm" onclick="nav(\'paket\');v13RenderDistributionQueues()">📤 Sudah di '+(p.stage==='tryout'?'Tryout':'Latihan')+'</button>':'<button class="btn sm primary" onclick="v13MovePackageToQueue(\''+p.id+'\',\'latihan\')">▶ Kirim ke Latihan</button><button class="btn sm pink" onclick="v13MovePackageToQueue(\''+p.id+'\',\'tryout\')">🏆 Kirim ke Tryout</button>'}
+    <button class="btn sm primary" onclick="v13SendPackageToAdmin('${p.id}','latihan')">▶ Kirim ke Soal Latihan Admin</button><button class="btn sm pink" onclick="v13SendPackageToAdmin('${p.id}','tryout')">🏆 Kirim ke Tryout Mingguan Admin</button>
     <button class="btn sm" onclick="openSavedPackage('${p.id}')">Buka/Edit</button>
     <button class="btn sm" onclick="showExportMenu('${p.id}','docx')">⬇ DOCX</button>
     <button class="btn sm" onclick="showExportMenu('${p.id}','pdf')">⬇ PDF</button>
