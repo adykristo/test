@@ -457,8 +457,29 @@ function setBank(v){localStorage.setItem(KEY,JSON.stringify(v));updateCounts();l
 function uid(){return 'Q'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function typeName(t){return ({pg5:'PG 5 Opsi',pg4:'PG 4 Opsi',mcma:'PG Kompleks / MCMA',kategori:'PG Kompleks Kategori',isian:'Isian Singkat',esai:'Esai'})[t]||t}
-function nav(page){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$('page-'+page).classList.add('active');document.querySelectorAll('.nav [data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page));if(page==='bank')renderBank()}
-document.querySelectorAll('.nav [data-page]').forEach(b=>b.onclick=()=>nav(b.dataset.page));
+function nav(page){
+ const target=document.getElementById('page-'+page);
+ if(!target){
+   if(page==='ai'||page==='import'){
+     const buat=document.getElementById('page-buat');
+     if(buat){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));buat.classList.add('active');}
+     document.getElementById(page==='ai'?'v12MovedAI':'v12MovedImport')?.scrollIntoView({behavior:'smooth',block:'start'});
+   }
+   return;
+ }
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ target.classList.add('active');
+ document.querySelectorAll('.nav [data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page));
+ if(page==='bank'){try{renderPackageBank();renderBank()}catch(e){console.error('[V12 bank]',e)}}
+ if(page==='paket'){try{updateCounts()}catch(e){}}
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+document.addEventListener('click',function(e){
+ const b=e.target.closest('.nav [data-page]');
+ if(!b)return;
+ e.preventDefault();
+ nav(b.dataset.page);
+});
 
 document.querySelectorAll('#typeButtons button').forEach(b=>b.onclick=()=>{currentType=b.dataset.type;document.querySelectorAll('#typeButtons button').forEach(x=>x.classList.toggle('primary',x===b));initAnswersForType(false);renderAnswerEditor();updatePreview()});
 
