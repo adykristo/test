@@ -386,7 +386,7 @@ window.kfV12Navigate=function(page){
 <div class="row"><div><label>Jenjang</label><select id="jenjang"><option>SD</option><option>SMP</option><option selected>SMA</option></select></div><div><label>Mata Pelajaran</label><input id="mapel" value="Fisika"></div><div><label>Kelas</label><input id="kelas" placeholder="Contoh: XII"></div><div><label>Tingkat Kesulitan</label><select id="difficulty"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div></div>
 <div class="row two" style="margin-top:8px"><div><label>Topik / Materi</label><input id="topik" placeholder="Listrik Statis"></div><div><label>Subtopik</label><input id="subtopik" placeholder="Hukum Coulomb"></div></div><div style="margin-top:8px"><label>Tag</label><input id="tags" placeholder="coulomb, muatan listrik"></div>
 <label style="margin-top:10px">Tipe soal</label><select id="typeSelect" onchange="changeTypeSelect(this.value)"><option value="pg5">Pilihan Ganda — 5 opsi (A–E)</option><option value="pg4">Pilihan Ganda — 4 opsi (A–D)</option><option value="mcma">PG Kompleks / MCMA</option><option value="kategori">PG Kompleks Kategori</option><option value="isian">Isian Singkat</option><option value="esai">Esai</option></select>
-<div class="ref-option question-editor-like-option" style="margin-top:10px"><label>Pertanyaan <span class="small">(teks + rumus LaTeX + angka; boleh kosong jika hanya gambar)</span></label><div id="qFormulaBar"></div><textarea id="question" style="min-height:72px" placeholder="Teks pertanyaan (boleh $LaTeX$)"></textarea><div class="option-image-row" style="display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-top:7px"><input type="file" id="qImageFile" accept="image/*"><input id="qImageUrl" placeholder="Link gambar pertanyaan"><button type="button" class="btn sm danger" onclick="clearQuestionImage()">Hapus</button></div><div id="questionMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div id="qImagePreview" class="math-preview"></div></div><div class="actions" style="margin-top:7px"><button class="btn sm" onclick="aiImprove()">✨ Rapikan soal ini dengan AI</button></div>
+<div class="ref-option question-editor-like-option" style="margin-top:10px"><label>Pertanyaan <span class="small">(teks + rumus LaTeX + gambar; untuk Esai tuliskan seluruh soal di sini)</span></label><div id="qFormulaBar"></div><textarea id="question" style="min-height:72px" placeholder="Teks pertanyaan (boleh $LaTeX$)"></textarea><div class="option-image-row" style="display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-top:7px"><input type="file" id="qImageFile" accept="image/*"><input id="qImageUrl" placeholder="Link gambar pertanyaan"><button type="button" class="btn sm danger" onclick="clearQuestionImage()">Hapus</button></div><div id="questionMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div id="qImagePreview" class="math-preview"></div></div><div class="actions" style="margin-top:7px"><button class="btn sm" onclick="aiImprove()">✨ Rapikan soal ini dengan AI</button></div>
 <div class="notice" style="margin-top:10px;background:#fbf7ff;border:1px solid #eadcff">
  <b>📌 Sisip Gambar di posisi yang diinginkan</b>
  <div class="small" style="margin-top:6px;line-height:1.65">
@@ -394,9 +394,9 @@ window.kfV12Navigate=function(page){
  </div>
 </div>
 <div class="sep"></div><div id="answerCard"><label><b>Pilihan jawaban / kunci</b></label><div class="small">Setiap opsi boleh berisi teks, rumus, gambar, atau keduanya.</div><div id="answerEditor"></div></div>
-<div class="sep"></div><label><b>Pembahasan / pedoman jawaban esai</b> <span class="small">(opsional: teks + LaTeX + angka)</span></label><div id="exFormulaBar"></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea>
+<div id="explanationSection"><div class="sep"></div><label><b>Pembahasan</b> <span class="small">(opsional: teks + LaTeX + angka)</span></label><div id="exFormulaBar"></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea>
 <div id="explanationMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div class="editor-image-row" style="display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:7px"><input type="file" id="explanationImageFile" accept="image/*" onchange="loadExplanationImage(this)"><input id="explanationImageUrl" placeholder="Atau tempel link gambar pembahasan" oninput="explanationImage=this.value;showExplanationImage();changed()"></div><div id="explanationImagePreview" class="math-preview">Pratinjau gambar pembahasan akan muncul di sini...</div>
-<div style="margin-top:10px;max-width:360px">
+<div id="scoringSection" style="margin-top:10px;max-width:360px">
 <label>Penilaian MCMA</label>
 <select id="scoring"><option value="exact">Exact — semua harus benar</option><option value="partial">Partial — skor sebagian</option></select>
 </div>
@@ -405,7 +405,7 @@ window.kfV12Navigate=function(page){
 <button class="btn" type="button" onclick="aiTidyExplanation()">✨ AI Rapikan Pembahasan</button>
 <input id="formulaImageInput" type="file" accept="image/*" style="display:none" onchange="convertFormulaImage(this)">
 </div>
-<div id="explanationAIStatus" class="small" style="margin-top:7px">AI dapat mengubah foto rumus menjadi LaTeX dan merapikan pembahasan.</div>
+<div id="explanationAIStatus" class="small" style="margin-top:7px">AI dapat mengubah foto rumus menjadi LaTeX dan merapikan pembahasan.</div></div>
 <div id="validation" class="notice" style="margin-top:10px">Lengkapi soal untuk melihat validasi.</div><div class="actions" style="margin-top:10px"><button class="btn ok" onclick="saveCurrentToPackage()">✓ Simpan Soal Ini</button><button class="btn" onclick="previewCurrent()">👁 Preview Soal</button><button class="btn danger" onclick="clearPackageEditor()">Bersihkan Isian</button></div><div id="draftStatus" class="small" style="margin-top:8px">Draft otomatis aktif.</div>
 </div></section>
 <section id="page-ai" class="page">
@@ -718,6 +718,14 @@ function insertImageMarker(id){
 }
 function readFormulaPhoto(target){const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async function(){const file=input.files&&input.files[0];if(!file)return;try{const image=await fileToBase64Payload(file),r=await postGAS('imageToLatex',{image});if(!r?.latex)throw new Error(r?.message||'Rumus tidak terbaca');const el=$(target);if(!el)throw new Error('Kolom tujuan tidak ditemukan');const p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+r.latex+el.value.slice(p);el.dispatchEvent(new Event('input'));el.focus()}catch(e){alert('Gagal membaca rumus: '+e.message)}};input.click()}
 function changeTypeSelect(v){currentType=v;initAnswersForType(true);renderAnswerEditor();changed()}
+function updateEditorTypeVisibility(){
+ const isEssay=currentType==='esai',isMCMA=currentType==='mcma';
+ const answerCard=$('answerCard'),ex=$('explanationSection'),score=$('scoringSection');
+ if(answerCard)answerCard.style.display=isEssay?'none':'';
+ if(ex)ex.style.display=isEssay?'none':'';
+ if(score)score.style.display=isMCMA?'':'none';
+ if(isEssay){answerState.essayKey='';if($('explanation'))$('explanation').value='';explanationImageData='';}
+}
 function renderAnswerEditor(){
  let h='';
  if(['pg5','pg4','mcma'].includes(currentType)){
@@ -725,8 +733,8 @@ function renderAnswerEditor(){
   answerState.options.forEach((o,i)=>h+=`<div class="ref-option"><div class="ref-option-grid"><div class="ref-letter">${'ABCDE'[i]}</div><div>${formulaBar('opt'+i)}<textarea id="opt${i}" style="min-height:72px" placeholder="Teks opsi ${'ABCDE'[i]} (boleh $LaTeX$)" oninput="answerState.options[${i}]=this.value;changed()">${esc(o)}</textarea><div class="option-image-row" style="display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-top:7px"><input type="file" accept="image/*" onchange="loadOptionImage(${i},this)"><input class="option-image-url" data-option-index="${i}" value="${esc(answerState.optionImages?.[i]||'')}" placeholder="Link gambar ${'ABCDE'[i]}" oninput="answerState.optionImages[${i}]=this.value;changed()"><button type="button" class="btn sm danger" onclick="clearOptionImage(${i})">Hapus</button></div><div id="optPrev${i}" class="math-preview">Pratinjau akan muncul di sini...</div><div id="optImgPrev${i}" class="math-preview option-image-preview"></div></div><button type="button" class="key-pick ${answerState.keys.includes(i)?'on':''}" onclick="toggleKey(${i})">◎<br>Kunci</button></div></div>`);
  } else if(currentType==='kategori'){h='<div class="notice">Tambahkan pernyataan lalu tentukan Benar/Salah.</div>';answerState.statements.forEach((x,i)=>h+=`<div class="statement"><textarea style="min-height:60px" oninput="answerState.statements[${i}].text=this.value;changed()">${esc(x.text)}</textarea><select onchange="answerState.statements[${i}].answer=this.value;changed()"><option ${x.answer==='Benar'?'selected':''}>Benar</option><option ${x.answer==='Salah'?'selected':''}>Salah</option></select><button class="btn sm danger" onclick="removeStatement(${i})">Hapus</button></div>`);h+='<button class="btn sm" onclick="addStatement()">+ Pernyataan</button>'}
  else if(currentType==='isian')h=`${formulaBar('shortAnswer')}<input id="shortAnswer" value="${esc(answerState.short||'')}" oninput="answerState.short=this.value;changed()" placeholder="Jawaban benar">`;
- else h=`${formulaBar('essayKey')}<textarea id="essayKey" oninput="answerState.essayKey=this.value;changed()" placeholder="Pedoman jawaban esai">${esc(answerState.essayKey||'')}</textarea>`;
- $('answerEditor').innerHTML=h;setTimeout(()=>{updateMathPreviews();updateOptionImagePreviews()},0);
+ else h='';
+ $('answerEditor').innerHTML=h;updateEditorTypeVisibility();setTimeout(()=>{updateMathPreviews();updateOptionImagePreviews()},0);
 }
 function clearQuestionImage(){imageData='';imageRotation=0;if($('qImageUrl'))$('qImageUrl').value='';if($('qImageFile'))$('qImageFile').value='';showImage();changed()}
 function loadExplanationImage(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{explanationImage=r.result;showExplanationImage();changed()};r.readAsDataURL(f)}
