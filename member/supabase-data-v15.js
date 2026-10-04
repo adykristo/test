@@ -18,6 +18,24 @@
     return (rows||[]).map(q=>({...q,id:q.question_id,position:q.question_position,type:q.question_type}));
   }
   async function saveAnswer(attemptId,questionId,answer){return await rpc("kf_save_answer",{p_attempt:attemptId,p_question:questionId,p_answer:answer});}
+  async function uploadEssayFile(attemptId,questionId,file){
+    if(!file)throw new Error("Pilih file jawaban terlebih dahulu.");
+    const allowed=["application/pdf","image/jpeg","image/png","image/webp"];
+    if(!allowed.includes(String(file.type||"").toLowerCase()))throw new Error("File harus PDF, JPG, PNG, atau WEBP.");
+    if(Number(file.size||0)>10*1024*1024)throw new Error("Ukuran file maksimal 10 MB.");
+    const db=client();
+    const {data:sessionData,error:sessionError}=await db.auth.getSession();
+    if(sessionError)throw sessionError;
+    const uid=sessionData?.session?.user?.id;
+    if(!uid)throw new Error("Peserta belum login.");
+    const ext={"application/pdf":"pdf","image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[String(file.type||"").toLowerCase()];
+    const path=uid+"/"+String(attemptId)+"/"+String(questionId)+"/"+Date.now()+"."+ext;
+    const {error}=await db.storage.from("essay-submissions").upload(path,file,{
+      cacheControl:"3600",upsert:false,contentType:file.type
+    });
+    if(error)throw error;
+    return path;
+  }
   async function saveEssaySubmission(attemptId,questionId,answerText,answerFileUrl){
     // SECURITY: package_id/participant_id tidak lagi dipercaya dari browser.
     // Server memvalidasi auth.uid(), pemilik attempt, deadline, paket, dan tipe soal.
@@ -40,5 +58,5 @@
     return await rpc("kf_review_attempt",{p_attempt:attemptId});
   }
   async function results(){return await rpc("kf_my_results");}
-  window.KFPackageDB={client,rpc,listPackages,memberCatalog,memberTopics,paymentMethods,createPackageOrder,startAttempt,questions,saveAnswer,saveEssaySubmission,submit,reviewAttempt,results};
+  window.KFPackageDB={client,rpc,listPackages,memberCatalog,memberTopics,paymentMethods,createPackageOrder,startAttempt,questions,saveAnswer,uploadEssayFile,saveEssaySubmission,submit,reviewAttempt,results};
 })();
