@@ -28,7 +28,7 @@
     const {error:delErr}=await db.from("kf_questions").delete().eq("package_id",pack.id);if(delErr)throw delErr;
     const rows=(p.questions||[]).map((q,i)=>({
       package_id:pack.id,external_id:String(q.id||i+1),position:i+1,type:q.type||"pg4",topic:q.topik||"",
-      question:q.question||"",image:q.image||null,options:q.answers?.options||[],answer_key:key(q),
+      question:q.question||"",image:q.image||null,options:(q.answers?.options||[]).map((text,j)=>({text:text||"",image:(q.answers?.optionImageData?.[j]||q.answers?.optionImages?.[j]||null)})),answer_key:key(q),
       statements:(q.answers?.statements||[]).map(x=>({text:x.text||"",key:x.answer||""})),
       category_labels:q.type==="kategori"?["Benar","Salah"]:[],explanation:q.explanation||"",
       scoring:q.scoring||"exact",source_v12_package:q.sourceV12Package||p.id||null,
