@@ -717,6 +717,14 @@ iframe.pdfview{display:block;min-height:520px}
 .brand-area{font-weight:650;opacity:.92}
 @media(max-width:390px){.brand{gap:4px!important}.brand-area{font-size:.96em}}
 </style>
+<style id="kf-owned-package-collapse">
+#dash .package-owned-panel{margin-top:10px;margin-bottom:10px}
+#dash .package-owned-panel>summary{min-height:46px}
+#dash .package-owned-panel[open]>summary span{font-size:0}
+#dash .package-owned-panel[open]>summary span:after{content:"Tutup";font-size:11px}
+#dash .package-owned-panel .owned-package-grid{margin-top:0}
+@media(min-width:641px){#dash .summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
 </head>
   <body>
     <header>
@@ -841,13 +849,16 @@ iframe.pdfview{display:block;min-height:520px}
           <div class="summary-card"><small>Materi selesai</small><strong id="statSelesai">0 / 0</strong></div>
           <div class="summary-card"><small>Paket aktif</small><strong id="statHari">0</strong><span id="statAksesDetail" style="display:block;margin-top:5px;font-size:11px;color:#756782">—</span></div>
           <div class="summary-card"><small>Tryout terakhir</small><strong id="statSkor">—</strong></div>
-          <div class="summary-card"><small>Paket aktif</small><strong id="statTahap">0 / 12</strong></div>
         </div>
         <div class="dashboard-actions">
           <button id="lanjutBtn" class="btn btn-main" type="button" onclick="lanjutBelajar()">▶ Lanjut Belajar</button>
           <button class="btn btn-ghost" type="button" onclick="toggleRiwayat()">📈 Riwayat &amp; Sertifikat</button>
           <button class="btn btn-ghost" type="button" onclick="toggleBookmarkFilter(this)">★ Materi tersimpan</button>
         </div>
+        <details id="ownedPackagesDetails" class="compact-account-panel package-owned-panel" style="display:none">
+          <summary>📦 Paket Saya <span id="ownedPackagesSummary">0 paket aktif · Lihat</span></summary>
+          <div id="ownedPackagesPanel" class="compact-account-body"></div>
+        </details>
         <details id="packageProgressDetails" class="compact-account-panel" style="display:none">
           <summary>📈 Progress per Paket <span>Lihat rincian</span></summary>
           <div id="packageProgressPanel" class="compact-account-body"></div>
@@ -1363,8 +1374,26 @@ iframe.pdfview{display:block;min-height:520px}
         }else notice.style.display="none";
         const last=(dataBelajarAktif.attempts||[])[0];
         document.getElementById("statSkor").textContent=last?Math.round(Number(last.skor||0))+"":"—";
-        const elTahap=document.getElementById("statTahap");
-        if(elTahap) elTahap.textContent=(window.KF_OWNED_PACKAGES||[]).length+" paket";
+        renderPaketSayaDashboard();
+      }
+      function renderPaketSayaDashboard(){
+        const owned=window.KF_OWNED_PACKAGES||[];
+        const details=document.getElementById("ownedPackagesDetails");
+        const panel=document.getElementById("ownedPackagesPanel");
+        const summary=document.getElementById("ownedPackagesSummary");
+        if(!details||!panel)return;
+        if(summary)summary.textContent=owned.length+" paket aktif · Lihat";
+        if(!owned.length){
+          details.style.display="none";
+          panel.innerHTML="";
+          return;
+        }
+        panel.innerHTML='<div class="owned-package-grid">'+owned.map(p=>{
+          const nama=esc(p.nama||"Paket");
+          const sampai=p.expiresAt?"Berlaku s.d. "+new Date(p.expiresAt).toLocaleDateString("id-ID"):"Akses paket aktif";
+          return '<div class="owned-package"><b>'+nama+'</b><span>✓ Aktif</span><small>'+esc(sampai)+'</small></div>';
+        }).join("")+'</div>';
+        details.style.display="block";
       }
       function renderProgressPerPaket(){
         const panel=document.getElementById("packageProgressPanel");
@@ -1814,6 +1843,7 @@ kfSubmitPackage=async function(auto){
  }catch(e){alert("Submit gagal: "+e.message)}
 };
 const _renderListV15=renderList;
+const _renderPaketSayaOnLoad=renderPaketSayaDashboard;
 renderList=function(){_renderListV15();setTimeout(kfLoadServerPackages,0)};
 </script>
 
