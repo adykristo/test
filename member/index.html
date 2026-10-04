@@ -1978,6 +1978,19 @@ renderList=function(){_renderListV15();setTimeout(kfLoadServerPackages,0)};
 .kfm-backdrop{position:fixed;inset:0;background:rgba(31,15,48,.46);backdrop-filter:blur(3px);z-index:100001;display:grid;place-items:center;padding:18px}
 .kfm-dialog{width:min(500px,100%);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 22px 70px rgba(32,12,54,.28)}
 .kfm-head{padding:17px 19px;background:linear-gradient(110deg,#7224ba,#ec3d9b);color:#fff}.kfm-body{padding:18px 19px;white-space:pre-wrap;line-height:1.55;color:#321747}.kfm-actions{display:flex;justify-content:flex-end;gap:9px;padding:0 19px 18px}
+@media(max-width:720px){
+  header{padding-left:12px!important;padding-right:12px!important}
+  #navBtns{display:flex!important;gap:6px!important;overflow-x:auto!important;max-width:100%;padding-bottom:3px;scrollbar-width:thin}
+  #navBtns button{flex:0 0 auto;white-space:nowrap;min-height:38px}
+  .kf-pkg-grid,.owned-package-grid{grid-template-columns:1fr!important}
+  .kf-pkg-card,.owned-package{min-width:0}
+  .history-row{align-items:flex-start!important;gap:10px!important}
+  .history-row strong{flex:0 0 auto}
+  iframe.pdfview{height:62vh}
+  .kfm-toast-stack{right:10px;top:68px;max-width:calc(100vw - 20px)}
+  .kfm-actions{flex-direction:column-reverse}
+  .kfm-actions .btn{width:100%}
+}
 </style>
 <script>
 window.KFMemberUI=window.KFMemberUI||{};
