@@ -622,7 +622,7 @@
 @media(max-width:720px){.preview-grid{grid-template-columns:1fr}.preview-modal{padding:8px}.preview-shell{max-height:96vh}}
 
 /* ===== Dedicated V12 Launcher ===== */
-.v12-launch-page{max-width:1050px;margin:0 auto 18px}
+.v12-launch-page{width:100%;max-width:none;margin:0 0 18px}
 .v12-launch-hero{position:relative;overflow:hidden;display:flex;gap:24px;align-items:center;padding:34px;border:1px solid #e6d7f4;border-radius:24px;background:linear-gradient(135deg,#fff 0%,#fbf5ff 55%,#fff0f8 100%);box-shadow:0 18px 48px rgba(83,31,129,.09)}
 .v12-launch-hero:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-100px;top:-120px;background:linear-gradient(135deg,rgba(119,42,190,.12),rgba(242,56,154,.10));pointer-events:none}
 .v12-launch-mark{position:relative;z-index:1;flex:0 0 auto;width:86px;height:86px;border-radius:24px;display:grid;place-items:center;background:linear-gradient(135deg,#6424ad,#f2389a);color:#fff;font-size:38px;box-shadow:0 16px 34px rgba(105,38,184,.23)}
@@ -758,6 +758,17 @@ table{max-width:100%}
 #member .table-wrap th:nth-child(9),#member .table-wrap td:nth-child(9){min-width:155px}
 </style>
 
+<style id="kf-v12-equal-width">
+#v12builder{width:100%}
+#v12builder>.v12-launch-page,
+#v12builder>.card{width:100%;max-width:none;box-sizing:border-box}
+#v12builder .v12-launch-hero,
+#v12builder .v12-launch-grid,
+#v12builder .v12-workflow-card{width:100%;box-sizing:border-box}
+@media(max-width:800px){
+  #v12builder>.v12-launch-page,#v12builder>.card{width:100%}
+}
+</style>
 </head>
   <body>
     <header class="top">
