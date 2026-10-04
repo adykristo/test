@@ -1519,7 +1519,7 @@ function openPanel(id, b) {
           const res=await adminApi("adminListMember",{});
           MEMBER_CACHE=(res.data||[]).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
           perbaruiRingkasanMember(); renderPendaftaranMember(); renderTabelMember();
-        } catch(err) { alert("Gagal memuat data member: "+err.message); }
+        } catch(err) { KFUI.toast("Gagal memuat data member: "+err.message,"err",6000); }
       }
       async function kelolaPaketMember(memberId){
         const m=MEMBER_CACHE.find(x=>String(x.id)===String(memberId)); if(!m)return;
@@ -1563,18 +1563,18 @@ function openPanel(id, b) {
           const q=await kfdb().rpc("kf_admin_bundle_orders");
           if(q.error)throw q.error;
           const o=(q.data||[]).filter(x=>String(x.user_id)===String(memberId)&&String(x.status||"").toLowerCase()==="pending").sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
-          if(!o)return alert("Peserta belum mengirim pilihan paket.\n\nMinta peserta login ke Member Area, pilih paket, lalu tekan Kirim Pilihan Paket & Bukti via WhatsApp.");
+          if(!o)return KFUI.toast("Peserta belum mengirim pilihan paket. Minta peserta login ke Member Area dan kirim pilihan paket terlebih dahulu.","info",6000);
           const iq=await kfdb().rpc("kf_admin_bundle_order_items",{p_order:o.id});
           if(iq.error)throw iq.error;
           const names=(iq.data||[]).map(x=>x.package_name).filter(Boolean);
           const pesan="AKTIFKAN PAKET\n\nPeserta: "+(m.nama||"-")+"\nJenjang: "+String(o.jenjang||m.jenjang||"-").toUpperCase()+"\nPaket:\n"+names.map((n,i)=>(i+1)+". "+n).join("\n")+"\nBiaya: "+moneyID(o.total_amount||0)+"\n\nAktifkan paket ini sekarang?";
-          if(!confirm(pesan))return;
-          const n=prompt("Catatan Admin:","Paket diaktifkan oleh Admin");if(n===null)return;
+          if(!(await KFUI.confirm(pesan,"Aktifkan Paket Peserta")))return;
+          const n=await KFUI.prompt("Catatan Admin:","Paket diaktifkan oleh Admin","Catatan Aktivasi");if(n===null)return;
           const r=await kfdb().rpc("kf_admin_approve_bundle_order",{p_order:o.id,p_note:n});
           if(r.error)throw r.error;
-          alert("✓ Paket berhasil diaktifkan untuk "+m.nama+".");
+          KFUI.toast("Paket berhasil diaktifkan untuk "+m.nama+".","ok",4500);
           await renderMemberAdmin();await renderBundleOrders();
-        }catch(e){alert("Gagal mengaktifkan paket: "+e.message)}
+        }catch(e){KFUI.toast("Gagal mengaktifkan paket: "+e.message,"err",6000)}
       }
       function bukaPembayaranMember(id) {
         const m=MEMBER_CACHE.find(x=>x.id===id);
@@ -1582,7 +1582,7 @@ function openPanel(id, b) {
         openPanel("transaksi");
         setTimeout(async()=>{await renderBundleOrders();},50);
         if(!m.paket){
-          alert("Peserta belum memilih paket.\n\nMinta peserta login ke Member Area, pilih satu atau beberapa paket, lalu lanjutkan pembayaran. Setelah transaksi muncul di halaman ini, Admin cukup klik Verifikasi & Aktifkan.");
+          KFUI.toast("Peserta belum memilih paket. Minta peserta memilih paket dari Member Area terlebih dahulu.","info",6000);
         }
       }
       async function aktifkanMember(id) {
