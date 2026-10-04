@@ -28,7 +28,9 @@ begin
     'member_content_packages',
     'member_payment_methods',
     'member_discount_rules',
-    'member_admin_logs'
+    'member_admin_logs',
+    'kf_packages',
+    'kf_package_access'
   ] loop
     if to_regclass('public.'||t) is not null then
       execute format('alter table public.%I enable row level security',t);
@@ -69,7 +71,7 @@ where relnamespace='public'::regnamespace
 and relname in (
  'member_admins','member_packages','member_package_topics','member_content',
  'member_content_packages','member_payment_methods','member_discount_rules',
- 'member_admin_logs','kf_questions'
+ 'member_admin_logs','kf_packages','kf_package_access','kf_questions'
 )
 order by relname;
 
@@ -79,6 +81,6 @@ where schemaname='public'
 and tablename in (
  'member_admins','member_packages','member_package_topics','member_content',
  'member_content_packages','member_payment_methods','member_discount_rules',
- 'member_admin_logs','kf_questions'
+ 'member_admin_logs','kf_packages','kf_package_access','kf_questions'
 )
 order by tablename,policyname;
