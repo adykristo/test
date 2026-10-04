@@ -26,12 +26,6 @@
       }
 
       if (!session) {
-        const redirectTo = window.location.origin + window.location.pathname;
-        const { error: oauthError } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: redirectTo }
-        });
-        if (oauthError) alert("Login Google Admin gagal: " + oauthError.message);
         return false;
       }
 
@@ -321,6 +315,19 @@
         default:
           throw new Error("Aksi admin tidak dikenali: " + action);
       }
+    }
+  };
+
+  window.KFLoginAdminGoogle = async function () {
+    try {
+      const redirectTo = window.location.origin + window.location.pathname;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: redirectTo }
+      });
+      if (error) throw error;
+    } catch (err) {
+      alert("Login Google Admin gagal: " + (err && err.message ? err.message : err));
     }
   };
 
