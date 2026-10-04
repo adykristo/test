@@ -1921,17 +1921,17 @@ function openPanel(id, b) {
         }
       }
       async function rapikanSoalGemini(id) {
-        const x = cariItem(id);
-        if (!x) return;
-        if (!confirm("Gemini akan merapikan bahasa, menerjemahkan bagian asing, memeriksa opsi/kunci, rumus LaTeX, dan membuat pembahasan lebih sistematis. Lanjutkan?")) return;
+        const x = cariItem(id);if (!x) return;
+        if (!(await KFUI.confirm("Gemini akan merapikan bahasa, menerjemahkan bagian asing, memeriksa opsi/kunci, rumus LaTeX, dan membuat pembahasan lebih sistematis.","Rapikan dengan Gemini"))) return;
         try {
+          KFUI.toast("Gemini sedang memproses soal…","info",2200);
           const res = await adminApi("adminRapikanSoalGemini", { tipe: x.tipe || "pg4", item: x });
           const hasil = res.item || {};
           const preview = "SOAL:\n" + (hasil.soal || "") + "\n\nKUNCI: " + (x.tipe && x.tipe.startsWith("pg") ? "ABCDE"[Number(hasil.kunci) || 0] : (hasil.kunci || "")) + "\n\nPEMBAHASAN:\n" + (hasil.pembahasan || "");
-          if (!confirm("Tinjau hasil Gemini berikut. Simpan hasil ini?\n\n" + preview.slice(0, 1600))) return;
-          await simpanKontenBackend({ ...x, ...hasil, opsi: hasil.opsi || x.opsi || [] });
-          alert("✓ Soal telah dirapikan Gemini. Periksa sekali lagi sebelum ditampilkan ke member.");
-        } catch (err) { alert("Gemini gagal merapikan soal: " + err.message); }
+          if (!(await KFUI.confirm("Tinjau ringkasan hasil Gemini:\n\n"+preview.slice(0,1600)+"\n\nSimpan hasil ini?","Tinjau Hasil Gemini"))) return;
+          const ok=await simpanKontenBackend({ ...x, ...hasil, opsi: hasil.opsi || x.opsi || [] });
+          if(ok)KFUI.toast("Soal telah dirapikan Gemini. Periksa sekali lagi sebelum ditampilkan ke member.","ok",5000);
+        } catch (err) { KFUI.toast("Gemini gagal merapikan soal: " + err.message,"err",6500); }
       }
       async function editKonten(id) {
         const x = { ...cariItem(id) };
