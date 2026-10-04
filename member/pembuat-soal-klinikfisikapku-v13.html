@@ -426,7 +426,7 @@ window.kfV12Navigate=function(page){
 
 <section id="page-paket" class="page">
 <div class="card"><h2>🚀 Latihan & Tryout</h2>
-<div class="sub">Soal terpilih dari Bank Soal masuk ke sini terlebih dahulu. Di tahap ini baru atur nama, topik, jenjang, paket peserta, durasi dan jadwal sebelum dikirim ke halaman peserta.</div>
+<div class="sub">Soal terpilih dari Bank Soal masuk ke sini terlebih dahulu. Data Paket Peserta diambil langsung dari paket yang sudah ada di Admin/Supabase; data Modul & Video lama tetap dipertahankan.</div>
 <div class="notice" style="margin-top:12px"><b>Alur:</b> Bank Soal → pilih soal → Kirim ke Latihan / Kirim ke Tryout → Atur Distribusi → Publish ke Peserta.</div>
 <div class="actions" style="margin-top:12px"><button class="btn" onclick="nav('bank')">← Pilih Soal dari Bank</button></div></div>
 <div class="card"><h3>▶ Draft Latihan</h3><div id="v13LatihanQueue" class="sub">Belum ada soal yang dikirim ke Latihan.</div></div>
@@ -480,11 +480,12 @@ window.kfV12Navigate=function(page){
 </div>
 </section>
 
-<div id="v13DistributionModal" class="modal"><div class="modalbox" style="max-width:820px">
+<style>.v13-package-checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}.v13-package-choice{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border:1px solid #eadcf8;border-radius:12px;background:#fff}.v13-package-choice input{width:auto;margin-top:2px}.v13-package-choice b{display:block}.v13-package-choice small{display:block;color:#7a6b86;margin-top:2px}.v13-package-choice.off{opacity:.55}.v13-package-empty{padding:12px;border:1px dashed #dbc7ef;border-radius:12px;color:#745a87}</style><div id="v13DistributionModal" class="modal"><div class="modalbox" style="max-width:820px">
 <div class="modalhead"><h2 id="v13DistHeading">Atur Latihan / Tryout</h2><button class="x" onclick="v13CloseDistribution()">×</button></div>
 <div class="notice">Soal sudah selesai. Sekarang atur identitas dan akses paket yang akan tampil kepada peserta.</div>
 <div class="row two" style="margin-top:12px"><div><label>Nama / Judul Paket *</label><input id="v13DistName" placeholder="Contoh: Latihan Hukum Coulomb 01"></div><div><label>Topik / Materi *</label><input id="v13DistTopic" placeholder="Contoh: Hukum Coulomb"></div></div>
-<div class="row" style="margin-top:10px"><div><label>Jenjang</label><select id="v13DistLevel"><option>SD</option><option>SMP</option><option selected>SMA</option></select></div><div><label>Kelas</label><input id="v13DistClass" placeholder="Contoh: XII"></div><div><label>Paket Peserta</label><input id="v13DistSubscription" value="Semua Paket Aktif" placeholder="Contoh: SMA Bulan 1"></div></div>
+<div class="row two" style="margin-top:10px"><div><label>Jenjang</label><select id="v13DistLevel" onchange="v13RenderMemberPackages()"><option>SD</option><option>SMP</option><option selected>SMA</option></select></div><div><label>Kelas</label><input id="v13DistClass" placeholder="Contoh: XII"></div></div>
+<div style="margin-top:12px"><label>Paket Peserta *</label><div class="small">Pilih paket yang sudah ada di Admin/Supabase. Latihan/Tryout hanya akan diberikan kepada peserta yang memiliki paket terpilih.</div><div id="v13DistPackageChecks" class="v13-package-checks" style="margin-top:8px"><div class="small">Memuat paket peserta…</div></div></div>
 <div class="row" style="margin-top:10px"><div><label>Durasi (menit)</label><input id="v13DistDuration" type="number" min="0" value="60"></div><div><label>Maks. Percobaan</label><input id="v13DistAttempts" type="number" min="1" value="1"></div><div><label>Nilai Minimum</label><input id="v13DistPass" type="number" min="0" max="100" value="75"></div></div>
 <div class="row two" style="margin-top:10px"><div><label>Mulai (opsional)</label><input id="v13DistStart" type="datetime-local"></div><div><label>Berakhir (opsional)</label><input id="v13DistEnd" type="datetime-local"></div></div>
 <div class="row two" style="margin-top:10px"><div><label><input style="width:auto" type="checkbox" id="v13DistShuffle" checked> Acak urutan soal</label></div><div><label><input style="width:auto" type="checkbox" id="v13DistExplain" checked> Tampilkan pembahasan setelah selesai</label></div></div>
@@ -1118,6 +1119,22 @@ function reviewPackage(){
 async 
 async function v12ProcessPaste(){const text=($('v12PasteMaterial')?.value||'').trim(),st=$('v12PasteStatus');if(!text)return alert('Tempel teks soal terlebih dahulu.');const instr=[$('v12Translate')?.checked?'Terjemahkan teks asing ke Bahasa Indonesia.':'',$('v12RelevantImage')?.checked?'Pertahankan hanya gambar/diagram relevan.':'',$('v12MakeKey')?.checked?'Lengkapi kunci dan pembahasan sistematis bila belum tersedia.':'',$('v12Validate')?.checked?'Validasi satuan, angka, opsi, dan kecocokan kunci.':'',$('v12Variation')?.checked?'Buat satu variasi soal.':''].filter(Boolean).join('\n');try{if(st)st.textContent='✨ Gemini sedang menyusun soal...';let r=await postGAS('processText',{text:text+'\n\n'+instr,jenjang:$('v12PackageLevel')?.value||'SMA',topik:$('v12PackageTopic')?.value||'Umum',jumlah:Math.max(1,Math.min(50,Number($('packageCount')?.value)||10))});if(!r||!Array.isArray(r.questions))throw new Error('Respons Gemini tidak berisi daftar soal.');const qs=r.questions.map(normalizeAIQuestion);packageDraft.name=$('v12PackageTitle')?.value||'Paket Soal';packageDraft.count=qs.length;packageDraft.current=0;packageDraft.questions=qs;$('packageName').value=packageDraft.name;$('packageCount').value=qs.length;savePackageDraftLocal();loadPackageQuestionToEditor(qs[0]);renderPackageNavigator();if(st)st.textContent='✓ '+qs.length+' soal masuk ke Daftar Soal. Periksa sebelum publish.';$('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){if(st)st.textContent='✗ '+(e?.message||e)}}
 function v12PublicationMeta(){return{name:'Paket Soal',kind:'latihan',duration:60,attempts:1,start:null,end:null,subscription:'Semua Paket Aktif',sourceVersion:13}}
+let v13MemberPackages=[];
+async function v13LoadMemberPackages(){
+ try{
+  const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;if(!db)throw new Error('Supabase Admin belum siap.');
+  const {data,error}=await db.from('member_packages').select('id,kode,nama,jenjang,aktif,urutan').neq('nama','_PAYMENT_CONFIG_').order('urutan').order('nama');
+  if(error)throw error;v13MemberPackages=(data||[]).filter(x=>!['_PAYMENT_CONFIG_','__PENGATURAN_PEMBAYARAN__'].includes(x.nama));
+  v13RenderMemberPackages();
+ }catch(e){const box=$('v13DistPackageChecks');if(box)box.innerHTML='<div class="v13-package-empty">Paket peserta gagal dimuat: '+esc(e?.message||e)+'</div>'}
+}
+function v13SelectedMemberPackages(){return [...document.querySelectorAll('#v13DistPackageChecks input:checked')].map(x=>x.value)}
+function v13RenderMemberPackages(selected){
+ const box=$('v13DistPackageChecks');if(!box)return;const level=String($('v13DistLevel')?.value||'').toUpperCase();
+ const rows=v13MemberPackages.filter(p=>!level||String(p.jenjang||'').toUpperCase()===level);
+ const chosen=new Set(selected||v13SelectedMemberPackages());
+ box.innerHTML=rows.length?rows.map(p=>'<label class="v13-package-choice '+(p.aktif?'':'off')+'"><input type="checkbox" value="'+esc(p.id)+'" '+(chosen.has(String(p.id))?'checked ':'')+(p.aktif?'':'disabled ')+'><span><b>'+esc(p.nama||p.kode||'Paket')+'</b><small>'+esc((p.jenjang||'')+(p.kode?' • '+p.kode:'')+(p.aktif?'':' • Nonaktif'))+'</small></span></label>').join(''):'<div class="v13-package-empty">Belum ada paket '+esc(level)+' yang aktif/tersedia di Admin.</div>';
+}
 let v13DistributionState={id:null,kind:'latihan'};
 function v13MovePackageToQueue(id,kind){
  const arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return alert('Draft soal tidak ditemukan.');
@@ -1154,32 +1171,38 @@ function v13OpenDistribution(id,kind){
  $('v13DistTopic').value=p.topic||p.questions?.[0]?.topik||'';
  $('v13DistLevel').value=p.level||p.questions?.[0]?.jenjang||'SMA';
  $('v13DistClass').value=p.className||p.questions?.[0]?.kelas||'';
- $('v13DistSubscription').value=p.subscription||'Semua Paket Aktif';
  $('v13DistDuration').value=p.duration||60;$('v13DistAttempts').value=p.attempts||1;$('v13DistPass').value=p.pass||75;
  $('v13DistStart').value=p.start||'';$('v13DistEnd').value=p.end||'';
  $('v13DistShuffle').checked=p.shuffle!==false;$('v13DistExplain').checked=p.showExplain!==false;
  $('v13DistributionModal').classList.add('show');
+ v13LoadMemberPackages().then(()=>v13RenderMemberPackages(p.memberPackageIds||[]));
 }
 function v13CloseDistribution(){$('v13DistributionModal')?.classList.remove('show')}
 async function v13ConfirmDistribution(){
  const p=packageBank().find(x=>x.id===v13DistributionState.id);if(!p)return alert('Paket tidak ditemukan.');
  const name=$('v13DistName').value.trim(),topic=$('v13DistTopic').value.trim();
  if(!name)return alert('Nama/Judul Paket wajib diisi.');if(!topic)return alert('Topik/Materi wajib diisi.');
+ const memberPackageIds=v13SelectedMemberPackages();if(!memberPackageIds.length)return alert('Pilih minimal 1 Paket Peserta.');
+ const selectedNames=v13MemberPackages.filter(x=>memberPackageIds.includes(String(x.id))).map(x=>x.nama);
  const pub=Object.assign({},p,{
    name,topic,level:$('v13DistLevel').value,className:$('v13DistClass').value.trim(),
    kind:v13DistributionState.kind,duration:Math.max(0,Number($('v13DistDuration').value)||0),
    attempts:Math.max(1,Number($('v13DistAttempts').value)||1),pass:Math.max(0,Math.min(100,Number($('v13DistPass').value)||0)),
    start:$('v13DistStart').value||null,end:$('v13DistEnd').value||null,
-   subscription:$('v13DistSubscription').value.trim()||'Semua Paket Aktif',
+   subscription:selectedNames.join(', '),memberPackageIds:memberPackageIds,
    shuffle:$('v13DistShuffle').checked,showExplain:$('v13DistExplain').checked,sourceVersion:13
  });
  try{
   if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');
-  await window.KFPackagePublisher.publish(pub);
+  const finalPack=await window.KFPackagePublisher.publish(pub);
+  const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;
+  if(!db)throw new Error('Supabase Admin belum siap untuk distribusi paket.');
+  const del=await db.from('kf_package_access').delete().eq('kf_package_id',finalPack.id);if(del.error)throw del.error;
+  const ins=await db.from('kf_package_access').insert(memberPackageIds.map(member_package_id=>({kf_package_id:finalPack.id,member_package_id})));if(ins.error)throw ins.error;
   const now=new Date().toISOString();
   setPackageBank(packageBank().map(x=>x.id===p.id?Object.assign({},x,pub,{published:true,stage:'',publishedAt:now,updatedAt:now}):x));
   v13CloseDistribution();renderPackageBank();v13RenderDistributionQueues();
-  alert('✓ '+name+' berhasil diterbitkan sebagai '+(pub.kind==='tryout'?'Tryout':'Latihan Interaktif')+' untuk peserta.');
+  alert('✓ '+name+' berhasil diterbitkan sebagai '+(pub.kind==='tryout'?'Tryout':'Latihan Interaktif')+'.\n\nAkses: '+selectedNames.join(', '));
  }catch(e){console.error('[V13 publish]',e);alert('Gagal publish ke Supabase: '+(e?.message||e))}
 }
 async function v12PublishPackageAs(id,kind){v13OpenDistribution(id,kind)}
