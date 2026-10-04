@@ -2043,8 +2043,8 @@ function newPkg(kind,name){
  return {id:uidPkg(),kind,name:name|| (kind==="tryout"?"Tryout Baru":"Latihan Baru"),questions:[],visible:false,
  duration:kind==="tryout"?90:0,start:"",end:"",subscription:"Semua Paket Aktif",attempts:1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
 }
-function buatPaketKelola(kind){
- const name=prompt(kind==="tryout"?"Nama paket tryout:":"Nama paket latihan:");
+async function buatPaketKelola(kind){
+ const name=await KFUI.prompt(kind==="tryout"?"Masukkan nama paket tryout.":"Masukkan nama paket latihan.","",kind==="tryout"?"Buat Paket Tryout":"Buat Paket Latihan");
  if(!name||!name.trim())return;
  const a=pkgGet(kind);const p=newPkg(kind,name.trim());a.unshift(p);pkgSet(kind,a);bukaPkgEditor(kind,p.id);
 }
@@ -2052,8 +2052,8 @@ function getPkg(kind,id){return pkgGet(kind).find(x=>x.id===id)}
 function savePkgObj(kind,p){
  let a=pkgGet(kind),i=a.findIndex(x=>x.id===p.id);p.updatedAt=new Date().toISOString();if(i>=0)a[i]=p;else a.unshift(p);pkgSet(kind,a);
 }
-function hapusPkg(kind,id){let p=getPkg(kind,id);if(!p||!confirm('Hapus paket "'+p.name+'"?'))return;pkgSet(kind,pkgGet(kind).filter(x=>x.id!==id))}
-function duplikatPkg(kind,id){let p=cloneObj(getPkg(kind,id));if(!p)return;p.id=uidPkg();p.name+=" (Salinan)";p.visible=false;p.createdAt=new Date().toISOString();savePkgObj(kind,p)}
+async function hapusPkg(kind,id){let p=getPkg(kind,id);if(!p)return;const ok=await KFUI.confirm('Hapus paket "'+p.name+'"?\n\nPaket draf lokal ini akan dihapus.','Hapus Paket');if(!ok)return;pkgSet(kind,pkgGet(kind).filter(x=>x.id!==id));KFUI.toast('Paket berhasil dihapus.','ok')}
+function duplikatPkg(kind,id){let p=cloneObj(getPkg(kind,id));if(!p)return;p.id=uidPkg();p.name+=" (Salinan)";p.visible=false;p.createdAt=new Date().toISOString();savePkgObj(kind,p);KFUI.toast('Salinan paket berhasil dibuat.','ok')}
 
 function renderPkgManagers(){
  [["latihan","latihanPackageManager"],["tryout","tryoutPackageManager"]].forEach(([kind,target])=>{
@@ -2130,15 +2130,16 @@ function v12ToMember(q,p,kind,no){
  return {id:"pkg-"+p.id+"-q-"+no,jenjang:String(q.jenjang||"sma").toLowerCase(),visible:true,jenis:"soal",tujuan:kind==="tryout"?"tryout":"latihan",paket:p.name,topik:q.topik||p.name,judul:p.name+" · Soal "+no,tipe,soal:q.question||"",gambar:q.image||"",opsi:a.options||[],kunci:k,statements:(a.statements||[]).map(x=>({text:x.text||"",key:x.answer||""})),category_labels:tipe==="kategori"?["Benar","Salah"]:[],pembahasan:q.explanation||"",kelas:q.kelas||"",mapel:q.mapel||"Fisika",scoring:q.scoring||"exact",subscription:p.subscription||"Semua Paket Aktif",duration:p.duration||0,start:p.start||"",end:p.end||"",attempts:p.attempts||1};
 }
 async function publikasiPkg(kind,id){
- let p=getPkg(kind,id);if(!p||!p.questions.length)return alert("Paket belum memiliki soal.");
- if(!window.KFPackagePublisher)return alert("Mesin Supabase V15 belum termuat.");
- if(!confirm('Publikasikan/sinkronkan "'+p.name+'" ('+p.questions.length+' soal) ke Supabase?'))return;
+ let p=getPkg(kind,id);if(!p||!p.questions.length)return KFUI.toast("Paket belum memiliki soal.","err");
+ if(!window.KFPackagePublisher)return KFUI.toast("Mesin Supabase belum termuat. Muat ulang halaman lalu coba lagi.","err",5000);
+ const ok=await KFUI.confirm('Publikasikan/sinkronkan "'+p.name+'" ('+p.questions.length+' soal) ke Supabase?','Publikasikan Paket');
+ if(!ok)return;
  try{
    await window.KFPackagePublisher.publish(p);
    p.visible=true;savePkgObj(kind,p);
-   alert("✓ Paket final dan seluruh soalnya sudah tersimpan di Supabase.");
+   KFUI.toast("Paket final dan seluruh soal berhasil tersimpan di Supabase.","ok",4200);
    await renderSupabasePackageStatus();
- }catch(e){alert("Gagal publikasi Supabase: "+e.message)}
+ }catch(e){KFUI.toast("Gagal publikasi Supabase: "+e.message,"err",6000)}
 }
 window.addEventListener("load",()=>{renderPkgManagers();let f=document.getElementById("v12Frame");if(f)f.addEventListener("load",()=>setTimeout(()=>bacaBankV12(),250));setTimeout(()=>{if(location.hash==='#latihan'){openPanel('latihan');renderPkgManagers()}else if(location.hash==='#tryout'){openPanel('tryout');renderPkgManagers()}},250)});
 window.addEventListener("storage",e=>{
@@ -2555,12 +2556,14 @@ function openV12SameTab(){
 
 /* ===== Free learning policy + Tryout activation ===== */
 async function setTryoutActivation(id,active){
+  const ok=await KFUI.confirm(active?"Aktifkan Tryout ini untuk peserta yang memiliki paket terkait?":"Nonaktifkan Tryout ini? Peserta tidak akan dapat mengaksesnya.",active?"Aktifkan Tryout":"Nonaktifkan Tryout");
+  if(!ok)return;
   try{
     const {error}=await kfdb().from("kf_packages").update({visible:!!active}).eq("id",id).eq("kind","tryout");
     if(error)throw error;
     await renderAccessManagers();
-    alert(active?"✓ Tryout sudah DIAKTIFKAN dan dapat muncul untuk peserta yang memiliki paket terkait.":"✓ Tryout sudah DINONAKTIFKAN. Peserta tidak dapat mengaksesnya.");
-  }catch(e){alert("Gagal mengubah status tryout: "+e.message)}
+    KFUI.toast(active?"Tryout sudah diaktifkan untuk peserta.":"Tryout sudah dinonaktifkan.","ok");
+  }catch(e){KFUI.toast("Gagal mengubah status tryout: "+e.message,"err",6000)}
 }
 renderAccessManagers=async function(){
  if(!window.KFPackagePublisher)return;
@@ -2577,7 +2580,7 @@ renderAccessManagers=async function(){
        return `<div class="manage-item"><div><b>${escMember(x.name)}</b><p>${isTryout?"Tryout hanya dapat diakses setelah Admin mengaktifkannya.":"Latihan dapat dipilih bebas oleh peserta selama termasuk paket yang dimiliki."}</p>${status}</div><div class="row-actions"><button class="btn ghost small final-preview-btn" onclick="previewFinalPackage('${x.id}')">◉ Preview</button><button class="btn ghost small" onclick="aturAksesFinal('${x.id}','${kind}')">Atur Paket</button>${toggle}</div></div>`;
      }).join(""):'<div class="sub">Belum ada paket final di Supabase.</div>';
    }
- }catch(e){console.warn(e);alert("Gagal memuat distribusi: "+e.message)}
+ }catch(e){console.warn(e);KFUI.toast("Gagal memuat distribusi: "+e.message,"err",6000)}
 };
 </script>
 
