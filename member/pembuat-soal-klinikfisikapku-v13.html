@@ -934,7 +934,7 @@ async function generateAIBatch(batchCount){
  if(!raw.length)throw new Error(r.message||r.error||'Gemini tidak mengembalikan daftar soal.');
  return raw.map(normalizeAIQuestion);
 }
-let aiDrafts=[],aiEditorQueue=[],aiEditorIndex=0;
+let aiEditorQueue=[],aiEditorIndex=0;
 async function generateAI(){
  let total=Math.max(1,Math.min(50,Number($('aiCount').value)||1)),btn=event?.currentTarget;
  aiDrafts=[];aiEditorQueue=[];aiEditorIndex=0;renderAI();if(btn)btn.disabled=true;
