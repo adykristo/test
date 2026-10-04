@@ -528,6 +528,7 @@ window.kfV12Navigate=function(page){
 const $=id=>document.getElementById(id);
 const KEY='kf_question_bank_v3', DRAFT='kf_question_draft_v3', PACK='kf_question_package_v3';
 const CONN='kf_question_connection_v1';
+let kfPreviewQuestion=null;
 let cropImg=null;
 let currentType='pg5', editingId=null, imageData='', explanationImageData='', imageRotation=0, cbtIndex=0, cbtAnswers={}, timerHandle=null;
 let answerState={options:['','','','',''],keys:[0],short:'',essayKey:'',statements:[{text:'',answer:'Benar'},{text:'',answer:'Salah'}]};
@@ -626,7 +627,7 @@ function questionHTML(q,interactive=true){
  else h+=interactive?'<textarea id="pvEssay" placeholder="Tuliskan jawaban esai..."></textarea>':'<div class="notice">Jawaban esai</div>';
  return h;
 }
-function previewCurrent(){let q=collect();$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button class="btn primary" onclick='checkPreview(${JSON.stringify(q).replace(/'/g,"&#39;")})'>Periksa Jawaban</button></div><div id="pvResult"></div>`;$('previewModal').classList.add('show');if(window.MathJax?.typesetPromise)MathJax.typesetPromise([$ ('studentPreview')])}
+function previewCurrent(){let q=collect();kfPreviewQuestion=q;$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button id="kfPreviewCheckBtn" class="btn primary" type="button">Periksa Jawaban</button></div><div id="pvResult"></div>`;$('kfPreviewCheckBtn').onclick=()=>checkPreview(kfPreviewQuestion);$('previewModal').classList.add('show');if(window.MathJax?.typesetPromise)MathJax.typesetPromise([$ ('studentPreview')])}
 function checkPreview(q){let ok=false,detail='';if(['pg5','pg4','mcma'].includes(q.type)){let chosen=[...document.querySelectorAll('#studentPreview input[name=pvans]:checked')].map(x=>Number(x.value)).sort();let keys=[...q.answers.keys].sort();ok=JSON.stringify(chosen)===JSON.stringify(keys);if(q.type==='mcma'&&q.scoring==='partial'){let hit=chosen.filter(x=>keys.includes(x)).length,wrong=chosen.filter(x=>!keys.includes(x)).length;let pct=Math.max(0,(hit-wrong)/keys.length);detail=` Skor parsial: ${Math.round(pct*100)}%.`}}else if(q.type==='kategori'){ok=[...document.querySelectorAll('#studentPreview .catans')].every(x=>x.value===q.answers.statements[Number(x.dataset.i)].answer)}else if(q.type==='isian')ok=($('pvShort').value||'').trim().toLowerCase()===(q.answers.short||'').trim().toLowerCase();else{detail='Esai memerlukan penilaian guru.'}
  $('pvResult').innerHTML=`<div class="notice ${q.type==='esai'?'':ok?'good':'bad'}" style="margin-top:12px">${q.type==='esai'?'Jawaban tersimpan untuk dinilai guru.':ok?'✓ Jawaban benar.':'✗ Jawaban belum benar.'}${detail}${q.explanation?`<div class="sep"></div><b>Pembahasan:</b><br>${esc(q.explanation).replace(/\n/g,'<br>')}`:''}</div>`}
 function closeModal(id){$(id).classList.remove('show')}
