@@ -266,7 +266,23 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <script src="https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.umd.cjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js?v=20261003-v12"></script><script src="supabase-publisher-v15.js?v=20261003-v12"></script></head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js?v=20261003-v12"></script><script src="supabase-publisher-v15.js?v=20261003-v12"></script><script>
+(function(){
+ var tab=new URLSearchParams(location.search).get('tab')||'buat';
+ window.__KF_V12_TAB__=tab;
+ document.addEventListener('DOMContentLoaded',function(){
+  var target=document.getElementById('page-'+tab);
+  if(!target)return;
+  document.querySelectorAll('section.page').forEach(function(x){x.classList.remove('active')});
+  target.classList.add('active');
+  document.querySelectorAll('.nav [data-page]').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-page')===tab)});
+  if(tab==='bank'){
+   try{if(typeof renderPackageBank==='function')renderPackageBank()}catch(e){}
+   try{if(typeof renderBank==='function')renderBank()}catch(e){}
+  }
+ });
+})();
+</script></head>
 <body><div id="kfV12AuthGate" style="position:fixed;inset:0;z-index:2147483647;background:#f7f1fb;display:grid;place-items:center;font-family:Arial,sans-serif"><div style="max-width:460px;margin:24px;padding:28px;border-radius:20px;background:white;box-shadow:0 18px 60px rgba(74,25,100,.18);text-align:center"><div style="font-size:34px">🔐</div><h2 style="margin:10px 0 6px;color:#381452">Memeriksa Akses Admin</h2><p id="kfV12AuthText" style="margin:0;color:#725f7c;line-height:1.5">Studio V12 hanya dapat digunakan oleh Super Admin yang aktif.</p></div></div>
 <style id="kfV12GateStyle">body > *:not(#kfV12AuthGate):not(#kfV12GateStyle):not(script){visibility:hidden!important}</style>
 <script>
@@ -303,11 +319,11 @@ window.kfV12Navigate=function(page){
 <header class="topbar"><div class="toprow">
 <div class="brand">⚛ KlinikFisikapku <small>Pembuat Soal Interaktif</small></div>
 <div class="nav">
-<button type="button" class="active" data-page="buat" onclick="kfV12Navigate('buat')">✏️ Buat Soal</button>
+<button type="button" class="active" data-page="buat" onclick="location.href=location.pathname+'?tab=buat';return false;">✏️ Buat Soal</button>
 <button data-page="ai">✨ AI Generator</button>
 <button data-page="import">📥 Import</button>
-<button type="button" data-page="bank" onclick="kfV12Navigate('bank')">🗃️ Bank Soal <span id="bankCountTop">0</span></button>
-<button type="button" data-page="paket" onclick="kfV12Navigate('paket')">📝 Paket Latihan</button><button type="button" data-page="settings" onclick="kfV12Navigate('settings')">⚙️ Koneksi</button><button type="button" onclick="kembaliKeAdminV12()">← Admin</button><button type="button" onclick="keluarAdminV12()">Keluar</button>
+<button type="button" data-page="bank" onclick="location.href=location.pathname+'?tab=bank';return false;">🗃️ Bank Soal <span id="bankCountTop">0</span></button>
+<button type="button" data-page="paket" onclick="location.href=location.pathname+'?tab=paket';return false;">📝 Paket Latihan</button><button type="button" data-page="settings" onclick="location.href=location.pathname+'?tab=settings';return false;">⚙️ Koneksi</button><button type="button" onclick="kembaliKeAdminV12()">← Admin</button><button type="button" onclick="keluarAdminV12()">Keluar</button>
 
 </div></div></header>
 
