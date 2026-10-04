@@ -649,13 +649,24 @@ function v13ResolveInlineImage(ref){
  return v13InlineImages[ref]||ref;
 }
 function renderRichText(text=''){
- let safe=esc(cleanAIMathText(text));
- safe=safe.replace(/\[GAMBAR\|(left|center|right)(?:\|(25|33|50|67|75|100))?\]([\s\S]*?)\[\/GAMBAR\]/g,function(_,align,width,ref){
-   let src=v13ResolveInlineImage(ref);
-   if(!/^(data:image\/|https?:\/\/)/i.test(src))return '<span class="small">🖼 '+esc(String(ref||'').trim())+'</span>';
-   return '<div class="kf-inline-image-wrap '+align+'"><img src="'+esc(src)+'"></div>';
- });
- return safe.replace(/\n/g,'<br>').replace(/(?:<br>\s*)+(<div class="kf-inline-image-wrap)/g,'$1').replace(/(<\/div>)(?:\s*<br>)+/g,'$1');
+ let raw=String(cleanAIMathText(text)||''),out='',pos=0;
+ while(true){
+   let a=raw.indexOf('[GAMBAR|',pos);
+   if(a<0){out+=esc(raw.slice(pos));break}
+   out+=esc(raw.slice(pos,a));
+   let b=raw.indexOf(']',a+8);
+   if(b<0){out+=esc(raw.slice(a));break}
+   let head=raw.slice(a+8,b).split('|'),align=head[0];
+   if(!['left','center','right'].includes(align)){out+=esc(raw.slice(a,b+1));pos=b+1;continue}
+   let close='['+'/GAMBAR]';
+   let z=raw.indexOf(close,b+1);
+   if(z<0){out+=esc(raw.slice(a));break}
+   let ref=raw.slice(b+1,z).trim(),src=v13ResolveInlineImage(ref);
+   if(/^(data:image\/|https?:\/\/)/i.test(src))out+='<div class="kf-inline-image-wrap '+align+'"><img src="'+esc(src)+'"></div>';
+   else out+='<span class="small">🖼 '+esc(ref)+'</span>';
+   pos=z+close.length;
+ }
+ return out.replace(/\n/g,'<br>').replace(/(?:<br>\s*)+(<div class="kf-inline-image-wrap)/g,'$1').replace(/(<\/div>)(?:\s*<br>)+/g,'$1');
 }
 function insertImageMarker(id){
  const el=$(id);if(!el)return;
