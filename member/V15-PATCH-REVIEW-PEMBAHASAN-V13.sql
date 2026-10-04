@@ -60,12 +60,16 @@ begin
           else jsonb_build_object(
             'question_id',a.question_id,
             'answer',a.answer,
-            'is_correct',public.kf_is_correct(q.type,q.answer_key,a.answer),
-            'score',case
-              when public.kf_is_correct(q.type,q.answer_key,a.answer)
-              then coalesce(q.points,1)
-              else 0
-            end
+            'is_correct',case
+              when q.type in ('pg4','pg5') then coalesce(a.answer,'null'::jsonb)=q.answer_key
+              when q.type='isian' then public.kf_norm(a.answer#>>'{}')=public.kf_norm(q.answer_key#>>'{}')
+              when q.type='mcma' then
+                (select coalesce(jsonb_agg(v order by v::text),'[]'::jsonb) from jsonb_array_elements(coalesce(a.answer,'[]'::jsonb)) e(v))
+                =
+                (select coalesce(jsonb_agg(v order by v::text),'[]'::jsonb) from jsonb_array_elements(coalesce(q.answer_key,'[]'::jsonb)) e(v))
+              else null
+            end,
+            'score',coalesce(a.auto_score,0)
           )
           end
       )
