@@ -388,7 +388,16 @@ window.kfV12Navigate=function(page){
 <label style="margin-top:10px">Pertanyaan <span class="small">(teks + rumus LaTeX + angka; boleh kosong jika hanya gambar)</span></label><div id="qFormulaBar"></div><textarea id="question" placeholder="Contoh: Sebuah benda bermassa $m=2\\,\\mathrm{kg}$ ditarik gaya $F=10\\,\\mathrm{N}$. Percepatannya..."></textarea><div id="questionMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div class="actions" style="margin-top:7px"><button class="btn sm" onclick="aiImprove()">✨ Rapikan soal ini dengan AI</button></div>
 <label style="margin-top:10px">Gambar soal <span class="small">(opsional: upload / link / tempel Ctrl+V)</span></label><div class="image-row"><input id="qImageFile" type="file" accept="image/*"><input id="qImageUrl" placeholder="Atau tempel link gambar"><button class="btn sm danger" onclick="clearImage()">Hapus</button></div><div class="small">Tip: tekan Ctrl+V untuk tempel screenshot langsung.</div><div id="qImagePreview"></div><div class="actions"><button class="btn sm" onclick="openCropper()">✂️ Crop/Potong</button><button class="btn sm" onclick="rotateImage()">↻ Putar</button></div>
 <div class="sep"></div><div id="answerCard"><label><b>Pilihan jawaban / kunci</b></label><div class="small">Setiap opsi boleh berisi teks, rumus, gambar, atau keduanya.</div><div id="answerEditor"></div></div>
-<div class="sep"></div><label><b>Pembahasan / pedoman jawaban esai</b> <span class="small">(opsional: teks + LaTeX + angka)</span></label><div id="exFormulaBar"></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea><div id="explanationMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div>
+<div class="sep"></div><label><b>Pembahasan / pedoman jawaban esai</b> <span class="small">(opsional: teks + LaTeX + angka)</span></label><div id="exFormulaBar"></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea>
+<div id="explanationMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div>
+<label style="margin-top:10px">Gambar pembahasan <span class="small">(opsional: upload / link / tempel Ctrl+V)</span></label>
+<div class="image-row">
+ <input id="explanationImageFile" type="file" accept="image/*">
+ <input id="explanationImageUrl" placeholder="Atau tempel link gambar pembahasan">
+ <button class="btn sm danger" type="button" onclick="clearExplanationImage()">Hapus</button>
+</div>
+<div class="small">Klik kolom Pembahasan lalu tekan Ctrl+V untuk menempel screenshot/gambar langsung.</div>
+<div id="explanationImagePreview"></div>
 
 <div style="margin-top:10px;max-width:360px">
 <label>Penilaian MCMA</label>
@@ -657,13 +666,37 @@ let draftT;function saveDraftDebounced(){clearTimeout(draftT);draftT=setTimeout(
 ['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','qImageUrl','explanation','scoring'].forEach(id=>{let el=$(id);if(el)el.addEventListener('input',changed)});
 $('qImageFile').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{imageData=r.result;imageRotation=0;showImage();changed()};r.readAsDataURL(f)});
 
-document.addEventListener('paste',e=>{for(const it of (e.clipboardData?.items||[])){if(it.type.startsWith('image/')){let r=new FileReader();r.onload=()=>{imageData=r.result;showImage();changed()};r.readAsDataURL(it.getAsFile());break}}});
+document.addEventListener('paste',e=>{
+ for(const it of (e.clipboardData?.items||[])){
+  if(!it.type.startsWith('image/'))continue;
+  let r=new FileReader();
+  r.onload=()=>{
+   const inExplanation=e.target?.id==='explanation'||e.target?.closest?.('#explanationMathPreview');
+   if(inExplanation){explanationImageData=r.result;showExplanationImage();changed()}
+   else{imageData=r.result;showImage();changed()}
+  };
+  r.readAsDataURL(it.getAsFile());break;
+ }
+});
 function showImage(){let u=imageData||$('qImageUrl').value;$('qImagePreview').innerHTML=u?`<img class="qimg" src="${esc(u)}" style="transform:rotate(${imageRotation}deg)">`:''}
 function rotateImage(){imageRotation=(imageRotation+90)%360;showImage();changed()}
 function clearImage(){imageData='';$('qImageUrl').value='';imageRotation=0;showImage();changed()}
+function showExplanationImage(){
+ let u=explanationImageData||$('explanationImageUrl')?.value||'';
+ if($('explanationImagePreview'))$('explanationImagePreview').innerHTML=u?`<img class="qimg" src="${esc(u)}">`:'';
+}
+function clearExplanationImage(){
+ explanationImageData='';if($('explanationImageUrl'))$('explanationImageUrl').value='';
+ if($('explanationImageFile'))$('explanationImageFile').value='';
+ showExplanationImage();changed();
+}
+setTimeout(()=>{
+ const f=$('explanationImageFile');if(f)f.addEventListener('change',e=>{let file=e.target.files[0];if(!file)return;let r=new FileReader();r.onload=()=>{explanationImageData=r.result;showExplanationImage();changed()};r.readAsDataURL(file)});
+ const u=$('explanationImageUrl');if(u)u.addEventListener('input',()=>{showExplanationImage();changed()});
+},0);
 
 function collect(){
- return {id:editingId||uid(),type:currentType,jenjang:$('jenjang').value,mapel:$('mapel').value,kelas:$('kelas').value,difficulty:$('difficulty').value,topik:$('topik').value,subtopik:$('subtopik').value,status:'Siap Pakai',tags:$('tags').value,question:$('question').value,image:imageData||$('qImageUrl').value,imageRotation,answers:JSON.parse(JSON.stringify(answerState)),explanation:$('explanation').value,explanationImage:'',score:1,scoring:$('scoring').value,source:'',updatedAt:new Date().toISOString()}
+ return {id:editingId||uid(),type:currentType,jenjang:$('jenjang').value,mapel:$('mapel').value,kelas:$('kelas').value,difficulty:$('difficulty').value,topik:$('topik').value,subtopik:$('subtopik').value,status:'Siap Pakai',tags:$('tags').value,question:$('question').value,image:imageData||$('qImageUrl').value,imageRotation,answers:JSON.parse(JSON.stringify(answerState)),explanation:$('explanation').value,explanationImage:explanationImageData||$('explanationImageUrl')?.value||'',score:1,scoring:$('scoring').value,source:'',updatedAt:new Date().toISOString()}
 }
 function validate(q=collect()){
  let errs=[];if(!q.question.trim())errs.push('Pertanyaan belum diisi');
@@ -673,7 +706,7 @@ function validate(q=collect()){
  let el=$('validation');if(el){el.className='notice '+(errs.length?'bad':'good');el.innerHTML=errs.length?'⚠️ '+errs.join(' • '):'✓ Soal siap disimpan.'}return errs
 }
 function saveQuestion(){return saveCurrentToPackage()}
-function updatePreview(){showImage();updateMathPreviews()}
+function updatePreview(){showImage();showExplanationImage();updateMathPreviews()}
 function questionHTML(q,interactive=true){
  let h=`<div class="tags"><span class="tag">${esc(typeName(q.type))}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.difficulty)}</span></div><h3 style="line-height:1.5">${q.question?esc(cleanAIMathText(q.question)).replace(/\n/g,'<br>'):'<span class="small">Pertanyaan akan tampil di sini…</span>'}</h3>`;
  if(q.image)h+=`<img class="qimg" src="${esc(q.image)}" style="transform:rotate(${q.imageRotation||0}deg)">`;
@@ -1272,8 +1305,8 @@ function goPackageQuestion(i){
 }
 function packagePrev(){if(packageDraft.current>0)goPackageQuestion(packageDraft.current-1)}
 function packageNext(){if(packageDraft.current<packageDraft.questions.length-1)goPackageQuestion(packageDraft.current+1)}
-function loadPackageQuestionToEditor(q){currentType=q.type||'pg5';if($('typeSelect'))$('typeSelect').value=currentType;['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','explanation','scoring'].forEach(id=>{if($(id)&&q[id]!==undefined)$(id).value=q[id]});imageData=q.image||'';imageRotation=q.imageRotation||0;answerState=JSON.parse(JSON.stringify(q.answers||{}));initAnswersForType(false);renderAnswerEditor();showImage();updatePreview();validate()}
-function clearPackageEditor(render=true){currentType='pg5';if($('typeSelect'))$('typeSelect').value='pg5';['kelas','topik','subtopik','tags','question','qImageUrl','explanation'].forEach(id=>{if($(id))$(id).value=''});imageData='';imageRotation=0;answerState={};initAnswersForType(true);renderAnswerEditor();showImage();updatePreview();validate();if(render)renderPackageNavigator()}
+function loadPackageQuestionToEditor(q){currentType=q.type||'pg5';if($('typeSelect'))$('typeSelect').value=currentType;['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','explanation','scoring'].forEach(id=>{if($(id)&&q[id]!==undefined)$(id).value=q[id]});imageData=q.image||'';explanationImageData=q.explanationImage||'';imageRotation=q.imageRotation||0;answerState=JSON.parse(JSON.stringify(q.answers||{}));initAnswersForType(false);renderAnswerEditor();showImage();if($('explanationImageUrl'))$('explanationImageUrl').value='';showExplanationImage();updatePreview();validate()}
+function clearPackageEditor(render=true){currentType='pg5';if($('typeSelect'))$('typeSelect').value='pg5';['kelas','topik','subtopik','tags','question','qImageUrl','explanation'].forEach(id=>{if($(id))$(id).value=''});imageData='';explanationImageData='';imageRotation=0;answerState={};if($('explanationImageUrl'))$('explanationImageUrl').value='';if($('explanationImageFile'))$('explanationImageFile').value='';initAnswersForType(true);renderAnswerEditor();showImage();showExplanationImage();updatePreview();validate();if(render)renderPackageNavigator()}
 
 function packageQuestionIssues(q){
  let issues=[];
