@@ -262,12 +262,19 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 /* ===== V12 STUDIO ADMIN-STYLE 2026 ===== */
 .v12-step-card{border:1px solid #ead7f7!important;border-radius:18px!important;background:#fff!important;padding:20px!important;margin-bottom:18px!important;box-shadow:0 10px 28px rgba(92,35,140,.07)!important}.v12-step-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}.v12-step-no{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#7137c8,#ec4899);color:#fff;font-weight:900}.v12-step-title{font-size:16px;font-weight:900;color:#3b1758}.v12-step-title small{font-size:11px;font-weight:500;color:#8a7894}.v12-info-grid{display:grid;grid-template-columns:1.5fr .75fr .75fr;gap:12px}.v12-paste-box{border:1px dashed #c995ee;border-radius:15px;padding:16px;background:#fff}.v12-paste-box textarea{min-height:180px}.v12-checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.v12-checks label{padding:10px;border-radius:9px;background:#fbf7ff;font-weight:600}.v12-checks input{width:auto;margin-right:7px}.v12-gradient-btn{width:100%;background:linear-gradient(90deg,#f04b9a,#812cf4)!important;color:#fff!important}.v12-section-label{display:flex;align-items:center;gap:10px;margin:22px 0 10px}.v12-section-label h2{margin:0;font-size:17px}.v12-hidden-nav{display:none!important}@media(max-width:760px){.v12-info-grid,.v12-checks{grid-template-columns:1fr}}
+.topbar,.topbar .toprow,.topbar .nav,.topbar .nav button{pointer-events:auto!important}.topbar{z-index:100000!important}.wrap{position:relative;z-index:1}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.umd.cjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js?v=20261003-v12"></script><script src="supabase-publisher-v15.js?v=20261003-v12"></script></head>
-<body><div id="kfV12AuthGate" style="position:fixed;inset:0;z-index:2147483647;background:#f7f1fb;display:grid;place-items:center;font-family:Arial,sans-serif"><div style="max-width:460px;margin:24px;padding:28px;border-radius:20px;background:white;box-shadow:0 18px 60px rgba(74,25,100,.18);text-align:center"><div style="font-size:34px">🔐</div><h2 style="margin:10px 0 6px;color:#381452">Memeriksa Akses Admin</h2><p id="kfV12AuthText" style="margin:0;color:#725f7c;line-height:1.5">Studio V12 hanya dapat digunakan oleh Super Admin yang aktif.</p></div></div>
+<body><script>
+try{
+ if(new URLSearchParams(location.search).has('tab')){
+  history.replaceState(null,'',location.pathname+'?v=20261004-1045');
+ }
+}catch(e){}
+</script><div id="kfV12AuthGate" style="position:fixed;inset:0;z-index:2147483647;background:#f7f1fb;display:grid;place-items:center;font-family:Arial,sans-serif"><div style="max-width:460px;margin:24px;padding:28px;border-radius:20px;background:white;box-shadow:0 18px 60px rgba(74,25,100,.18);text-align:center"><div style="font-size:34px">🔐</div><h2 style="margin:10px 0 6px;color:#381452">Memeriksa Akses Admin</h2><p id="kfV12AuthText" style="margin:0;color:#725f7c;line-height:1.5">Studio V12 hanya dapat digunakan oleh Super Admin yang aktif.</p></div></div>
 <style id="kfV12GateStyle">body > *:not(#kfV12AuthGate):not(#kfV12GateStyle):not(script){visibility:hidden!important}</style>
 <script>
 (async function protectV12Studio(){
