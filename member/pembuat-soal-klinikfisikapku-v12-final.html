@@ -283,15 +283,31 @@ button:disabled{opacity:.5;cursor:not-allowed}
  }catch(e){deny("Akses Studio V12 tidak dapat diverifikasi.");}
 })();
 </script>
+<script>
+window.kfV12Navigate=function(page){
+ try{
+  var target=document.getElementById('page-'+page);
+  if(!target){console.error('[V12 nav] target missing:',page);return false;}
+  document.querySelectorAll('section.page').forEach(function(el){el.classList.remove('active');});
+  target.classList.add('active');
+  document.querySelectorAll('.nav [data-page]').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-page')===page);});
+  if(page==='bank'){
+   try{if(typeof renderPackageBank==='function')renderPackageBank();}catch(e){}
+   try{if(typeof renderBank==='function')renderBank();}catch(e){}
+  }
+  window.scrollTo(0,0);return false;
+ }catch(err){console.error('[V12 nav fatal]',err);return false;}
+};
+</script>
 <div class="app">
 <header class="topbar"><div class="toprow">
 <div class="brand">⚛ KlinikFisikapku <small>Pembuat Soal Interaktif</small></div>
 <div class="nav">
-<button class="active" data-page="buat">✏️ Buat Soal</button>
+<button type="button" class="active" data-page="buat" onclick="kfV12Navigate('buat')">✏️ Buat Soal</button>
 <button data-page="ai">✨ AI Generator</button>
 <button data-page="import">📥 Import</button>
-<button data-page="bank">🗃️ Bank Soal <span id="bankCountTop">0</span></button>
-<button data-page="paket">📝 Paket Latihan</button><button data-page="settings">⚙️ Koneksi</button><button type="button" onclick="kembaliKeAdminV12()">← Admin</button><button type="button" onclick="keluarAdminV12()">Keluar</button>
+<button type="button" data-page="bank" onclick="kfV12Navigate('bank')">🗃️ Bank Soal <span id="bankCountTop">0</span></button>
+<button type="button" data-page="paket" onclick="kfV12Navigate('paket')">📝 Paket Latihan</button><button type="button" data-page="settings" onclick="kfV12Navigate('settings')">⚙️ Koneksi</button><button type="button" onclick="kembaliKeAdminV12()">← Admin</button><button type="button" onclick="keluarAdminV12()">Keluar</button>
 
 </div></div></header>
 
