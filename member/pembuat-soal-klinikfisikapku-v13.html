@@ -637,10 +637,10 @@ function validate(q=collect()){
 function saveQuestion(){let q=collect(),errs=validate(q);if(errs.length&&!confirm('Masih ada yang perlu diperiksa:\n- '+errs.join('\n- ')+'\n\nTetap simpan sebagai Draft?'))return;if(errs.length)q.status='Draft';let b=bank(),i=b.findIndex(x=>x.id===q.id);if(i>=0)b[i]=q;else b.unshift(q);setBank(b);editingId=q.id;alert('Soal tersimpan di Bank Soal.');nav('bank')}
 function updatePreview(){showImage();updateMathPreviews()}
 function questionHTML(q,interactive=true){
- let h=`<div class="tags"><span class="tag">${esc(typeName(q.type))}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.difficulty)}</span></div><h3 style="line-height:1.5">${q.question?esc(q.question).replace(/\n/g,'<br>'):'<span class="small">Pertanyaan akan tampil di sini…</span>'}</h3>`;
+ let h=`<div class="tags"><span class="tag">${esc(typeName(q.type))}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.difficulty)}</span></div><h3 style="line-height:1.5">${q.question?esc(cleanAIMathText(q.question)).replace(/\n/g,'<br>'):'<span class="small">Pertanyaan akan tampil di sini…</span>'}</h3>`;
  if(q.image)h+=`<img class="qimg" src="${esc(q.image)}" style="transform:rotate(${q.imageRotation||0}deg)">`;
- if(['pg5','pg4','mcma'].includes(q.type))q.answers.options.forEach((o,i)=>{let typ=q.type==='mcma'?'checkbox':'radio';h+=`<div class="pv-option"><label>${interactive?`<input type="${typ}" name="pvans" value="${i}">`:''}<b>${'ABCDE'[i]}.</b> <span>${esc(o)}</span></label>${q.answers.optionImages?.[i]?`<img class="qimg" src="${esc(q.answers.optionImages[i])}">`:''}</div>`});
- else if(q.type==='kategori')q.answers.statements.forEach((s,i)=>h+=`<div class="pv-option"><b>${i+1}.</b> ${esc(s.text)} ${interactive?`<select class="catans" data-i="${i}" style="margin-top:7px"><option value="">Pilih...</option><option>Benar</option><option>Salah</option></select>`:''}</div>`);
+ if(['pg5','pg4','mcma'].includes(q.type))q.answers.options.forEach((o,i)=>{let typ=q.type==='mcma'?'checkbox':'radio';h+=`<div class="pv-option"><label>${interactive?`<input type="${typ}" name="pvans" value="${i}">`:''}<b>${'ABCDE'[i]}.</b> <span>${esc(cleanAIMathText(o))}</span></label>${q.answers.optionImages?.[i]?`<img class="qimg" src="${esc(q.answers.optionImages[i])}">`:''}</div>`});
+ else if(q.type==='kategori')q.answers.statements.forEach((s,i)=>h+=`<div class="pv-option"><b>${i+1}.</b> ${esc(cleanAIMathText(s.text))} ${interactive?`<select class="catans" data-i="${i}" style="margin-top:7px"><option value="">Pilih...</option><option>Benar</option><option>Salah</option></select>`:''}</div>`);
  else if(q.type==='isian')h+=interactive?'<input id="pvShort" placeholder="Ketik jawaban...">':'<div class="notice">Jawaban singkat</div>';
  else h+=interactive?'<textarea id="pvEssay" placeholder="Tuliskan jawaban esai..."></textarea>':'<div class="notice">Jawaban esai</div>';
  return h;
@@ -832,8 +832,13 @@ async function syncOnline(){
 async function testAIConnection(){const st=$('connectionStatus');st.className='notice';st.textContent='Menguji Gemini melalui Apps Script...';try{let r=await postGAS('buatSoalGemini',{prompt:'Buat tepat 1 soal Fisika SMA sangat sederhana tentang gerak lurus untuk uji koneksi. Sertakan kunci dan pembahasan.',jumlah:1,tipe:'pg4',jenjang:'sma',topik:'Gerak Lurus'});if(!r||!Array.isArray(r.questions)||!r.questions.length)throw new Error(r?.message||'Gemini tidak mengembalikan questions[].');st.className='notice good';st.textContent='✓ Gemini AI aktif dan berhasil membuat soal uji.'}catch(e){st.className='notice bad';st.textContent='✗ Gemini belum terhubung: '+e.message}}
 function cleanAIMathText(v){
  let s=String(v??'');
- // Kurangi escape ganda dari JSON/Gemini tanpa merusak perintah TeX normal.
- s=s.replace(/\\\\\\\\/g,'\\\\');
+ s=s.replace(/\\\\/g,'\\');
+ // Gemini kadang mengirim LaTeX tanpa delimiter: 1 \\mu\\text{C}.
+ // MathJax hanya merendernya jika fragmen tersebut berada di dalam delimiter.
+ if(!/(\$[^$]+\$|\\\(|\\\[)/.test(s) && /\\(?:mu|text|mathrm|frac|sqrt|times|theta|Delta|pi|sin|cos|tan|cdot|Omega|alpha|beta|gamma|lambda|rho|sigma|varepsilon|epsilon)\b/.test(s)){
+   const m=s.match(/^(.*?)([-+]?\d+(?:[.,]\d+)?[\s\S]*\\[A-Za-z]+[\s\S]*)$/);
+   s=m?(m[1]+'\\('+m[2].trim()+'\\)'):('\\('+s.trim()+'\\)');
+ }
  return s;
 }
 function normalizeAIQuestion(q){
