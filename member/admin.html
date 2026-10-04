@@ -1173,9 +1173,9 @@ table{max-width:100%}
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
-    <script src="supabase-admin.js?v=20261005-final2"></script>
-    <script src="supabase-publisher-v15.js?v=20261005-final2"></script>
-    <script src="gas-workspace-bridge-v15.js?v=20261005-final2"></script>
+    <script src="supabase-admin.js?v=20261005-final3"></script>
+    <script src="supabase-publisher-v15.js?v=20261005-final3"></script>
+    <script src="gas-workspace-bridge-v15.js?v=20261005-final3"></script>
     <script>
       window.addEventListener("load", function () {
         if (!window.KFSupabaseAdmin || !window.KFSupabaseAdmin.configured) {
@@ -2491,7 +2491,7 @@ tambahItem=async function(jenjang,item){
  }catch(e){alert("Konten tersimpan tetapi distribusi paket gagal: "+e.message)}
 };
 
-window.addEventListener("load",()=>setTimeout(async()=>{try{await renderPaketBaru();await renderMetodePembayaran();await renderAccessManagers();if(localStorage.getItem("kf_v12_studio_open")==="0")toggleV12Studio(false)}catch(e){console.warn("Upgrade UI:",e)}},1400));
+window.addEventListener("load",()=>setTimeout(async()=>{try{if(!window.KFSupabaseAdmin)return;const allowed=await window.KFSupabaseAdmin.ensureAdmin();if(!allowed)return;await renderPaketBaru();await renderMetodePembayaran();await renderAccessManagers();if(localStorage.getItem("kf_v12_studio_open")==="0")toggleV12Studio(false)}catch(e){console.warn("Upgrade UI:",e)}},1400));
 
 /* ===== Preview Admin + compact member actions ===== */
 function closeAdminPreview(){document.getElementById("kfPreviewModal")?.classList.remove("open")}
