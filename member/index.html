@@ -551,6 +551,14 @@
     #dash .mcard:hover{transform:translateY(-3px);border-color:#d8b9ed!important;box-shadow:0 12px 30px rgba(88,33,120,.12)!important}
     #dash .mcard .ic{width:48px;height:48px;border-radius:14px;background:linear-gradient(145deg,#f3e8ff,#fff0f8);display:flex;align-items:center;justify-content:center;font-size:23px;flex:none}
     #dash .mcard .judul{font-size:15px;font-weight:900;color:#28103d;margin:3px 0 8px;line-height:1.35}
+    /* Latihan file/manual disamakan dengan kartu Latihan Interaktif */
+    #dash[data-kf-filter="soal"] .grid{grid-template-columns:1fr!important}
+    #dash .grid .mcard{width:100%;min-height:116px;box-sizing:border-box}
+    #dash .grid .mcard .judul{font-size:16px!important;line-height:1.3!important}
+    #dash .kf-pkg-grid{grid-template-columns:1fr!important}
+    #dash .kf-pkg-card{width:100%;min-height:116px;box-sizing:border-box;padding:16px!important;border:1px solid #eadcf5;border-radius:14px}
+    #dash .kf-pkg-card h3{font-size:16px!important;line-height:1.3!important;font-weight:900;margin:0 0 6px;color:#28103d}
+
     #dash .mcard .topik{font-size:10px;font-weight:900;letter-spacing:.06em;color:#9b52c6;text-transform:uppercase}
     #dash .bookmark-btn{top:12px;right:12px}
     #dash .filter-flash{animation:kfFilterIn .22s ease}
@@ -1592,7 +1600,7 @@ iframe.pdfview{display:block;min-height:520px}
           .join("");
         document.getElementById("emptyMsg").style.display = (!isTryoutView && filterAktif!=="soal" && !items.length) ? "block" : "none";
         const listEl=document.getElementById("list");
-        if(listEl)listEl.style.display=isTryoutView?"none":"grid";
+        if(listEl){listEl.style.display=isTryoutView?"none":"grid";const dash=document.getElementById("dash");if(dash)dash.dataset.kfFilter=filterAktif||"";}
         renderTryoutMingguan();
       }
 
