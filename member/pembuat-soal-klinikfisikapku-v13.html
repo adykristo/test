@@ -1254,30 +1254,48 @@ function v12ClearPaste(){const el=$('v12PasteMaterial');if(el)el.innerHTML='';v1
 function v12UpdatePasteSummary(){const el=$('v12PasteMaterial'),out=$('v12PasteSummary');if(!el||!out)return;const t=(el.innerText||'').trim().length,n=el.querySelectorAll('img').length;out.textContent=(t||n)?t.toLocaleString('id-ID')+' karakter · '+n+' gambar terdeteksi':'Belum ada isi ditempel.'}
 function v12PasteAssets(){
  const el=$('v12PasteMaterial');if(!el)return {text:'',images:[]};
- const images=[...el.querySelectorAll('img')].map((im,i)=>({id:'img'+(i+1),src:im.src||'',alt:im.alt||''})).filter(x=>/^data:image\//i.test(x.src)||/^https?:/i.test(x.src));
+ const images=[...el.querySelectorAll('img')].map((im,i)=>{
+   const src=im.src||'',m=src.match(/^data:(image\/(?:png|jpeg|jpg|webp));base64,(.*)$/s);
+   return m?{id:'KF_IMG_'+i,mimeType:m[1]==='image/jpg'?'image/jpeg':m[1],data:m[2],src}:null;
+ }).filter(Boolean);
  return {text:(el.innerText||'').trim(),images};
+}
+function v12GeminiPasteQuestion(item,sourceImage,flags){
+ let rawType=String(item?.type||item?.tipe||item?.question_type||'').toLowerCase().replace(/[\s_/-]+/g,'');
+ let rawOpts=item?.options??item?.pilihan??item?.opsi??{};
+ if(Array.isArray(rawOpts))rawOpts=rawOpts.reduce((o,v,i)=>(o[String.fromCharCode(65+i)]=(v&&typeof v==='object'?(v.text||v.value||''):v)||'',o),{});
+ const optArr=['A','B','C','D','E'].map(h=>rawOpts?.[h]??rawOpts?.[h.toLowerCase()]??'').filter(v=>String(v).trim()).map(cleanAIMathText);
+ let type=rawType.includes('mcma')?'mcma':rawType.includes('kategori')?'kategori':rawType.includes('isian')?'isian':rawType.includes('esai')||rawType.includes('essay')?'esai':rawType.includes('pg4')?'pg4':rawType.includes('pg5')?'pg5':(optArr.length===4?'pg4':optArr.length>=5?'pg5':'pg5');
+ let ans=item?.answer??item?.jawaban_benar??item?.correct_answer??item?.kunci??'';
+ let keys=(Array.isArray(item?.correct_indexes)?item.correct_indexes:(String(ans).match(/[A-E]/gi)||[])).map(x=>typeof x==='number'?x:'ABCDE'.indexOf(String(x).toUpperCase())).filter(x=>x>=0);
+ let answers={options:optArr,keys,short:'',essayKey:'',statements:[]};
+ if(type==='isian')answers={options:[],keys:[],short:cleanAIMathText(item?.short_answer||item?.kunci_isian||ans||''),essayKey:'',statements:[]};
+ if(type==='esai')answers={options:[],keys:[],short:'',essayKey:cleanAIMathText(ans||''),statements:[]};
+ if(type==='kategori')answers.statements=(item?.statements||[]).map(x=>({text:cleanAIMathText(x?.text||x?.statement||''),image:'',answer:x?.answer||x?.key||'Benar'}));
+ return {id:uid(),type,jenjang:flags.level,mapel:'Fisika',kelas:'',difficulty:'Sedang',topik:item?.topik||'Import Gambar',subtopik:'',status:'Draft',tags:'AI Tempel Gambar',question:cleanAIMathText(item?.question||item?.pertanyaan||item?.prompt||item?.text||''),image:sourceImage||'',imageRotation:0,answers,explanation:cleanAIMathText(item?.explanation||item?.pembahasan||item?.solution||item?.pedoman||''),explanationImage:'',score:1,scoring:'exact',source:'Gemini Vision',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()};
 }
 async function v12ProcessPaste(){
  const data=v12PasteAssets(),st=$('v12PasteStatus');if(!data.text&&!data.images.length)return alert('Tempel teks atau gambar soal terlebih dahulu.');
  const flags={translate:!!$('v12Translate')?.checked,relevant:!!$('v12RelevantImage')?.checked,solution:!!$('v12MakeKey')?.checked,validate:!!$('v12Validate')?.checked,variant:!!$('v12Variation')?.checked,level:$('v12PasteLevel')?.value||'SMA'};
- const instr=['Anda adalah editor soal Fisika KlinikFisikapku.',flags.translate?'Terjemahkan teks asing ke Bahasa Indonesia tanpa mengubah makna/data.':'',flags.relevant?'Gunakan hanya diagram/gambar yang benar-benar diperlukan untuk memahami soal.':'',flags.solution?'Jika soal hanya berupa pertanyaan, tentukan tipe yang tepat lalu BUAT opsi PG yang bermutu bila sesuai, HITUNG kunci yang benar, dan BUAT pembahasan sistematis.':'',flags.validate?'Validasi ulang angka, satuan, rumus, opsi pengecoh, kunci, dan hasil akhir. Kunci wajib konsisten dengan pembahasan.':'',flags.variant?'Buat satu variasi setipe setelah soal asli.':'','Untuk PG4 buat tepat 4 opsi; PG5 tepat 5 opsi; MCMA 5 opsi dan boleh beberapa kunci.','Semua rumus matematika wajib LaTeX valid di dalam delimiter $...$.','Pembahasan hitungan: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir.','Jangan jadikan header/caption sebagai soal. Jangan publish; hasil harus Draft.'].filter(Boolean).join('\n');
  try{
-  if(st)st.textContent='✨ Gemini sedang membaca teks dan gambar, menyusun soal, kunci, dan pembahasan…';
-  let payload={text:data.text,documentText:data.text,images:data.images.slice(0,12),jenjang:flags.level,topik:'Import Tempel',jumlah:Math.max(1,(data.text.match(/^\s*\d+[.)]\s+/gm)||[]).length||1),translateToIndonesia:flags.translate,selectRelevantImages:flags.relevant,generateSolution:flags.solution,validateQuality:flags.validate,makeVariant:flags.variant,prompt:instr+'\n\nMATERI TEMPELAN:\n'+data.text,instruksi:instr};
-  let r;
-  try{r=await postGAS('analisisWordTryout',payload)}catch(e1){
-   try{r=await postGAS('processText',payload)}catch(e2){r=await postGAS('buatSoalGemini',payload)}
-  }
-  const rawQuestions=Array.isArray(r?.questions)?r.questions:(Array.isArray(r?.data?.questions)?r.data.questions:(Array.isArray(r?.result?.questions)?r.result.questions:[]));
-  if(!rawQuestions.length)throw new Error(r?.message||'Respons Gemini tidak berisi daftar soal.');
-  const qs=rawQuestions.map(normalizeAIQuestion).filter(q=>String(q.question||'').trim());
-  if(!qs.length)throw new Error('Gemini belum menemukan soal pada tempelan.');
-  // Bila hanya satu gambar ditempel dan AI tidak mengembalikan mapping, pertahankan sebagai gambar soal pertama.
-  if(data.images.length===1&&qs[0]&&!qs[0].image)qs[0].image=data.images[0].src;
-  packageDraft.name='Draft Tempel AI';packageDraft.count=qs.length;packageDraft.current=0;packageDraft.questions=qs;
+  if(st)st.textContent='✨ Gemini Vision sedang membaca soal ASLI pada gambar…';
+  // Penting: action analisisWordTryout menerima gambar sebagai {id,mimeType,data}, sama seperti admin lama.
+  const markerText=(data.text?data.text+'\n':'')+data.images.map(x=>'[['+x.id+']]').join('\n');
+  const prompt=['BACA SOAL PERSIS DARI GAMBAR/TEMPELAN YANG DIKIRIM. JANGAN membuat soal baru dan jangan mengganti konteks/topik.','Transkripsikan pertanyaan yang terlihat pada gambar ke field question. Pertahankan semua angka, satuan dan informasi pada diagram.','Jika diagram/gambar diperlukan untuk menjawab soal, set question_image_refs ke id gambar tersebut.','Jika soal belum memiliki pilihan jawaban, buat pilihan PG5 A-E yang relevan berdasarkan soal ASLI. Jika sudah ada opsi, pertahankan dan rapikan.','Hitung jawaban dari soal ASLI, tentukan answer/correct_answer yang benar, lalu buat explanation lengkap: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir.','Semua rumus gunakan LaTeX valid dalam $...$.','Validasi kembali bahwa question, opsi, kunci dan pembahasan semuanya membahas soal yang SAMA dengan gambar.','Jangan mengambil contoh/topik dari soal lain atau riwayat sebelumnya.','Kembalikan tepat 1 soal kecuali gambar memang jelas berisi lebih dari satu nomor soal.'].join('\n');
+  const payload={documentText:markerText,text:markerText,images:data.images.map(({id,mimeType,data})=>({id,mimeType,data})),prompt,instruksi:prompt,jenjang:flags.level,jumlah:1,tipe:'auto'};
+  let r=await postGAS('analisisWordTryout',payload);
+  const raw=Array.isArray(r?.questions)?r.questions:(Array.isArray(r?.data?.questions)?r.data.questions:[]);
+  if(!raw.length)throw new Error(r?.message||'Gemini Vision tidak mengembalikan soal.');
+  const qs=raw.map((item,i)=>{
+    let refs=Array.isArray(item?.question_image_refs)?item.question_image_refs:[];
+    let chosen=data.images.find(x=>refs.includes(x.id))||data.images[0];
+    return v12GeminiPasteQuestion(item,(flags.relevant&&chosen)?chosen.src:(chosen?.src||''),flags);
+  }).filter(q=>q.question);
+  if(!qs.length)throw new Error('Teks soal pada gambar belum berhasil dibaca.');
+  packageDraft.name='Draft Tempel Gambar';packageDraft.count=qs.length;packageDraft.current=0;packageDraft.questions=qs;
   if($('packageName'))$('packageName').value=packageDraft.name;if($('packageCount'))$('packageCount').value=qs.length;
   savePackageDraftLocal();loadPackageQuestionToEditor(qs[0]);renderPackageNavigator();
-  if(st)st.textContent='✓ '+qs.length+' draf soal berhasil disusun. Periksa gambar, opsi, kunci, dan pembahasan sebelum digunakan.';
+  if(st)st.textContent='✓ Soal asli berhasil dibaca. Pertanyaan, gambar, pilihan, kunci dan pembahasan sudah dimasukkan ke editor.';
   $('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'});
  }catch(e){if(st)st.textContent='✗ '+(e?.message||e)}
 }
