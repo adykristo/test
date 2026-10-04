@@ -1575,6 +1575,7 @@ iframe.pdfview{display:block;min-height:520px}
           (x) =>
             x.visible !== false &&
             normalJenis(x) !== "tryout" &&
+            normalJenis(x) !== "soal" &&
             tujuanItem(x) !== "tryout" &&
             (!hanyaBookmark || bookmarked(x.id)) &&
             normalJenis(x) === filterAktif &&
@@ -1633,8 +1634,10 @@ iframe.pdfview{display:block;min-height:520px}
       function bukaDetail(i) {
         const x = dataMateri[i];
         if (!x) return;
-        if (x.jenis === "tryout" || tujuanItem(x) === "tryout") {
-          KFMemberUI.toast("Tryout dibuka dari bagian Paket Latihan & Tryout setelah diaktifkan Admin.","info",5000);
+        if (normalJenis(x) === "soal" || normalJenis(x) === "tryout" || tujuanItem(x) === "tryout") {
+          KFMemberUI.toast("Latihan interaktif dan Tryout dibuka hanya melalui Paket Latihan & Tryout V15.","info",5000);
+          buka("dash");
+          setTimeout(kfLoadServerPackages,0);
           return;
         }
         if (!bolehBuka(x)) {
@@ -1846,7 +1849,7 @@ iframe.pdfview{display:block;min-height:520px}
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
-    <script src="supabase-auth.js?v=20261003-content-level-fix"></script>
+    <script src="supabase-auth.js?v=20261004-v15-only-gate"></script>
     <script src="supabase-data-v15.js?v=20261004-security-review3"></script>
   
 <script>
