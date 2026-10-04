@@ -1893,13 +1893,39 @@ async function kfServerSaveCurrent(){
 }
 const _kfGoBase=kfGo;
 kfGo=async function(n){if(kfRun?.server){try{await kfServerSaveCurrent()}catch(e){return alert("Jawaban gagal disimpan ke server: "+e.message)}}return _kfGoBase(n)};
+function kfReviewAnswerText(q,a){
+ const v=a?.answer;if(v===null||v===undefined||v==="")return "Tidak dijawab";
+ if(q.type==="pg4"||q.type==="pg5"){const n=Number(v);return Number.isFinite(n)?("ABCDE"[n]||String(v))+". "+kfOptionText((q.options||[])[n]):String(v)}
+ if(Array.isArray(v))return v.map(x=>Number.isFinite(Number(x))?("ABCDE"[Number(x)]||x):x).join(", ");
+ if(typeof v==="object")return esc(JSON.stringify(v));return String(v);
+}
+function kfReviewKeyText(q){
+ const k=q.answer_key;if(k===null||k===undefined||k==="")return "—";
+ if((q.type==="pg4"||q.type==="pg5")&&Number.isFinite(Number(k))){const n=Number(k);return ("ABCDE"[n]||String(k))+". "+kfOptionText((q.options||[])[n])}
+ if(Array.isArray(k))return k.map(x=>Number.isFinite(Number(x))?("ABCDE"[Number(x)]||x):x).join(", ");
+ if(typeof k==="object")return JSON.stringify(k);return String(k);
+}
+async function kfShowReview(attemptId){
+ const body=document.getElementById("kfPkgRunnerBody");if(!body)return;
+ body.innerHTML='<div class="result">Memuat kunci dan pembahasan…</div>';
+ try{
+  const r=await KFPackageDB.reviewAttempt(attemptId);
+  if(r.locked){body.innerHTML=`<h2>🔒 Pembahasan Tryout Dikunci</h2><div class="result">Kunci dan pembahasan dapat dilihat setelah jadwal Tryout berakhir${r.ends_at?" pada "+new Date(r.ends_at).toLocaleString("id-ID"):""}.</div><button class="btn btn-main" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button>`;return}
+  const cards=(r.items||[]).map((it,i)=>{const q=it.question||{},a=it.answer||{},ok=a.is_correct===true,bad=a.is_correct===false;return `<div style="border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0;background:#fff"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><b>Soal ${i+1}</b><span class="tag" style="${ok?"background:#e9f9ef;color:#16743a":bad?"background:#fff0f2;color:#b4233b":""}">${ok?"✓ Benar":bad?"✗ Salah":"Perlu diperiksa"}</span></div><div style="margin:10px 0">${textWithBreaks(q.question||"")}</div><div class="result" style="margin-top:8px"><b>Jawaban Anda:</b> ${esc(kfReviewAnswerText(q,a))}<br><b>Kunci:</b> ${esc(kfReviewKeyText(q))}</div><div class="pembahasan" style="display:block;margin-top:10px"><b>Pembahasan:</b><br>${textWithBreaks(q.explanation||"Belum ada pembahasan untuk soal ini.")}</div></div>`}).join("");
+  body.innerHTML=`<div class="head"><div><div class="topik">REVIEW LATIHAN</div><h2 style="margin:3px 0">${esc(r.name||"Pembahasan")}</h2></div><div class="kf-pkg-result"><b>Nilai: ${Number(r.score||0).toFixed(0)}</b></div></div>${cards||'<div class="empty">Belum ada soal untuk direview.</div>'}<button class="btn btn-main" style="margin-top:14px" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button>`;
+  if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([body]);
+ }catch(e){body.innerHTML='<div class="result bad">Pembahasan belum dapat dimuat: '+esc(e.message)+'</div><button class="btn btn-ghost" onclick="buka(\'dash\')">Kembali</button>'}
+}
 kfSubmitPackage=async function(auto){
  if(!kfRun?.server)return alert("Paket tidak berasal dari server. Muat ulang halaman lalu coba lagi.");
+ if(!auto&&!confirm("Selesaikan dan kirim jawaban? Setelah dikirim jawaban tidak dapat diubah."))return;
  clearInterval(kfTimerHandle);
  try{
    await kfServerSaveCurrent();
-   let r=await KFPackageDB.submit(kfRun.attemptId,!!auto);
-   document.getElementById("kfPkgRunnerBody").innerHTML=`<h2>✓ ${auto?"Waktu Habis — ":""}Pengerjaan Selesai</h2><div class="kf-pkg-result"><b>Nilai objektif: ${Number(r.score||0).toFixed(0)}</b><br>${r.essay_count||0} esai perlu diperiksa guru.<br>Hasil tersimpan di Supabase.</div><button class="btn btn-main" style="margin-top:14px" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button>`;
+   const attemptId=kfRun.attemptId,kind=kfRun.kind;
+   let r=await KFPackageDB.submit(attemptId,!!auto);
+   const reviewBtn=kind==="latihan"?`<button class="btn btn-main" style="margin-top:14px" onclick="kfShowReview('${attemptId}')">📖 Lihat Kunci & Pembahasan</button>`:`<button class="btn btn-ghost" style="margin-top:14px" onclick="kfShowReview('${attemptId}')">🔒 Cek Ketersediaan Pembahasan</button>`;
+   document.getElementById("kfPkgRunnerBody").innerHTML=`<h2>✓ ${auto?"Waktu Habis — ":""}Pengerjaan Selesai</h2><div class="kf-pkg-result"><b>Nilai objektif: ${Number(r.score||0).toFixed(0)}</b><br>${r.essay_count||0} esai perlu diperiksa guru.<br>Hasil tersimpan di Supabase.</div><div style="display:flex;gap:10px;flex-wrap:wrap">${reviewBtn}<button class="btn btn-ghost" style="margin-top:14px" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button></div>`;
    kfRun=null;await kfLoadServerPackages();
  }catch(e){alert("Submit gagal: "+e.message)}
 };
