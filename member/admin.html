@@ -690,6 +690,17 @@
 .bulk-filter-row{display:grid;grid-template-columns:160px 1fr 1.2fr;gap:8px}.bulk-filter-row select,.bulk-filter-row input{min-height:38px;border:1px solid #ddc7ef;border-radius:10px;padding:7px 10px;background:#fff}@media(max-width:760px){.bulk-filter-row{grid-template-columns:1fr}}
 
 .v2-frame-wrap{margin-top:12px;border:1px solid #e6d5f0;border-radius:14px;overflow:hidden;background:#fff}.v2-frame-wrap iframe{display:block;width:100%;height:calc(100vh - 180px);min-height:680px;border:0;background:#faf7fd}
+
+/* ===== KlinikFisikapku Admin UI Polish 2026-10 ===== */
+:root{--kf-radius:16px;--kf-shadow:0 10px 28px rgba(63,25,110,.08)}
+main .card,main .box,main .panel-card{border-radius:var(--kf-radius)!important;box-shadow:var(--kf-shadow)}
+button,.btn,input,select,textarea{transition:border-color .18s ease,box-shadow .18s ease,transform .12s ease}
+button:hover,.btn:hover{transform:translateY(-1px)}
+button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(196,56,210,.18)!important;outline-offset:2px}
+input,select,textarea{border-radius:10px}
+.empty,.empty-state{border:1px dashed #dec9ef!important;border-radius:14px!important;background:#fcf9ff!important}
+.tag,.badge,.status{border-radius:999px}
+@media(max-width:760px){main{padding:16px!important}.row,.actions,.toolbar{gap:8px!important}.btn,button{min-height:38px}}
 </style>
   
 <style id="kf-final-responsive-fix">
