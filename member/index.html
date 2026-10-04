@@ -706,11 +706,18 @@ iframe.pdfview{display:block;min-height:520px}
 }
 </style>
 
+<style id="kf-brand-clean">
+.brand{display:flex;align-items:center;gap:6px!important}
+.brand-main{font-weight:900;letter-spacing:-.1px}
+.brand-sep{opacity:.58;font-weight:700}
+.brand-area{font-weight:650;opacity:.92}
+@media(max-width:390px){.brand{gap:4px!important}.brand-area{font-size:.96em}}
+</style>
 </head>
   <body>
     <header>
       <div class="brand">
-        <span class="dot"></span> KlinikFisikapku · Member Area
+        <span class="brand-main">KlinikFisikapku</span><span class="brand-sep">·</span><span class="brand-area">Member Area</span>
       </div>
       <div class="nav" id="navBtns">
         
