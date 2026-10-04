@@ -1524,45 +1524,39 @@ function openPanel(id, b) {
       async function kelolaPaketMember(memberId){
         const m=MEMBER_CACHE.find(x=>String(x.id)===String(memberId)); if(!m)return;
         try{
-          const own=await kfdb().rpc("kf_admin_member_packages",{p_user:memberId});
-          if(own.error)throw own.error;
-          const cat=await kfdb().from("member_packages").select("id,nama,aktif,urutan").eq("aktif",true).order("urutan");
-          if(cat.error)throw cat.error;
+          const own=await kfdb().rpc("kf_admin_member_packages",{p_user:memberId});if(own.error)throw own.error;
+          const cat=await kfdb().from("member_packages").select("id,nama,aktif,urutan").eq("aktif",true).order("urutan");if(cat.error)throw cat.error;
           const active=(own.data||[]).filter(x=>String(x.status||"").toLowerCase()==="active");
           const activeText=active.length?active.map((x,i)=>(i+1)+". "+x.package_name).join("\n"):"Belum ada paket aktif";
-          const mode=prompt("KELOLA PAKET — "+(m.nama||"Member")+"\n\nPaket aktif:\n"+activeText+"\n\nKetik:\n1 = Batalkan paket yang salah\n2 = Tambahkan paket pengganti\n\nRiwayat/progress tidak dihapus.","");
+          const mode=await KFUI.prompt("Paket aktif untuk "+(m.nama||"Member")+":\n\n"+activeText+"\n\nKetik 1 untuk membatalkan paket, atau 2 untuk menambahkan paket.","","Kelola Paket Peserta");
           if(mode===null)return;
           if(mode.trim()==="1"){
-            if(!active.length)return alert("Tidak ada paket aktif yang dapat dibatalkan.");
-            const no=Number(prompt("Pilih nomor paket yang akan DIBATALKAN:\n\n"+activeText,""));
-            if(!Number.isInteger(no)||no<1||no>active.length)return alert("Nomor paket tidak valid.");
+            if(!active.length)return KFUI.toast("Tidak ada paket aktif yang dapat dibatalkan.","info");
+            const no=Number(await KFUI.prompt("Pilih nomor paket yang akan dibatalkan:\n\n"+activeText,"","Batalkan Paket"));
+            if(!Number.isInteger(no)||no<1||no>active.length)return KFUI.toast("Nomor paket tidak valid.","err");
             const p=active[no-1];
-            if(!confirm("Batalkan akses "+p.package_name+" untuk "+m.nama+"?\n\nProgress dan riwayat tetap disimpan."))return;
-            const note=prompt("Catatan koreksi Admin:","Salah pilih paket — akses dibatalkan"); if(note===null)return;
-            const r=await kfdb().rpc("kf_admin_revoke_member_package",{p_user:memberId,p_package:p.package_id,p_note:note});
-            if(r.error)throw r.error;
-            alert("✓ Akses "+p.package_name+" dibatalkan. Riwayat tetap tersimpan.");
+            if(!(await KFUI.confirm("Batalkan akses "+p.package_name+" untuk "+m.nama+"?\n\nProgress dan riwayat tetap disimpan.","Batalkan Akses Paket")))return;
+            const note=await KFUI.prompt("Catatan koreksi Admin:","Salah pilih paket — akses dibatalkan","Catatan Admin");if(note===null)return;
+            const r=await kfdb().rpc("kf_admin_revoke_member_package",{p_user:memberId,p_package:p.package_id,p_note:note});if(r.error)throw r.error;
+            KFUI.toast("Akses "+p.package_name+" dibatalkan. Riwayat tetap tersimpan.","ok",4500);
           }else if(mode.trim()==="2"){
-            const activeIds=new Set(active.map(x=>String(x.package_id)));
-            const avail=(cat.data||[]).filter(x=>!activeIds.has(String(x.id)));
+            const activeIds=new Set(active.map(x=>String(x.package_id))),avail=(cat.data||[]).filter(x=>!activeIds.has(String(x.id)));
+            if(!avail.length)return KFUI.toast("Semua paket aktif sudah dimiliki peserta.","info");
             const txt=avail.map((x,i)=>(i+1)+". "+x.nama).join("\n");
-            const no=Number(prompt("Pilih paket PENGGANTI / TAMBAHAN:\n\n"+txt,""));
-            if(!Number.isInteger(no)||no<1||no>avail.length)return alert("Nomor paket tidak valid.");
-            const p=avail[no-1];
-            if(!confirm("Aktifkan "+p.nama+" untuk "+m.nama+"?"))return;
-            const note=prompt("Catatan Admin:","Paket pengganti setelah koreksi Admin"); if(note===null)return;
-            const r=await kfdb().rpc("kf_admin_grant_member_package",{p_user:memberId,p_package:p.id,p_note:note});
-            if(r.error)throw r.error;
-            alert("✓ "+p.nama+" berhasil diaktifkan.");
-          }else return alert("Pilih 1 atau 2.");
+            const no=Number(await KFUI.prompt("Pilih nomor paket pengganti / tambahan:\n\n"+txt,"","Tambah Paket"));
+            if(!Number.isInteger(no)||no<1||no>avail.length)return KFUI.toast("Nomor paket tidak valid.","err");
+            const p=avail[no-1];if(!(await KFUI.confirm("Aktifkan "+p.nama+" untuk "+m.nama+"?","Aktifkan Paket")))return;
+            const note=await KFUI.prompt("Catatan Admin:","Paket pengganti setelah koreksi Admin","Catatan Admin");if(note===null)return;
+            const r=await kfdb().rpc("kf_admin_grant_member_package",{p_user:memberId,p_package:p.id,p_note:note});if(r.error)throw r.error;
+            KFUI.toast(p.nama+" berhasil diaktifkan.","ok");
+          }else return KFUI.toast("Pilih 1 atau 2.","err");
           await renderMemberAdmin();
         }catch(e){
           const msg=String(e&&e.message||e);
-          if(/kf_admin_(member_packages|revoke_member_package|grant_member_package)/i.test(msg)) alert("Fitur Kelola Paket memerlukan patch SQL Admin Paket terlebih dahulu.");
-          else alert("Gagal mengelola paket: "+msg);
+          if(/kf_admin_(member_packages|revoke_member_package|grant_member_package)/i.test(msg)) KFUI.toast("Fitur Kelola Paket memerlukan patch SQL Admin Paket.","err",6000);
+          else KFUI.toast("Gagal mengelola paket: "+msg,"err",6000);
         }
       }
-
       async function aktifkanPaketDariPendaftaran(memberId){
         const m=MEMBER_CACHE.find(x=>x.id===memberId);if(!m)return;
         try{
