@@ -411,9 +411,9 @@ window.kfV12Navigate=function(page){
 <div class="card"><h3>Hasil AI — Draft</h3><div class="sub">Tinjau dulu sebelum masuk Bank Soal.</div><div id="aiResults" class="empty">Belum ada hasil AI.</div></div>
 </section>
 
-<section id="page-import" class="page"><div class="card"><h2>📥 Import Soal</h2><div class="sub">Import massal CSV/TSV dan Word .docx. Teks Word dibaca langsung di browser lalu dapat diubah menjadi draft soal.</div>
+<section id="page-import" class="page"><div class="card"><h2>📥 Import Soal</h2><div class="sub">Import massal CSV/TSV dan Word .docx. V13 membaca teks + gambar Word di browser; materi diteruskan ke Gemini dan hasilnya tetap masuk editor terpadu sebagai draft.</div>
 <div class="row two"><div><label>File</label><input type="file" id="importFile" accept=".csv,.tsv,.txt,.docx"></div><div><label>Format</label><select id="importFormat"><option value="csv">CSV / TSV</option><option value="word">Word (.docx)</option></select></div></div>
-<div class="notice" style="margin-top:12px">Format CSV: <b>jenis,jenjang,mapel,kelas,topik,kesulitan,pertanyaan,A,B,C,D,E,kunci,pembahasan,skor</b>. Kunci MCMA dapat ditulis A|C.</div>
+<div class="notice" style="margin-top:12px">Format CSV: <b>jenis,jenjang,mapel,kelas,topik,kesulitan,pertanyaan,A,B,C,D,E,kunci,pembahasan,skor</b>. Kunci MCMA dapat ditulis A|C. Untuk DOCX, teks dan gambar akan diekstrak lalu dapat diproses Gemini.</div>
 <div class="actions" style="margin-top:12px"><button class="btn primary" onclick="importQuestions()">Import Sekarang</button><button class="btn" onclick="downloadTemplate()">Unduh Template CSV</button></div>
 <div id="importResult" style="margin-top:12px"></div></div></section>
 
@@ -789,12 +789,18 @@ function normalizeAIQuestion(q){
 }
 async function importDocx(file){
  if(!window.mammoth){$('importResult').innerHTML='<div class="notice bad">Library DOCX belum termuat. Pastikan internet aktif saat membuka halaman.</div>';return}
- $('importResult').innerHTML='<div class="notice">Membaca dokumen Word...</div>';
+ $('importResult').innerHTML='<div class="notice">Membaca teks dan gambar Word...</div>';
  try{
-   let ab=await file.arrayBuffer(),r=await mammoth.extractRawText({arrayBuffer:ab}),raw=(r.value||'').trim();
+   const ab=await file.arrayBuffer(),images=[];
+   const html=await mammoth.convertToHtml({arrayBuffer:ab},{convertImage:mammoth.images.imgElement(async function(img){
+     const b64=await img.read('base64'),src='data:'+img.contentType+';base64,'+b64;images.push(src);return {src};
+   })});
+   const r=await mammoth.extractRawText({arrayBuffer:ab}),raw=(r.value||'').trim();
    if(!raw)throw new Error('Tidak ada teks yang terbaca');
    $('aiMaterial').value=raw;$('aiMode').value='material';
-   $('importResult').innerHTML='<div class="notice good">✓ Word berhasil dibaca ('+raw.length+' karakter). Materi telah dimasukkan ke AI Generator. Klik <b>AI Generator → Generate Draft</b> untuk mengubahnya menjadi soal.</div>';
+   if(images.length&&!imageData&&!$('qImageUrl').value){imageData=images[0];showImage();changed()}
+   window.__V13_DOCX_IMAGES__=images;
+   $('importResult').innerHTML='<div class="notice good">✓ Word berhasil dibaca: '+raw.length+' karakter dan '+images.length+' gambar. Teks masuk ke Gemini Generator.'+(images.length?' Gambar pertama juga dimasukkan ke editor; gambar lain tetap tersedia selama sesi ini.':'')+'</div>';
  }catch(e){$('importResult').innerHTML='<div class="notice bad">Gagal membaca DOCX: '+esc(e.message)+'</div>'}
 }
 function openCropper(){
@@ -1199,4 +1205,14 @@ document.addEventListener('DOMContentLoaded',function(){
   },700);
  });
 })();
+</script><script id="v13-docx-gallery">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+  var r=document.getElementById('importResult');if(!r||document.getElementById('v13DocxGallery'))return;
+  var g=document.createElement('div');g.id='v13DocxGallery';g.style.marginTop='10px';r.parentNode.insertBefore(g,r.nextSibling);
+  var obs=new MutationObserver(function(){var imgs=window.__V13_DOCX_IMAGES__||[];if(!imgs.length){g.innerHTML='';return}g.innerHTML='<div class="small"><b>Gambar dari Word ('+imgs.length+')</b> — klik gambar untuk menjadikannya gambar pertanyaan.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:7px">'+imgs.map(function(src,i){return '<button type="button" class="btn sm" data-docx-img="'+i+'">Gambar '+(i+1)+'</button>'}).join('')+'</div>';});
+  obs.observe(r,{childList:true,subtree:true,characterData:true});
+  g.addEventListener('click',function(e){var b=e.target.closest('[data-docx-img]');if(!b)return;var src=(window.__V13_DOCX_IMAGES__||[])[Number(b.dataset.docxImg)];if(!src)return;imageData=src;var u=document.getElementById('qImageUrl');if(u)u.value='';showImage();changed();document.getElementById('v12EditorCard')?.scrollIntoView({behavior:'smooth'});});
+ },700);
+});
 </script></body></html>
