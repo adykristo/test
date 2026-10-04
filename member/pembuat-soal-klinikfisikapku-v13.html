@@ -1195,7 +1195,8 @@ function saveConnection(){let c={url:($('gasUrl').value||'').trim(),mode:$('stor
 async function postGAS(action,data={}){
  const cfg=getConnection();
  if(!cfg.url)throw new Error('URL Apps Script belum diisi pada menu Koneksi.');
- const adminKey=(localStorage.getItem('kf_hasil_admin_key')||'').trim();
+ // SECURITY: tidak menerima ADMIN_KEY dari localStorage/browser.
+ // Apps Script wajib memverifikasi access token Supabase Super Admin.
  let accessToken='';
  try{
   let client=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client||null;
@@ -1205,8 +1206,8 @@ async function postGAS(action,data={}){
   }
   if(client){const s=await client.auth.getSession();accessToken=s?.data?.session?.access_token||''}
  }catch(e){}
- if(!adminKey&&!accessToken)throw new Error('Autentikasi Admin belum tersedia. Buka V13 dari Admin Member atau simpan ADMIN_KEY pada Koneksi.');
- const body={action,...data};if(adminKey)body.key=adminKey;if(accessToken)body.accessToken=accessToken;
+ if(!accessToken)throw new Error('Autentikasi Super Admin belum tersedia. Login melalui Admin Member terlebih dahulu.');
+ const body={action,...data,accessToken};
  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),60000);let res;try{res=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body),signal:ctl.signal})}catch(e){if(e?.name==='AbortError')throw new Error('AI timeout setelah 60 detik. Coba lagi.');throw e}finally{clearTimeout(timer)};
  if(!res.ok)throw new Error('Apps Script HTTP '+res.status);
  let out;try{out=JSON.parse(await res.text())}catch(err){throw new Error('Respons Apps Script bukan JSON yang valid.')}
