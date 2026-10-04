@@ -468,7 +468,7 @@ window.kfV12Navigate=function(page){
 </div>
 <div class="card">
 <h3>Gemini AI melalui Apps Script</h3>
-<div class="notice">HTML akan mengirim permintaan AI ke Apps Script dengan action <b>generate</b> dan sesi Super Admin Supabase. Simpan GEMINI_API_KEY di <b>Script Properties</b> agar kunci tidak terlihat di browser.</div>
+<div class="notice">V13 memakai koneksi Apps Script/Gemini yang sama dengan Admin lama. Kode Rahasia Admin digunakan bila sudah tersimpan; sesi Super Admin Supabase menjadi fallback. Simpan GEMINI_API_KEY di <b>Script Properties</b> agar kunci tidak terlihat di browser.</div>
 <div class="actions" style="margin-top:12px"><button class="btn primary" onclick="testAIConnection()">Tes Gemini AI</button></div>
 </div>
 <div class="card">
@@ -738,23 +738,19 @@ function startTimer(min){clearInterval(timerHandle);let s=min*60;function tick()
 function closeCBT(){clearInterval(timerHandle);$('cbtModal').classList.remove('show')}
 
 
-function getConnection(){try{return JSON.parse(localStorage.getItem(CONN)||'{"url":"","mode":"local"}')}catch(e){return {url:'',mode:'local'}}}
+function getConnection(){try{const own=JSON.parse(localStorage.getItem(CONN)||'{"url":"","mode":"local"}'),adminUrl=(localStorage.getItem('kf_hasil_script_url')||'').trim();if(!own.url&&adminUrl)own.url=adminUrl;return own}catch(e){return {url:(localStorage.getItem('kf_hasil_script_url')||'').trim(),mode:'local'}}}
 function saveConnection(){let c={url:($('gasUrl').value||'').trim(),mode:$('storageMode').value};localStorage.setItem(CONN,JSON.stringify(c));$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Konfigurasi tersimpan.'}
 async function postGAS(action,data={}){
- let c=getConnection();if(!c.url)throw new Error('URL Apps Script belum diisi');
- let accessToken='';
- try{
-   if(window.supabase&&window.KF_SUPABASE_CONFIG){
-     const sb=window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);
-     const {data:sess}=await sb.auth.getSession();
-     accessToken=sess?.session?.access_token||'';
-   }
- }catch(e){}
- if(!accessToken)throw new Error('Sesi Super Admin Supabase tidak ditemukan. Login ulang dari Admin.');
- let res=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,accessToken,...data})});
- if(!res.ok)throw new Error('HTTP '+res.status);
- let txt=await res.text(),out;try{out=JSON.parse(txt)}catch(e){throw new Error('Respons Apps Script bukan JSON yang valid.')}
- if(out&&out.ok===false)throw new Error(out.error||out.message||'Apps Script menolak permintaan.');
+ let c=getConnection();if(!c.url)throw new Error('URL Apps Script belum diisi. Simpan URL Apps Script pada Admin lama lalu kembali ke V13.');
+ const adminKey=(localStorage.getItem('kf_hasil_admin_key')||'').trim();let accessToken='';
+ try{const client=window.KFSupabaseAdmin?.client;if(client){const {data:s}=await client.auth.getSession();accessToken=s?.session?.access_token||''}}catch(e){}
+ if(!adminKey&&!accessToken)throw new Error('Koneksi admin tidak ditemukan. Login Super Admin atau simpan Kode Rahasia Admin pada Admin lama.');
+ const auth=adminKey?{key:adminKey}:{accessToken};
+ const res=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...auth,...data})});
+ if(!res.ok)throw new Error('Apps Script HTTP '+res.status);
+ let out;try{out=JSON.parse(await res.text())}catch(e){throw new Error('Respons Apps Script bukan JSON yang valid.')}
+ if(out&&(out.ok===false||out.status==='error'||out.status==='err'))throw new Error(out.error||out.message||'Apps Script menolak permintaan.');
+ if(out?.status&&out.status!=='ok'&&out.ok!==true)throw new Error(out.message||'Server admin tidak merespons.');
  return out;
 }
 async function testConnection(){saveConnection();$('connectionStatus').className='notice';$('connectionStatus').textContent='Menguji koneksi...';try{let r=await postGAS('health');$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Apps Script terhubung'+(r.message?' — '+r.message:'')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ '+e.message}}
