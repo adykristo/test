@@ -1174,16 +1174,17 @@ async function v13RenderPublished(){
  const box=$('v13PublishedPackages');if(!box)return;
  try{
   if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');
-  const rows=(await window.KFPackagePublisher.adminList()).filter(x=>x.kind==='latihan'||x.kind==='tryout');
+  const raw=await window.KFPackagePublisher.adminList();const rows=(Array.isArray(raw)?raw:[]).filter(x=>x&&(x.kind==='latihan'||x.kind==='tryout'));
   const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;
   let access=[];if(db&&rows.length){const ids=rows.map(x=>x.id);const q=await db.from('kf_package_access').select('kf_package_id,member_package_id').in('kf_package_id',ids);if(!q.error)access=q.data||[]}
   if(!window.v13MemberPackages.length)await v13LoadMemberPackages();
-  const nameById=new Map(window.v13MemberPackages.map(x=>[String(x.id),x.nama]));
+  const packs=Array.isArray(window.v13MemberPackages)?window.v13MemberPackages:[];const nameById=new Map(packs.map(x=>[String(x.id),x.nama]));
   box.innerHTML=rows.length?rows.map(x=>{
    const ids=access.filter(a=>String(a.kf_package_id)===String(x.id)).map(a=>String(a.member_package_id));
    const names=ids.map(id=>nameById.get(id)||id);
-   const count=Array.isArray(x.kf_questions)?(x.kf_questions[0]?.count||0):0;
-   return '<div class="bank-item"><div><b>'+(x.kind==='tryout'?'🏆 ':'▶ ')+esc(x.name||'Tanpa nama')+'</b><div class="small">'+esc((x.jenjang||'')+(x.kelas?' • Kelas '+x.kelas:'')+' • '+count+' soal')+'</div><div class="small">Akses: '+esc(names.length?names.join(', '):(x.subscription||'Belum diatur'))+'</div></div><div class="actions"><span class="tag">'+(x.visible?'Aktif':'Disembunyikan')+'</span></div></div>';
+   const rel=x.kf_questions;
+   const count=Array.isArray(rel)?Number(rel[0]?.count||0):Number(rel?.count||0);
+   return '<div class="bank-item"><div><b>'+(x.kind==='tryout'?'🏆 ':'▶ ')+esc(x.name||'Tanpa nama')+'</b><div class="small">'+esc((x.jenjang||'')+(x.kelas?' • Kelas '+x.kelas:'')+' • '+count+' soal')+'</div><div class="small">Akses: '+esc(names.length?names.join(', '):(x.subscription||'Belum diatur'))+'</div></div><div class="actions"><span class="tag">'+(x.visible?'✓ Tampil ke Peserta':'Disembunyikan')+'</span></div></div>';
   }).join(''):'<div class="empty">Belum ada Latihan/Tryout final di Supabase.</div>';
  }catch(e){box.innerHTML='<div class="notice bad">Gagal memuat paket final: '+esc(e?.message||e)+'</div>'}
 }
