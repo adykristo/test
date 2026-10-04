@@ -267,7 +267,19 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <script src="https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.umd.cjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js?v=20261003-v12"></script><script src="supabase-publisher-v15.js?v=20261003-v12"></script></head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js?v=20261003-v12"></script><script src="supabase-publisher-v15.js?v=20261003-v12"></script><style id="v12-pro-rebuild">
+:root{--v12-side:258px;--v12-purple:#5a218e;--v12-pink:#f857a6;--v12-ink:#2b163d;--v12-bg:#f8f5fc}
+body{background:var(--v12-bg)!important}
+.topbar.v12-pro-sidebar{position:fixed!important;inset:0 auto 0 0!important;width:var(--v12-side)!important;height:100vh!important;z-index:2147483646!important;display:flex!important;flex-direction:column!important;padding:0!important;background:#fff!important;border-right:1px solid #eadff2!important;box-shadow:4px 0 24px rgba(61,26,99,.06)!important;pointer-events:auto!important}
+.v12-brand-block{display:flex;align-items:center;gap:11px;padding:20px 17px;border-bottom:1px solid #eee4f7;color:#3d1a63}.v12-brand-block b{display:block;font-size:14px}.v12-brand-block small{display:block;font-size:10.5px;color:#81768c;margin-top:2px}.v12-logo{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;color:#fff;background:linear-gradient(135deg,var(--v12-purple),var(--v12-pink));font-size:18px;box-shadow:0 5px 14px rgba(123,47,247,.25)}
+.v12-pro-nav{display:flex!important;flex-direction:column!important;gap:4px!important;padding:15px 11px!important;overflow:auto!important;pointer-events:auto!important}
+.v12-pro-nav .v12-nav-link{display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;min-height:43px!important;padding:10px 12px!important;border:0!important;border-radius:11px!important;background:transparent!important;color:#5d5268!important;font:700 12.5px 'Plus Jakarta Sans',system-ui,sans-serif!important;text-decoration:none!important;cursor:pointer!important;pointer-events:auto!important;text-align:left!important}
+.v12-pro-nav .v12-nav-link:hover{background:#f7f1fc!important;color:#4b176f!important}.v12-pro-nav .v12-nav-link.active{background:linear-gradient(135deg,rgba(123,47,247,.12),rgba(248,87,166,.09))!important;color:#6d25b5!important;box-shadow:inset 3px 0 0 #7b2ff7!important}.v12-pro-nav em{margin-left:auto;font-style:normal;font-size:10px;padding:2px 7px;border-radius:99px;background:#f1e7fb;color:#6d25b5}.v12-nav-sep{height:1px;background:#eee4f7;margin:7px 4px}.v12-sidebar-foot{margin-top:auto;padding:14px 15px 18px;border-top:1px solid #eee4f7;color:#9a8ea5;font-size:9.5px;line-height:1.5}
+.app{display:block!important}.wrap{margin-left:var(--v12-side)!important;max-width:none!important;padding:26px 30px 70px!important}.page{max-width:1480px;margin:0 auto}.card,.v12-step-card{border-radius:18px!important;border-color:#e9dff1!important;box-shadow:0 8px 26px rgba(61,26,99,.055)!important}.v12-step-card{background:#fff!important}.editor-head{padding-bottom:13px;border-bottom:1px solid #eee7f5;margin-bottom:16px}.package-actions{position:sticky;bottom:12px;z-index:20;padding:12px!important;border:1px solid #e5d6f2;border-radius:15px;background:rgba(255,255,255,.96);box-shadow:0 10px 28px rgba(61,26,99,.12)}
+#v12EditorCard{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+#v12EditorCard>.row,#v12EditorCard>label,#v12EditorCard>#typeButtons,#v12EditorCard>select,#v12EditorCard>textarea,#v12EditorCard>.math-preview,#v12EditorCard>.actions,#v12EditorCard>[id$="FormulaBar"],#v12EditorCard>[id*="Answer"]{background:#fff}
+@media(max-width:900px){:root{--v12-side:0px}.topbar.v12-pro-sidebar{position:relative!important;width:100%!important;height:auto!important;inset:auto!important}.v12-pro-nav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}.v12-sidebar-foot{display:none}.wrap{margin-left:0!important;padding:16px 12px 50px!important}}
+</style></head>
 <body><script>
 try{
  if(new URLSearchParams(location.search).has('tab')){
@@ -344,16 +356,24 @@ window.kfV12Navigate=function(page){
 };
 </script>
 <div class="app">
-<header class="topbar"><div class="toprow">
-<div class="brand">⚛ KlinikFisikapku <small>Pembuat Soal Interaktif</small></div>
-<div class="nav">
-<button type="button" class="active" data-page="buat" onclick="return kfV12Navigate('buat')">✏️ Buat Soal</button>
-<button data-page="ai">✨ AI Generator</button>
-<button data-page="import">📥 Import</button>
-<button type="button" data-page="bank" onclick="return kfV12Navigate('bank')">🗃️ Bank Soal <span id="bankCountTop">0</span></button>
-<button type="button" data-page="paket" onclick="return kfV12Navigate('paket')">📝 Paket Latihan</button><button type="button" data-page="settings" onclick="return kfV12Navigate('settings')">⚙️ Koneksi</button><button type="button" onclick="kembaliKeAdminV12()">← Admin</button><button type="button" onclick="keluarAdminV12()">Keluar</button>
-
-</div></div></header>
+<header class="topbar v12-pro-sidebar">
+  <div class="v12-brand-block">
+    <div class="v12-logo">⚛</div>
+    <div><b>KlinikFisikapku</b><small>Question Studio</small></div>
+  </div>
+  <nav class="nav v12-pro-nav" aria-label="Menu Question Studio">
+    <a class="v12-nav-link active" data-page="buat" href="?tab=buat">✏️ <span>Buat Soal</span></a>
+    <a class="v12-nav-link" href="?tab=buat#v12MovedAI">✨ <span>AI Pembuat Soal</span></a>
+    <a class="v12-nav-link" href="?tab=buat#v12MovedImport">📥 <span>Import Word / PDF</span></a>
+    <a class="v12-nav-link" data-page="bank" href="?tab=bank">📚 <span>Bank Soal</span> <em id="bankCountTop">0</em></a>
+    <a class="v12-nav-link" data-page="paket" href="?tab=paket">📝 <span>Paket Latihan</span></a>
+    <a class="v12-nav-link" data-page="settings" href="?tab=settings">⚙️ <span>Koneksi</span></a>
+    <div class="v12-nav-sep"></div>
+    <a class="v12-nav-link" href="../admin.html">← <span>Admin</span></a>
+    <button type="button" class="v12-nav-link v12-logout" onclick="keluarAdminV12()">↪ <span>Keluar</span></button>
+  </nav>
+  <div class="v12-sidebar-foot">Editor Terpadu • Gemini • Word • PDF • LaTeX • Supabase</div>
+</header>
 
 <main class="wrap">
 <section id="page-buat" class="page active editor-compact"><div class="card" id="v12EditorCard">
@@ -971,7 +991,13 @@ function exportPackagePDF(id,mode){
  <scr${'ipt'} src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\/script>
  <style>@page{size:A4;margin:16mm}body{font-family:Arial,sans-serif;color:#111;font-size:12pt;line-height:1.45}h1{text-align:center;font-size:18pt;margin:0 0 4px}.meta{text-align:center;margin-bottom:22px;color:#555}.print-q{page-break-inside:avoid;margin:0 0 20px}.qtext{margin-bottom:8px}.print-opt{margin:5px 0 5px 22px}.print-img{display:block;max-width:520px;max-height:330px;margin:8px 0}.small-img{max-width:300px;max-height:180px}.key{margin-top:8px;padding:6px;background:#f1f1f1}.explain{margin-top:6px;padding:8px;border-left:3px solid #777;background:#fafafa}.answer-line{margin:12px 0}.essay-lines{height:100px;border-bottom:1px solid #aaa;background:repeating-linear-gradient(to bottom,transparent 0,transparent 23px,#ddd 24px)}.toolbar{position:fixed;right:15px;top:15px}@media print{.toolbar{display:none}}</style></head><body>
  <button class="toolbar" onclick="window.print()">🖨 Simpan sebagai PDF</button><h1>${esc(p.name)}</h1><div class="meta">${p.questions.length} soal</div>${body}
- <scr${'ipt'}>window.onload=()=>setTimeout(()=>window.print(),1000)<\/script></body></html>`);w.document.close();
+ <scr${'ipt'}>window.onload=()=>setTimeout(()=>window.print(),1000)<\/script><script id="v12-pro-hash-nav">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+   if(location.hash){var el=document.querySelector(location.hash);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+ },450);
+});
+</script></body></html>`);w.document.close();
 }
 
 function packageBank(){try{return JSON.parse(localStorage.getItem(PACKAGE_BANK_KEY)||'[]')}catch(e){return []}}
@@ -1037,7 +1063,7 @@ async
 async function v12ProcessPaste(){const text=($('v12PasteMaterial')?.value||'').trim(),st=$('v12PasteStatus');if(!text)return alert('Tempel teks soal terlebih dahulu.');const instr=[$('v12Translate')?.checked?'Terjemahkan teks asing ke Bahasa Indonesia.':'',$('v12RelevantImage')?.checked?'Pertahankan hanya gambar/diagram relevan.':'',$('v12MakeKey')?.checked?'Lengkapi kunci dan pembahasan sistematis bila belum tersedia.':'',$('v12Validate')?.checked?'Validasi satuan, angka, opsi, dan kecocokan kunci.':'',$('v12Variation')?.checked?'Buat satu variasi soal.':''].filter(Boolean).join('\n');try{if(st)st.textContent='✨ Gemini sedang menyusun soal...';let r=await postGAS('processText',{text:text+'\n\n'+instr,jenjang:$('v12PackageLevel')?.value||'SMA',topik:$('v12PackageTopic')?.value||'Umum',jumlah:Math.max(1,Math.min(50,Number($('packageCount')?.value)||10))});if(!r||!Array.isArray(r.questions))throw new Error('Respons Gemini tidak berisi daftar soal.');const qs=r.questions.map(normalizeAIQuestion);packageDraft.name=$('v12PackageTitle')?.value||'Paket Soal';packageDraft.count=qs.length;packageDraft.current=0;packageDraft.questions=qs;$('packageName').value=packageDraft.name;$('packageCount').value=qs.length;savePackageDraftLocal();loadPackageQuestionToEditor(qs[0]);renderPackageNavigator();if(st)st.textContent='✓ '+qs.length+' soal masuk ke Daftar Soal. Periksa sebelum publish.';$('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){if(st)st.textContent='✗ '+(e?.message||e)}}
 function v12PublicationMeta(){return{name:($('v12PackageTitle')?.value||$('packageName')?.value||packageDraft.name||'Paket Soal').trim(),kind:$('v12PackageKind')?.value||'latihan',duration:Number($('v12PackageDuration')?.value)||0,attempts:Math.max(1,Number($('v12PackageAttempts')?.value)||1),start:$('v12PackageStart')?.value||null,end:$('v12PackageEnd')?.value||null,subscription:'Semua Paket Aktif'}}
 async function v12PublishPackageAs(id,kind){const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');const pub=Object.assign({},p,v12PublicationMeta(),{kind:kind||p.kind||'latihan',name:p.name||v12PublicationMeta().name});try{if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');await window.KFPackagePublisher.publish(pub);const now=new Date().toISOString();setPackageBank(packageBank().map(x=>x.id===id?Object.assign({},x,pub,{published:true,publishedAt:now,updatedAt:now}):x));alert('✓ Paket berhasil diterbitkan sebagai '+(pub.kind==='tryout'?'Tryout':'Latihan Interaktif')+' dan tersimpan di Supabase.')}catch(e){console.error('[V12 publish]',e);alert('Gagal publish ke Supabase: '+(e?.message||e))}}
-async function savePackageToBank(fromReview=false){
+async async function savePackageToBank(fromReview=false){
  if(editorHasContent())saveCurrentToPackage();
  let bad=packageDraft.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
  if(bad.length){reviewPackage();return}
@@ -1051,18 +1077,9 @@ async function savePackageToBank(fromReview=false){
    createdAt:now,updatedAt:now
  };
  arr.unshift(pack);setPackageBank(arr);localStorage.removeItem(PACKAGE_DRAFT_KEY);
- let onlineMsg='';
- try{
-   if(!window.KFPackagePublisher||typeof window.KFPackagePublisher.publish!=='function') throw new Error('Penghubung Supabase V15 belum tersedia.');
-   await window.KFPackagePublisher.publish(pack);
-   pack.published=true;pack.publishedAt=new Date().toISOString();
-   setPackageBank(packageBank().map(x=>x.id===pack.id?pack:x));
-   onlineMsg='\n\n✓ Juga tersimpan ke Bank Soal Supabase V15.';
- }catch(e){
-   console.error('[V12 publish]',e);
-   onlineMsg='\n\n⚠ Paket aman tersimpan di browser, tetapi belum masuk Supabase: '+(e?.message||e);
- }
- alert('Paket "'+pack.name+'" ('+pack.count+' soal) berhasil disimpan ke Bank Soal.'+onlineMsg);
+ pack.published=false;
+ setPackageBank(packageBank().map(x=>x.id===pack.id?pack:x));
+ alert('Paket "'+pack.name+'" ('+pack.count+' soal) berhasil disimpan sebagai DRAFT di Bank Soal.\n\nGunakan tombol ▶ Latihan atau 🏆 Tryout saat paket sudah siap dipublikasikan ke Supabase.');
 }
 async function publishSavedPackage(id){
  const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
