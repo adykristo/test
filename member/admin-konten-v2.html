@@ -40,7 +40,7 @@
    <div class="editor-grid"><label class="full"><span>Judul bahan belajar</span><input id="eTitle" placeholder="Masukkan judul bahan belajar"></label>
    <div id="sourceTypeRow" style="display:none"><label><span>Sumber latihan</span><select id="eSourceType"><option value="pdf">PDF manual</option><option value="interactive">Interaktif / Bank Soal V13</option></select></label></div>
    <div id="urlRow" style="display:contents"><label class="full"><span id="urlLabel">URL</span><input id="eUrl" placeholder="Tempel URL di sini…"><small class="field-help" id="urlHelp">Pastikan tautan dapat diakses peserta.</small></label><div id="uploadRow" class="full upload-box"><div><b>atau Upload File PDF</b><small>Pilih PDF dari komputer. File akan diunggah ke Supabase Storage dan URL terisi otomatis.</small></div><label class="upload-btn">⬆ Pilih PDF<input id="eFile" type="file" accept="application/pdf,.pdf" hidden></label><div id="uploadState" class="upload-state"></div></div></div>
-   <div id="bankRow" style="display:none"><label class="full"><span>Set Bank Soal V13</span><input id="eBankSet" placeholder="Masukkan ID set soal dari Pembuat Soal V12"><small class="field-help">Set soal ini akan digunakan untuk latihan/tryout interaktif.</small></label></div>
+   <div id="bankRow" style="display:none"><label class="full"><span>Nama Paket / Set Soal V13</span><select id="eBankSet"><option value="">Pilih paket soal…</option></select><small class="field-help">Pilih berdasarkan nama. ID set soal disimpan otomatis oleh sistem.</small></label></div>
    <div id="questionRow" style="display:none"><label class="full"><span>Teks soal</span><textarea id="eQuestion" rows="5"></textarea></label><label><span>Kunci/Pedoman</span><input id="eKey"></label><label class="full"><span>Pembahasan</span><textarea id="eExplain" rows="5"></textarea></label></div>
    </div>
   </div>
@@ -50,9 +50,9 @@
 </dialog>
 <dialog id="pkgDlg"><div class="dh"><b id="pkgTitle">Pemetaan Paket</b><button class="btn" onclick="pkgDlg.close()">×</button></div><div class="db"><div id="pkgChoices" class="pkggrid"></div></div><div class="df"><button class="btn" onclick="pkgDlg.close()">Batal</button><button class="btn primary" id="savePkg">Simpan Pemetaan</button></div></dialog>
 <dialog id="prevDlg"><div class="dh"><b id="prevTitle">Preview</b><button class="btn" onclick="prevDlg.close()">×</button></div><div class="db preview" id="prevBody"></div><div class="df"><button class="btn" onclick="prevDlg.close()">Tutup</button></div></dialog>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js"></script><script src="supabase-admin.js?v=20261005-final2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js"></script><script src="supabase-admin.js?v=20261005-final4"></script>
 <script>
-let DB,items=[],packages=[],maps=[],kind="pdf",exerciseMode="pdf",editing=null,mapping=null;
+let DB,items=[],packages=[],maps=[],bankSets=[],kind="pdf",exerciseMode="pdf",editing=null,mapping=null;
 const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function isKind(x){
  if(kind==="tryout")return x.jenis==="tryout"||x.tujuan==="tryout";
@@ -63,7 +63,7 @@ function idsFor(id){return maps.filter(m=>String(m.content_id)===String(id)).map
 function parseData(x){return x.data&&typeof x.data==="object"?x.data:{}}
 async function load(){
  const [c,p,m]=await Promise.all([DB.from("member_content").select("*").order("created_at",{ascending:false}),DB.from("member_packages").select("id,nama,jenjang,aktif,urutan").eq("aktif",true).neq("nama","_PAYMENT_CONFIG_").order("urutan"),DB.from("member_content_packages").select("content_id,package_id")]);
- if(c.error)throw c.error;if(p.error)throw p.error;if(m.error)throw m.error;items=c.data||[];packages=p.data||[];maps=m.data||[];fillPackages();render();
+ if(c.error)throw c.error;if(p.error)throw p.error;if(m.error)throw m.error;items=c.data||[];packages=p.data||[];maps=m.data||[];try{const b=await DB.from("kf_packages").select("id,external_id,name,kind,jenjang,visible").order("updated_at",{ascending:false});bankSets=b.error?[]:(b.data||[])}catch(e){bankSets=[]}fillPackages();render();
 }
 function fillPackages(){const j=$("level").value,keep=$("pkg").value;$("pkg").innerHTML='<option value="">Semua paket</option><option value="__unmapped">Belum dipetakan</option>'+packages.filter(p=>!j||String(p.jenjang).toUpperCase()===j).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nama)+'</option>').join("");if([...$("pkg").options].some(o=>o.value===keep))$("pkg").value=keep}
 function render(){const j=$("level").value,pid=$("pkg").value,q=$("search").value.trim().toLowerCase();const rows=items.filter(isKind).filter(x=>!j||String(x.jenjang).toUpperCase()===j).filter(x=>{const ps=idsFor(x.id);return !pid||(pid==="__unmapped"?ps.length===0:ps.includes(pid))}).filter(x=>!q||(String(x.judul)+" "+String(x.topik)).toLowerCase().includes(q));$("summary").textContent=rows.length+" konten ditemukan";$("list").innerHTML=rows.length?rows.map(x=>'<div class="item"><input type="checkbox"><div class="meta"><b>'+esc(x.judul||"Tanpa judul")+'</b><small>'+esc(x.jenjang||"")+" · "+esc(x.topik||"-")+(x.jenis==="soal"?" · "+(((parseData(x).source_type||((parseData(x).bank_set_id||parseData(x).qset_id)?"interactive":"pdf"))==="interactive")?"⚡ Interaktif":"📄 PDF"):"")+' · '+(idsFor(x.id).length?idsFor(x.id).length+" paket":"Belum dipetakan")+'</small></div><div class="actions"><button class="btn" data-a="preview" data-id="'+esc(x.id)+'">◉ Preview</button><button class="btn" data-a="package" data-id="'+esc(x.id)+'">📦 Paket</button><button class="btn" data-a="edit" data-id="'+esc(x.id)+'">Ubah</button><button class="btn" data-a="toggle" data-id="'+esc(x.id)+'">'+(x.visible===false?"Tampilkan":"Sembunyikan")+'</button><button class="btn danger" data-a="delete" data-id="'+esc(x.id)+'">Hapus</button></div></div>').join(""):'<div class="empty">Belum ada konten pada kategori/filter ini.</div>'}
@@ -83,12 +83,34 @@ function updateModeInfo(){
 function fillEditPackages(selected){
  const j=$("eLevel").value.toUpperCase(),s=$("ePackage");s.innerHTML='<option value="">Pilih paket…</option>'+packages.filter(p=>String(p.jenjang||"").toUpperCase()===j).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nama)+'</option>').join("");if(selected&&[...s.options].some(o=>String(o.value)===String(selected)))s.value=selected;
 }
+function fillBankSets(selected,k){
+ const s=$("eBankSet");if(!s)return;
+ const wanted=k==="tryout"?"tryout":"latihan";
+ const rows=bankSets.filter(x=>!x.kind||x.kind===wanted);
+ s.innerHTML='<option value="">Pilih paket soal…</option>'+rows.map(x=>'<option value="'+esc(x.external_id||x.id)+'" data-name="'+esc(x.name||"")+'" data-level="'+esc(x.jenjang||"")+'">'+esc(x.name||"Paket tanpa nama")+'</option>').join("");
+ if(selected&&[...s.options].some(o=>String(o.value)===String(selected)))s.value=selected;
+}
+function applySimpleInteractiveEditor(k){
+ const simple=k==="tryout"||(k==="soal"&&$("eSourceType").value==="interactive");
+ const placement=$("eLevel")?.closest(".editor-section");
+ const infoTitle=$("eTitle")?.closest("label");
+ if(placement)placement.style.display=simple?"none":"block";
+ if(infoTitle)infoTitle.style.display=simple?"none":"block";
+ if(simple){
+   const sec=$("bankRow")?.closest(".editor-section");
+   const title=sec?.querySelector(".editor-section-title b");
+   const small=sec?.querySelector(".editor-section-title small");
+   if(title)title.textContent="Paket Soal";
+   if(small)small.textContent="Cukup pilih nama paket soal dan isi topik/materi.";
+ }
+}
 function syncSourceFields(){
  const k=editing?(editing.tujuan==="tryout"?"tryout":editing.jenis):kind,st=$("eSourceType").value;
  $("sourceTypeRow").style.display="none";
  $("bankRow").style.display=(k==="tryout"||(k==="soal"&&st==="interactive"))?"contents":"none";
  $("urlRow").style.display=(k==="pdf"||k==="video"||(k==="soal"&&st==="pdf"))?"contents":"none";
  $("questionRow").style.display="none";
+ applySimpleInteractiveEditor(k);
  $("urlLabel").textContent=k==="video"?"URL Video / YouTube":"URL PDF";const ur=$("uploadRow");if(ur)ur.style.display=(k==="pdf"||(k==="soal"&&st==="pdf"))?"flex":"none";
 }
 function openEdit(x){
@@ -98,7 +120,7 @@ function openEdit(x){
  $("editIcon").textContent=visual[0];$("editSubtitle").textContent=visual[2];$("urlHelp").textContent=k==="video"?"Gunakan URL YouTube/video yang dapat diputar peserta.":"Gunakan URL PDF yang dapat diakses peserta.";
  $("eLevel").value=x?.jenjang||$("level").value||"SMA";fillEditPackages(mapped[0]||"");
  $("eTopic").value=x?.topik||"";$("eTitle").value=x?.judul||"";$("eVisible").value=String(x?.visible!==false);
- $("eSourceType").value=x?(d.source_type||((d.bank_set_id||d.qset_id)?"interactive":"pdf")):(k==="soal"?exerciseMode:"pdf");$("eBankSet").value=d.bank_set_id||d.qset_id||"";
+ $("eSourceType").value=x?(d.source_type||((d.bank_set_id||d.qset_id)?"interactive":"pdf")):(k==="soal"?exerciseMode:"pdf");fillBankSets(d.bank_set_id||d.qset_id||"",k);
  $("eUrl").value=k==="video"?(d.youtube||d.video_url||d.url||""):(d.pdfUrl||d.pdf_url||d.url||"");if($("eFile"))$("eFile").value="";if($("uploadState"))$("uploadState").textContent="";
  syncSourceFields();editDlg.showModal()
 }
@@ -117,18 +139,18 @@ async function uploadPdfIfSelected(){
 }
 async function saveEdit(){
  const old=editing,d=old?parseData(old):{},k=old?(old.tujuan==="tryout"?"tryout":old.jenis):kind,pid=$("ePackage").value;
- if(!pid)return alert("Pilih paket tujuan.");
+ const simpleInteractive=k==="tryout"||(k==="soal"&&$("eSourceType").value==="interactive");if(!pid&&!simpleInteractive)return alert("Pilih paket tujuan.");
  if(k==="pdf"){const uploaded=await uploadPdfIfSelected();if(uploaded&&uploaded.storagePath){d.storage_path=uploaded.storagePath;d.pdfUrl="";}else if(typeof uploaded==="string"&&uploaded){d.pdfUrl=uploaded;}d.source_type="pdf";if(!d.storage_path&&!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}
  if(k==="video"){d.youtube=$("eUrl").value.trim();d.source_type="video"}
- if(k==="soal"){d.source_type=$("eSourceType").value;if(d.source_type==="pdf"){const uploaded=await uploadPdfIfSelected();if(uploaded&&uploaded.storagePath){d.storage_path=uploaded.storagePath;d.pdfUrl="";}else if(typeof uploaded==="string"&&uploaded){d.pdfUrl=uploaded;}if(!d.storage_path&&!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}else d.bank_set_id=$("eBankSet").value.trim()}
- if(k==="tryout"){d.source_type="interactive";d.bank_set_id=$("eBankSet").value.trim();if(!d.bank_set_id)return alert("Masukkan ID/Set Bank Soal V13 untuk Tryout.")}
+ if(k==="soal"){d.source_type=$("eSourceType").value;if(d.source_type==="pdf"){const uploaded=await uploadPdfIfSelected();if(uploaded&&uploaded.storagePath){d.storage_path=uploaded.storagePath;d.pdfUrl="";}else if(typeof uploaded==="string"&&uploaded){d.pdfUrl=uploaded;}if(!d.storage_path&&!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}else {d.bank_set_id=$("eBankSet").value;if(!d.bank_set_id)return alert("Pilih Nama Paket / Set Soal V13 untuk Latihan.")}}
+ if(k==="tryout"){d.source_type="interactive";d.bank_set_id=$("eBankSet").value;if(!d.bank_set_id)return alert("Pilih Nama Paket / Set Soal V13 untuk Tryout.")}
  d.learning_stage=d.learning_stage||1;
- const row={jenjang:$("eLevel").value,jenis:k==="tryout"?"tryout":k,tujuan:k==="tryout"?"tryout":k==="soal"?"latihan":k,topik:$("eTopic").value.trim(),judul:$("eTitle").value.trim(),visible:$("eVisible").value==="true",data:d};
+ const bankOpt=$("eBankSet")?.selectedOptions?.[0];const autoName=simpleInteractive?(bankOpt?.dataset?.name||bankOpt?.textContent||"").trim():"";const autoLevel=simpleInteractive?(bankOpt?.dataset?.level||$("eLevel").value):$("eLevel").value;const row={jenjang:autoLevel||"SMA",jenis:k==="tryout"?"tryout":k,tujuan:k==="tryout"?"tryout":k==="soal"?"latihan":k,topik:$("eTopic").value.trim(),judul:autoName||$("eTitle").value.trim(),visible:$("eVisible").value==="true",data:d};
  if(!row.judul)return alert("Judul wajib diisi.");
  let r;if(old)r=await DB.from("member_content").update(row).eq("id",old.id).select("id").single();else r=await DB.from("member_content").insert(row).select("id").single();
  if(r.error)return alert("Gagal menyimpan: "+r.error.message);const cid=old?old.id:r.data.id;
  const del=await DB.from("member_content_packages").delete().eq("content_id",cid);if(del.error)return alert("Konten tersimpan, tetapi pemetaan paket gagal: "+del.error.message);
- const mp=await DB.from("member_content_packages").insert({content_id:cid,package_id:pid});if(mp.error)return alert("Konten tersimpan, tetapi pemetaan paket gagal: "+mp.error.message);
+ if(pid){const mp=await DB.from("member_content_packages").insert({content_id:cid,package_id:pid});if(mp.error)return alert("Konten tersimpan, tetapi pemetaan paket gagal: "+mp.error.message);}
  editDlg.close();await load()
 }
 function validWebUrl(v){try{const u=new URL(String(v||"").trim());return /^https?:$/.test(u.protocol)?u.href:""}catch{return ""}}
@@ -155,7 +177,7 @@ async function openPkg(x){mapping=x;const current=new Set(idsFor(x.id)),j=String
 async function savePkg(){if(!mapping)return;const ids=[...document.querySelectorAll("#pkgChoices input:checked")].map(x=>x.value);const d=await DB.from("member_content_packages").delete().eq("content_id",mapping.id);if(d.error)return alert("Gagal: "+d.error.message);if(ids.length){const r=await DB.from("member_content_packages").insert(ids.map(package_id=>({content_id:mapping.id,package_id})));if(r.error)return alert("Gagal: "+r.error.message)}pkgDlg.close();await load()}
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const x=item(b.dataset.id);if(!x)return alert("Konten tidak ditemukan.");const a=b.dataset.a;if(a==="preview")preview(x);if(a==="package")openPkg(x);if(a==="edit")openEdit(x);if(a==="toggle"){const r=await DB.from("member_content").update({visible:x.visible===false}).eq("id",x.id);if(r.error)alert(r.error.message);else load()}if(a==="delete"&&confirm('Hapus "'+x.judul+'"?')){const r=await DB.from("member_content").delete().eq("id",x.id);if(r.error)alert(r.error.message);else load()}});
 document.querySelectorAll("[data-exmode]").forEach(b=>b.onclick=()=>{exerciseMode=b.dataset.exmode;updateModeInfo();render()});
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));b.classList.add("on");kind=b.dataset.kind;updateModeInfo();render()});$("level").onchange=()=>{fillPackages();render()};$("pkg").onchange=render;$("search").oninput=render;$("add").onclick=()=>openEdit(null);$("saveEdit").onclick=saveEdit;$("savePkg").onclick=savePkg;$("eLevel").onchange=()=>fillEditPackages("");$("eSourceType").onchange=syncSourceFields;$("eFile").onchange=()=>{const f=$("eFile").files[0];$("uploadState").textContent=f?"Dipilih: "+f.name:""};
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));b.classList.add("on");kind=b.dataset.kind;updateModeInfo();render()});$("level").onchange=()=>{fillPackages();render()};$("pkg").onchange=render;$("search").oninput=render;$("add").onclick=()=>openEdit(null);$("saveEdit").onclick=saveEdit;$("savePkg").onclick=savePkg;$("eLevel").onchange=()=>fillEditPackages("");$("eSourceType").onchange=()=>{fillBankSets($("eBankSet").value,kind);syncSourceFields()};$("eFile").onchange=()=>{const f=$("eFile").files[0];$("uploadState").textContent=f?"Dipilih: "+f.name:""};
 (async()=>{try{
  const qs=new URLSearchParams(location.search),embed=qs.get("embed")==="1",locked=qs.get("locked")==="1",requested=qs.get("kind");
  if(embed){document.querySelector(".top").style.display="none";document.body.style.background="#fff"}
