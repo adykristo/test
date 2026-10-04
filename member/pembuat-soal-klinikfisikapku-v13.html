@@ -1219,6 +1219,30 @@ async function syncOnline(){
  }catch(e){if(status){status.className='notice bad';status.textContent='✗ Sinkron gagal: '+(e?.message||e)}}
 }
 async function testAIConnection(){const st=$('connectionStatus');st.className='notice';st.textContent='Menguji Gemini melalui Apps Script...';try{let r=await postGAS('buatSoalGemini',{prompt:'Buat tepat 1 soal Fisika SMA sangat sederhana tentang gerak lurus untuk uji koneksi. Sertakan kunci dan pembahasan.',jumlah:1,tipe:'pg4',jenjang:'sma',topik:'Gerak Lurus'});if(!r||!Array.isArray(r.questions)||!r.questions.length)throw new Error(r?.message||'Gemini tidak mengembalikan questions[].');st.className='notice good';st.textContent='✓ Gemini AI aktif dan berhasil membuat soal uji.'}catch(e){st.className='notice bad';st.textContent='✗ Gemini belum terhubung: '+e.message}}
+function v13NormalizeMathReadable(v){
+ let s=String(v??'');
+ // Normalisasi ringan: rapikan spasi/baris tanpa merusak LaTeX, marker gambar, atau simbol fisika.
+ s=s.replace(/\r\n?/g,'\n').replace(/\u00a0/g,' ');
+ s=s.split('\n').map(x=>x.replace(/[ \t]+/g,' ').trim()).join('\n');
+ s=s.replace(/\n{3,}/g,'\n\n');
+ return s.trim();
+}
+function v13FormatExplanation(v){
+ let s=v13NormalizeMathReadable(v);
+ // Pertahankan langkah pembahasan per baris agar tidak menyatu/acak.
+ return s.replace(/\s*(?=(?:Langkah\s*\d+|Diketahui|Ditanya|Jawab|Penyelesaian)\s*[:.-])/gi,'\n').replace(/^\n+/,'');
+}
+function v13NormalizeQuestionObject(q){
+ q=q&&typeof q==='object'?q:{};
+ q.question=v13NormalizeMathReadable(q.question||'');
+ q.explanation=v13FormatExplanation(q.explanation||'');
+ q.answers=q.answers&&typeof q.answers==='object'?q.answers:{options:[],keys:[],short:'',essayKey:'',statements:[]};
+ if(Array.isArray(q.answers.options))q.answers.options=q.answers.options.map(v13NormalizeMathReadable);
+ if(Array.isArray(q.answers.statements))q.answers.statements=q.answers.statements.map(x=>Object.assign({},x,{text:v13NormalizeMathReadable(x?.text||'')}));
+ q.answers.short=v13NormalizeMathReadable(q.answers.short||'');
+ q.answers.essayKey=v13NormalizeMathReadable(q.answers.essayKey||'');
+ return q;
+}
 function cleanAIMathText(v){return v13NormalizeMathReadable(v)}
 function normalizeAIQuestion(q){
  let type=String(q.type||q.tipe||$('aiType').value).toLowerCase(),n=type==='pg4'?4:5;
