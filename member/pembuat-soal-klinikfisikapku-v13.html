@@ -431,7 +431,7 @@ window.kfV12Navigate=function(page){
   <div>
    <label>Pilih file .docx</label><input type="file" id="wordSoalFileV13" accept=".docx">
    <button class="btn primary" style="width:100%;margin-top:12px" onclick="prosesWordKeV13(false)">⬆️ Import ke daftar soal</button>
-   <button class="btn pink" style="width:100%;margin-top:8px" onclick="prosesWordKeV13(true)">✨ AI Gemini — rapikan & import</button>
+   <button class="btn pink" style="width:100%;margin-top:8px" onclick="prosesWordKeV13(true)">✨ AI Gemini — lengkapi & import</button>
   </div>
  </div>
  <div id="statusWordSoalV13" style="margin-top:10px"></div>
@@ -762,6 +762,7 @@ function v13ParseWordDirect(raw){
  }
  return out;
 }
+function v13CountWordQuestions(raw){const m=String(raw||'').replace(/\r/g,'').match(/^(?:\[(?:ESAI|PGK[^\]]*)\]\s*)?\d+[.)]\s+.+$/gmi);return m?m.length:0}
 async function prosesWordKeV13(useAI){
  const file=$('wordSoalFileV13')?.files?.[0];if(!file)return v13WordStatus('Pilih file Word (.docx) dulu.','err');
  if(!window.mammoth)return v13WordStatus('Pustaka Mammoth belum termuat. Muat ulang halaman.','err');
@@ -773,12 +774,14 @@ async function prosesWordKeV13(useAI){
   window.__V13_DOCX_IMAGES__=images;
   let qs=[];
   if(useAI){
-   v13WordStatus('✨ Gemini sedang memecah soal, merapikan rumus, kunci, dan pembahasan…');
-   const jumlah=Math.max(1,Math.min(50,Number($('templateJumlahSoalV13')?.value)||10));
-   const prompt='Baca isi Word berikut dan ubah menjadi soal terstruktur. Pertahankan semua soal yang ada. Rapikan bahasa Indonesia, tipe soal, opsi, kunci dan pembahasan. Lengkapi kunci/pembahasan bila belum ada. Semua rumus wajib LaTeX valid dalam delimiter $...$. Pembahasan wajib: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir. Jangan mengubah konsep fisika.\\n\\nISI WORD:\\n'+raw;
-   const r=await postGAS('buatSoalGemini',{prompt,jumlah,tipe:'auto',jenjang:'SMA',topik:'Import Word'});
+   const detected=v13CountWordQuestions(raw),jumlah=Math.max(1,Math.min(50,detected||1));
+   v13WordStatus('✨ Gemini sedang melengkapi '+jumlah+' soal: opsi, kunci, pembahasan, dan rumus…');
+   const prompt=['TUGAS IMPORT WORD KLINIKFISIKAPKU V13.','Word dapat HANYA berisi pertanyaan tanpa opsi, kunci, atau pembahasan.','WAJIB hasilkan tepat '+jumlah+' soal, satu untuk setiap pertanyaan bernomor. Jangan tambah atau gabungkan soal.','Pertahankan inti dan semua data pertanyaan asli.','Baca TIPE bila ada. Tanpa TIPE: gunakan PG5 bila cocok pilihan ganda; esai untuk uraian; isian untuk jawaban singkat.','PG4 wajib 4 opsi A-D; PG5 wajib 5 opsi A-E; MCMA 5 opsi dan dapat memiliki beberapa kunci.','Jika opsi belum ada, buat pengecoh yang masuk akal, homogen, dan tidak ambigu. PG biasa harus hanya satu jawaban benar.','Jika kunci belum ada, hitung/tentukan kunci yang benar.','Jika pembahasan belum ada, buat lengkap: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir.','Semua rumus/simbol matematika wajib LaTeX valid dalam delimiter $...$.','Periksa konsistensi soal, opsi, kunci, hitungan, satuan, dan pembahasan.','Jangan jadikan header TEMPLATE SOAL TRYOUT sebagai soal.','Hasil adalah Draft; jangan publish.','','ISI WORD:',raw].join('\n');
+   const payload={prompt,jumlah,tipe:'auto',jenjang:'SMA',mapel:'Fisika',topik:'Import Word',instruksi:prompt};
+   const r=await postGAS('buatSoalGemini',payload).catch(async()=>await postGAS('generateAI',payload)).catch(async()=>await postGAS('generate',payload));
    if(!r||!Array.isArray(r.questions))throw new Error('Gemini tidak mengembalikan daftar questions.');
-   qs=r.questions.map(normalizeAIQuestion);
+   qs=r.questions.slice(0,jumlah).map(normalizeAIQuestion);
+   if(qs.length!==jumlah)throw new Error('Gemini menghasilkan '+qs.length+' soal, sedangkan Word terbaca '+jumlah+' soal. Coba ulangi.');
   }else qs=v13ParseWordDirect(raw);
   if(!qs.length)throw new Error('Tidak ada soal yang berhasil dikenali.');
   const b=bank();qs.forEach((q,i)=>{if(images[i]&&!q.image)q.image=images[i];b.unshift(q)});setBank(b);renderBank();
