@@ -371,7 +371,6 @@ window.kfV12Navigate=function(page){
     <a class="v12-nav-link" href="?tab=buat#v12PasteMaterial" onclick="return v13GoBuatAnchor('v12PasteMaterial')">📋 <span>Tempel Soal + Gambar</span></a>
     <a class="v12-nav-link" href="?tab=buat#v12EditorCard" onclick="return v13GoBuatAnchor('v12EditorCard')">📝 <span>Editor Soal</span> <em id="editorCountTop">0</em></a>
     <a class="v12-nav-link" data-page="bank" href="?tab=bank">📚 <span>Bank Soal</span> <em id="bankCountTop">0</em></a>
-    <a class="v12-nav-link" data-page="paket" href="?tab=paket">🚀 <span>Latihan & Tryout</span></a>
     <a class="v12-nav-link" data-page="essaygrade" href="?tab=essaygrade" onclick="setTimeout(v13LoadEssayGrading,0)">📝 <span>Penilaian Esai</span> <em id="essayPendingBadge">0</em></a>
     <a class="v12-nav-link" data-page="settings" href="?tab=settings">⚙️ <span>Koneksi</span></a>
     <div class="v12-nav-sep"></div>
@@ -671,7 +670,7 @@ document.addEventListener('click',function(e){
 });
 document.addEventListener('DOMContentLoaded',function(){
  const tab=new URLSearchParams(window.location.search).get('tab');
- if(tab==='settings'||tab==='bank'||tab==='buat'||tab==='paket')nav(tab);
+ if(tab==='paket'){history.replaceState(null,'',location.pathname+'?tab=bank');nav('bank')}else if(tab==='settings'||tab==='bank'||tab==='buat')nav(tab);
 });
 
 document.querySelectorAll('#typeButtons button').forEach(b=>b.onclick=()=>{currentType=b.dataset.type;document.querySelectorAll('#typeButtons button').forEach(x=>x.classList.toggle('primary',x===b));initAnswersForType(false);renderAnswerEditor();updatePreview()});
