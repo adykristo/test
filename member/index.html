@@ -1780,7 +1780,7 @@ iframe.pdfview{display:block;min-height:520px}
         else if(tipe==="mcma")html+=(q.opsi||[]).map((o,n)=>`<label class="opt"><input type="checkbox" name="kfAnsMulti" value="${n}" ${Array.isArray(ans)&&ans.includes(n)?"checked":""} onchange="kfSaveMulti()"><span><b>${"ABCDE"[n]}.</b> ${esc(kfOptionText(o))}${kfOptionImage(o)?`<img class="question-image" src="${kfOptionImage(o)}" alt="Gambar opsi ${"ABCDE"[n]}">`:""}</span></label>`).join("");
         else if(tipe==="kategori")html+=(q.statements||[]).map((st,n)=>`<div class="category-question"><p><b>${n+1}.</b> ${esc(st.text||st)}</p><div class="category-options">${(q.category_labels||["Benar","Salah"]).map((l)=>`<label><input type="radio" name="kfCat${n}" value="${esc(l)}" ${Array.isArray(ans)&&String(ans[n]??"")===String(l)?"checked":""} onchange="kfSaveCat()">${esc(l)}</label>`).join("")}</div></div>`).join("");
         else if(tipe==="isian")html+=`<label>Jawaban</label><input id="kfTextAns" value="${esc(ans||"")}" oninput="kfRun.answers[${i}]=this.value">`;
-        else html+=`<label>Jawaban Esai</label><textarea id="kfTextAns" oninput="kfRun.answers[${i}]=this.value">${esc(ans||"")}</textarea>`;
+        else {let ea=(ans&&typeof ans==='object')?ans:{text:String(ans||''),file_url:''};html+=`<div class="kf-essay-submit"><label><b>Jawaban Esai</b></label><textarea id="kfTextAns" style="min-height:150px" placeholder="Tuliskan jawaban Anda di sini..." oninput="kfRun.answers[${i}]=Object.assign({},kfRun.answers[${i}]||{},{text:this.value,file_url:(kfRun.answers[${i}]||{}).file_url||''});kfRenderNavOnly()">${esc(ea.text||"")}</textarea><label style="margin-top:10px"><b>Link file/gambar jawaban (opsional)</b></label><input id="kfEssayFileUrl" type="url" placeholder="https://... link file atau gambar jawaban" value="${esc(ea.file_url||"")}" oninput="kfRun.answers[${i}]=Object.assign({},kfRun.answers[${i}]||{},{text:(kfRun.answers[${i}]||{}).text||'',file_url:this.value});kfRenderNavOnly()"><div class="small" style="margin-top:6px">Jawaban akan disimpan ke Supabase saat berpindah soal atau menekan Selesai & Kirim.</div></div>`;}
         html+=`<div style="display:flex;justify-content:space-between;gap:8px;margin-top:18px"><button class="btn btn-ghost" onclick="kfGo(${i-1})" ${i===0?"disabled":""}>← Sebelumnya</button>${i<kfRun.questions.length-1?`<button class="btn btn-main" onclick="kfGo(${i+1})">Berikutnya →</button>`:`<button class="btn btn-main" onclick="kfSubmitPackage(false)">✓ Selesai & Kirim</button>`}</div>`;
         document.getElementById("kfPkgRunnerBody").innerHTML=html;
         if(kfRun.deadline)kfStartTimer();
@@ -1807,7 +1807,7 @@ iframe.pdfview{display:block;min-height:520px}
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
     <script src="supabase-auth.js?v=20261003-content-level-fix"></script>
-    <script src="supabase-data-v15.js?v=20261003-final1"></script>
+    <script src="supabase-data-v15.js?v=20261004-essay-upsert1"></script>
   
 <script>
 /* V15 SERVER PACKAGE ENGINE — single source of truth */
@@ -1843,14 +1843,23 @@ async function kfStartServerPackage(packageId){
   if(end&&now>end) throw new Error("Paket sudah berakhir.");
   if(p.kind==="tryout"&&Number(p.attempts_used)>=Number(p.max_attempts)) throw new Error("Percobaan Tryout sudah habis.");
   const a=await KFPackageDB.startAttempt(p.id),qs=await KFPackageDB.questions(a.attempt_id);
-  kfRun={server:true,attemptId:a.attempt_id,kind:p.kind,name:p.name,questions:(qs||[]).map(q=>({id:q.id,tipe:q.type,topik:q.topic,soal:q.question,gambar:q.image,opsi:(q.options||[]).map(o=>o&&typeof o==='object'?{text:String(o.text||''),image:o.image||null}:String(o??'')),statements:(q.statements||[]).map(s=>({text:String(s?.text??s??'')})),category_labels:q.category_labels||[]})),index:0,answers:{},startedAt:Date.now(),deadline:a.deadline_at?new Date(a.deadline_at).getTime():0,attempt:a.attempt_no};
+  kfRun={server:true,attemptId:a.attempt_id,packageId:p.id,kind:p.kind,name:p.name,questions:(qs||[]).map(q=>({id:q.id,tipe:q.type,topik:q.topic,soal:q.question,gambar:q.image,opsi:(q.options||[]).map(o=>o&&typeof o==='object'?{text:String(o.text||''),image:o.image||null}:String(o??'')),statements:(q.statements||[]).map(s=>({text:String(s?.text??s??'')})),category_labels:q.category_labels||[]})),index:0,answers:{},startedAt:Date.now(),deadline:a.deadline_at?new Date(a.deadline_at).getTime():0,attempt:a.attempt_no};
   kfRenderRunner();buka("paketRunner");if(kfRun.deadline)kfStartTimer();
  }catch(e){alert("Tidak dapat memulai: "+e.message);await kfLoadServerPackages()}
 }
 async function kfServerSaveCurrent(){
  if(!kfRun||!kfRun.server)return;let q=kfRun.questions[kfRun.index],a=kfRun.answers[kfRun.index];
  if(a===undefined)return;
- try{await KFPackageDB.saveAnswer(kfRun.attemptId,q.id,a)}catch(e){console.warn("Jawaban belum tersimpan:",e);throw e}
+ try{
+   if((q.tipe||"")==="esai"){
+     const ea=(a&&typeof a==="object")?a:{text:String(a||""),file_url:""};
+     await KFPackageDB.saveAnswer(kfRun.attemptId,q.id,ea.text||"");
+     if(!KFPackageDB.saveEssaySubmission)throw new Error("Fungsi penyimpanan Esai belum termuat. Muat ulang halaman.");
+     await KFPackageDB.saveEssaySubmission(kfRun.packageId,q.id,ea.text||"",ea.file_url||"");
+   }else{
+     await KFPackageDB.saveAnswer(kfRun.attemptId,q.id,a);
+   }
+ }catch(e){console.warn("Jawaban belum tersimpan:",e);throw e}
 }
 const _kfGoBase=kfGo;
 kfGo=async function(n){if(kfRun?.server){try{await kfServerSaveCurrent()}catch(e){return alert("Jawaban gagal disimpan ke server: "+e.message)}}return _kfGoBase(n)};
