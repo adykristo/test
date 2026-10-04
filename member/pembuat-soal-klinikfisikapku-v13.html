@@ -390,7 +390,7 @@ window.kfV12Navigate=function(page){
 <div class="notice" style="margin-top:10px;background:#fbf7ff;border:1px solid #eadcff">
  <b>📌 Sisip Gambar di posisi yang diinginkan</b>
  <div class="small" style="margin-top:6px;line-height:1.65">
- Klik tepat pada posisi di teks Pertanyaan, Opsi, atau Pembahasan, lalu tekan <b>🖼 Sisip Gambar</b>. Pilih gambar dan tentukan Kiri/Tengah/Kanan. Gambar memakai ukuran aslinya (hanya diperkecil otomatis bila lebih lebar dari area soal) dan tampil tepat di lokasi kursor pada preview.
+ Klik tepat pada posisi di teks Pertanyaan, Opsi, atau Pembahasan, lalu tekan <b>🖼 Sisip Gambar</b>. Pilih gambar dan tentukan Kiri/Tengah/Kanan. Di editor gambar ditulis singkat sebagai <b>[GAMBAR|tengah]img1[/GAMBAR]</b>, sehingga teks soal tetap mudah diedit. Pada preview gambar asli tetap tampil pada posisi kursor.
  </div>
 </div>
 <div class="sep"></div><div id="answerCard"><label><b>Pilihan jawaban / kunci</b></label><div class="small">Setiap opsi boleh berisi teks, rumus, gambar, atau keduanya.</div><div id="answerEditor"></div></div>
@@ -636,11 +636,23 @@ function formulaBar(target){
  return `<div class="formula-bar"><span class="small"><b>Rumus:</b></span>${items.map(x=>`<button type="button" onclick="insertFormulaTo('${target}',${JSON.stringify(x[1])})">${x[0]}</button>`).join('')}<select onchange="if(this.value){insertFormulaTo('${target}',this.value);this.selectedIndex=0}"><option value="">⚛ Rumus fisika...</option><option value="F=k\\frac{q_1q_2}{r^2}">Hukum Coulomb</option><option value="V=IR">Hukum Ohm</option><option value="E=mc^2">E=mc²</option><option value="E_k=\\frac12mv^2">Energi kinetik</option><option value="p=mv">Momentum</option></select><button type="button" class="purple" onclick="readFormulaPhoto('${target}')">Σ Baca rumus foto</button><button type="button" class="purple" onclick="insertImageMarker('${target}')">🖼 Sisip Gambar</button></div>`;
 }
 function insertFormulaTo(id,t){let el=$(id);if(!el)return;let p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+'$'+t+'$'+el.value.slice(p);el.dispatchEvent(new Event('input'));el.focus()}
+
+const V13_INLINE_IMAGES_KEY='kf_v13_inline_images';
+let v13InlineImages={};
+try{v13InlineImages=JSON.parse(localStorage.getItem(V13_INLINE_IMAGES_KEY)||'{}')||{}}catch(e){v13InlineImages={}}
+function v13SaveInlineImages(){try{localStorage.setItem(V13_INLINE_IMAGES_KEY,JSON.stringify(v13InlineImages))}catch(e){}}
+function v13NewImageId(){
+ let n=1;while(v13InlineImages['img'+n])n++;return 'img'+n;
+}
+function v13ResolveInlineImage(ref){
+ ref=String(ref||'').trim();
+ return v13InlineImages[ref]||ref;
+}
 function renderRichText(text=''){
  let safe=esc(cleanAIMathText(text));
- safe=safe.replace(/\[GAMBAR\|(left|center|right)(?:\|(25|33|50|67|75|100))?\]([\s\S]*?)\[\/GAMBAR\]/g,function(_,align,width,src){
-   src=String(src||'').trim();
-   if(!/^(data:image\/|https?:\/\/)/i.test(src))return '';
+ safe=safe.replace(/\[GAMBAR\|(left|center|right)(?:\|(25|33|50|67|75|100))?\]([\s\S]*?)\[\/GAMBAR\]/g,function(_,align,width,ref){
+   let src=v13ResolveInlineImage(ref);
+   if(!/^(data:image\/|https?:\/\/)/i.test(src))return '<span class="small">🖼 '+esc(String(ref||'').trim())+'</span>';
    return '<div class="kf-inline-image-wrap '+align+'"><img src="'+esc(src)+'"></div>';
  });
  return safe.replace(/\n/g,'<br>').replace(/(?:<br>\s*)+(<div class="kf-inline-image-wrap)/g,'$1').replace(/(<\/div>)(?:\s*<br>)+/g,'$1');
@@ -655,7 +667,9 @@ function insertImageMarker(id){
    reader.onload=function(){
      let align=(prompt('Posisi gambar: kiri, tengah, atau kanan','tengah')||'tengah').trim().toLowerCase();
      align=align==='kiri'?'left':align==='kanan'?'right':'center';
-     const marker='[GAMBAR|'+align+']'+reader.result+'[/GAMBAR]';
+     const imgId=v13NewImageId();
+     v13InlineImages[imgId]=reader.result;v13SaveInlineImages();
+     const marker='[GAMBAR|'+align+']'+imgId+'[/GAMBAR]';
      el.value=el.value.slice(0,start)+marker+el.value.slice(end);
      const p=start+marker.length;el.focus();el.setSelectionRange(p,p);
      el.dispatchEvent(new Event('input'));changed();updatePreview();
@@ -733,7 +747,7 @@ setTimeout(()=>{
 },0);
 
 function collect(){
- return {id:editingId||uid(),type:currentType,jenjang:$('jenjang').value,mapel:$('mapel').value,kelas:$('kelas').value,difficulty:$('difficulty').value,topik:$('topik').value,subtopik:$('subtopik').value,status:'Siap Pakai',tags:$('tags').value,question:$('question').value,image:imageData||$('qImageUrl')?.value||'',imageRotation,answers:(()=>{let a=JSON.parse(JSON.stringify(answerState));a.optionImages=a.optionImages||{};Object.keys(a.optionImageData||{}).forEach(k=>{if(a.optionImageData[k])a.optionImages[k]=a.optionImageData[k]});return a})(),explanation:$('explanation').value,explanationImage:explanationImageData||$('explanationImageUrl')?.value||'',explanationImagePosition:$('explanationImagePosition')?.value||'bottom',explanationImageAlign:$('explanationImageAlign')?.value||'center',explanationImageWidth:Number($('explanationImageWidth')?.value||50),score:1,scoring:$('scoring').value,source:'',updatedAt:new Date().toISOString()}
+ return {id:editingId||uid(),inlineImages:JSON.parse(JSON.stringify(v13InlineImages)),type:currentType,jenjang:$('jenjang').value,mapel:$('mapel').value,kelas:$('kelas').value,difficulty:$('difficulty').value,topik:$('topik').value,subtopik:$('subtopik').value,status:'Siap Pakai',tags:$('tags').value,question:$('question').value,image:imageData||$('qImageUrl')?.value||'',imageRotation,answers:(()=>{let a=JSON.parse(JSON.stringify(answerState));a.optionImages=a.optionImages||{};Object.keys(a.optionImageData||{}).forEach(k=>{if(a.optionImageData[k])a.optionImages[k]=a.optionImageData[k]});return a})(),explanation:$('explanation').value,explanationImage:explanationImageData||$('explanationImageUrl')?.value||'',explanationImagePosition:$('explanationImagePosition')?.value||'bottom',explanationImageAlign:$('explanationImageAlign')?.value||'center',explanationImageWidth:Number($('explanationImageWidth')?.value||50),score:1,scoring:$('scoring').value,source:'',updatedAt:new Date().toISOString()}
 }
 function validate(q=collect()){
  let errs=[];if(!q.question.trim())errs.push('Pertanyaan belum diisi');
@@ -744,7 +758,7 @@ function validate(q=collect()){
 }
 function saveQuestion(){return saveCurrentToPackage()}
 function updatePreview(){try{showImage()}catch(e){}try{showExplanationImage()}catch(e){}updateMathPreviews()}
-function questionHTML(q,interactive=true){
+function questionHTML(q,interactive=true){if(q&&q.inlineImages)Object.assign(v13InlineImages,q.inlineImages);
  let h=`<div class="tags"><span class="tag">${esc(typeName(q.type))}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.difficulty)}</span></div><h3 style="line-height:1.5">${q.question?renderRichText(q.question):'<span class="small">Pertanyaan akan tampil di sini…</span>'}</h3>`;
  if(q.image)h+=`<img class="qimg" src="${esc(q.image)}" style="transform:rotate(${q.imageRotation||0}deg)">`;
  if(['pg5','pg4','mcma'].includes(q.type))q.answers.options.forEach((o,i)=>{let typ=q.type==='mcma'?'checkbox':'radio';h+=`<div class="pv-option"><label>${interactive?`<input type="${typ}" name="pvans" value="${i}">`:''}<b>${'ABCDE'[i]}.</b> <span>${renderRichText(o)}</span></label>${(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i])?positionedImageHTML(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i],'option',q.answers.optionImageAlign?.[i]||'center',q.answers.optionImageWidth?.[i]||50):''}</div>`});
@@ -758,7 +772,7 @@ function positionedImageHTML(src,pos,align,width){
  const map={left:'flex-start',center:'center',right:'flex-end'},w=Math.max(20,Math.min(100,Number(width)||50));
  return `<div class="positioned-qimg" data-position="${esc(pos||'bottom')}" style="display:flex;justify-content:${map[align]||'center'};margin:10px 0"><img src="${esc(src)}" style="max-width:${w}%;width:auto;height:auto;border-radius:8px"></div>`;
 }
-function renderExplanationWithImage(q){
+function renderExplanationWithImage(q){if(q&&q.inlineImages)Object.assign(v13InlineImages,q.inlineImages);
  let raw=cleanAIMathText(q.explanation||'');
  if(/\[GAMBAR\|(?:left|center|right)(?:\|(?:25|33|50|67|75|100))?\]/.test(raw))return '<div class="sep"></div><b>Pembahasan:</b><br>'+renderRichText(raw);
  let img=positionedImageHTML(q.explanationImage,q.explanationImagePosition,q.explanationImageAlign,q.explanationImageWidth);
