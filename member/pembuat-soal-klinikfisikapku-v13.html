@@ -672,7 +672,7 @@ function validate(q=collect()){
  if(q.type==='isian'&&!q.answers.short.trim())errs.push('Jawaban isian belum diisi');if(q.type==='esai'&&!q.answers.essayKey.trim())errs.push('Pedoman esai belum diisi');
  let el=$('validation');if(el){el.className='notice '+(errs.length?'bad':'good');el.innerHTML=errs.length?'⚠️ '+errs.join(' • '):'✓ Soal siap disimpan.'}return errs
 }
-function saveQuestion(){let q=collect(),errs=validate(q);if(errs.length&&!confirm('Masih ada yang perlu diperiksa:\n- '+errs.join('\n- ')+'\n\nTetap simpan sebagai Draft?'))return;if(errs.length)q.status='Draft';let b=bank(),i=b.findIndex(x=>x.id===q.id);if(i>=0)b[i]=q;else b.unshift(q);setBank(b);editingId=q.id;alert('Soal tersimpan di Bank Soal.');nav('bank')}
+function saveQuestion(){return saveCurrentToPackage()}
 function updatePreview(){showImage();updateMathPreviews()}
 function questionHTML(q,interactive=true){
  let h=`<div class="tags"><span class="tag">${esc(typeName(q.type))}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.difficulty)}</span></div><h3 style="line-height:1.5">${q.question?esc(cleanAIMathText(q.question)).replace(/\n/g,'<br>'):'<span class="small">Pertanyaan akan tampil di sini…</span>'}</h3>`;
@@ -699,7 +699,7 @@ function editQ(id){let q=bank().find(x=>x.id===id);if(q)loadQuestion(q)}
 function dupQ(id){let q=bank().find(x=>x.id===id);if(!q)return;q=JSON.parse(JSON.stringify(q));q.id=uid();q.status='Draft';q.question+=' (variasi)';let b=bank();b.unshift(q);setBank(b);renderBank()}
 function delQ(id){if(!confirm('Hapus soal ini?'))return;setBank(bank().filter(x=>x.id!==id));renderBank()}
 function renderBank(){let b=bank(),s=($('bankSearch')?.value||'').toLowerCase(),t=$('bankType')?.value||'',l=$('bankLevel')?.value||'',d=$('bankDiff')?.value||'';let f=b.filter(q=>(!s||JSON.stringify(q).toLowerCase().includes(s))&&(!t||q.type===t)&&(!l||q.jenjang===l)&&(!d||q.difficulty===d));$('bankList').innerHTML=f.length?f.map(q=>`<div class="bankitem"><div style="display:flex;gap:10px;align-items:flex-start"><input class="bankSelect" type="checkbox" value="${q.id}" style="width:auto;margin-top:5px"><div style="flex:1"><div class="tags"><span class="tag">${typeName(q.type)}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.mapel)}</span><span class="tag">${esc(q.difficulty)}</span><span class="tag">${esc(q.status)}</span></div><h3>${esc(q.question).slice(0,180)||'(Tanpa pertanyaan)'}</h3><div class="small">${esc(q.topik)} ${q.tags?'• '+esc(q.tags):''}</div><div class="actions" style="margin-top:10px"><button class="btn sm primary" onclick="editQ('${q.id}')">Edit</button><button class="btn sm" onclick="dupQ('${q.id}')">Duplikat</button><button class="btn sm" onclick="previewBank('${q.id}')">Preview</button><button class="btn sm danger" onclick="delQ('${q.id}')">Hapus</button></div></div></div></div>`).join(''):'<div class="empty">Bank Soal masih kosong.</div>';updateCounts();typesetMath('bankList')}
-function updateCounts(){let b=bank();$('bankCountTop').textContent=b.length;if($('statTotal')){$('statTotal').textContent=b.length;$('statReady').textContent=b.filter(x=>x.status==='Siap Pakai').length;$('statDraft').textContent=b.filter(x=>x.status==='Draft').length;$('statTypes').textContent=new Set(b.map(x=>x.type)).size}}
+function updateCounts(){let b=bank();if($('bankCountTop'))$('bankCountTop').textContent=b.length;if($('statTotal')){$('statTotal').textContent=b.length;$('statReady').textContent=b.filter(x=>x.status==='Siap Pakai').length;$('statDraft').textContent=b.filter(x=>x.status==='Draft').length;$('statTypes').textContent=new Set(b.map(x=>x.type)).size}}
 function previewBank(id){let q=bank().find(x=>x.id===id);if(!q)return;$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button class="btn primary" onclick='checkPreview(${JSON.stringify(q).replace(/'/g,"&#39;")})'>Periksa Jawaban</button></div><div id="pvResult"></div>`;$('previewModal').classList.add('show');typesetMath('studentPreview')}
 function selectedIds(){return [...document.querySelectorAll('.bankSelect:checked')].map(x=>x.value)}
 function selectAllVisible(){document.querySelectorAll('.bankSelect').forEach(x=>x.checked=true)}
@@ -1219,12 +1219,30 @@ function loadPackageDraftLocal(){try{let x=JSON.parse(localStorage.getItem(PACKA
 function startQuestionPackage(){let count=Math.max(1,Math.min(50,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
 function packageQuestionValid(q){if(!q||!(q.question||q.image))return false;if(['pg5','pg4','mcma'].includes(q.type))return (q.answers?.options||[]).filter(x=>String(x||'').trim()).length>=2&&(q.answers?.keys||[]).length>0;if(q.type==='kategori')return (q.answers?.statements||[]).some(x=>String(x.text||'').trim());if(q.type==='isian')return !!String(q.answers?.short||'').trim();return true}
 function saveCurrentToPackage(){
- packageDraft.name=($('packageName').value||'').trim()||'Paket Soal';
+ // Tombol "Simpan Soal Ini" pada editor V13 harus menyimpan soal tunggal ke Bank Soal.
+ // packageDraft tetap dipertahankan hanya sebagai kompatibilitas fitur paket lama.
  let q=collect(),issues=packageQuestionIssues(q);
- q.id=q.id||uid();q.packageIndex=packageDraft.current+1;q.updatedAt=new Date().toISOString();
- packageDraft.questions[packageDraft.current]=q;
- savePackageDraftLocal();renderPackageNavigator();
- $('draftStatus').textContent=issues.length?'⚠ Soal '+(packageDraft.current+1)+' tersimpan, tetapi: '+issues.join(' • '):'✓ Soal '+(packageDraft.current+1)+' tersimpan dan lengkap.';
+ q.id=editingId||q.id||uid();
+ q.updatedAt=new Date().toISOString();
+ q.status=issues.length?'Draft':'Siap Pakai';
+ let b=bank(),idx=b.findIndex(x=>x&&x.id===q.id);
+ if(idx>=0)b[idx]=q;else b.unshift(q);
+ try{setBank(b)}catch(err){
+   console.error('[V13 save bank]',err);
+   if($('draftStatus'))$('draftStatus').textContent='✗ Gagal menyimpan ke Bank Soal: '+err.message;
+   alert('Gagal menyimpan soal ke Bank Soal. '+err.message);
+   return false;
+ }
+ editingId=q.id;
+ // Simpan juga salinan draft editor agar isi tidak hilang saat reload.
+ try{localStorage.setItem(DRAFT,JSON.stringify(q))}catch(e){}
+ if($('draftStatus'))$('draftStatus').textContent=issues.length
+   ?'⚠ Soal tersimpan di Bank Soal sebagai Draft: '+issues.join(' • ')
+   :'✓ Soal tersimpan di Bank Soal dan siap digunakan.';
+ try{renderBank()}catch(e){}
+ try{updateCounts()}catch(e){}
+ // Langsung buka Bank Soal supaya pengguna dapat memastikan hasil simpan.
+ nav('bank');
  return issues.length===0;
 }
 function renderPackageNavigator(){let n=packageDraft.questions.length||1,done=packageDraft.questions.filter(packageQuestionValid).length;$('packagePosition').textContent='Soal '+(packageDraft.current+1)+' dari '+n;$('packageDone').textContent='• '+done+' selesai';$('packageProgressBar').style.width=(done/n*100)+'%';$('questionNumberNav').innerHTML=packageDraft.questions.map((q,i)=>`<button class="${i===packageDraft.current?'current ':''}${packageQuestionValid(q)?'done':''}" onclick="goPackageQuestion(${i})">${i+1}${packageQuestionValid(q)?'✓':''}</button>`).join('')}
