@@ -344,6 +344,7 @@ window.kfV12Navigate=function(page){
    try{if(typeof renderBank==='function')renderBank();}catch(e){}
   }
   if(page==='paket'){try{if(typeof updateCounts==='function')updateCounts();}catch(e){}}
+  if(page==='essaygrade'){try{if(typeof v13LoadEssayGrading==='function')v13LoadEssayGrading();}catch(e){}}
   try{
    if(location.search.indexOf('tab=')>=0)history.replaceState(null,'',location.pathname);
   }catch(e){}
@@ -363,6 +364,7 @@ window.kfV12Navigate=function(page){
     <a class="v12-nav-link" href="?tab=buat#v12MovedImport">📥 <span>Import Word / PDF</span></a>
     <a class="v12-nav-link" data-page="bank" href="?tab=bank">📚 <span>Bank Soal</span> <em id="bankCountTop">0</em></a>
     <a class="v12-nav-link" data-page="paket" href="?tab=paket">🚀 <span>Latihan & Tryout</span></a>
+    <a class="v12-nav-link" data-page="essaygrade" href="?tab=essaygrade" onclick="setTimeout(v13LoadEssayGrading,0)">📝 <span>Penilaian Esai</span> <em id="essayPendingBadge">0</em></a>
     <a class="v12-nav-link" data-page="settings" href="?tab=settings">⚙️ <span>Koneksi</span></a>
     <div class="v12-nav-sep"></div>
     <a class="v12-nav-link" href="admin.html">← <span>Admin Member</span></a>
@@ -474,6 +476,18 @@ Pembahasan: $\\sum F=ma$</pre></details>
 <div class="card" style="margin-top:14px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">📚 Konten yang Sudah Ada di Halaman Peserta</h3><div class="sub">Dibaca langsung dari data Admin/Supabase seperti V12. Tidak membuat salinan dan tidak mengubah Modul/Video lama.</div></div><button class="btn sm" onclick="v13LoadExistingParticipantContent()">↻ Muat dari Admin/Supabase</button></div><div id="v13ExistingParticipantContent" style="margin-top:12px"><div class="small">Memuat konten peserta…</div></div></div>
 </section>
 
+
+<section id="page-essaygrade" class="page">
+<div class="card">
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+  <div><h2 style="margin:0">📝 Penilaian Esai</h2><div class="sub">Periksa jawaban Esai peserta, beri nilai dan catatan guru. Nilai disimpan langsung ke Supabase.</div></div>
+  <button class="btn" type="button" onclick="v13LoadEssayGrading()">↻ Muat Ulang</button>
+ </div>
+ <div class="row" style="margin-top:14px"><div><label>Status</label><select id="essayGradeFilter" onchange="v13RenderEssayGrading()"><option value="pending">Belum Dinilai</option><option value="graded">Sudah Dinilai</option><option value="">Semua</option></select></div><div><label>Cari</label><input id="essayGradeSearch" placeholder="Cari peserta, paket, soal..." oninput="v13RenderEssayGrading()"></div></div>
+ <div id="essayGradeSummary" class="notice" style="margin-top:12px">Memuat jawaban Esai…</div>
+ <div id="essayGradeList" style="margin-top:12px"></div>
+</div>
+</section>
 
 <section id="page-practice" class="page">
 <div class="practice-shell">
@@ -1274,6 +1288,39 @@ let packageEditId=null;
 
 let practiceState={package:null,current:0,answers:[]};
 
+let v13EssayGradeRows=[];
+async function v13EssayAdminDb(){
+ const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;if(!db)throw new Error('Supabase belum siap.');
+ return db;
+}
+async function v13LoadEssayGrading(){
+ const box=$('essayGradeList'),sum=$('essayGradeSummary');if(box)box.innerHTML='<div class="small">Memuat jawaban Esai…</div>';
+ try{
+  const db=await v13EssayAdminDb();
+  const r=await db.from('essay_submissions').select('*').order('submitted_at',{ascending:false});
+  if(r.error)throw r.error;v13EssayGradeRows=r.data||[];
+  const pending=v13EssayGradeRows.filter(x=>(x.grading_status||'pending')!=='graded').length;
+  if($('essayPendingBadge'))$('essayPendingBadge').textContent=pending;
+  if(sum)sum.innerHTML='<b>'+pending+'</b> belum dinilai • <b>'+v13EssayGradeRows.length+'</b> total jawaban Esai';
+  v13RenderEssayGrading();
+ }catch(e){if(sum)sum.className='notice bad',sum.textContent='Gagal memuat Penilaian Esai: '+(e?.message||e);if(box)box.innerHTML='';}
+}
+function v13RenderEssayGrading(){
+ const box=$('essayGradeList');if(!box)return;const status=$('essayGradeFilter')?.value||'',term=($('essayGradeSearch')?.value||'').toLowerCase();
+ const rows=v13EssayGradeRows.filter(x=>{const st=x.grading_status||'pending';if(status&&st!==status)return false;return !term||[x.participant_id,x.package_id,x.question_id,x.answer_text].join(' ').toLowerCase().includes(term)});
+ if(!rows.length){box.innerHTML='<div class="notice">Tidak ada jawaban Esai pada filter ini.</div>';return}
+ box.innerHTML=rows.map((x,i)=>{const graded=(x.grading_status||'pending')==='graded',file=x.answer_file_url?('<div style="margin-top:8px"><a class="btn sm" target="_blank" rel="noopener" href="'+esc(x.answer_file_url)+'">📎 Buka Lampiran Jawaban</a></div>'):'';
+ return '<div class="card" style="margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><b>Peserta:</b> '+esc(x.participant_id||'-')+'<div class="small">Paket: '+esc(x.package_id||'-')+' • Soal: '+esc(x.question_id||'-')+'</div></div><span class="badge">'+(graded?'✓ Sudah Dinilai':'⏳ Belum Dinilai')+'</span></div><div style="margin-top:10px"><label><b>Jawaban peserta</b></label><div class="notice" style="white-space:pre-wrap">'+esc(x.answer_text||'(jawaban berupa lampiran)')+'</div>'+file+'</div><div class="row" style="margin-top:10px"><div><label>Nilai</label><input id="essayScore_'+i+'" type="number" min="0" step="0.01" value="'+esc(x.score??'')+'" placeholder="Contoh: 8"></div><div><label>Nilai Maksimum</label><input id="essayMax_'+i+'" type="number" min="0.01" step="0.01" value="'+esc(x.max_score??10)+'"></div></div><div style="margin-top:9px"><label>Catatan / koreksi guru</label><textarea id="essayFeedback_'+i+'" placeholder="Catatan untuk peserta">'+esc(x.teacher_feedback||'')+'</textarea></div><div class="actions" style="margin-top:9px"><button class="btn primary" onclick="v13SaveEssayGrade(\''+esc(x.id)+'\','+i+')">💾 Simpan Nilai</button></div></div>'}).join('');
+}
+async function v13SaveEssayGrade(id,i){
+ const score=Number($('essayScore_'+i)?.value),max=Number($('essayMax_'+i)?.value),feedback=$('essayFeedback_'+i)?.value||'';
+ if(!Number.isFinite(score)||!Number.isFinite(max)||max<=0||score<0||score>max)return alert('Nilai harus antara 0 dan Nilai Maksimum.');
+ try{
+  const db=await v13EssayAdminDb(),s=await db.auth.getSession(),uid=s?.data?.session?.user?.id||null;
+  const r=await db.from('essay_submissions').update({score,max_score:max,teacher_feedback:feedback,graded_by:uid,graded_at:new Date().toISOString(),grading_status:'graded'}).eq('id',id).select().single();
+  if(r.error)throw r.error;alert('Nilai Esai berhasil disimpan.');await v13LoadEssayGrading();
+ }catch(e){alert('Gagal menyimpan nilai Esai: '+(e?.message||e))}
+}
 async function v13SubmissionDb(){
  const db=window.KFMemberAuth?.client||window.KFSupabaseAdmin?.client;if(!db)throw new Error('Supabase belum siap.');
  const s=await db.auth.getSession(),user=s?.data?.session?.user;if(!user)throw new Error('Peserta belum login.');
