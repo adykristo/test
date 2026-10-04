@@ -1136,8 +1136,8 @@ table{max-width:100%}
             <div class="v12-workflow-card"><b>Alur kerja</b><div class="v12-workflow"><span>1. Buka Studio</span><i>→</i><span>2. Buat & Simpan</span><i>→</i><span>3. Kembali ke Admin</span><i>→</i><span>4. Distribusikan</span></div></div>
           </div>
 
-          <!-- iframe teknis tersembunyi: menjaga Bridge Bank V13 lama tetap bekerja tanpa mengubah V12 -->
-          <iframe id="v12Frame" src="pembuat-soal-klinikfisikapku-v13.html" title="V12 Bridge" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0" aria-hidden="true" tabindex="-1"></iframe>
+          <!-- Bridge V13: iframe tersembunyi dipertahankan untuk kompatibilitas fungsi lama; data Bank V13 dibaca dari localStorage origin yang sama. -->
+          <iframe id="v12Frame" src="pembuat-soal-klinikfisikapku-v13.html" title="V13 Bridge" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0" aria-hidden="true" tabindex="-1"></iframe>
           <div class="card">
             <div class="head"><div><h2>Kirim dari Bank V13</h2><p class="sub" style="margin:4px 0 0">Pilih seluruh paket atau pilih soal tertentu, kemudian kirim sebagai draf Paket Latihan/Tryout.</p></div><button class="btn ghost small" onclick="bacaBankV12()">↻ Segarkan Bank V13</button><button class="btn ghost small" onclick="KFGASWorkspace.push().then(r=>alert('✓ Workspace V13 tersimpan di Google Sheets: '+r.count+' paket')).catch(e=>alert(e.message))">☁ Simpan Workspace ke Google</button><button class="btn ghost small" onclick="KFGASWorkspace.pull().then(()=>{bacaBankV12();alert('✓ Workspace dipanggil dari Google Sheets')}).catch(e=>alert(e.message))">☁ Panggil dari Google</button><button class="btn ghost small" onclick="const u=prompt('URL Web App Google Apps Script (/exec):',localStorage.getItem('kf_v12_gas_url')||'');if(u){KFGASWorkspace.setUrl(u.trim());alert('✓ URL Google Apps Script tersimpan di browser Admin.')}">⚙ Atur Google Script</button></div>
             <div id="v12BankBridge" class="manage-list"><div class="sub">Muat Bank V13 untuk mulai.</div></div>
@@ -2006,7 +2006,7 @@ function openPanel(id, b) {
 
 <script>
 
-/* ===== V13: V12 -> PAKET LATIHAN / TRYOUT ===== */
+/* ===== V13 -> PAKET LATIHAN / TRYOUT ===== */
 const KF_TRAIN_PACKAGES="kf_member_training_packages_v13";
 const KF_TRYOUT_PACKAGES="kf_member_tryout_packages_v13";
 const KF_V12_BANK="kf_package_bank_v1";
@@ -2018,7 +2018,13 @@ function pkgSet(k,v){localStorage.setItem(pkgKey(k),JSON.stringify(v));renderPkg
 function uidPkg(){return "MP-"+Date.now()+"-"+Math.random().toString(36).slice(2,7)}
 function cloneObj(x){return JSON.parse(JSON.stringify(x))}
 function v12win(){let f=document.getElementById("v12Frame");if(!f||!f.contentWindow)throw Error("V12 belum dimuat.");return f.contentWindow}
-function v12bank(){return JSON.parse(v12win().localStorage.getItem(KF_V12_BANK)||"[]")}
+function v12bank(){
+ try{
+   const direct=JSON.parse(localStorage.getItem(KF_V12_BANK)||"[]");
+   if(Array.isArray(direct))return direct;
+ }catch(e){}
+ try{return JSON.parse(v12win().localStorage.getItem(KF_V12_BANK)||"[]")}catch(e){return []}
+}
 function h(v){return escMember(v==null?"":String(v))}
 
 function newPkg(kind,name){
@@ -2044,7 +2050,7 @@ function renderPkgManagers(){
    <div class="head"><div><b>${h(p.name)}</b><div class="pkg-meta">${p.questions.length} soal · ${p.visible?"Dipublikasikan":"Draf"}${kind==="tryout"?` · ${Number(p.duration)||90} menit · Akses: ${h(p.subscription||"Semua Paket Aktif")}`:" · Akses: "+h(p.subscription||"Semua Paket Aktif")}</div></div></div>
    <div class="pkg-actions">
     <button class="btn small" onclick="bukaPkgEditor('${kind}','${p.id}')">✎ Atur & Edit Soal</button>
-    <button class="btn ghost small" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal V12</button>
+    <button class="btn ghost small" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal V13</button>
     <button class="btn ghost small" onclick="duplikatPkg('${kind}','${p.id}')">Duplikat</button>
     <button class="btn ${p.visible?"ghost":""} small" onclick="publikasiPkg('${kind}','${p.id}')">${p.visible?"↻ Sinkron Ulang":"✓ Publikasikan"}</button>
     <button class="btn danger small" onclick="hapusPkg('${kind}','${p.id}')">Hapus</button>
@@ -2061,7 +2067,7 @@ function bukaPkgEditor(kind,id){
   <div><label>Mulai</label><input id="peStart" type="datetime-local" value="${h(p.start||"")}"></div>
   <div><label>Selesai</label><input id="peEnd" type="datetime-local" value="${h(p.end||"")}"></div>
   <div><label>Maksimal percobaan</label><input id="peAttempts" type="number" min="1" value="${Number(p.attempts)||1}"></div>`:""}
-  <div class="wide pkg-actions"><button class="btn" onclick="simpanMetaPkg()">Simpan Pengaturan</button><button class="btn ghost" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal dari V12</button></div>
+  <div class="wide pkg-actions"><button class="btn" onclick="simpanMetaPkg()">Simpan Pengaturan</button><button class="btn ghost" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal dari V13</button></div>
  </div>
  <hr style="border:0;border-top:1px solid #eee2f7;margin:18px 0">
  <h3>Soal dalam paket (${p.questions.length})</h3>
@@ -2092,7 +2098,7 @@ function bacaBankV12(targetKind="",targetId=""){
  try{let bank=v12bank();box.innerHTML=bank.length?bank.map((p,pi)=>`<div class="v12-bank-card"><b>${h(p.name||"Paket V13")}</b><div class="sub">${(p.questions||[]).length} soal</div>
   <div class="pkg-actions" style="margin-top:8px"><button class="btn small" onclick="kirimPaketV12('${p.id}','latihan','${targetKind==="latihan"?targetId:""}')">→ Paket Latihan</button><button class="btn small" onclick="kirimPaketV12('${p.id}','tryout','${targetKind==="tryout"?targetId:""}')">→ Paket Tryout</button></div>
   <details><summary style="cursor:pointer;margin-top:10px;font-weight:800">Pilih soal tertentu</summary><div class="v12-select-list">${(p.questions||[]).map((q,qi)=>`<label class="v12-select-row"><input type="checkbox" class="v12pick-${pi}" value="${qi}"><span><b>${qi+1}.</b> ${h((q.question||"").slice(0,150))}</span></label>`).join("")}</div><div class="pkg-actions"><button class="btn ghost small" onclick="kirimPilihanV12(${pi},'latihan','${targetKind==="latihan"?targetId:""}')">Kirim pilihan → Latihan</button><button class="btn ghost small" onclick="kirimPilihanV12(${pi},'tryout','${targetKind==="tryout"?targetId:""}')">Kirim pilihan → Tryout</button></div></details>
- </div>`).join(""):'<div class="sub">Bank Paket V13 masih kosong.</div>'}catch(e){box.innerHTML='<div class="notice" style="display:block">V12 belum dapat dibaca. Pastikan V12 sudah dimuat dan berada pada domain yang sama.<br>'+h(e.message)+'</div>'}
+ </div>`).join(""):'<div class="sub">Bank Paket V13 masih kosong.</div>'}catch(e){box.innerHTML='<div class="notice" style="display:block">Bank V13 belum dapat dibaca. Pastikan Pembuat Soal V13 berada pada domain yang sama.<br>'+h(e.message)+'</div>'}
 }
 function addV12Questions(kind,targetId,srcPack,questions){
  let a=pkgGet(kind),p=targetId?a.find(x=>x.id===targetId):null;
@@ -2123,6 +2129,12 @@ async function publikasiPkg(kind,id){
  }catch(e){alert("Gagal publikasi Supabase: "+e.message)}
 }
 window.addEventListener("load",()=>{renderPkgManagers();let f=document.getElementById("v12Frame");if(f)f.addEventListener("load",()=>setTimeout(()=>bacaBankV12(),250));setTimeout(()=>{if(location.hash==='#latihan'){openPanel('latihan');renderPkgManagers()}else if(location.hash==='#tryout'){openPanel('tryout');renderPkgManagers()}},250)});
+window.addEventListener("storage",e=>{
+ if([KF_V12_BANK,KF_TRAIN_PACKAGES,KF_TRYOUT_PACKAGES].includes(e.key)){
+   renderPkgManagers();
+   if(document.getElementById("v12builder")?.classList.contains("show"))bacaBankV12();
+ }
+});
 
 </script>
 <script>
