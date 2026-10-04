@@ -279,7 +279,7 @@ body{background:var(--v12-bg)!important}
 #v12EditorCard{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
 #v12EditorCard>.row,#v12EditorCard>label,#v12EditorCard>#typeButtons,#v12EditorCard>select,#v12EditorCard>textarea,#v12EditorCard>.math-preview,#v12EditorCard>.actions,#v12EditorCard>[id$="FormulaBar"],#v12EditorCard>[id*="Answer"]{background:#fff}
 @media(max-width:900px){:root{--v12-side:0px}.topbar.v12-pro-sidebar{position:relative!important;width:100%!important;height:auto!important;inset:auto!important}.v12-pro-nav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}.v12-sidebar-foot{display:none}.wrap{margin-left:0!important;padding:16px 12px 50px!important}}
-</style></head>
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script></head>
 <body><div id="kfV12AuthGate" style="position:fixed;inset:0;z-index:2147483647;background:#f7f1fb;display:grid;place-items:center;font-family:Arial,sans-serif"><div style="max-width:460px;margin:24px;padding:28px;border-radius:20px;background:white;box-shadow:0 18px 60px rgba(74,25,100,.18);text-align:center"><div style="font-size:34px">🔐</div><h2 style="margin:10px 0 6px;color:#381452">Memeriksa Akses Admin</h2><p id="kfV12AuthText" style="margin:0;color:#725f7c;line-height:1.5">Studio V12 hanya dapat digunakan oleh Super Admin yang aktif.</p></div></div>
 <style id="kfV12GateStyle">body > *:not(#kfV12AuthGate):not(#kfV12GateStyle):not(script){visibility:hidden!important}</style>
 <script>
@@ -1118,5 +1118,16 @@ document.addEventListener('DOMContentLoaded',function(){
  setTimeout(function(){
   if(location.hash){var el=document.querySelector(location.hash);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
  },500);
+});
+</script><script id="v13-unified-hub">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+  var host=document.getElementById('v12IsiSoal'); if(!host||document.getElementById('v13UnifiedHub'))return;
+  var box=document.createElement('div'); box.className='card'; box.id='v13UnifiedHub';
+  box.innerHTML='<h2>🧩 Satu Sistem Pembuat Soal V13</h2><div class="sub">Manual • Gemini AI • Word • PDF • Tempel • Bank Soal → satu editor → Latihan/Tryout → Supabase.</div><div class="actions" style="margin-top:12px;flex-wrap:wrap"><button class="btn primary" data-go="manual">✍️ Manual</button><button class="btn pink" data-go="ai">✨ Gemini AI</button><button class="btn" data-go="word">📄 Word / DOCX</button><button class="btn" data-go="paste">📋 Tempel Soal</button><button class="btn" data-go="pdf">📕 PDF</button><button class="btn" data-go="bank">📚 Bank Soal</button></div><div id="v13PdfPanel" style="display:none;margin-top:14px;padding:14px;border:1px dashed #cba9e8;border-radius:14px"><b>📕 Mesin PDF V13</b><div class="sub">Pilih PDF untuk memeriksa bahwa mesin PDF aktif. Fitur crop penuh akan memakai alur editor yang sama.</div><input type="file" id="v13PdfFile" accept="application/pdf"><button type="button" class="btn primary" id="v13PdfOpen">Muat PDF</button><div id="v13PdfMsg" class="notice" style="margin-top:8px">Siap.</div></div>';
+  host.insertBefore(box,host.firstChild);
+  box.addEventListener('click',function(e){var b=e.target.closest('[data-go]');if(!b)return;var g=b.dataset.go;if(g==='manual')document.getElementById('v12EditorCard')?.scrollIntoView({behavior:'smooth'});if(g==='ai')document.getElementById('v12MovedAI')?.scrollIntoView({behavior:'smooth'});if(g==='word')document.getElementById('v12MovedImport')?.scrollIntoView({behavior:'smooth'});if(g==='paste')document.querySelector('.v12-paste-box')?.scrollIntoView({behavior:'smooth'});if(g==='pdf'){document.getElementById('v13PdfPanel').style.display='block';document.getElementById('v13PdfPanel').scrollIntoView({behavior:'smooth'})}if(g==='bank'&&window.kfV12Navigate)kfV12Navigate('bank')});
+  document.getElementById('v13PdfOpen').onclick=async function(){var file=document.getElementById('v13PdfFile').files[0],msg=document.getElementById('v13PdfMsg');if(!file){msg.textContent='Pilih PDF terlebih dahulu.';return}try{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';var d=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;msg.textContent='✓ PDF terbuka: '+d.numPages+' halaman.'}catch(err){msg.textContent='Gagal membuka PDF: '+err.message}};
+ },350);
 });
 </script></body></html>
