@@ -885,9 +885,12 @@ let practiceState={package:null,current:0,answers:[]};
 
 function startPractice(id){
  const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
- practiceState={package:JSON.parse(JSON.stringify(p)),current:0,answers:p.questions.map(()=>null)};
+ const qs=Array.isArray(p.questions)?p.questions.filter(q=>q&&String(q.question||'').trim()):[];
+ if(!qs.length)return alert('Paket ini belum memiliki isi soal yang valid.');
+ const safe=JSON.parse(JSON.stringify(p));safe.questions=qs;
+ practiceState={package:safe,current:0,answers:qs.map(()=>null)};
  nav('practice');$('practiceStart').style.display='none';$('practiceResult').style.display='none';$('practiceWork').style.display='block';
- $('practiceTitle').textContent=p.name;$('practiceMeta').textContent=p.questions.length+' soal';
+ $('practiceTitle').textContent=p.name;$('practiceMeta').textContent=qs.length+' soal';
  renderPractice();
 }
 function exitPractice(){if(confirm('Keluar dari latihan? Jawaban latihan ini akan dihapus.')){practiceState={package:null,current:0,answers:[]};nav('bank')}}
@@ -900,6 +903,7 @@ function practiceAnswered(i){
 }
 function renderPractice(){
  const p=practiceState.package;if(!p)return;let i=practiceState.current,q=p.questions[i],done=practiceState.answers.filter((_,j)=>practiceAnswered(j)).length;
+ if(!q){$('practiceQuestion').innerHTML='<div class="notice bad">Soal tidak ditemukan pada draft ini.</div>';return;}
  $('practicePosition').textContent='Soal '+(i+1)+' dari '+p.questions.length;
  $('practiceProgressBar').style.width=(done/p.questions.length*100)+'%';
  $('practiceNumbers').innerHTML=p.questions.map((x,j)=>`<button class="${j===i?'current ':''}${practiceAnswered(j)?'answered':''}" onclick="goPractice(${j})">${j+1}</button>`).join('');
@@ -1121,6 +1125,14 @@ function v13MovePackageToQueue(id,kind){
  renderPackageBank();v13RenderDistributionQueues();nav('paket');
  setTimeout(()=>document.getElementById(kind==='tryout'?'v13TryoutQueue':'v13LatihanQueue')?.scrollIntoView({behavior:'smooth',block:'center'}),100);
 }
+function v13PreviewQueuedPackage(id){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Draft soal tidak ditemukan.');
+ const qs=Array.isArray(p.questions)?p.questions.filter(Boolean):[];
+ if(!qs.length)return alert('Draft ini belum memiliki soal.');
+ $('studentPreview').innerHTML='<div class="notice"><b>'+qs.length+' soal dalam draft '+(p.stage==='tryout'?'Tryout':'Latihan')+'</b></div>'+
+ qs.map((q,i)=>'<div class="bankitem" style="margin-top:10px"><div class="small"><b>Soal '+(i+1)+'</b> • '+esc(typeName(q.type||'pg5'))+'</div>'+questionHTML(q,false)+'</div>').join('');
+ $('previewModal').classList.add('show');typesetMath('studentPreview');
+}
 function v13RemoveFromQueue(id){
  const arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return;p.stage='';p.updatedAt=new Date().toISOString();setPackageBank(arr);v13RenderDistributionQueues();renderPackageBank();
 }
@@ -1129,7 +1141,7 @@ function v13RenderDistributionQueues(){
  function draw(kind,elId){
   const el=$(elId);if(!el)return;const rows=arr.filter(p=>p.stage===kind&&!p.published);
   if(!rows.length){el.innerHTML='<div class="empty">Belum ada soal yang dikirim ke '+(kind==='tryout'?'Tryout':'Latihan')+'.</div>';return}
-  el.innerHTML=rows.map(p=>`<div class="bank-item"><div><b>${p.questions?.length||0} soal terpilih</b><div class="small">Belum dikirim ke peserta • atur paket dan akses terlebih dahulu</div></div><div class="actions"><button class="btn sm ${kind==='tryout'?'pink':'primary'}" onclick="v13OpenDistribution('${p.id}','${kind}')">⚙ Atur & Kirim ke Peserta</button><button class="btn sm" onclick="startPractice('${p.id}')">👁 Preview</button><button class="btn sm danger" onclick="v13RemoveFromQueue('${p.id}')">Kembalikan ke Bank</button></div></div>`).join('');
+  el.innerHTML=rows.map(p=>`<div class="bank-item" style="display:block"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><b>${p.questions?.length||0} soal terpilih</b><div class="small">Belum dikirim ke peserta • atur paket dan akses terlebih dahulu</div></div><div class="actions"><button class="btn sm ${kind==='tryout'?'pink':'primary'}" onclick="v13OpenDistribution('${p.id}','${kind}')">⚙ Atur & Kirim ke Peserta</button><button class="btn sm" onclick="v13PreviewQueuedPackage('${p.id}')">👁 Lihat Soal</button><button class="btn sm danger" onclick="v13RemoveFromQueue('${p.id}')">Kembalikan ke Bank</button></div></div><div style="margin-top:12px;border-top:1px solid #eee;padding-top:10px">${(p.questions||[]).map((q,i)=>'<div class="small" style="padding:5px 0"><b>Soal '+(i+1)+'.</b> '+esc(String(q.question||'').replace(/\\s+/g,' ').slice(0,180))+(String(q.question||'').length>180?'…':'')+'</div>').join('')}</div></div>`).join('');
  }
  draw('latihan','v13LatihanQueue');draw('tryout','v13TryoutQueue');
 }
