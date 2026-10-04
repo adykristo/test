@@ -264,6 +264,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 /* ===== V12 STUDIO ADMIN-STYLE 2026 ===== */
 .v12-step-card{border:1px solid #ead7f7!important;border-radius:18px!important;background:#fff!important;padding:20px!important;margin-bottom:18px!important;box-shadow:0 10px 28px rgba(92,35,140,.07)!important}.v12-step-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}.v12-step-no{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#7137c8,#ec4899);color:#fff;font-weight:900}.v12-step-title{font-size:16px;font-weight:900;color:#3b1758}.v12-step-title small{font-size:11px;font-weight:500;color:#8a7894}.v12-info-grid{display:grid;grid-template-columns:1.5fr .75fr .75fr;gap:12px}.v12-paste-box{border:1px dashed #c995ee;border-radius:15px;padding:16px;background:#fff}.v12-paste-box textarea{min-height:180px}.v12-checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.v12-checks label{padding:10px;border-radius:9px;background:#fbf7ff;font-weight:600}.v12-checks input{width:auto;margin-right:7px}.v12-gradient-btn{width:100%;background:linear-gradient(90deg,#f04b9a,#812cf4)!important;color:#fff!important}.v12-section-label{display:flex;align-items:center;gap:10px;margin:22px 0 10px}.v12-section-label h2{margin:0;font-size:17px}.v12-hidden-nav{display:none!important}@media(max-width:760px){.v12-info-grid,.v12-checks{grid-template-columns:1fr}}
 .topbar,.topbar .toprow,.topbar .nav,.topbar .nav button{pointer-events:auto!important}.topbar{z-index:100000!important}.wrap{position:relative;z-index:1}
+
+/* V13.2 keterbacaan soal & rumus */
+.math-preview,.question-preview,.result-answer{line-height:1.75!important;white-space:normal}.math-preview mjx-container,.question-preview mjx-container{font-size:112%!important}.math-preview mjx-container[display="true"],.question-preview mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;padding:7px 2px;margin:8px 0!important}.ref-option textarea,#question,#explanation{line-height:1.65!important}.ref-letter{font-weight:900!important}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.umd.cjs"></script>
@@ -1012,7 +1015,7 @@ async function prosesWordKeV13(useAI){
   if(useAI){
    const detected=v13CountWordQuestions(raw),jumlah=Math.max(1,Math.min(50,detected||1));
    v13WordStatus('✨ Gemini sedang melengkapi '+jumlah+' soal: opsi, kunci, pembahasan, dan rumus…');
-   const prompt=['TUGAS IMPORT WORD KLINIKFISIKAPKU V13.','Word dapat HANYA berisi pertanyaan tanpa opsi, kunci, atau pembahasan.','WAJIB hasilkan tepat '+jumlah+' soal, satu untuk setiap pertanyaan bernomor. Jangan tambah atau gabungkan soal.','Pertahankan inti dan semua data pertanyaan asli.','Baca TIPE bila ada. Tanpa TIPE: gunakan PG5 bila cocok pilihan ganda; esai untuk uraian; isian untuk jawaban singkat.','PG4 wajib 4 opsi A-D; PG5 wajib 5 opsi A-E; MCMA 5 opsi dan dapat memiliki beberapa kunci.','Jika opsi belum ada, buat pengecoh yang masuk akal, homogen, dan tidak ambigu. PG biasa harus hanya satu jawaban benar.','Jika kunci belum ada, hitung/tentukan kunci yang benar.','Jika pembahasan belum ada, buat lengkap: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir.','Semua rumus/simbol matematika wajib LaTeX valid dalam delimiter $...$.','Periksa konsistensi soal, opsi, kunci, hitungan, satuan, dan pembahasan.','Jangan jadikan header TEMPLATE SOAL TRYOUT sebagai soal.','Hasil adalah Draft; jangan publish.','','ISI WORD:',raw].join('\n');
+   const prompt=['TUGAS IMPORT WORD KLINIKFISIKAPKU V13.','Word dapat HANYA berisi pertanyaan tanpa opsi, kunci, atau pembahasan.','WAJIB hasilkan tepat '+jumlah+' soal, satu untuk setiap pertanyaan bernomor. Jangan tambah atau gabungkan soal.','Pertahankan inti dan semua data pertanyaan asli.','Baca TIPE bila ada. Tanpa TIPE: gunakan PG5 bila cocok pilihan ganda; esai untuk uraian; isian untuk jawaban singkat.','PG4 wajib 4 opsi A-D; PG5 wajib 5 opsi A-E; MCMA 5 opsi dan dapat memiliki beberapa kunci.','Jika opsi belum ada, buat pengecoh yang masuk akal, homogen, dan tidak ambigu. PG biasa harus hanya satu jawaban benar.','Jika kunci belum ada, hitung/tentukan kunci yang benar.','Jika pembahasan belum ada, buat lengkap dengan FORMAT BARIS TERPISAH: Diketahui:, Ditanya:, Konsep/Persamaan:, Penyelesaian:, Jawaban akhir:. Jangan campur opsi/kunci ke pembahasan.','Semua rumus/simbol matematika wajib LaTeX valid dalam delimiter $...$.','Periksa konsistensi soal, opsi, kunci, hitungan, satuan, dan pembahasan.','Jangan jadikan header TEMPLATE SOAL TRYOUT sebagai soal.','Hasil adalah Draft; jangan publish.','','ISI WORD:',raw].join('\n');
    const payload={prompt,jumlah,tipe:'auto',jenjang:'SMA',mapel:'Fisika',topik:'Import Word',instruksi:prompt};
    const r=await postGAS('buatSoalGemini',payload).catch(async()=>await postGAS('generateAI',payload)).catch(async()=>await postGAS('generate',payload));
    if(!r||!Array.isArray(r.questions))throw new Error('Gemini tidak mengembalikan daftar questions.');
@@ -1045,7 +1048,7 @@ async function generateAIBatch(batchCount){
  'WAJIB gunakan Bahasa Indonesia untuk seluruh pertanyaan, opsi jawaban, kunci, dan pembahasan. Jika bahan/perintah awal berbahasa Inggris, terjemahkan hasil akhirnya ke Bahasa Indonesia.',
  pgRule,
  'Kembalikan data soal TERSTRUKTUR. Field setiap soal: question (hanya batang soal), opsi (array pilihan tanpa label A/B/C/D/E), kunci (huruf jawaban benar), pembahasan (pembahasan lengkap), type.',
- 'Pembahasan wajib berurutan: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir. Gunakan LaTeX valid untuk rumus.'
+ 'FORMAT WAJIB: question hanya batang soal; options hanya isi opsi tanpa A/B/C/D/E; kunci harus cocok dengan opsi; explanation hanya pembahasan. Pembahasan wajib memakai baris terpisah: Diketahui:, Ditanya:, Konsep/Persamaan:, Penyelesaian:, Jawaban akhir:. Semua rumus WAJIB LaTeX MathJax valid di dalam $...$ untuk inline atau $...$ untuk rumus satu baris. Jangan gunakan markdown **, heading #, code fence, atau LaTeX tanpa delimiter.'
  ].filter(Boolean).join('\n\n'),
  instruksi:[baseInstruction,
  'Bahasa keluaran wajib Bahasa Indonesia.',
@@ -1131,9 +1134,9 @@ async function aiTidyExplanation(){
  const el=$('explanation'),txt=(el.value||'').trim();if(!txt)return alert('Isi pembahasan terlebih dahulu.');
  const st=$('explanationAIStatus');st.textContent='✨ AI sedang merapikan pembahasan...';
  try{
-  const r=await postGAS('tidyExplanation',{question:$('question')?.value||'',explanation:txt,type:currentType,options:answerState.options||[],keys:answerState.keys||[]});
+  const r=await postGAS('tidyExplanation',{question:$('question')?.value||'',explanation:txt,type:currentType,options:answerState.options||[],keys:answerState.keys||[],instruction:'Rapikan tanpa mengubah jawaban benar. Gunakan bagian Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir pada baris terpisah. Semua rumus gunakan LaTeX MathJax valid dalam $...$ atau $...$. Jangan gunakan markdown/code fence.'});
   if(!r?.text)throw new Error(r?.message||'Tidak ada hasil AI');
-  el.value=r.text;el.dispatchEvent(new Event('input'));st.textContent='✓ Pembahasan sudah dirapikan. Periksa lalu simpan.';
+  el.value=v13FormatExplanation(r.text);el.dispatchEvent(new Event('input'));st.textContent='✓ Pembahasan sudah dirapikan: bagian pembahasan dan rumus sudah dinormalisasi. Periksa lalu simpan.';
  }catch(e){st.textContent='✗ '+e.message+' Pastikan Gemini dan Apps Script sudah terhubung.'}
 }
 async function postAIAssistant(jenis,text,extra={}){
@@ -1156,7 +1159,7 @@ async function aiExplain(){
  const q=$('question').value.trim();if(!q)return alert('Isi soal dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang membuat pembahasan...';
  try{const prompt='Gunakan Bahasa Indonesia. Buat pembahasan sistematis: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir. Soal: '+q+' Opsi: '+JSON.stringify(answerState.options||[])+' Kunci: '+JSON.stringify(answerState.keys||[]);
  const r=await postAIAssistant('pembahasan',prompt);let t=r?.text||r?.result||r?.explanation||r?.pembahasan||r?.questions?.[0]?.explanation||r?.questions?.[0]?.pembahasan;
- if(!t)throw new Error(r?.message||'Gemini tidak mengembalikan pembahasan.');$('explanation').value=String(t);$('explanation').dispatchEvent(new Event('input'));st.textContent='✓ Pembahasan dibuat.'}catch(e){st.textContent='✗ '+e.message}
+ if(!t)throw new Error(r?.message||'Gemini tidak mengembalikan pembahasan.');$('explanation').value=v13FormatExplanation(String(t));$('explanation').dispatchEvent(new Event('input'));st.textContent='✓ Pembahasan dibuat dan rumus dinormalisasi.'}catch(e){st.textContent='✗ '+e.message}
 }
 async function aiVariation(){
  const q=$('question').value.trim();if(!q)return alert('Isi soal dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang membuat variasi...';
@@ -1217,40 +1220,7 @@ async function syncOnline(){
  }catch(e){if(status){status.className='notice bad';status.textContent='✗ Sinkron gagal: '+(e?.message||e)}}
 }
 async function testAIConnection(){const st=$('connectionStatus');st.className='notice';st.textContent='Menguji Gemini melalui Apps Script...';try{let r=await postGAS('buatSoalGemini',{prompt:'Buat tepat 1 soal Fisika SMA sangat sederhana tentang gerak lurus untuk uji koneksi. Sertakan kunci dan pembahasan.',jumlah:1,tipe:'pg4',jenjang:'sma',topik:'Gerak Lurus'});if(!r||!Array.isArray(r.questions)||!r.questions.length)throw new Error(r?.message||'Gemini tidak mengembalikan questions[].');st.className='notice good';st.textContent='✓ Gemini AI aktif dan berhasil membuat soal uji.'}catch(e){st.className='notice bad';st.textContent='✗ Gemini belum terhubung: '+e.message}}
-function cleanAIMathText(v){
- let s=String(v??'').trim();
- if(!s)return s;
- // Samakan delimiter AI/Markdown ke delimiter MathJax.
- s=s.replace(/\\\[([\s\S]*?)\\\]/g,'\\[$1\\]')
-    .replace(/\\\(([\s\S]*?)\\\)/g,'\\($1\\)')
-    .replace(/\$\$([\s\S]*?)\$\$/g,'\\[$1\\]');
- // Perbaiki escape ganda dari JSON/Gemini tanpa merusak line-break TeX.
- s=s.replace(/\\\\(?=[A-Za-z])/g,'\\');
- // Normalisasi simbol Unicode umum menjadi TeX agar konsisten.
- s=s.replace(/×/g,'\\times ').replace(/·/g,'\\cdot ').replace(/≤/g,'\\le ').replace(/≥/g,'\\ge ')
-    .replace(/≠/g,'\\ne ').replace(/≈/g,'\\approx ').replace(/→/g,'\\to ').replace(/∞/g,'\\infty ')
-    .replace(/√\s*([A-Za-z0-9]+)/g,'\\sqrt{$1}').replace(/μ/g,'\\mu ').replace(/θ/g,'\\theta ')
-    .replace(/Δ/g,'\\Delta ').replace(/π/g,'\\pi ');
- const hasDelimited=/(\$[^$]+\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\])/.test(s);
- if(!hasDelimited){
-   const hasTex=/\\[A-Za-z]+|[\^_]\s*(?:\{[^}]*\}|[-+]?\d+(?:\/\d+)?)|\b[A-Za-z]\s*=\s*[-+A-Za-z0-9]/.test(s);
-   if(hasTex){
-     const looksShort=s.length<160&&!/[.!?]\s/.test(s);
-     if(looksShort)s='\\('+s+'\\)';
-     else{
-       // Bungkus baris/fragmen yang jelas berupa persamaan; kalimat biasa tetap teks.
-       s=s.split('\n').map(line=>{
-         const t=line.trim();
-         if(!t)return line;
-         const mathish=/\\[A-Za-z]+|[\^_]|\b[A-Za-z][A-Za-z0-9_]*\s*=|\\frac|\\sqrt/.test(t);
-         const prose=/\s(?:adalah|dengan|maka|sehingga|diketahui|ditanya|jawaban|hitung|besar|pada|yang)\s/i.test(t);
-         return mathish&&!prose?'\\('+t+'\\)':line;
-       }).join('\n');
-     }
-   }
- }
- return s;
-}
+function cleanAIMathText(v){return v13NormalizeMathReadable(v)}
 function normalizeAIQuestion(q){
  let type=String(q.type||q.tipe||$('aiType').value).toLowerCase(),n=type==='pg4'?4:5;
  let rawOptions=q.opsi||q.options||q.pilihan||q.choices||q.answers?.options||[];
@@ -1275,8 +1245,8 @@ function normalizeAIQuestion(q){
      answers.options=options;
    }
  }
- let explanation=cleanAIMathText(q.explanation||q.pembahasan||q.solution||q.solusi||q.penjelasan||'');
- return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||q.sulit||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:questionText,image:q.image||'',imageRotation:Number(q.imageRotation)||0,answers,explanation,explanationImage:q.explanationImage||'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:q.source||'Gemini AI',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()};
+ let explanation=v13FormatExplanation(q.explanation||q.pembahasan||q.solution||q.solusi||q.penjelasan||'');
+ return v13NormalizeQuestionObject({id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||q.sulit||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:questionText,image:q.image||'',imageRotation:Number(q.imageRotation)||0,answers,explanation,explanationImage:q.explanationImage||'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:q.source||'Gemini AI',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()});
 }
 async function importDocx(file){
  if(!window.mammoth){$('importResult').innerHTML='<div class="notice bad">Library DOCX belum termuat. Pastikan internet aktif saat membuka halaman.</div>';return}
@@ -1569,7 +1539,7 @@ function savePackageDraftLocal(){
 function loadPackageDraftLocal(){try{let x=JSON.parse(localStorage.getItem(PACKAGE_DRAFT_KEY)||'null');if(x&&Array.isArray(x.questions)){packageDraft=x;$('packageName').value=x.name||'';$('packageCount').value=x.questions.length}}catch(e){}}
 function startQuestionPackage(){let count=Math.max(1,Math.min(200,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
 function loadQuestionsToWorkspace(qs,name){
- qs=(Array.isArray(qs)?qs:[]).filter(Boolean).map(q=>JSON.parse(JSON.stringify(q)));
+ qs=(Array.isArray(qs)?qs:[]).filter(Boolean).map(q=>v13NormalizeQuestionObject(JSON.parse(JSON.stringify(q))));
  if(!qs.length)return;
  packageEditId=null;
  packageDraft={name:name||'Draft Soal',count:qs.length,current:0,questions:qs};
@@ -1718,7 +1688,7 @@ function v12GeminiPasteQuestion(item,sourceImage,flags){
  if(type==='isian')answers={options:[],keys:[],short:cleanAIMathText(item?.short_answer||item?.kunci_isian||ans||''),essayKey:'',statements:[]};
  if(type==='esai')answers={options:[],keys:[],short:'',essayKey:cleanAIMathText(ans||''),statements:[]};
  if(type==='kategori')answers.statements=(item?.statements||[]).map(x=>({text:cleanAIMathText(x?.text||x?.statement||''),image:'',answer:x?.answer||x?.key||'Benar'}));
- return {id:uid(),type,jenjang:flags.level,mapel:'Fisika',kelas:'',difficulty:'Sedang',topik:item?.topik||'Import Gambar',subtopik:'',status:'Draft',tags:'AI Tempel Gambar',question:cleanAIMathText(item?.question||item?.pertanyaan||item?.prompt||item?.text||''),image:sourceImage||'',imageRotation:0,answers,explanation:cleanAIMathText(item?.explanation||item?.pembahasan||item?.solution||item?.pedoman||''),explanationImage:'',score:1,scoring:'exact',source:'Gemini Vision',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()};
+ return v13NormalizeQuestionObject({id:uid(),type,jenjang:flags.level,mapel:'Fisika',kelas:'',difficulty:'Sedang',topik:item?.topik||'Import Gambar',subtopik:'',status:'Draft',tags:'AI Tempel Gambar',question:cleanAIMathText(item?.question||item?.pertanyaan||item?.prompt||item?.text||''),image:sourceImage||'',imageRotation:0,answers,explanation:cleanAIMathText(item?.explanation||item?.pembahasan||item?.solution||item?.pedoman||''),explanationImage:'',score:1,scoring:'exact',source:'Gemini Vision',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()});
 }
 async function v12ProcessPaste(){
  const data=v12PasteAssets(),st=$('v12PasteStatus');if(!data.text&&!data.images.length)return alert('Tempel teks atau gambar soal terlebih dahulu.');
@@ -1737,7 +1707,7 @@ async function v12ProcessPaste(){
    flags.solution?'Jika sumber mempunyai pembahasan/solution, TRANSKRIP dan rapikan pembahasan tersebut ke field explanation. Jika tidak ada pembahasan, buat pembahasan sistematis berdasarkan soal ASLI: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir.':'Jika pembahasan terlihat, masukkan ke explanation.',
    'Jika ada gambar/diagram yang merupakan bagian penting dari soal, set question_image_refs ke id gambar tersebut. Jika gambar hanya berisi pembahasan/ornamen dan tidak diperlukan untuk pertanyaan, jangan jadikan gambar soal.',
    'Jika satu screenshot memuat soal DAN pembahasan, tetap hasilkan SATU objek soal: question dari bagian soal, options dari pilihan, answer dari kunci/hasil, explanation dari bagian pembahasan.',
-   'Semua rumus wajib LaTeX valid dalam $...$. Jangan keluarkan perintah LaTeX mentah di luar delimiter.',
+   'Semua rumus wajib LaTeX MathJax valid dalam $...$ (inline) atau $...$ (baris sendiri). Jangan keluarkan perintah LaTeX mentah di luar delimiter. Jangan gunakan markdown **, heading #, atau code fence.',
    flags.validate?'Periksa ulang angka, satuan, perhitungan, kecocokan opsi dengan kunci, dan konsistensi jawaban akhir.':'',
    'Validasi bahwa question, options, correct_answer, explanation dan gambar semuanya milik soal yang SAMA. Jangan memakai isi dari riwayat atau contoh lain.',
    'Kembalikan tepat 1 soal kecuali sumber jelas berisi beberapa nomor soal terpisah.'
