@@ -1936,33 +1936,33 @@ function openPanel(id, b) {
       async function editKonten(id) {
         const x = { ...cariItem(id) };
         if (!x.id) return;
-        const topik = prompt("Topik:", x.topik || "");
+        const topik = await KFUI.prompt("Topik:", x.topik || "","Ubah Konten");
         if (topik === null) return;
-        const judul = prompt("Judul:", x.judul || "");
+        const judul = await KFUI.prompt("Judul:", x.judul || "","Ubah Konten");
         if (judul === null) return;
         x.topik = topik.trim();
         x.judul = judul.trim();
         if (x.jenis === "pdf") {
-          const u = prompt("Link PDF:", x.pdfUrl || "");
+          const u = await KFUI.prompt("Link PDF:", x.pdfUrl || "","Ubah PDF");
           if (u === null) return;
           x.pdfUrl = u.trim();
         }
         if (x.jenis === "video") {
-          const u = prompt("Link video:", x.youtube || "");
+          const u = await KFUI.prompt("Link video:", x.youtube || "","Ubah Video");
           if (u === null) return;
           x.youtube = u.trim();
         }
         if (x.jenis === "tryout") {
-          const c = prompt("Catatan untuk member:", x.catatan || "");
+          const c = await KFUI.prompt("Catatan untuk member:", x.catatan || "","Ubah Tryout");
           if (c === null) return;
           x.catatan = c.trim();
         }
         if (x.jenis === "soal") {
-          const s = prompt("Teks soal:", x.soal || "");
+          const s = await KFUI.prompt("Teks soal:", x.soal || "","Ubah Soal");
           if (s === null) return;
-          const k = prompt("Kunci jawaban / pedoman:", x.tipe === "mcma" ? (x.kunci||[]).map(v=>"ABCDE"[Number(v)]||v).join(",") : x.tipe && x.tipe.startsWith("pg") ? "ABCDE"[Number(x.kunci) || 0] : (Array.isArray(x.kunci)?x.kunci.join(","):x.kunci ?? ""));
+          const k = await KFUI.prompt("Kunci jawaban / pedoman:", x.tipe === "mcma" ? (x.kunci||[]).map(v=>"ABCDE"[Number(v)]||v).join(",") : x.tipe && x.tipe.startsWith("pg") ? "ABCDE"[Number(x.kunci) || 0] : (Array.isArray(x.kunci)?x.kunci.join(","):x.kunci ?? ""),"Ubah Kunci");
           if (k === null) return;
-          const p = prompt("Pembahasan:", x.pembahasan || "");
+          const p = await KFUI.prompt("Pembahasan:", x.pembahasan || "","Ubah Pembahasan");
           if (p === null) return;
           x.soal = s.trim();
           x.kunci = x.tipe === "mcma" ? k.split(/[,;\s]+/).filter(Boolean).map(v=>Math.max(0,"ABCDE".indexOf(v.charAt(0).toUpperCase()))) : x.tipe && x.tipe.startsWith("pg") ? Math.max(0, "ABCDE".indexOf(k.trim().charAt(0).toUpperCase())) : k.trim();
@@ -1970,13 +1970,13 @@ function openPanel(id, b) {
           x.opsi = x.opsi || [];
           if (x.tipe && (x.tipe.startsWith("pg") || x.tipe === "mcma")) {
             for (let i = 0; i < x.opsi.length; i++) {
-              const o = prompt("Opsi " + "ABCDE"[i] + ":", x.opsi[i]);
+              const o = await KFUI.prompt("Opsi " + "ABCDE"[i] + ":", x.opsi[i],"Ubah Opsi");
               if (o === null) return;
               x.opsi[i] = o.trim();
             }
           }
         }
-        await simpanKontenBackend(x);
+        const ok=await simpanKontenBackend(x);if(ok)KFUI.toast("Perubahan konten berhasil disimpan.","ok");
       }
       document.addEventListener("DOMContentLoaded", async () => {
         /* Studio lama diganti Package Manager V13 */
