@@ -432,6 +432,7 @@ window.kfV12Navigate=function(page){
 <div class="card"><h3>▶ Draft Latihan</h3><div class="small">Klik paket/draft di bawah untuk mengatur dan mengirim ke peserta.</div><div id="v13LatihanQueue" class="sub">Belum ada soal yang dikirim ke Latihan.</div></div>
 <div class="card"><h3>🏆 Draft Tryout</h3><div class="small">Klik paket/draft di bawah untuk mengatur dan mengirim ke peserta.</div><div id="v13TryoutQueue" class="sub">Belum ada soal yang dikirim ke Tryout.</div></div>
 <div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">☁️ Sudah Dikirim ke Peserta</h3><div class="sub">Data final dibaca langsung dari Supabase. Modul dan Video lama tidak diubah.</div></div><button class="btn sm" onclick="v13RenderPublished()">↻ Muat Ulang</button></div><div id="v13PublishedPackages" style="margin-top:12px"><div class="small">Memuat paket final…</div></div></div>
+<div class="card" style="margin-top:14px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">📚 Konten yang Sudah Ada di Halaman Peserta</h3><div class="sub">Dibaca langsung dari data Admin/Supabase seperti V12. Tidak membuat salinan dan tidak mengubah Modul/Video lama.</div></div><button class="btn sm" onclick="v13LoadExistingParticipantContent()">↻ Muat dari Admin/Supabase</button></div><div id="v13ExistingParticipantContent" style="margin-top:12px"><div class="small">Memuat konten peserta…</div></div></div>
 </section>
 
 
@@ -570,7 +571,7 @@ function nav(page){
  target.classList.add('active');
  document.querySelectorAll('.nav [data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page));
  if(page==='bank'){try{renderPackageBank();renderBank()}catch(e){console.error('[V12 bank]',e)}}
- if(page==='paket'){try{updateCounts();v13RenderDistributionQueues();v13RenderPublished()}catch(e){console.error('[V13 distribusi]',e)}}
+ if(page==='paket'){try{updateCounts();v13RenderDistributionQueues();v13RenderPublished();v13LoadExistingParticipantContent()}catch(e){console.error('[V13 distribusi]',e)}}
  window.scrollTo({top:0,behavior:'smooth'});
 }
 document.addEventListener('click',function(e){
@@ -1188,6 +1189,25 @@ async function v13RenderPublished(){
   }).join(''):'<div class="empty">Belum ada Latihan/Tryout final di Supabase.</div>';
  }catch(e){box.innerHTML='<div class="notice bad">Gagal memuat paket final: '+esc(e?.message||e)+'</div>'}
 }
+async function v13LoadExistingParticipantContent(){
+ const box=$('v13ExistingParticipantContent');if(!box)return;
+ box.innerHTML='<div class="empty">Memuat data Admin/Supabase…</div>';
+ try{
+  const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;if(!db)throw new Error('Supabase Admin belum siap.');
+  const tables=['member_secure_content','member_content','contents'];let legacy=[],lastErr=null;
+  for(const table of tables){try{const r=await db.from(table).select('*');if(!r.error){legacy=r.data||[];if(legacy.length)break}else lastErr=r.error}catch(e){lastErr=e}}
+  let finals=[];try{if(window.KFPackagePublisher){const r=await window.KFPackagePublisher.adminList();finals=Array.isArray(r)?r:[]}}catch(e){console.warn(e)}
+  const kind=x=>String(x.jenis||x.kind||x.type||x.content_type||'').toLowerCase();
+  const accepted=new Set(['pdf','modul','module','video','soal','latihan','practice','tryout']);
+  const all=[
+   ...legacy.filter(x=>accepted.has(kind(x))).map(x=>({id:x.id,kind:kind(x),name:x.judul||x.title||x.name||'Tanpa judul',level:x.jenjang||x.level||'',pkg:x.package_name||x.paket||x.subscription||'',source:'Admin'})),
+   ...finals.filter(x=>x&&['latihan','tryout'].includes(String(x.kind||'').toLowerCase())).map(x=>({id:x.id,kind:String(x.kind).toLowerCase(),name:x.name||'Tanpa nama',level:x.jenjang||'',pkg:x.subscription||'',source:'Bank Soal'}))
+  ];
+  const seen=new Set(),rows=all.filter(x=>{const k=x.source+'|'+x.id+'|'+x.kind;if(seen.has(k))return false;seen.add(k);return true});
+  const label=k=>({pdf:'📘 Modul',modul:'📘 Modul',module:'📘 Modul',video:'🎥 Video',soal:'✎ Latihan',latihan:'✎ Latihan',practice:'✎ Latihan',tryout:'🏆 Tryout'}[k]||k);
+  box.innerHTML=rows.length?rows.map(x=>'<div class="bank-item"><div><b>'+label(x.kind)+' · '+esc(x.name)+'</b><div class="small">'+esc([x.level,x.pkg,x.source].filter(Boolean).join(' • '))+'</div></div><span class="tag">Terbaca</span></div>').join(''):'<div class="notice">Belum ada konten yang terbaca.'+(lastErr?' '+esc(lastErr.message||lastErr):'')+'</div>';
+ }catch(e){box.innerHTML='<div class="notice bad">Gagal membaca konten peserta: '+esc(e?.message||e)+'</div>'}
+}
 function v13RenderDistributionQueues(){
  const arr=packageBank();
  function draw(kind,elId){
@@ -1294,7 +1314,7 @@ function duplicateSavedPackage(id){let arr=packageBank(),p=arr.find(x=>x.id===id
 function deleteSavedPackage(id){if(confirm('Hapus paket soal ini?'))setPackageBank(packageBank().filter(x=>x.id!==id))}
 
 $('qFormulaBar').innerHTML=formulaBar('question');$('exFormulaBar').innerHTML=formulaBar('explanation');
-loadPackageDraftLocal();initAnswersForType(true);renderAnswerEditor();updatePreview();validate();updateCounts();renderPackageNavigator();renderPackageBank();setTimeout(()=>{try{v13RenderDistributionQueues();v13RenderPublished()}catch(e){console.error('[V13 init distribusi]',e)}},50);
+loadPackageDraftLocal();initAnswersForType(true);renderAnswerEditor();updatePreview();validate();updateCounts();renderPackageNavigator();renderPackageBank();setTimeout(()=>{try{v13RenderDistributionQueues();v13RenderPublished();v13LoadExistingParticipantContent()}catch(e){console.error('[V13 init distribusi]',e)}},50);
 </script>
 <script>
 function kembaliKeAdminV12(){if(window.opener&&!window.opener.closed){window.opener.focus();return}location.href="admin.html"}
