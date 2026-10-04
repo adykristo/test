@@ -546,7 +546,7 @@ let cropImg=null;
 let currentType='pg5', editingId=null, imageData='', explanationImageData='', imageRotation=0, cbtIndex=0, cbtAnswers={}, timerHandle=null;
 let answerState={options:['','','','',''],keys:[0],short:'',essayKey:'',statements:[{text:'',answer:'Benar'},{text:'',answer:'Salah'}]};
 
-function bank(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
+function bank(){try{const rows=JSON.parse(localStorage.getItem(KEY)||'[]');return (Array.isArray(rows)?rows:[]).map(q=>{if(!q)return q;q.question=cleanAIMathText(q.question||'');q.explanation=cleanAIMathText(q.explanation||'');if(q.answers){if(Array.isArray(q.answers.options))q.answers.options=q.answers.options.map(cleanAIMathText);if(Array.isArray(q.answers.statements))q.answers.statements=q.answers.statements.map(x=>Object.assign({},x,{text:cleanAIMathText(x.text||'')}));}return q})}catch(e){return[]}}
 function setBank(v){localStorage.setItem(KEY,JSON.stringify(v));updateCounts()}
 function uid(){return 'Q'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
@@ -831,13 +831,20 @@ async function syncOnline(){
 }
 async function testAIConnection(){const st=$('connectionStatus');st.className='notice';st.textContent='Menguji Gemini melalui Apps Script...';try{let r=await postGAS('buatSoalGemini',{prompt:'Buat tepat 1 soal Fisika SMA sangat sederhana tentang gerak lurus untuk uji koneksi. Sertakan kunci dan pembahasan.',jumlah:1,tipe:'pg4',jenjang:'sma',topik:'Gerak Lurus'});if(!r||!Array.isArray(r.questions)||!r.questions.length)throw new Error(r?.message||'Gemini tidak mengembalikan questions[].');st.className='notice good';st.textContent='✓ Gemini AI aktif dan berhasil membuat soal uji.'}catch(e){st.className='notice bad';st.textContent='✗ Gemini belum terhubung: '+e.message}}
 function cleanAIMathText(v){
- let s=String(v??'');
- s=s.replace(/\\\\/g,'\\');
- // Gemini kadang mengirim LaTeX tanpa delimiter: 1 \\mu\\text{C}.
- // MathJax hanya merendernya jika fragmen tersebut berada di dalam delimiter.
- if(!/(\$[^$]+\$|\\\(|\\\[)/.test(s) && /\\(?:mu|text|mathrm|frac|sqrt|times|theta|Delta|pi|sin|cos|tan|cdot|Omega|alpha|beta|gamma|lambda|rho|sigma|varepsilon|epsilon)\b/.test(s)){
-   const m=s.match(/^(.*?)([-+]?\d+(?:[.,]\d+)?[\s\S]*\\[A-Za-z]+[\s\S]*)$/);
-   s=m?(m[1]+'\\('+m[2].trim()+'\\)'):('\\('+s.trim()+'\\)');
+ let s=String(v??'').replace(/\\\\/g,'\\').trim();
+ // Rapikan keluaran AI yang memakai perintah TeX di luar delimiter MathJax.
+ // Termasuk: \propto, \frac, \sqrt, \mu, superscript/subscript, \text, dst.
+ if(!/(\$[^$]+\$|\\\(|\\\[)/.test(s)){
+   const hasTex=/\\[A-Za-z]+|[\^_]\s*(?:\{[^}]*\}|[-+]?\d+(?:\/\d+)?)/.test(s);
+   if(hasTex){
+     // Untuk opsi/jawaban pendek, seluruh isi aman dijadikan satu ekspresi matematika.
+     const looksShort=s.length<140&&!/[.!?]\s/.test(s);
+     if(looksShort) s='\\('+s+'\\)';
+     else {
+       // Untuk kalimat panjang, bungkus fragmen matematika yang jelas saja.
+       s=s.replace(/((?:[A-Za-z0-9{}()[\].,+\-*/=<>]\s*)*(?:\\[A-Za-z]+|[\^_]\s*(?:\{[^}]*\}|[-+]?\d+(?:\/\d+)?))(?:[A-Za-z0-9{}()[\].,+\-*/=<>]|\\[A-Za-z]+|\s)*)/g,m=>'\\('+m.trim()+'\\)');
+     }
+   }
  }
  return s;
 }
