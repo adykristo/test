@@ -1837,7 +1837,7 @@ iframe.pdfview{display:block;min-height:520px}
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
     <script src="supabase-auth.js?v=20261003-content-level-fix"></script>
-    <script src="supabase-data-v15.js?v=20261004-essay-upsert1"></script>
+    <script src="supabase-data-v15.js?v=20261004-review2"></script>
   
 <script>
 /* V15 SERVER PACKAGE ENGINE — single source of truth */
@@ -1909,6 +1909,7 @@ async function kfShowReview(attemptId){
  const body=document.getElementById("kfPkgRunnerBody");if(!body)return;
  body.innerHTML='<div class="result">Memuat kunci dan pembahasan…</div>';
  try{
+  if(!KFPackageDB||typeof KFPackageDB.reviewAttempt!=="function")throw new Error("Fitur pembahasan sedang dimuat. Silakan muat ulang halaman (Ctrl+F5) lalu coba kembali.");
   const r=await KFPackageDB.reviewAttempt(attemptId);
   if(r.locked){body.innerHTML=`<h2>🔒 Pembahasan Tryout Dikunci</h2><div class="result">Kunci dan pembahasan dapat dilihat setelah jadwal Tryout berakhir${r.ends_at?" pada "+new Date(r.ends_at).toLocaleString("id-ID"):""}.</div><button class="btn btn-main" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button>`;return}
   const cards=(r.items||[]).map((it,i)=>{const q=it.question||{},a=it.answer||{},ok=a.is_correct===true,bad=a.is_correct===false;return `<div style="border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0;background:#fff"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><b>Soal ${i+1}</b><span class="tag" style="${ok?"background:#e9f9ef;color:#16743a":bad?"background:#fff0f2;color:#b4233b":""}">${ok?"✓ Benar":bad?"✗ Salah":"Perlu diperiksa"}</span></div><div style="margin:10px 0">${textWithBreaks(q.question||"")}</div><div class="result" style="margin-top:8px"><b>Jawaban Anda:</b> ${esc(kfReviewAnswerText(q,a))}<br><b>Kunci:</b> ${esc(kfReviewKeyText(q))}</div><div class="pembahasan" style="display:block;margin-top:10px"><b>Pembahasan:</b><br>${textWithBreaks(q.explanation||"Belum ada pembahasan untuk soal ini.")}</div></div>`}).join("");
