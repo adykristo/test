@@ -291,6 +291,39 @@ try{
 })();
 </script>
 <script>
+window.KF_V12_CONN_KEY='kf_question_connection_v1';
+window.kfGetConnectionSafe=function(){
+ try{return JSON.parse(localStorage.getItem(window.KF_V12_CONN_KEY)||'{"url":"","mode":"local"}')}
+ catch(e){return {url:'',mode:'local'}}
+};
+window.kfSaveConnectionSafe=function(){
+ var urlEl=document.getElementById('gasUrl'),modeEl=document.getElementById('storageMode'),status=document.getElementById('connectionStatus');
+ try{
+  var url=(urlEl&&urlEl.value||'').trim();
+  var mode=modeEl?modeEl.value:'local';
+  if(!url){
+   if(status){status.className='notice bad';status.textContent='✗ URL Web App Google Apps Script belum diisi.';}
+   return false;
+  }
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:[?#].*)?$/i.test(url)){
+   if(status){status.className='notice bad';status.textContent='✗ URL harus berupa Web App Google Apps Script yang berakhir /exec.';}
+   return false;
+  }
+  localStorage.setItem(window.KF_V12_CONN_KEY,JSON.stringify({url:url,mode:mode}));
+  if(status){status.className='notice good';status.textContent='✓ Koneksi berhasil disimpan di browser ini.';}
+  return false;
+ }catch(err){
+  if(status){status.className='notice bad';status.textContent='✗ Gagal menyimpan koneksi: '+err.message;}
+  return false;
+ }
+};
+document.addEventListener('DOMContentLoaded',function(){
+ var cfg=window.kfGetConnectionSafe(),u=document.getElementById('gasUrl'),m=document.getElementById('storageMode');
+ if(u&&cfg.url)u.value=cfg.url;
+ if(m&&cfg.mode)m.value=cfg.mode;
+});
+</script>
+<script>
 window.kfV12Navigate=function(page){
  try{
   var target=document.getElementById('page-'+page);
@@ -412,7 +445,7 @@ window.kfV12Navigate=function(page){
 <div><label>Mode Penyimpanan</label><select id="storageMode"><option value="local">Lokal saja (browser)</option><option value="online">Online + cadangan lokal</option></select></div>
 </div>
 <div class="actions" style="margin-top:12px">
-<button class="btn primary" onclick="saveConnection()">Simpan Koneksi</button>
+<button class="btn primary" onclick="return kfSaveConnectionSafe()">Simpan Koneksi</button>
 <button class="btn" onclick="testConnection()">Tes Koneksi</button>
 <button class="btn ok" onclick="syncOnline()">Sinkronkan Bank Soal</button>
 </div>
