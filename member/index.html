@@ -833,7 +833,7 @@ iframe.pdfview{display:block;min-height:520px}
           <div class="summary-card"><small>Paket aktif</small><strong id="statTahap">0 / 12</strong></div>
         </div>
         <div class="dashboard-actions">
-          <button id="lanjutBtn" class="btn btn-main" type="button" onclick="lanjutBelajar()">▶ Pilih materi belajar</button>
+          <button id="lanjutBtn" class="btn btn-main" type="button" onclick="lanjutBelajar()">▶ Lanjut Belajar</button>
           <button class="btn btn-ghost" type="button" onclick="toggleRiwayat()">📈 Riwayat &amp; Sertifikat</button>
           <button class="btn btn-ghost" type="button" onclick="toggleBookmarkFilter(this)">★ Materi tersimpan</button>
         </div>
@@ -1378,10 +1378,35 @@ iframe.pdfview{display:block;min-height:520px}
         if(details)details.style.display="block";
       }
       function lanjutBelajar(){
-        const progres=(dataBelajarAktif.progress||[]).slice().sort((a,b)=>new Date(b.last_opened_at)-new Date(a.last_opened_at));
-        let idx=progres.length?dataMateri.findIndex(x=>x.id===progres[0].content_id):-1;
-        if(idx<0) idx=dataMateri.findIndex(x=>x.visible!==false&&!selesaiItem(x)&&x.jenis!=="tryout"&&tujuanItem(x)!=="tryout");
-        if(idx>=0)bukaDetail(idx);else alert("Semua materi yang tersedia sudah selesai. Hebat!");
+        // Kandidat hanya konten belajar yang memang boleh diakses dan belum selesai.
+        const kandidat=dataMateri
+          .map((x,index)=>({x,index}))
+          .filter(o=>o.x&&o.x.visible!==false&&!selesaiItem(o.x)&&normalJenis(o.x)!=="tryout"&&tujuanItem(o.x)!=="tryout");
+
+        if(!kandidat.length){
+          alert("🎉 Semua materi yang tersedia sudah selesai. Hebat!");
+          return;
+        }
+
+        // Jika peserta sebelumnya berhenti pada materi yang BELUM selesai, lanjutkan di sana.
+        // Materi yang sudah selesai tidak pernah dibuka kembali oleh tombol Lanjut Belajar.
+        const progres=(dataBelajarAktif.progress||[])
+          .filter(p=>p&&p.content_id&&!p.selesai)
+          .slice()
+          .sort((a,b)=>new Date(b.last_opened_at||b.updated_at||0)-new Date(a.last_opened_at||a.updated_at||0));
+        let idx=-1;
+        for(const p of progres){
+          const hit=kandidat.find(o=>String(o.x.id)===String(p.content_id));
+          if(hit){idx=hit.index;break;}
+        }
+
+        // Belum pernah mulai / materi terakhir sudah selesai: ambil materi belum selesai berikutnya.
+        if(idx<0) idx=kandidat[0].index;
+
+        const target=dataMateri[idx];
+        const btn=document.getElementById("lanjutBtn");
+        if(btn&&target) btn.textContent="▶ Lanjut: "+String(target.judul||target.topik||"Materi");
+        bukaDetail(idx);
       }
       function toggleRiwayat(){
         const box=document.getElementById("riwayatPanel"), tampil=box.style.display==="none";
