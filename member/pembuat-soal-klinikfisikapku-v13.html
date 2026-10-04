@@ -580,7 +580,7 @@ let cropImg=null;
 let currentType='pg5', editingId=null, imageData='', explanationImageData='', imageRotation=0, cbtIndex=0, cbtAnswers={}, timerHandle=null;
 let answerState={options:['','','','',''],keys:[0],short:'',essayKey:'',statements:[{text:'',answer:'Benar'},{text:'',answer:'Salah'}]};
 
-function bank(){try{const rows=JSON.parse(localStorage.getItem(KEY)||'[]');return (Array.isArray(rows)?rows:[]).map(q=>{if(!q)return q;q.question=cleanAIMathText(q.question||'');q.explanation=cleanAIMathText(q.explanation||'');if(q.answers){if(Array.isArray(q.answers.options))q.answers.options=q.answers.options.map(cleanAIMathText);if(Array.isArray(q.answers.statements))q.answers.statements=q.answers.statements.map(x=>Object.assign({},x,{text:cleanAIMathText(x.text||'')}));}return q})}catch(e){return[]}}
+function bank(){try{const rows=JSON.parse(localStorage.getItem(KEY)||'[]');return (Array.isArray(rows)?rows:[]).map(q=>{if(!q)return q;q.question=cleanAIMathText(q.question||'');q.explanation=cleanAIMathText(q.explanation||'');if(q.answers){if(Array.isArray(q.answers.options))q.answers.options=q.answers.options.map(cleanAIMathText);if(Array.isArray(q.answers.statements))q.answers.statements=q.answers.statements.map(x=>Object.assign({},x,{text:cleanAIMathText(x.text||'')}));if(typeof q.answers.short==='string')q.answers.short=cleanAIMathText(q.answers.short);if(typeof q.answers.essayKey==='string')q.answers.essayKey=cleanAIMathText(q.answers.essayKey);}return q})}catch(e){return[]}}
 function setBank(v){localStorage.setItem(KEY,JSON.stringify(v));updateCounts()}
 function uid(){return 'Q'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
@@ -652,7 +652,7 @@ function addStatement(){answerState.statements.push({text:'',answer:'Benar'});re
 function removeStatement(i){answerState.statements.splice(i,1);renderAnswerEditor();changed()}
 function insertLatex(t){let el=$('question'),p=el.selectionStart||el.value.length;el.value=el.value.slice(0,p)+'$'+t+'$'+el.value.slice(p);changed();el.focus()}
 function changed(){updateMathPreviews();validate();saveDraftDebounced()}
-function updateMathPreviews(){let pairs=[['question','questionMathPreview'],['explanation','explanationMathPreview']];(answerState.options||[]).forEach((x,i)=>pairs.push(['opt'+i,'optPrev'+i]));pairs.forEach(([a,b])=>{let el=$(a),pv=$(b);if(pv&&el)pv.innerHTML=el.value.trim()?esc(el.value).replace(/\n/g,'<br>'):'Pratinjau akan muncul di sini...'});if(window.MathJax?.typesetPromise)MathJax.typesetPromise(pairs.map(x=>$(x[1])).filter(Boolean)).catch(()=>{})}
+function updateMathPreviews(){let pairs=[['question','questionMathPreview'],['explanation','explanationMathPreview']];(answerState.options||[]).forEach((x,i)=>pairs.push(['opt'+i,'optPrev'+i]));pairs.forEach(([a,b])=>{let el=$(a),pv=$(b);if(pv&&el)pv.innerHTML=el.value.trim()?esc(cleanAIMathText(el.value)).replace(/\n/g,'<br>'):'Pratinjau akan muncul di sini...'});if(window.MathJax?.typesetPromise)MathJax.typesetPromise(pairs.map(x=>$(x[1])).filter(Boolean)).catch(()=>{})}
 let draftT;function saveDraftDebounced(){clearTimeout(draftT);draftT=setTimeout(()=>{localStorage.setItem(DRAFT,JSON.stringify(collect()));$('draftStatus').textContent='Draft otomatis tersimpan • '+new Date().toLocaleTimeString('id-ID')},400)}
 ['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','qImageUrl','explanation','scoring'].forEach(id=>{let el=$(id);if(el)el.addEventListener('input',changed)});
 $('qImageFile').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{imageData=r.result;imageRotation=0;showImage();changed()};r.readAsDataURL(f)});
@@ -686,7 +686,7 @@ function questionHTML(q,interactive=true){
 function previewCurrent(){let q=collect();$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button class="btn primary" onclick='checkPreview(${JSON.stringify(q).replace(/'/g,"&#39;")})'>Periksa Jawaban</button></div><div id="pvResult"></div>`;$('previewModal').classList.add('show');typesetMath('studentPreview')}
 function checkPreview(q){let ok=false,detail='';if(['pg5','pg4','mcma'].includes(q.type)){let chosen=[...document.querySelectorAll('#studentPreview input[name=pvans]:checked')].map(x=>Number(x.value)).sort();let keys=[...q.answers.keys].sort();ok=JSON.stringify(chosen)===JSON.stringify(keys);if(q.type==='mcma'&&q.scoring==='partial'){let hit=chosen.filter(x=>keys.includes(x)).length,wrong=chosen.filter(x=>!keys.includes(x)).length;let pct=Math.max(0,(hit-wrong)/keys.length);detail=` Skor parsial: ${Math.round(pct*100)}%.`}}else if(q.type==='kategori'){ok=[...document.querySelectorAll('#studentPreview .catans')].every(x=>x.value===q.answers.statements[Number(x.dataset.i)].answer)}else if(q.type==='isian')ok=($('pvShort').value||'').trim().toLowerCase()===(q.answers.short||'').trim().toLowerCase();else{detail='Esai memerlukan penilaian guru.'}
  let feedback=q.type==='esai'?'Jawaban tersimpan untuk dinilai guru.':ok?'✓ Jawaban benar.':'✗ Jawaban salah.';
- let explanation=(ok&&q.explanation)?`<div class="sep"></div><b>Pembahasan:</b><br>${esc(q.explanation).replace(/\n/g,'<br>')}`:'';
+ let explanation=(ok&&q.explanation)?`<div class="sep"></div><b>Pembahasan:</b><br>${esc(cleanAIMathText(q.explanation)).replace(/\n/g,'<br>')}`:'';
  $('pvResult').innerHTML=`<div class="notice ${q.type==='esai'?'':ok?'good':'bad'}" style="margin-top:12px">${feedback}${detail}${explanation}</div>`};typesetMath('pvResult')
 function closeModal(id){$(id).classList.remove('show')}
 function duplicateCurrent(){editingId=null;$('editorTitle').textContent='Duplikat Soal';changed();alert('Draft diduplikat. Edit seperlunya lalu Simpan.')}
@@ -949,18 +949,34 @@ async function syncOnline(){
 }
 async function testAIConnection(){const st=$('connectionStatus');st.className='notice';st.textContent='Menguji Gemini melalui Apps Script...';try{let r=await postGAS('buatSoalGemini',{prompt:'Buat tepat 1 soal Fisika SMA sangat sederhana tentang gerak lurus untuk uji koneksi. Sertakan kunci dan pembahasan.',jumlah:1,tipe:'pg4',jenjang:'sma',topik:'Gerak Lurus'});if(!r||!Array.isArray(r.questions)||!r.questions.length)throw new Error(r?.message||'Gemini tidak mengembalikan questions[].');st.className='notice good';st.textContent='✓ Gemini AI aktif dan berhasil membuat soal uji.'}catch(e){st.className='notice bad';st.textContent='✗ Gemini belum terhubung: '+e.message}}
 function cleanAIMathText(v){
- let s=String(v??'').replace(/\\\\/g,'\\').trim();
- // Rapikan keluaran AI yang memakai perintah TeX di luar delimiter MathJax.
- // Termasuk: \propto, \frac, \sqrt, \mu, superscript/subscript, \text, dst.
- if(!/(\$[^$]+\$|\\\(|\\\[)/.test(s)){
-   const hasTex=/\\[A-Za-z]+|[\^_]\s*(?:\{[^}]*\}|[-+]?\d+(?:\/\d+)?)/.test(s);
+ let s=String(v??'').trim();
+ if(!s)return s;
+ // Samakan delimiter AI/Markdown ke delimiter MathJax.
+ s=s.replace(/\\\[([\s\S]*?)\\\]/g,'\\[$1\\]')
+    .replace(/\\\(([\s\S]*?)\\\)/g,'\\($1\\)')
+    .replace(/\$\$([\s\S]*?)\$\$/g,'\\[$1\\]');
+ // Perbaiki escape ganda dari JSON/Gemini tanpa merusak line-break TeX.
+ s=s.replace(/\\\\(?=[A-Za-z])/g,'\\');
+ // Normalisasi simbol Unicode umum menjadi TeX agar konsisten.
+ s=s.replace(/×/g,'\\times ').replace(/·/g,'\\cdot ').replace(/≤/g,'\\le ').replace(/≥/g,'\\ge ')
+    .replace(/≠/g,'\\ne ').replace(/≈/g,'\\approx ').replace(/→/g,'\\to ').replace(/∞/g,'\\infty ')
+    .replace(/√\s*([A-Za-z0-9]+)/g,'\\sqrt{$1}').replace(/μ/g,'\\mu ').replace(/θ/g,'\\theta ')
+    .replace(/Δ/g,'\\Delta ').replace(/π/g,'\\pi ');
+ const hasDelimited=/(\$[^$]+\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\])/.test(s);
+ if(!hasDelimited){
+   const hasTex=/\\[A-Za-z]+|[\^_]\s*(?:\{[^}]*\}|[-+]?\d+(?:\/\d+)?)|\b[A-Za-z]\s*=\s*[-+A-Za-z0-9]/.test(s);
    if(hasTex){
-     // Untuk opsi/jawaban pendek, seluruh isi aman dijadikan satu ekspresi matematika.
-     const looksShort=s.length<140&&!/[.!?]\s/.test(s);
-     if(looksShort) s='\\('+s+'\\)';
-     else {
-       // Untuk kalimat panjang, bungkus fragmen matematika yang jelas saja.
-       s=s.replace(/((?:[A-Za-z0-9{}()[\].,+\-*/=<>]\s*)*(?:\\[A-Za-z]+|[\^_]\s*(?:\{[^}]*\}|[-+]?\d+(?:\/\d+)?))(?:[A-Za-z0-9{}()[\].,+\-*/=<>]|\\[A-Za-z]+|\s)*)/g,m=>'\\('+m.trim()+'\\)');
+     const looksShort=s.length<160&&!/[.!?]\s/.test(s);
+     if(looksShort)s='\\('+s+'\\)';
+     else{
+       // Bungkus baris/fragmen yang jelas berupa persamaan; kalimat biasa tetap teks.
+       s=s.split('\n').map(line=>{
+         const t=line.trim();
+         if(!t)return line;
+         const mathish=/\\[A-Za-z]+|[\^_]|\b[A-Za-z][A-Za-z0-9_]*\s*=|\\frac|\\sqrt/.test(t);
+         const prose=/\s(?:adalah|dengan|maka|sehingga|diketahui|ditanya|jawaban|hitung|besar|pada|yang)\s/i.test(t);
+         return mathish&&!prose?'\\('+t+'\\)':line;
+       }).join('\n');
      }
    }
  }
