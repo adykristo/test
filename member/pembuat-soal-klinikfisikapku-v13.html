@@ -918,70 +918,56 @@ function aiQuestion(i){
 let aiDrafts=[];
 async function generateAIBatch(batchCount){
  let n=Math.max(1,Math.min(10,Number(batchCount)||1)),c=getConnection();
- let baseInstruction=($('aiMaterial').value||'').trim();
+ let baseInstruction=($('aiMaterial').value||'').trim(),type=$('aiType').value;
+ let pgRule=['pg4','pg5','mcma'].includes(type)?'WAJIB untuk setiap soal pilihan ganda: pertanyaan lengkap, semua opsi '+(type==='pg4'?'A-D':'A-E')+' lengkap, kunci jawaban, dan pembahasan lengkap. Jangan pernah mengosongkan opsi, kunci, atau pembahasan.':'';
  let payload={
-   jenjang:$('aiJenjang').value,
-   topik:$('aiTopik').value,
-   tipe:$('aiType').value,
-   sulit:$('aiDiff').value,
-   jumlah:n,
-   prompt:[baseInstruction,'WAJIB: Buat pembahasan siap pakai dan sistematis untuk setiap soal dengan urutan: Diketahui, Ditanya, Konsep fisika/persamaan yang digunakan, Penyelesaian langkah demi langkah, dan Jawaban akhir. Semua simbol, variabel, satuan berpangkat, pecahan, akar, vektor, dan persamaan WAJIB ditulis sebagai LaTeX valid di dalam delimiter $...$ untuk inline atau $...$ untuk display. Contoh: $m=30\\,\\text{g}$, $L=18{,}75\\,\\text{cm}$, $k=9\\times10^9\\,\\text{N m}^2/\\text{C}^2$, $\\theta=0{,}8$. Jangan menulis perintah LaTeX seperti \\text, \\mu, \\times, \\frac di luar delimiter matematika. Angka harus konsisten dan jangan menulis instruksi untuk admin.'].filter(Boolean).join('\n\n'),
-   instruksi:[baseInstruction,'Mata pelajaran: '+($('aiMapel').value||'Fisika'),'Mode: '+($('aiMode').value||'topic'),'Pembahasan wajib sistematis: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir.'].filter(Boolean).join('\n')
+   jenjang:$('aiJenjang').value,mapel:$('aiMapel').value||'Fisika',topik:$('aiTopik').value,tipe:type,sulit:$('aiDiff').value,jumlah:n,
+   prompt:[baseInstruction,pgRule,'Kembalikan setiap soal dengan field: question, opsi (array), kunci, pembahasan, type. Pembahasan wajib sistematis: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir. Semua rumus gunakan LaTeX valid dalam delimiter $...$.'].filter(Boolean).join('\n\n'),
+   instruksi:[baseInstruction,pgRule,'Jangan kirim soal yang belum memiliki komponen wajib.'].filter(Boolean).join('\n')
  };
  if(!c.url)throw new Error('URL Apps Script belum diisi pada menu Koneksi.');
- $('aiResults').innerHTML='<div class="notice">✨ Gemini sedang membuat '+n+' soal...</div>';
+ $('aiResults').innerHTML='<div class="notice">✨ Gemini sedang membuat '+n+' soal lengkap...</div>';
  let r=await postGAS('buatSoalGemini',payload).catch(async()=>await postGAS('generateAI',payload)).catch(async()=>await postGAS('generate',payload));
  if(!r||!Array.isArray(r.questions))throw new Error('Format respons Gemini tidak sesuai.');
  let batch=r.questions.map(normalizeAIQuestion);
- aiDrafts.push(...batch);renderAI();
+ // Reject incomplete PG drafts rather than silently showing partial questions.
+ batch.forEach((q,i)=>{
+   if(['pg4','pg5','mcma'].includes(q.type)){
+     let need=q.type==='pg4'?4:5;
+     if((q.answers?.options||[]).length<need||(q.answers?.options||[]).some(x=>!String(x||'').trim())||!(q.answers?.keys||[]).length||!String(q.explanation||'').trim())
+       throw new Error('Soal AI nomor '+(i+1)+' belum lengkap (opsi/kunci/pembahasan). Generate ulang.');
+   }
+ });
  return batch;
 }
-
+let aiDrafts=[],aiEditorQueue=[],aiEditorIndex=0;
 async function generateAI(){
- let total=Math.max(1,Math.min(50,Number($('aiCount').value)||1));
- aiDrafts=[];renderAI();
- let remaining=total,all=[],batchNo=0,totalBatches=Math.ceil(total/10);
- let btn=event?.currentTarget; if(btn)btn.disabled=true;
+ let total=Math.max(1,Math.min(50,Number($('aiCount').value)||1));aiDrafts=[];aiEditorQueue=[];aiEditorIndex=0;renderAI();
+ let remaining=total,all=[],batchNo=0,totalBatches=Math.ceil(total/10),btn=event?.currentTarget;if(btn)btn.disabled=true;
  try{
-   while(remaining>0){
-     let take=Math.min(10,remaining);batchNo++;
-     if($('aiStatus'))$('aiStatus').textContent=`AI membuat batch ${batchNo}/${totalBatches} (${take} soal)...`;
-     let before=packageDraft?.questions?.filter(Boolean).length||0;
-     let result=await generateAIBatch(take);
-     if(Array.isArray(result))all.push(...result);
-     remaining-=take;
-   }
-   if($('aiStatus'))$('aiStatus').textContent=`✓ Proses AI selesai: ${total} soal diminta dalam ${totalBatches} batch.`;
- }finally{if(btn)btn.disabled=false}
+   while(remaining>0){let take=Math.min(10,remaining);batchNo++;if($('aiStatus'))$('aiStatus').textContent='AI membuat batch '+batchNo+'/'+totalBatches+' ('+take+' soal lengkap)...';let result=await generateAIBatch(take);all.push(...result);remaining-=take;}
+   aiDrafts=all;aiEditorQueue=all.map(q=>JSON.parse(JSON.stringify(q)));aiEditorIndex=0;renderAI();
+   if(aiEditorQueue.length){loadAIQueueToEditor(0);if($('aiStatus'))$('aiStatus').textContent='✓ '+all.length+' soal selesai. Soal 1 sudah dimasukkan ke Editor Soal untuk diperiksa.';}
+ }catch(e){$('aiResults').innerHTML='<div class="notice bad">✗ '+esc(e.message)+'</div>';if($('aiStatus'))$('aiStatus').textContent='✗ Generate gagal: '+e.message;}
+ finally{if(btn)btn.disabled=false}
  return all;
 }
-
+function loadAIQueueToEditor(i){
+ if(!aiEditorQueue.length)return;aiEditorIndex=Math.max(0,Math.min(aiEditorQueue.length-1,i));loadQuestion(aiEditorQueue[aiEditorIndex]);
+ if($('editorTitle'))$('editorTitle').textContent='Review Soal AI '+(aiEditorIndex+1)+' dari '+aiEditorQueue.length;
+ let st=$('draftStatus');if(st)st.textContent='Periksa pertanyaan, opsi, kunci, dan pembahasan. Simpan ke Bank Soal setelah benar.';
+}
 function renderAI(){
  const el=$('aiResults');if(!el)return;
  if(!aiDrafts.length){el.innerHTML='<div class="empty">Belum ada hasil AI.</div>';return}
- el.innerHTML=`<div class="actions" style="margin:0 0 12px"><button class="btn ok" onclick="acceptAllAI()">✓ Terima Semua ke Bank Soal (${aiDrafts.length})</button><span class="small">Semua soal disimpan sebagai Draft dan tetap dapat diedit sebelum dipublish.</span></div>`+
- aiDrafts.map((q,i)=>`<div class="bankitem"><div class="tags"><span class="tag">${typeName(q.type)}</span><span class="tag">${esc(q.difficulty)}</span><span class="tag">Draft AI</span></div><h3>${esc(q.question)}</h3><div class="actions"><button class="btn sm primary" onclick="editAIDraft(${i})">Edit di Editor</button><button class="btn sm ok" onclick="acceptAI(${i})">Terima ke Bank</button><button class="btn sm" onclick="regenAI(${i})">Regenerate</button><button class="btn sm danger" onclick="aiDrafts.splice(${i},1);renderAI()">Hapus</button></div></div>`).join('');typesetMath('aiResults');
+ el.innerHTML='<div class="notice good"><b>'+aiDrafts.length+' soal lengkap berhasil dibuat.</b> Alur: Gemini → Editor Soal → periksa/edit → Simpan Soal → Bank Soal.</div>'+
+ aiDrafts.map((q,i)=>'<div class="bankitem"><div class="tags"><span class="tag">'+typeName(q.type)+'</span><span class="tag">'+esc(q.difficulty)+'</span><span class="tag">Menunggu Review</span></div><h3>'+esc(q.question)+'</h3><div class="small">Opsi: '+((q.answers?.options||[]).length)+' • Kunci: '+((q.answers?.keys||[]).map(k=>'ABCDE'[k]).join(', ')||'-')+' • Pembahasan: '+(q.explanation?'Ada':'Belum ada')+'</div><div class="actions"><button class="btn sm primary" onclick="loadAIQueueToEditor('+i+')">Buka di Editor</button></div></div>').join('');
+ typesetMath('aiResults');
 }
-function editAIDraft(i){loadQuestion(aiDrafts[i])}
-function prepareAIBankQuestion(q){
- const x=JSON.parse(JSON.stringify(q));x.status='Draft';x.reviewStatus='reviewed';x.reviewedAt=new Date().toISOString();x.updatedAt=new Date().toISOString();return x;
-}
-function acceptAI(i){
- const q=aiDrafts[i];if(!q)return;
- let b=bank(),x=prepareAIBankQuestion(q);
- if(!b.some(z=>z.id===x.id))b.unshift(x);
- setBank(b);aiDrafts.splice(i,1);renderAI();
-}
-function acceptAllAI(){
- if(!aiDrafts.length)return;
- let b=bank(),ids=new Set(b.map(x=>x.id)),added=0;
- aiDrafts.forEach(q=>{let x=prepareAIBankQuestion(q);if(!ids.has(x.id)){b.unshift(x);ids.add(x.id);added++}});
- setBank(b);aiDrafts=[];renderAI();
- if($('aiStatus'))$('aiStatus').textContent='✓ '+added+' soal AI tersimpan ke Bank Soal sebagai Draft.';
- alert(added+' soal berhasil masuk ke Bank Soal sebagai Draft.');
-}
-function regenAI(i){aiDrafts[i]=aiQuestion(i);renderAI()}
-
+function editAIDraft(i){loadAIQueueToEditor(i)}
+function acceptAI(){alert('Soal AI harus diperiksa di Editor Soal terlebih dahulu. Setelah benar, gunakan tombol Simpan Soal untuk memasukkannya ke Bank Soal.')}
+function acceptAllAI(){alert('Untuk keamanan kualitas, soal AI tidak lagi masuk langsung ke Bank Soal. Periksa setiap soal melalui Editor Soal lalu Simpan Soal.')}
+function regenAI(i){alert('Gunakan Generate Draft kembali untuk membuat ulang soal.')}
 function pickFormulaImageForExplanation(){const x=$('formulaImageInput');if(x)x.click()}
 function fileToBase64Payload(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({mimeType:file.type||'image/png',data:String(r.result).split(',')[1]||''});r.onerror=reject;r.readAsDataURL(file)})}
 async function convertFormulaImage(input){
@@ -1099,18 +1085,20 @@ function cleanAIMathText(v){
 }
 function normalizeAIQuestion(q){
  let type=String(q.type||q.tipe||$('aiType').value).toLowerCase(),n=type==='pg4'?4:5;
- let options=(Array.isArray(q.opsi)?q.opsi:(q.answers?.options||[])).map(cleanAIMathText);
- let rawKey=q.kunci!==undefined?q.kunci:q.answers?.keys;
- let keyList=Array.isArray(rawKey)?rawKey:String(rawKey??'').split(',').map(x=>x.trim()).filter(Boolean);
- let keys=keyList.map(x=>typeof x==='number'?x:'ABCDE'.indexOf(String(x).trim().toUpperCase())).filter(x=>x>=0);
- let answers=q.answers?JSON.parse(JSON.stringify(q.answers)):{options:options.slice(0,n),keys,short:'',essayKey:'',statements:[]};
- if(['pg5','pg4','mcma'].includes(type)){answers.options=options.slice(0,n);answers.keys=keys.length?keys:(answers.keys||[]);}
- if(type==='kategori'){
-   answers.statements=(q.statements||answers.statements||[]).map(x=>({text:cleanAIMathText(x.text||x.pernyataan||''),image:x.image||'',answer:x.answer||x.key||x.kunci||'Benar'}));
- }
+ let rawOptions=q.opsi||q.options||q.pilihan||q.choices||q.answers?.options||[];
+ if(rawOptions&&typeof rawOptions==='object'&&!Array.isArray(rawOptions))rawOptions=Object.keys(rawOptions).sort().map(k=>rawOptions[k]);
+ let options=(Array.isArray(rawOptions)?rawOptions:[]).map(x=>cleanAIMathText(typeof x==='object'?(x.text||x.value||x.label||''):x));
+ let rawKey=q.kunci??q.answer??q.correctAnswer??q.jawaban_benar??q.answers?.keys??q.answers?.key??'';
+ let keyList=Array.isArray(rawKey)?rawKey:String(rawKey??'').split(/[|,;\s]+/).map(x=>x.trim()).filter(Boolean);
+ let keys=keyList.map(x=>typeof x==='number'?x:(/^\d+$/.test(String(x))?Number(x):'ABCDE'.indexOf(String(x).trim().toUpperCase().replace(/[^A-E]/g,'')))).filter(x=>x>=0&&x<n);
+ let answers={options:options.slice(0,n),keys,short:'',essayKey:'',statements:[]};
+ if(q.answers&&typeof q.answers==='object')answers=Object.assign(answers,JSON.parse(JSON.stringify(q.answers)));
+ if(['pg5','pg4','mcma'].includes(type)){answers.options=options.length?options.slice(0,n):(answers.options||[]).slice(0,n);answers.keys=keys.length?keys:(answers.keys||[]);}
+ if(type==='kategori')answers.statements=(q.statements||q.pernyataan||answers.statements||[]).map(x=>({text:cleanAIMathText(x.text||x.pernyataan||''),image:x.image||'',answer:x.answer||x.key||x.kunci||'Benar'}));
  if(type==='isian')answers={options:[],keys:[],short:cleanAIMathText(q.jawaban||q.short||answers.short||rawKey||''),essayKey:'',statements:[]};
  if(type==='esai')answers={options:[],keys:[],short:'',essayKey:cleanAIMathText(q.jawaban||q.essayKey||answers.essayKey||rawKey||''),statements:[]};
- return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||q.sulit||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:cleanAIMathText(q.question||q.soal||''),image:q.image||'',imageRotation:Number(q.imageRotation)||0,answers,explanation:cleanAIMathText(q.explanation||q.pembahasan||''),explanationImage:q.explanationImage||'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:q.source||'Gemini AI',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()};
+ let explanation=cleanAIMathText(q.explanation||q.pembahasan||q.solution||q.solusi||q.penjelasan||'');
+ return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||q.sulit||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:cleanAIMathText(q.question||q.soal||q.pertanyaan||''),image:q.image||'',imageRotation:Number(q.imageRotation)||0,answers,explanation,explanationImage:q.explanationImage||'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:q.source||'Gemini AI',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()};
 }
 async function importDocx(file){
  if(!window.mammoth){$('importResult').innerHTML='<div class="notice bad">Library DOCX belum termuat. Pastikan internet aktif saat membuka halaman.</div>';return}
