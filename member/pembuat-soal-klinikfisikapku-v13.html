@@ -531,6 +531,11 @@ function bank(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){
 function setBank(v){localStorage.setItem(KEY,JSON.stringify(v));updateCounts()}
 function uid(){return 'Q'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function typesetMath(root){
+ const el=typeof root==='string'?$(root):root;if(!el)return;
+ const run=()=>{try{if(window.MathJax?.typesetClear)MathJax.typesetClear([el]);if(window.MathJax?.typesetPromise)MathJax.typesetPromise([el]).catch(()=>{})}catch(e){}};
+ if(window.MathJax?.startup?.promise)window.MathJax.startup.promise.then(run).catch(()=>{});else setTimeout(run,0);
+}
 function typeName(t){return ({pg5:'PG 5 Opsi',pg4:'PG 4 Opsi',mcma:'PG Kompleks / MCMA',kategori:'PG Kompleks Kategori',isian:'Isian Singkat',esai:'Esai'})[t]||t}
 function nav(page){
  const target=document.getElementById('page-'+page);
@@ -621,9 +626,9 @@ function questionHTML(q,interactive=true){
  else h+=interactive?'<textarea id="pvEssay" placeholder="Tuliskan jawaban esai..."></textarea>':'<div class="notice">Jawaban esai</div>';
  return h;
 }
-function previewCurrent(){let q=collect();$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button class="btn primary" onclick='checkPreview(${JSON.stringify(q).replace(/'/g,"&#39;")})'>Periksa Jawaban</button></div><div id="pvResult"></div>`;$('previewModal').classList.add('show');if(window.MathJax?.typesetPromise)MathJax.typesetPromise([$ ('studentPreview')])}
+function previewCurrent(){let q=collect();$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button class="btn primary" onclick='checkPreview(${JSON.stringify(q).replace(/'/g,"&#39;")})'>Periksa Jawaban</button></div><div id="pvResult"></div>`;$('previewModal').classList.add('show');typesetMath('studentPreview')}
 function checkPreview(q){let ok=false,detail='';if(['pg5','pg4','mcma'].includes(q.type)){let chosen=[...document.querySelectorAll('#studentPreview input[name=pvans]:checked')].map(x=>Number(x.value)).sort();let keys=[...q.answers.keys].sort();ok=JSON.stringify(chosen)===JSON.stringify(keys);if(q.type==='mcma'&&q.scoring==='partial'){let hit=chosen.filter(x=>keys.includes(x)).length,wrong=chosen.filter(x=>!keys.includes(x)).length;let pct=Math.max(0,(hit-wrong)/keys.length);detail=` Skor parsial: ${Math.round(pct*100)}%.`}}else if(q.type==='kategori'){ok=[...document.querySelectorAll('#studentPreview .catans')].every(x=>x.value===q.answers.statements[Number(x.dataset.i)].answer)}else if(q.type==='isian')ok=($('pvShort').value||'').trim().toLowerCase()===(q.answers.short||'').trim().toLowerCase();else{detail='Esai memerlukan penilaian guru.'}
- $('pvResult').innerHTML=`<div class="notice ${q.type==='esai'?'':ok?'good':'bad'}" style="margin-top:12px">${q.type==='esai'?'Jawaban tersimpan untuk dinilai guru.':ok?'✓ Jawaban benar.':'✗ Jawaban belum benar.'}${detail}${q.explanation?`<div class="sep"></div><b>Pembahasan:</b><br>${esc(q.explanation).replace(/\n/g,'<br>')}`:''}</div>`}
+ $('pvResult').innerHTML=`<div class="notice ${q.type==='esai'?'':ok?'good':'bad'}" style="margin-top:12px">${q.type==='esai'?'Jawaban tersimpan untuk dinilai guru.':ok?'✓ Jawaban benar.':'✗ Jawaban belum benar.'}${detail}${q.explanation?`<div class="sep"></div><b>Pembahasan:</b><br>${esc(q.explanation).replace(/\n/g,'<br>')}`:''}</div>`};typesetMath('pvResult')
 function closeModal(id){$(id).classList.remove('show')}
 function duplicateCurrent(){editingId=null;$('editorTitle').textContent='Duplikat Soal';changed();alert('Draft diduplikat. Edit seperlunya lalu Simpan.')}
 function resetEditor(){if(!confirm('Bersihkan editor?'))return;editingId=null;currentType='pg5';answerState={options:['','','','',''],keys:[0],short:'',essayKey:'',statements:[{text:'',answer:'Benar'},{text:'',answer:'Salah'}]};['kelas','topik','subtopik','tags','question','qImageUrl','explanation'].forEach(x=>{if($(x))$(x).value=''});imageData='';explanationImageData='';imageRotation=0;if($('typeSelect'))$('typeSelect').value='pg5';renderAnswerEditor();updatePreview();validate()}
@@ -634,9 +639,9 @@ function loadQuestion(q){editingId=q.id||null;currentType=q.type||'pg5';['jenjan
 function editQ(id){let q=bank().find(x=>x.id===id);if(q)loadQuestion(q)}
 function dupQ(id){let q=bank().find(x=>x.id===id);if(!q)return;q=JSON.parse(JSON.stringify(q));q.id=uid();q.status='Draft';q.question+=' (variasi)';let b=bank();b.unshift(q);setBank(b);renderBank()}
 function delQ(id){if(!confirm('Hapus soal ini?'))return;setBank(bank().filter(x=>x.id!==id));renderBank()}
-function renderBank(){let b=bank(),s=($('bankSearch')?.value||'').toLowerCase(),t=$('bankType')?.value||'',l=$('bankLevel')?.value||'',d=$('bankDiff')?.value||'';let f=b.filter(q=>(!s||JSON.stringify(q).toLowerCase().includes(s))&&(!t||q.type===t)&&(!l||q.jenjang===l)&&(!d||q.difficulty===d));$('bankList').innerHTML=f.length?f.map(q=>`<div class="bankitem"><div style="display:flex;gap:10px;align-items:flex-start"><input class="bankSelect" type="checkbox" value="${q.id}" style="width:auto;margin-top:5px"><div style="flex:1"><div class="tags"><span class="tag">${typeName(q.type)}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.mapel)}</span><span class="tag">${esc(q.difficulty)}</span><span class="tag">${esc(q.status)}</span></div><h3>${esc(q.question).slice(0,180)||'(Tanpa pertanyaan)'}</h3><div class="small">${esc(q.topik)} ${q.tags?'• '+esc(q.tags):''}</div><div class="actions" style="margin-top:10px"><button class="btn sm primary" onclick="editQ('${q.id}')">Edit</button><button class="btn sm" onclick="dupQ('${q.id}')">Duplikat</button><button class="btn sm" onclick="previewBank('${q.id}')">Preview</button><button class="btn sm danger" onclick="delQ('${q.id}')">Hapus</button></div></div></div></div>`).join(''):'<div class="empty">Bank Soal masih kosong.</div>';updateCounts()}
+function renderBank(){let b=bank(),s=($('bankSearch')?.value||'').toLowerCase(),t=$('bankType')?.value||'',l=$('bankLevel')?.value||'',d=$('bankDiff')?.value||'';let f=b.filter(q=>(!s||JSON.stringify(q).toLowerCase().includes(s))&&(!t||q.type===t)&&(!l||q.jenjang===l)&&(!d||q.difficulty===d));$('bankList').innerHTML=f.length?f.map(q=>`<div class="bankitem"><div style="display:flex;gap:10px;align-items:flex-start"><input class="bankSelect" type="checkbox" value="${q.id}" style="width:auto;margin-top:5px"><div style="flex:1"><div class="tags"><span class="tag">${typeName(q.type)}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.mapel)}</span><span class="tag">${esc(q.difficulty)}</span><span class="tag">${esc(q.status)}</span></div><h3>${esc(q.question).slice(0,180)||'(Tanpa pertanyaan)'}</h3><div class="small">${esc(q.topik)} ${q.tags?'• '+esc(q.tags):''}</div><div class="actions" style="margin-top:10px"><button class="btn sm primary" onclick="editQ('${q.id}')">Edit</button><button class="btn sm" onclick="dupQ('${q.id}')">Duplikat</button><button class="btn sm" onclick="previewBank('${q.id}')">Preview</button><button class="btn sm danger" onclick="delQ('${q.id}')">Hapus</button></div></div></div></div>`).join(''):'<div class="empty">Bank Soal masih kosong.</div>';updateCounts();typesetMath('bankList')}
 function updateCounts(){let b=bank();$('bankCountTop').textContent=b.length;if($('statTotal')){$('statTotal').textContent=b.length;$('statReady').textContent=b.filter(x=>x.status==='Siap Pakai').length;$('statDraft').textContent=b.filter(x=>x.status==='Draft').length;$('statTypes').textContent=new Set(b.map(x=>x.type)).size}}
-function previewBank(id){let q=bank().find(x=>x.id===id);if(!q)return;$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button class="btn primary" onclick='checkPreview(${JSON.stringify(q).replace(/'/g,"&#39;")})'>Periksa Jawaban</button></div><div id="pvResult"></div>`;$('previewModal').classList.add('show')}
+function previewBank(id){let q=bank().find(x=>x.id===id);if(!q)return;$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button class="btn primary" onclick='checkPreview(${JSON.stringify(q).replace(/'/g,"&#39;")})'>Periksa Jawaban</button></div><div id="pvResult"></div>`;$('previewModal').classList.add('show');typesetMath('studentPreview')}
 function selectedIds(){return [...document.querySelectorAll('.bankSelect:checked')].map(x=>x.value)}
 function selectAllVisible(){document.querySelectorAll('.bankSelect').forEach(x=>x.checked=true)}
 function deleteSelected(){let ids=selectedIds();if(!ids.length)return alert('Pilih soal dahulu.');if(confirm('Hapus '+ids.length+' soal?')){setBank(bank().filter(x=>!ids.includes(x.id)));renderBank()}}
@@ -665,7 +670,7 @@ async function generateAIBatch(batchCount){
    tipe:$('aiType').value,
    sulit:$('aiDiff').value,
    jumlah:n,
-   prompt:[baseInstruction,'WAJIB: Buat pembahasan siap pakai dan sistematis untuk setiap soal dengan urutan: Diketahui, Ditanya, Konsep fisika/persamaan yang digunakan, Penyelesaian langkah demi langkah, dan Jawaban akhir. Gunakan LaTeX untuk semua rumus, angka konsisten, serta jangan menulis instruksi untuk admin.'].filter(Boolean).join('\n\n'),
+   prompt:[baseInstruction,'WAJIB: Buat pembahasan siap pakai dan sistematis untuk setiap soal dengan urutan: Diketahui, Ditanya, Konsep fisika/persamaan yang digunakan, Penyelesaian langkah demi langkah, dan Jawaban akhir. Semua simbol, variabel, satuan berpangkat, pecahan, akar, vektor, dan persamaan WAJIB ditulis sebagai LaTeX valid di dalam delimiter $...$ untuk inline atau $...$ untuk display. Contoh: $m=30\\,\\text{g}$, $L=18{,}75\\,\\text{cm}$, $k=9\\times10^9\\,\\text{N m}^2/\\text{C}^2$, $\\theta=0{,}8$. Jangan menulis perintah LaTeX seperti \\text, \\mu, \\times, \\frac di luar delimiter matematika. Angka harus konsisten dan jangan menulis instruksi untuk admin.'].filter(Boolean).join('\n\n'),
    instruksi:[baseInstruction,'Mata pelajaran: '+($('aiMapel').value||'Fisika'),'Mode: '+($('aiMode').value||'topic'),'Pembahasan wajib sistematis: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir.'].filter(Boolean).join('\n')
  };
  if(!c.url)throw new Error('URL Apps Script belum diisi pada menu Koneksi.');
@@ -806,6 +811,888 @@ async function syncOnline(){
  }catch(e){if(status){status.className='notice bad';status.textContent='✗ Sinkron gagal: '+(e?.message||e)}}
 }
 async function testAIConnection(){const st=$('connectionStatus');st.className='notice';st.textContent='Menguji Gemini melalui Apps Script...';try{let r=await postGAS('buatSoalGemini',{prompt:'Buat tepat 1 soal Fisika SMA sangat sederhana tentang gerak lurus untuk uji koneksi. Sertakan kunci dan pembahasan.',jumlah:1,tipe:'pg4',jenjang:'sma',topik:'Gerak Lurus'});if(!r||!Array.isArray(r.questions)||!r.questions.length)throw new Error(r?.message||'Gemini tidak mengembalikan questions[].');st.className='notice good';st.textContent='✓ Gemini AI aktif dan berhasil membuat soal uji.'}catch(e){st.className='notice bad';st.textContent='✗ Gemini belum terhubung: '+e.message}}
+function cleanAIMathText(v){
+ let s=String(v??'').replace(/\\\\\\\\/g,'\\\\');
+ // Repair common Gemini output where TeX commands accidentally sit just outside $ delimiters.
+ s=s.replace(/\$([^$\n]+)\$([ \\t]*)(\\\\(?:text|mathrm|mu|theta|Delta|pi|times|frac|sqrt|vec|cdot)\b(?:\{[^{}]*\})?)/g,(m,a,sp,b)=>'
+ let options=(Array.isArray(q.opsi)?q.opsi:(q.answers?.options||[])).map(cleanAIMathText);
+ let rawKey=q.kunci!==undefined?q.kunci:q.answers?.keys;
+ let keyList=Array.isArray(rawKey)?rawKey:String(rawKey??'').split(',').map(x=>x.trim()).filter(Boolean);
+ let keys=keyList.map(x=>typeof x==='number'?x:'ABCDE'.indexOf(String(x).trim().toUpperCase())).filter(x=>x>=0);
+ let answers=q.answers||{options:options.slice(0,n),keys,short:'',essayKey:'',statements:[]};
+ if(type==='isian')answers={options:[],keys:[],short:String(Array.isArray(rawKey)?rawKey[0]??'':rawKey??''),essayKey:'',statements:[]};
+ if(type==='esai')answers={options:[],keys:[],short:'',essayKey:String(Array.isArray(rawKey)?rawKey[0]??'':rawKey??''),statements:[]};
+ return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:cleanAIMathText(q.question||q.soal||''),image:q.image||'',imageRotation:0,answers,explanation:cleanAIMathText(q.explanation||q.pembahasan||''),explanationImage:'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:(q.source||'Gemini AI'),aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()}
+}
+async function importDocx(file){
+ if(!window.mammoth){$('importResult').innerHTML='<div class="notice bad">Library DOCX belum termuat. Pastikan internet aktif saat membuka halaman.</div>';return}
+ $('importResult').innerHTML='<div class="notice">Membaca teks dan gambar Word...</div>';
+ try{
+   const ab=await file.arrayBuffer(),images=[];
+   const html=await mammoth.convertToHtml({arrayBuffer:ab},{convertImage:mammoth.images.imgElement(async function(img){
+     const b64=await img.read('base64'),src='data:'+img.contentType+';base64,'+b64;images.push(src);return {src};
+   })});
+   const r=await mammoth.extractRawText({arrayBuffer:ab}),raw=(r.value||'').trim();
+   if(!raw)throw new Error('Tidak ada teks yang terbaca');
+   $('aiMaterial').value=raw;$('aiMode').value='material';
+   if(images.length&&!imageData&&!$('qImageUrl').value){imageData=images[0];showImage();changed()}
+   window.__V13_DOCX_IMAGES__=images;
+   $('importResult').innerHTML='<div class="notice good">✓ Word berhasil dibaca: '+raw.length+' karakter dan '+images.length+' gambar. Teks masuk ke Gemini Generator.'+(images.length?' Gambar pertama juga dimasukkan ke editor; gambar lain tetap tersedia selama sesi ini.':'')+'</div>';
+ }catch(e){$('importResult').innerHTML='<div class="notice bad">Gagal membaca DOCX: '+esc(e.message)+'</div>'}
+}
+function openCropper(){
+ let src=imageData||$('qImageUrl').value;if(!src)return alert('Masukkan/upload gambar terlebih dahulu.');
+ cropImg=new Image();cropImg.crossOrigin='anonymous';
+ cropImg.onload=()=>{let cv=$('cropCanvas'),max=800,scale=Math.min(1,max/cropImg.width);cv.width=Math.round(cropImg.width*scale);cv.height=Math.round(cropImg.height*scale);cv.getContext('2d').drawImage(cropImg,0,0,cv.width,cv.height);$('cropX').value=0;$('cropY').value=0;$('cropW').value=cv.width;$('cropH').value=cv.height;$('cropModal').classList.add('show')};
+ cropImg.onerror=()=>alert('Gambar URL tidak dapat diedit karena pembatasan CORS. Upload file gambar langsung agar crop berfungsi.');
+ cropImg.src=src;
+}
+function applyCrop(){
+ let cv=$('cropCanvas'),x=Math.max(0,Number($('cropX').value)||0),y=Math.max(0,Number($('cropY').value)||0),w=Math.max(1,Number($('cropW').value)||1),h=Math.max(1,Number($('cropH').value)||1);
+ x=Math.min(x,cv.width-1);y=Math.min(y,cv.height-1);w=Math.min(w,cv.width-x);h=Math.min(h,cv.height-y);
+ let out=document.createElement('canvas');out.width=w;out.height=h;out.getContext('2d').drawImage(cv,x,y,w,h,0,0,w,h);
+ imageData=out.toDataURL('image/jpeg',.9);$('qImageUrl').value='';imageRotation=0;showImage();changed();closeModal('cropModal');
+}
+(function loadConnUI(){setTimeout(()=>{let c=getConnection();if($('gasUrl')){$('gasUrl').value=c.url||'';$('storageMode').value=c.mode||'local'}},0)})();
+
+
+const PACKAGE_BANK_KEY='kf_package_bank_v1', PACKAGE_DRAFT_KEY='kf_package_draft_v1';
+let packageDraft={name:'',count:10,current:0,questions:Array(10).fill(null)};
+
+
+let practiceState={package:null,current:0,answers:[]};
+
+function startPractice(id){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ practiceState={package:JSON.parse(JSON.stringify(p)),current:0,answers:p.questions.map(()=>null)};
+ nav('practice');$('practiceStart').style.display='none';$('practiceResult').style.display='none';$('practiceWork').style.display='block';
+ $('practiceTitle').textContent=p.name;$('practiceMeta').textContent=p.questions.length+' soal';
+ renderPractice();
+}
+function exitPractice(){if(confirm('Keluar dari latihan? Jawaban latihan ini akan dihapus.')){practiceState={package:null,current:0,answers:[]};nav('bank')}}
+function practiceAnswered(i){
+ const a=practiceState.answers[i],q=practiceState.package?.questions[i];if(!q)return false;
+ if(['pg5','pg4'].includes(q.type))return Number.isInteger(a);
+ if(q.type==='mcma')return Array.isArray(a)&&a.length>0;
+ if(q.type==='kategori')return a&&Object.keys(a).length>0;
+ return typeof a==='string'&&a.trim()!=='';
+}
+function renderPractice(){
+ const p=practiceState.package;if(!p)return;let i=practiceState.current,q=p.questions[i],done=practiceState.answers.filter((_,j)=>practiceAnswered(j)).length;
+ $('practicePosition').textContent='Soal '+(i+1)+' dari '+p.questions.length;
+ $('practiceProgressBar').style.width=(done/p.questions.length*100)+'%';
+ $('practiceNumbers').innerHTML=p.questions.map((x,j)=>`<button class="${j===i?'current ':''}${practiceAnswered(j)?'answered':''}" onclick="goPractice(${j})">${j+1}</button>`).join('');
+ $('practiceQuestion').innerHTML=practiceQuestionHTML(q,i);
+ if(window.MathJax?.typesetPromise)MathJax.typesetPromise([$('practiceQuestion')]).catch(()=>{});
+}
+function practiceQuestionHTML(q,i){
+ let a=practiceState.answers[i],h=`<div style="font-size:16px"><b>${i+1}.</b> ${renderMathText(q.question||'')}</div>`;
+ if(q.image)h+=`<img class="qimg" src="${q.image}" style="transform:rotate(${q.imageRotation||0}deg)">`;
+ if(['pg5','pg4'].includes(q.type)){
+  (q.answers?.options||[]).forEach((o,k)=>{let im=q.answers?.optionImageData?.[k]||q.answers?.optionImages?.[k];h+=`<label class="student-option"><input type="radio" name="studentAnswer" ${a===k?'checked':''} onchange="setPracticeSingle(${k})"><b>${'ABCDE'[k]}.</b> ${renderMathText(o||'')}${im?`<br><img class="qimg" src="${im}">`:''}</label>`})
+ }else if(q.type==='mcma'){
+  (q.answers?.options||[]).forEach((o,k)=>{let im=q.answers?.optionImageData?.[k]||q.answers?.optionImages?.[k],checked=Array.isArray(a)&&a.includes(k);h+=`<label class="student-option"><input type="checkbox" ${checked?'checked':''} onchange="togglePracticeMulti(${k},this.checked)"><b>${'ABCDE'[k]}.</b> ${renderMathText(o||'')}${im?`<br><img class="qimg" src="${im}">`:''}</label>`})
+ }else if(q.type==='kategori'){
+  a=a||{};(q.answers?.statements||[]).forEach((x,k)=>h+=`<div class="student-option"><div>${k+1}. ${renderMathText(x.text||'')}</div><select onchange="setPracticeCategory(${k},this.value)"><option value="">Pilih jawaban</option><option ${a[k]==='Benar'?'selected':''}>Benar</option><option ${a[k]==='Salah'?'selected':''}>Salah</option></select></div>`)
+ }else if(q.type==='isian')h+=`<label>Jawaban</label><input id="studentTextAnswer" value="${esc(a||'')}" oninput="setPracticeText(this.value)" placeholder="Ketik jawaban...">`;
+ else h+=`<label>Jawaban Esai</label><textarea id="studentTextAnswer" oninput="setPracticeText(this.value)" placeholder="Tuliskan jawaban...">${esc(a||'')}</textarea>`;
+ return h;
+}
+function setPracticeSingle(k){practiceState.answers[practiceState.current]=k;renderPractice()}
+function togglePracticeMulti(k,on){let a=practiceState.answers[practiceState.current];if(!Array.isArray(a))a=[];a=on?[...new Set([...a,k])]:a.filter(x=>x!==k);practiceState.answers[practiceState.current]=a;renderPractice()}
+function setPracticeCategory(k,v){let a=practiceState.answers[practiceState.current]||{};a[k]=v;practiceState.answers[practiceState.current]=a;renderPractice()}
+function setPracticeText(v){practiceState.answers[practiceState.current]=v;let p=practiceState.package,done=practiceState.answers.filter((_,j)=>practiceAnswered(j)).length;$('practiceProgressBar').style.width=(done/p.questions.length*100)+'%';let b=$('practiceNumbers').children[practiceState.current];if(b)b.classList.toggle('answered',!!v.trim())}
+function goPractice(i){practiceState.current=i;renderPractice()}
+function practicePrev(){if(practiceState.current>0){practiceState.current--;renderPractice()}}
+function practiceNext(){if(practiceState.current<practiceState.package.questions.length-1){practiceState.current++;renderPractice()}}
+function normalizeTextAnswer(v){return String(v??'').trim().toLowerCase().replace(/\s+/g,' ')}
+function gradePracticeQuestion(q,a){
+ if(['pg5','pg4'].includes(q.type)){let ok=(q.answers?.keys||[])[0]===a;return {auto:true,score:ok?1:0,max:1,correct:ok}}
+ if(q.type==='mcma'){
+  let key=[...(q.answers?.keys||[])].sort((x,y)=>x-y),ans=Array.isArray(a)?[...a].sort((x,y)=>x-y):[],exact=key.length===ans.length&&key.every((x,i)=>x===ans[i]);
+  if(q.scoring==='partial'){
+   let opts=q.answers?.options?.length||5,good=ans.filter(x=>key.includes(x)).length,bad=ans.filter(x=>!key.includes(x)).length;
+   let score=Math.max(0,Math.min(1,(good/Math.max(1,key.length))-(bad/Math.max(1,opts-key.length))));
+   return {auto:true,score,max:1,correct:exact}
+  }
+  return {auto:true,score:exact?1:0,max:1,correct:exact}
+ }
+ if(q.type==='kategori'){
+  let st=q.answers?.statements||[],correct=st.filter((x,i)=>(a||{})[i]===x.answer).length,score=st.length?correct/st.length:0;
+  return {auto:true,score,max:1,correct:score===1}
+ }
+ if(q.type==='isian'){let ok=normalizeTextAnswer(a)===normalizeTextAnswer(q.answers?.short);return {auto:true,score:ok?1:0,max:1,correct:ok}}
+ return {auto:false,score:0,max:0,correct:null}
+}
+function studentAnswerText(q,a){
+ if(['pg5','pg4'].includes(q.type))return Number.isInteger(a)?('ABCDE'[a]+'. '+(q.answers?.options?.[a]||'')):'Belum dijawab';
+ if(q.type==='mcma')return Array.isArray(a)&&a.length?a.map(i=>'ABCDE'[i]).join(', '):'Belum dijawab';
+ if(q.type==='kategori')return (q.answers?.statements||[]).map((x,i)=>(i+1)+'. '+((a||{})[i]||'-')).join('; ');
+ return String(a||'Belum dijawab');
+}
+function finishPractice(){
+ const p=practiceState.package;if(!p)return;
+ let unanswered=p.questions.map((q,i)=>practiceAnswered(i)?null:i+1).filter(Boolean);
+ if(unanswered.length&&!confirm('Masih ada soal belum dijawab: '+unanswered.join(', ')+'. Tetap cek hasil?'))return;
+ let grades=p.questions.map((q,i)=>gradePracticeQuestion(q,practiceState.answers[i])),auto=grades.filter(g=>g.auto),manual=grades.filter(g=>!g.auto).length;
+ let earned=auto.reduce((a,g)=>a+g.score,0),max=auto.reduce((a,g)=>a+g.max,0),score=max?Math.round(earned/max*100):0;
+ let correct=auto.filter(g=>g.correct===true).length,wrong=auto.length-correct;
+ $('practiceWork').style.display='none';$('practiceResult').style.display='block';
+ $('practiceResult').innerHTML=`<div class="card"><h2>📊 Hasil Latihan — ${esc(p.name)}</h2>
+ <div class="result-summary"><div class="result-box"><b>${score}</b>Nilai Objektif</div><div class="result-box"><b>${correct}</b>Benar</div><div class="result-box"><b>${wrong}</b>Salah/Parsial</div><div class="result-box"><b>${manual}</b>Perlu Guru</div></div>
+ ${manual?'<div class="notice">Nilai di atas dihitung dari soal yang dapat dikoreksi otomatis. Jawaban esai perlu diperiksa guru.</div>':''}
+ <div class="actions"><button class="btn" onclick="retryPractice()">↻ Kerjakan Ulang</button><button class="btn primary" onclick="nav('bank')">Kembali ke Bank Soal</button></div></div>`+
+ p.questions.map((q,i)=>practiceResultItem(q,i,practiceState.answers[i],grades[i])).join('');
+ if(window.MathJax?.typesetPromise)MathJax.typesetPromise([$('practiceResult')]).catch(()=>{});
+}
+function practiceResultItem(q,i,a,g){
+ let cls=!g.auto?'manual':g.correct?'correct':'wrong',label=!g.auto?'Perlu diperiksa guru':g.correct?'Benar':g.score>0?'Sebagian benar':'Salah';
+ return `<div class="result-item ${cls}"><b>Soal ${i+1} — ${label}${g.auto&&g.score>0&&g.score<1?' ('+Math.round(g.score*100)+'%)':''}</b>
+ <div style="margin-top:6px">${renderMathText(q.question||'')}</div>
+ <div class="result-answer"><b>Jawaban siswa:</b> ${renderMathText(studentAnswerText(q,a))}</div>
+ <div class="result-answer"><b>Kunci:</b> ${renderMathText(answerKeyText(q))}</div>
+ ${q.explanation?`<div class="result-answer"><b>Pembahasan:</b> ${renderMathText(q.explanation)}</div>`:''}</div>`;
+}
+function retryPractice(){let p=practiceState.package;practiceState={package:p,current:0,answers:p.questions.map(()=>null)};$('practiceResult').style.display='none';$('practiceWork').style.display='block';renderPractice()}
+
+function showExportMenu(id,format){$('exportPackageId').value=id;$('exportFormat').value=format;$('exportModal').classList.add('show')}
+function runPackageExport(){
+ const id=$('exportPackageId').value,format=$('exportFormat').value,mode=$('exportContent').value;
+ closeModal('exportModal');
+ if(format==='docx')exportPackageDOCX(id,mode);else exportPackagePDF(id,mode);
+}
+function answerKeyText(q){
+ if(['pg5','pg4','mcma'].includes(q.type))return (q.answers?.keys||[]).map(i=>'ABCDE'[i]).join(', ')||'-';
+ if(q.type==='kategori')return (q.answers?.statements||[]).map((x,i)=>(i+1)+'. '+(x.answer||'-')).join('; ');
+ if(q.type==='isian')return q.answers?.short||'-';
+ if(q.type==='esai')return q.answers?.essayKey||'Dinilai guru';
+ return '-';
+}
+function stripLatexForExport(t){return String(t||'').replace(/\$\$/g,'').replace(/\$/g,'')}
+function dataUrlToUint8(dataUrl){
+ const b64=String(dataUrl).split(',')[1]||'',bin=atob(b64),u=new Uint8Array(bin.length);
+ for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;
+}
+async function imageSizeFromSrc(src,maxW=520,maxH=340){
+ return await new Promise(resolve=>{let im=new Image();im.onload=()=>{let r=Math.min(maxW/im.width,maxH/im.height,1);resolve({width:Math.round(im.width*r),height:Math.round(im.height*r)})};im.onerror=()=>resolve({width:320,height:200});im.src=src});
+}
+async function docxImageParagraph(src){
+ if(!src||!String(src).startsWith('data:image'))return null;
+ const d=window.docx,sz=await imageSizeFromSrc(src);
+ return new d.Paragraph({children:[new d.ImageRun({data:dataUrlToUint8(src),transformation:sz})],spacing:{after:120}});
+}
+async function exportPackageDOCX(id,mode){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ if(!window.docx||!window.saveAs)return alert('Library DOCX belum termuat. Pastikan internet aktif.');
+ const d=window.docx,children=[];
+ children.push(new d.Paragraph({text:p.name,heading:d.HeadingLevel.TITLE,alignment:d.AlignmentType.CENTER}));
+ children.push(new d.Paragraph({text:`Jumlah soal: ${p.questions.length}`,alignment:d.AlignmentType.CENTER,spacing:{after:300}}));
+ for(let n=0;n<p.questions.length;n++){
+  let q=p.questions[n],qtext=stripLatexForExport(q.question);
+  children.push(new d.Paragraph({children:[new d.TextRun({text:(n+1)+'. ',bold:true}),new d.TextRun(qtext)],spacing:{after:100}}));
+  let qi=await docxImageParagraph(q.image);if(qi)children.push(qi);
+  if(['pg5','pg4','mcma'].includes(q.type)){
+   for(let i=0;i<(q.answers?.options||[]).length;i++){
+    let opt=q.answers.options[i],img=q.answers?.optionImageData?.[i]||q.answers?.optionImages?.[i];
+    if(opt)children.push(new d.Paragraph({text:`   ${'ABCDE'[i]}. ${stripLatexForExport(opt)}`,spacing:{after:60}}));
+    let oi=await docxImageParagraph(img);if(oi)children.push(oi);
+   }
+  }else if(q.type==='kategori'){
+   (q.answers?.statements||[]).forEach((x,i)=>children.push(new d.Paragraph({text:`   ${i+1}) ${stripLatexForExport(x.text)}`,spacing:{after:60}})));
+  }
+  if(mode==='answers'||mode==='full')children.push(new d.Paragraph({children:[new d.TextRun({text:'Kunci: ',bold:true}),new d.TextRun(answerKeyText(q))],spacing:{before:100,after:80}}));
+  if(mode==='full'&&q.explanation)children.push(new d.Paragraph({children:[new d.TextRun({text:'Pembahasan: ',bold:true}),new d.TextRun(stripLatexForExport(q.explanation))],spacing:{after:180}}));
+  children.push(new d.Paragraph({text:'',spacing:{after:100}}));
+ }
+ const doc=new d.Document({sections:[{properties:{page:{margin:{top:720,right:720,bottom:720,left:720}}},children}]});
+ const blob=await d.Packer.toBlob(doc);saveAs(blob,(p.name||'paket-soal').replace(/[\\/:*?"<>|]/g,'_')+'.docx');
+}
+function printableQuestionHTML(q,n,mode){
+ let h=`<div class="print-q"><div class="qtext"><b>${n}.</b> ${renderMathText(q.question||'')}</div>`;
+ if(q.image)h+=`<img src="${q.image}" class="print-img">`;
+ if(['pg5','pg4','mcma'].includes(q.type)){
+  (q.answers?.options||[]).forEach((o,i)=>{h+=`<div class="print-opt"><b>${'ABCDE'[i]}.</b> ${renderMathText(o||'')}`;let im=q.answers?.optionImageData?.[i]||q.answers?.optionImages?.[i];if(im)h+=`<br><img src="${im}" class="print-img small-img">`;h+='</div>'})
+ }else if(q.type==='kategori'){(q.answers?.statements||[]).forEach((x,i)=>h+=`<div class="print-opt">${i+1}) ${renderMathText(x.text||'')}</div>`)}
+ else if(q.type==='isian')h+='<div class="answer-line">Jawaban: __________________________________________</div>';
+ else if(q.type==='esai')h+='<div class="essay-lines"></div>';
+ if(mode==='answers'||mode==='full')h+=`<div class="key"><b>Kunci:</b> ${esc(answerKeyText(q))}</div>`;
+ if(mode==='full'&&q.explanation)h+=`<div class="explain"><b>Pembahasan:</b> ${renderMathText(q.explanation)}</div>`;
+ return h+'</div>';
+}
+function exportPackagePDF(id,mode){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ const w=window.open('','_blank');if(!w)return alert('Pop-up diblokir browser. Izinkan pop-up untuk membuat PDF.');
+ const body=p.questions.map((q,i)=>printableQuestionHTML(q,i+1,mode)).join('');
+ w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(p.name)}</title>
+ <scr${'ipt'}>window.MathJax={tex:{inlineMath:[['$','$'],['\\\\(','\\\\)']]},svg:{fontCache:'global'}};<\/script>
+ <scr${'ipt'} src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\/script>
+ <style>@page{size:A4;margin:16mm}body{font-family:Arial,sans-serif;color:#111;font-size:12pt;line-height:1.45}h1{text-align:center;font-size:18pt;margin:0 0 4px}.meta{text-align:center;margin-bottom:22px;color:#555}.print-q{page-break-inside:avoid;margin:0 0 20px}.qtext{margin-bottom:8px}.print-opt{margin:5px 0 5px 22px}.print-img{display:block;max-width:520px;max-height:330px;margin:8px 0}.small-img{max-width:300px;max-height:180px}.key{margin-top:8px;padding:6px;background:#f1f1f1}.explain{margin-top:6px;padding:8px;border-left:3px solid #777;background:#fafafa}.answer-line{margin:12px 0}.essay-lines{height:100px;border-bottom:1px solid #aaa;background:repeating-linear-gradient(to bottom,transparent 0,transparent 23px,#ddd 24px)}.toolbar{position:fixed;right:15px;top:15px}@media print{.toolbar{display:none}}</style></head><body>
+ <button class="toolbar" onclick="window.print()">🖨 Simpan sebagai PDF</button><h1>${esc(p.name)}</h1><div class="meta">${p.questions.length} soal</div>${body}
+ <scr${'ipt'}>window.onload=()=>setTimeout(()=>window.print(),1000)<\/script></body></html>`);w.document.close();
+}
+
+function packageBank(){try{return JSON.parse(localStorage.getItem(PACKAGE_BANK_KEY)||'[]')}catch(e){return []}}
+function setPackageBank(v){localStorage.setItem(PACKAGE_BANK_KEY,JSON.stringify(v));renderPackageBank()}
+function savePackageDraftLocal(){
+ localStorage.setItem(PACKAGE_DRAFT_KEY,JSON.stringify(packageDraft));
+ let el=$('packageAutosaveStatus');
+ if(el){let now=new Date();el.textContent='✓ Draft tersimpan otomatis '+now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+}
+function loadPackageDraftLocal(){try{let x=JSON.parse(localStorage.getItem(PACKAGE_DRAFT_KEY)||'null');if(x&&Array.isArray(x.questions)){packageDraft=x;$('packageName').value=x.name||'';$('packageCount').value=x.questions.length}}catch(e){}}
+function startQuestionPackage(){let count=Math.max(1,Math.min(50,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
+function packageQuestionValid(q){if(!q||!(q.question||q.image))return false;if(['pg5','pg4','mcma'].includes(q.type))return (q.answers?.options||[]).filter(x=>String(x||'').trim()).length>=2&&(q.answers?.keys||[]).length>0;if(q.type==='kategori')return (q.answers?.statements||[]).some(x=>String(x.text||'').trim());if(q.type==='isian')return !!String(q.answers?.short||'').trim();return true}
+function saveCurrentToPackage(){
+ packageDraft.name=($('packageName').value||'').trim()||'Paket Soal';
+ let q=collect(),issues=packageQuestionIssues(q);
+ q.id=q.id||uid();q.packageIndex=packageDraft.current+1;q.updatedAt=new Date().toISOString();
+ packageDraft.questions[packageDraft.current]=q;
+ savePackageDraftLocal();renderPackageNavigator();
+ $('draftStatus').textContent=issues.length?'⚠ Soal '+(packageDraft.current+1)+' tersimpan, tetapi: '+issues.join(' • '):'✓ Soal '+(packageDraft.current+1)+' tersimpan dan lengkap.';
+ return issues.length===0;
+}
+function renderPackageNavigator(){let n=packageDraft.questions.length||1,done=packageDraft.questions.filter(packageQuestionValid).length;$('packagePosition').textContent='Soal '+(packageDraft.current+1)+' dari '+n;$('packageDone').textContent='• '+done+' selesai';$('packageProgressBar').style.width=(done/n*100)+'%';$('questionNumberNav').innerHTML=packageDraft.questions.map((q,i)=>`<button class="${i===packageDraft.current?'current ':''}${packageQuestionValid(q)?'done':''}" onclick="goPackageQuestion(${i})">${i+1}${packageQuestionValid(q)?'✓':''}</button>`).join('')}
+function editorHasContent(){return !!(($('question')?.value||'').trim()||($('explanation')?.value||'').trim()||imageData||($('qImageUrl')?.value||'').trim()||(answerState.options||[]).some(x=>String(x||'').trim())||String(answerState.short||'').trim()||String(answerState.essayKey||'').trim()||(answerState.statements||[]).some(x=>String(x?.text||'').trim()))}
+function goPackageQuestion(i){if(i<0||i>=packageDraft.questions.length)return;if(editorHasContent())saveCurrentToPackage();packageDraft.current=i;let q=packageDraft.questions[i];q?loadPackageQuestionToEditor(q):clearPackageEditor(false);renderPackageNavigator();savePackageDraftLocal()}
+function packagePrev(){if(packageDraft.current>0)goPackageQuestion(packageDraft.current-1)}
+function packageNext(){if(packageDraft.current<packageDraft.questions.length-1)goPackageQuestion(packageDraft.current+1)}
+function loadPackageQuestionToEditor(q){currentType=q.type||'pg5';if($('typeSelect'))$('typeSelect').value=currentType;['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','explanation','scoring'].forEach(id=>{if($(id)&&q[id]!==undefined)$(id).value=q[id]});imageData=q.image||'';imageRotation=q.imageRotation||0;answerState=JSON.parse(JSON.stringify(q.answers||{}));initAnswersForType(false);renderAnswerEditor();showImage();updatePreview();validate()}
+function clearPackageEditor(render=true){currentType='pg5';if($('typeSelect'))$('typeSelect').value='pg5';['kelas','topik','subtopik','tags','question','qImageUrl','explanation'].forEach(id=>{if($(id))$(id).value=''});imageData='';imageRotation=0;answerState={};initAnswersForType(true);renderAnswerEditor();showImage();updatePreview();validate();if(render)renderPackageNavigator()}
+
+function packageQuestionIssues(q){
+ let issues=[];
+ if(!q){return ['Soal belum dibuat'];}
+ if(!String(q.question||'').trim()&&!q.image)issues.push('Pertanyaan belum diisi');
+ if(['pg5','pg4','mcma'].includes(q.type)){
+   let required=q.type==='pg5'?5:q.type==='pg4'?4:2;
+   let opts=(q.answers?.options||[]).filter(x=>String(x||'').trim());
+   if(opts.length<required)issues.push('Pilihan jawaban belum lengkap');
+   if(!(q.answers?.keys||[]).length)issues.push('Kunci jawaban belum dipilih');
+ }
+ if(q.type==='kategori'){
+   let st=q.answers?.statements||[];
+   if(!st.length)issues.push('Pernyataan kategori belum dibuat');
+   if(st.some(x=>!String(x.text||'').trim()||!x.answer))issues.push('Pernyataan/kategori jawaban belum lengkap');
+ }
+ if(q.type==='isian'&&!String(q.answers?.short||'').trim())issues.push('Kunci isian belum diisi');
+ return issues;
+}
+function reviewPackage(){
+ if(editorHasContent())saveCurrentToPackage();
+ let total=packageDraft.questions.length,details=packageDraft.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)}));
+ let bad=details.filter(x=>x.issues.length),ok=total-bad.length;
+ $('reviewPackageSummary').textContent=total+' soal • '+ok+' lengkap • '+bad.length+' perlu diperbaiki';
+ $('reviewPackageNumbers').innerHTML=details.map(x=>`<button class="${x.issues.length?'':'done'}" onclick="closeModal('reviewPackageModal');goPackageQuestion(${x.i})" title="${esc(x.issues.join(', ')||'Lengkap')}">${x.i+1}${x.issues.length?'⚠':'✓'}</button>`).join('');
+ $('reviewPackageIssues').innerHTML=bad.length
+  ? '<div class="notice"><b>Perlu diperbaiki:</b></div>'+bad.map(x=>`<div class="result-item wrong"><b>Soal ${x.i+1}</b><div class="small">${x.issues.map(esc).join(' • ')}</div><button class="btn sm" style="margin-top:7px" onclick="closeModal('reviewPackageModal');goPackageQuestion(${x.i})">Perbaiki Soal</button></div>`).join('')
+  : '<div class="notice" style="border-color:#86d7a2;background:#ecfdf3!important"><b>✓ Semua soal sudah lengkap dan siap disimpan ke Bank Soal.</b></div>';
+ $('reviewSaveBtn').disabled=bad.length>0;
+ $('reviewSaveBtn').title=bad.length?'Lengkapi soal yang ditandai sebelum menyimpan paket.':'Simpan paket ke Bank Soal';
+ $('reviewPackageModal').classList.add('show');
+}
+
+async 
+async function v12ProcessPaste(){const text=($('v12PasteMaterial')?.value||'').trim(),st=$('v12PasteStatus');if(!text)return alert('Tempel teks soal terlebih dahulu.');const instr=[$('v12Translate')?.checked?'Terjemahkan teks asing ke Bahasa Indonesia.':'',$('v12RelevantImage')?.checked?'Pertahankan hanya gambar/diagram relevan.':'',$('v12MakeKey')?.checked?'Lengkapi kunci dan pembahasan sistematis bila belum tersedia.':'',$('v12Validate')?.checked?'Validasi satuan, angka, opsi, dan kecocokan kunci.':'',$('v12Variation')?.checked?'Buat satu variasi soal.':''].filter(Boolean).join('\n');try{if(st)st.textContent='✨ Gemini sedang menyusun soal...';let r=await postGAS('processText',{text:text+'\n\n'+instr,jenjang:$('v12PackageLevel')?.value||'SMA',topik:$('v12PackageTopic')?.value||'Umum',jumlah:Math.max(1,Math.min(50,Number($('packageCount')?.value)||10))});if(!r||!Array.isArray(r.questions))throw new Error('Respons Gemini tidak berisi daftar soal.');const qs=r.questions.map(normalizeAIQuestion);packageDraft.name=$('v12PackageTitle')?.value||'Paket Soal';packageDraft.count=qs.length;packageDraft.current=0;packageDraft.questions=qs;$('packageName').value=packageDraft.name;$('packageCount').value=qs.length;savePackageDraftLocal();loadPackageQuestionToEditor(qs[0]);renderPackageNavigator();if(st)st.textContent='✓ '+qs.length+' soal masuk ke Daftar Soal. Periksa sebelum publish.';$('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){if(st)st.textContent='✗ '+(e?.message||e)}}
+function v12PublicationMeta(){return{name:($('v12PackageTitle')?.value||$('packageName')?.value||packageDraft.name||'Paket Soal').trim(),kind:$('v12PackageKind')?.value||'latihan',duration:Number($('v12PackageDuration')?.value)||0,attempts:Math.max(1,Number($('v12PackageAttempts')?.value)||1),start:$('v12PackageStart')?.value||null,end:$('v12PackageEnd')?.value||null,subscription:'Semua Paket Aktif',sourceVersion:13}}
+async function v12PublishPackageAs(id,kind){const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');const pub=Object.assign({},p,v12PublicationMeta(),{kind:kind||p.kind||'latihan',name:p.name||v12PublicationMeta().name});try{if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');await window.KFPackagePublisher.publish(pub);const now=new Date().toISOString();setPackageBank(packageBank().map(x=>x.id===id?Object.assign({},x,pub,{published:true,publishedAt:now,updatedAt:now}):x));alert('✓ Paket berhasil diterbitkan sebagai '+(pub.kind==='tryout'?'Tryout':'Latihan Interaktif')+' dan tersimpan di Supabase.')}catch(e){console.error('[V12 publish]',e);alert('Gagal publish ke Supabase: '+(e?.message||e))}}
+async function savePackageToBank(fromReview=false){
+ if(editorHasContent())saveCurrentToPackage();
+ let bad=packageDraft.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
+ if(bad.length){reviewPackage();return}
+ if(!fromReview){reviewPackage();return}
+ let arr=packageBank(),now=new Date().toISOString(),pack={
+   id:'PKG-'+Date.now(),
+   ...v12PublicationMeta(),
+   name:($('v12PackageTitle')?.value||$('packageName').value||packageDraft.name||'Paket Soal').trim(),
+   count:packageDraft.questions.length,
+   questions:JSON.parse(JSON.stringify(packageDraft.questions)),
+   createdAt:now,updatedAt:now
+ };
+ arr.unshift(pack);setPackageBank(arr);localStorage.removeItem(PACKAGE_DRAFT_KEY);
+ pack.published=false;
+ setPackageBank(packageBank().map(x=>x.id===pack.id?pack:x));
+ alert('Paket "'+pack.name+'" ('+pack.count+' soal) berhasil disimpan sebagai DRAFT di Bank Soal.\n\nGunakan tombol ▶ Latihan atau 🏆 Tryout saat paket sudah siap dipublikasikan ke Supabase.');
+}
+async function publishSavedPackage(id){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ try{
+   if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');
+   await window.KFPackagePublisher.publish(p);
+   p.published=true;p.publishedAt=new Date().toISOString();p.updatedAt=p.publishedAt;
+   setPackageBank(packageBank().map(x=>x.id===id?p:x));
+   alert('✓ Paket berhasil dipublikasikan ke Supabase V15.');
+ }catch(e){console.error('[V12 publish]',e);alert('Gagal publish ke Supabase: '+(e?.message||e));}
+}
+function renderPackageBank(){
+ let el=$('packageBankList');if(!el)return;let arr=packageBank();
+ if($('packageBankStats'))$('packageBankStats').textContent=arr.length+' Paket • '+arr.reduce((n,p)=>n+(p.questions?.length||0),0)+' Soal';
+ if(!arr.length){el.innerHTML='<div class="notice">Belum ada paket soal.</div>';return}
+ el.innerHTML=arr.map(p=>`<div class="bank-item">
+   <div><b>📦 ${esc(p.name)}</b><div class="small">${p.questions.length} soal • ${p.published?'☁️ TERBIT • Supabase':'📝 DRAFT • belum diterbitkan'}</div></div>
+   <div class="actions">
+    <button class="btn sm ok" onclick="startPractice('${p.id}')">▶ Kerjakan</button>
+    <button class="btn sm primary" onclick="v12PublishPackageAs('${p.id}','latihan')">▶ Latihan</button><button class="btn sm pink" onclick="v12PublishPackageAs('${p.id}','tryout')">🏆 Tryout</button>
+    <button class="btn sm" onclick="openSavedPackage('${p.id}')">Buka/Edit</button>
+    <button class="btn sm" onclick="showExportMenu('${p.id}','docx')">⬇ DOCX</button>
+    <button class="btn sm" onclick="showExportMenu('${p.id}','pdf')">⬇ PDF</button>
+    <button class="btn sm" onclick="duplicateSavedPackage('${p.id}')">Duplikat</button>
+    <button class="btn sm danger" onclick="deleteSavedPackage('${p.id}')">Hapus</button>
+   </div></div>`).join('');
+}
+function openSavedPackage(id){let p=packageBank().find(x=>x.id===id);if(!p)return;packageDraft={name:p.name,count:p.questions.length,current:0,questions:JSON.parse(JSON.stringify(p.questions))};$('packageName').value=p.name;$('packageCount').value=p.questions.length;savePackageDraftLocal();loadPackageQuestionToEditor(packageDraft.questions[0]);renderPackageNavigator();nav('buat')}
+function duplicateSavedPackage(id){let arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return;let c=JSON.parse(JSON.stringify(p));c.id='PKG-'+Date.now();c.name=p.name+' (Salinan)';c.published=false;delete c.publishedAt;c.createdAt=c.updatedAt=new Date().toISOString();arr.unshift(c);setPackageBank(arr)}
+function deleteSavedPackage(id){if(confirm('Hapus paket soal ini?'))setPackageBank(packageBank().filter(x=>x.id!==id))}
+
+$('qFormulaBar').innerHTML=formulaBar('question');$('exFormulaBar').innerHTML=formulaBar('explanation');
+loadPackageDraftLocal();initAnswersForType(true);renderAnswerEditor();updatePreview();validate();updateCounts();renderPackageNavigator();renderPackageBank();
+</script>
+<script>
+function kembaliKeAdminV12(){if(window.opener&&!window.opener.closed){window.opener.focus();return}location.href="admin.html"}
+async function keluarAdminV12(){
+ if(!confirm("Keluar dari Admin Member Area?"))return;
+ try{
+  if(window.supabase&&window.KF_SUPABASE_CONFIG){const c=window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);await c.auth.signOut({scope:"local"})}
+  Object.keys(localStorage).filter(k=>k.startsWith("sb-")&&k.endsWith("-auth-token")).forEach(k=>localStorage.removeItem(k));
+ }catch(e){}
+ if(window.opener&&!window.opener.closed)try{window.opener.location.replace("index.html?logged_out=1")}catch(e){}
+ location.replace("index.html?logged_out=1");
+}
+</script><script id="v12-pro-hash-nav">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+  if(location.hash){var el=document.querySelector(location.hash);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+ },500);
+});
+</script><script id="v13-unified-hub">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+  var host=document.getElementById('v12IsiSoal'); if(!host||document.getElementById('v13UnifiedHub'))return;
+  var box=document.createElement('div'); box.className='card'; box.id='v13UnifiedHub';
+  box.innerHTML='<h2>🧩 Satu Sistem Pembuat Soal V13</h2><div class="sub">Manual • Gemini AI • Word/DOCX • PDF/Crop • Tempel • Gambar/Rumus • Bank Soal → satu editor → Latihan/Tryout → Supabase.</div><div class="actions" style="margin-top:12px;flex-wrap:wrap"><button class="btn primary" data-go="manual">✍️ Manual</button><button class="btn pink" data-go="ai">✨ Gemini AI</button><button class="btn" data-go="word">📄 Word / DOCX</button><button class="btn" data-go="paste">📋 Tempel Soal</button><button class="btn" data-go="pdf">📕 PDF / Crop</button><button class="btn" data-go="formula">🧮 Rumus / Gambar</button><button class="btn" data-go="bank">📚 Bank Soal</button></div><div id="v13PdfPanel" style="display:none;margin-top:14px;padding:14px;border:1px dashed #cba9e8;border-radius:14px"><b>📕 Mesin PDF V13</b><div class="sub">Pilih PDF untuk memeriksa bahwa mesin PDF aktif. Fitur crop penuh akan memakai alur editor yang sama.</div><div class="notice">PDF Crop Studio akan dimuat di panel ini.</div></div>';
+  host.insertBefore(box,host.firstChild);
+  box.addEventListener('click',function(e){var b=e.target.closest('[data-go]');if(!b)return;var g=b.dataset.go;if(g==='manual')document.getElementById('v12EditorCard')?.scrollIntoView({behavior:'smooth'});if(g==='ai')document.getElementById('v12MovedAI')?.scrollIntoView({behavior:'smooth'});if(g==='word')document.getElementById('v12MovedImport')?.scrollIntoView({behavior:'smooth'});if(g==='paste')document.querySelector('.v12-paste-box')?.scrollIntoView({behavior:'smooth'});if(g==='pdf'){document.getElementById('v13PdfPanel').style.display='block';document.getElementById('v13PdfPanel').scrollIntoView({behavior:'smooth'})}if(g==='formula')document.getElementById('v12EditorCard')?.scrollIntoView({behavior:'smooth'});if(g==='bank'&&window.kfV12Navigate)kfV12Navigate('bank')});
+  
+ },350);
+});
+</script><style id="v13-pdf-crop-style">
+#v13PdfCanvasWrap{position:relative;display:inline-block;line-height:0}#v13PdfCanvas{display:block}#v13PdfSelection{position:absolute;display:none;border:2px solid #7b2ff7;background:rgba(123,47,247,.13);pointer-events:none}.v13-pdf-scroll{overflow:auto;max-height:650px;margin-top:10px;padding:10px;background:#ece8f0;border-radius:12px}
+</style>
+<script id="v13-pdf-crop-engine">
+(function(){
+ let pdf=null,pageno=1,selection=null,drag=false,start=null;
+ function msg(t){var e=document.getElementById('v13PdfMsg');if(e)e.textContent=t}
+ function pt(ev){var cv=document.getElementById('v13PdfCanvas'),r=cv.getBoundingClientRect();return{x:(ev.clientX-r.left)*cv.width/r.width,y:(ev.clientY-r.top)*cv.height/r.height}}
+ function box(){var b=document.getElementById('v13PdfSelection'),cv=document.getElementById('v13PdfCanvas');if(!b||!cv||!selection){if(b)b.style.display='none';return}var r=cv.getBoundingClientRect(),sx=r.width/cv.width,sy=r.height/cv.height,x=Math.min(selection.x0,selection.x1),y=Math.min(selection.y0,selection.y1);b.style.display='block';b.style.left=(x*sx)+'px';b.style.top=(y*sy)+'px';b.style.width=(Math.abs(selection.x1-selection.x0)*sx)+'px';b.style.height=(Math.abs(selection.y1-selection.y0)*sy)+'px'}
+ async function render(){if(!pdf)return;var p=await pdf.getPage(pageno),vp=p.getViewport({scale:1.5}),cv=document.getElementById('v13PdfCanvas');cv.width=vp.width;cv.height=vp.height;await p.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;selection=null;box();document.getElementById('v13PdfPage').textContent=pageno+' / '+pdf.numPages}
+ window.v13PdfLoadCrop=async function(){var file=document.getElementById('v13PdfFile').files[0];if(!file){msg('Pilih PDF terlebih dahulu.');return}try{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;pageno=1;document.getElementById('v13PdfCropWorkspace').style.display='block';await render();msg('✓ PDF siap. Seret kotak pada area soal atau opsi yang ingin diambil.')}catch(e){msg('Gagal membuka PDF: '+e.message)}};
+ window.v13PdfMove=async function(d){if(!pdf)return;pageno=Math.max(1,Math.min(pdf.numPages,pageno+d));await render()};
+ window.v13PdfCropQuestion=function(){if(!selection){msg('Kotakkan area soal terlebih dahulu.');return}var cv=document.getElementById('v13PdfCanvas'),x=Math.round(Math.min(selection.x0,selection.x1)),y=Math.round(Math.min(selection.y0,selection.y1)),w=Math.round(Math.abs(selection.x1-selection.x0)),h=Math.round(Math.abs(selection.y1-selection.y0));if(w<10||h<10){msg('Area crop terlalu kecil.');return}var out=document.createElement('canvas');out.width=w;out.height=h;out.getContext('2d').drawImage(cv,x,y,w,h,0,0,w,h);var data=out.toDataURL('image/png');try{clearEditor();var t=document.getElementById('v13PdfCropType').value;document.getElementById('typeSelect').value=t;changeType();document.getElementById('question').value='Perhatikan gambar berikut.';var target=prompt('Masukkan tujuan crop: SOAL atau A/B/C/D/E','SOAL')||'SOAL';target=target.trim().toUpperCase();if(target==='SOAL'){var iu=document.getElementById('qImageUrl');if(iu)iu.value=data;imageData=data;showImage()}else{var oi='ABCDE'.indexOf(target);if(oi<0)return msg('Tujuan crop tidak valid.');answerState.optionImageData=answerState.optionImageData||{};answerState.optionImageData[oi]=data;renderAnswerEditor()}updatePreview();changed();msg('✓ Crop masuk ke '+(target==='SOAL'?'gambar pertanyaan':'opsi '+target)+'.');document.getElementById('v12EditorCard').scrollIntoView({behavior:'smooth'})}catch(e){msg('Crop selesai tetapi editor menolak: '+e.message)}};
+ document.addEventListener('DOMContentLoaded',function(){setTimeout(function(){var old=document.getElementById('v13PdfPanel');if(!old)return;old.innerHTML='<b>📕 PDF Crop Studio</b><div class="sub">Sama seperti konsep Admin Tryout: buka PDF, pindah halaman, blok area soal, lalu masukkan hasilnya ke editor terpadu.</div><div class="row two" style="margin-top:10px"><div><label>PDF</label><input type="file" id="v13PdfFile" accept="application/pdf"></div><div><label>Tipe soal</label><select id="v13PdfCropType"><option value="pg5">PG 5 opsi</option><option value="pg4">PG 4 opsi</option><option value="isian">Isian singkat</option><option value="esai">Esai</option></select></div></div><div class="actions"><button type="button" class="btn primary" onclick="v13PdfLoadCrop()">📂 Muat PDF</button><button type="button" class="btn" onclick="v13PdfMove(-1)">◀</button><span class="tag" id="v13PdfPage">0 / 0</span><button type="button" class="btn" onclick="v13PdfMove(1)">▶</button><button type="button" class="btn pink" onclick="v13PdfCropQuestion()">✂ Jadikan Soal</button></div><div id="v13PdfMsg" class="notice" style="margin-top:8px">Siap.</div><div id="v13PdfCropWorkspace" class="v13-pdf-scroll" style="display:none"><div id="v13PdfCanvasWrap"><canvas id="v13PdfCanvas"></canvas><div id="v13PdfSelection"></div></div></div>';var cv=document.getElementById('v13PdfCanvas');cv.addEventListener('pointerdown',function(e){drag=true;start=pt(e);selection={x0:start.x,y0:start.y,x1:start.x,y1:start.y};box();cv.setPointerCapture(e.pointerId)});cv.addEventListener('pointermove',function(e){if(!drag)return;var p=pt(e);selection.x1=p.x;selection.y1=p.y;box()});cv.addEventListener('pointerup',function(){drag=false})},600)});
+})();
+</script><style id="v13-pro-bank-style">
+.v13-bankbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.v13-bankbar .btn{min-height:38px}.v13-bank-status{font-size:11px;color:#74667e}
+</style>
+<script id="v13-production-tools">
+(function(){
+ function $v(id){return document.getElementById(id)}
+ function selectedBank(){return Array.from(document.querySelectorAll('.bankSelect:checked')).map(x=>x.value)}
+ window.v13SelectAllBank=function(on){document.querySelectorAll('.bankSelect').forEach(x=>x.checked=on)}
+ window.v13SendSelectedToPackage=function(){
+  var ids=selectedBank();if(!ids.length)return alert('Pilih soal di Bank Soal terlebih dahulu.');
+  var src=bank().filter(q=>ids.includes(q.id));if(!src.length)return;
+  if(editorHasContent())saveCurrentToPackage();
+  src.forEach(function(q){var copy=JSON.parse(JSON.stringify(q));copy.id=uid();copy.source='Bank Soal';packageDraft.questions.push(copy)});
+  if(packageDraft.questions.length>1&&!editorHasContent()&&!packageQuestionValid(packageDraft.questions[0]))packageDraft.questions.shift();
+  packageDraft.current=Math.max(0,packageDraft.questions.length-src.length);
+  savePackageDraftLocal();loadPackageQuestionToEditor(packageDraft.questions[packageDraft.current]);renderPackageNavigator();nav('buat');
+  alert(src.length+' soal berhasil dimasukkan ke paket aktif.');
+ };
+ window.v13ExportBankJson=function(){
+  var ids=selectedBank(),rows=ids.length?bank().filter(q=>ids.includes(q.id)):bank();
+  var blob=new Blob([JSON.stringify({version:'V13',exportedAt:new Date().toISOString(),questions:rows},null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bank-soal-klinikfisikapku-v13.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+ };
+ window.v13ImportBankJson=function(input){
+  var file=input.files&&input.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var obj=JSON.parse(r.result),arr=Array.isArray(obj)?obj:obj.questions;if(!Array.isArray(arr))throw new Error('Format questions tidak ditemukan');var old=bank(),map=new Map(old.map(q=>[q.id,q]));arr.forEach(function(q){q=normalizeAIQuestion(q);map.set(q.id||uid(),q)});setBank(Array.from(map.values()));renderBank();alert(arr.length+' soal berhasil diimpor.')}catch(e){alert('Import JSON gagal: '+e.message)}input.value=''};r.readAsText(file);
+ };
+ window.v13ImproveQuestionAI=async function(){
+  var q=($v('question')?.value||'').trim();if(!q)return alert('Isi/buka soal terlebih dahulu.');
+  var st=$v('explanationAIStatus');if(st)st.textContent='✨ Gemini sedang merapikan soal...';
+  try{
+   var payload={prompt:'Rapikan redaksi soal berikut tanpa mengubah konsep, data, opsi, atau jawaban benar. Kembalikan hanya teks soal yang sudah rapi.\n\n'+q,jumlah:1,tipe:currentType,jenjang:$v('jenjang')?.value||'',topik:$v('topik')?.value||''};
+   var res=await postGAS('assistant',payload).catch(()=>postGAS('testAI',payload));
+   var text=res?.text||res?.message;if(!text)throw new Error('Gemini tidak mengembalikan teks.');
+   if(/^OK$/i.test(String(text).trim()))throw new Error('Endpoint AI hanya mengembalikan status tes, bukan hasil perapihan.');
+   $v('question').value=String(text).trim();$v('question').dispatchEvent(new Event('input'));if(st)st.textContent='✓ Redaksi soal diperbarui. Periksa kembali sebelum disimpan.';
+  }catch(e){if(st)st.textContent='✗ '+e.message}
+ };
+ document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(function(){
+   var editor=$v('v12EditorCard');
+   if(editor&&!$v('v13EditorAiTools')){
+    var bar=document.createElement('div');bar.id='v13EditorAiTools';bar.className='actions';bar.style.margin='0 0 12px';
+    bar.innerHTML='<button type="button" class="btn pink" onclick="v13ImproveQuestionAI()">✨ Rapikan Redaksi dengan Gemini</button><span class="small">Gemini yang sama dengan Apps Script admin; hasil tetap harus direview.</span>';
+    editor.insertBefore(bar,editor.firstChild);
+   }
+   var list=$v('bankList');
+   if(list&&!$v('v13BankTools')){
+    var bar=document.createElement('div');bar.id='v13BankTools';bar.className='v13-bankbar';
+    bar.innerHTML='<button type="button" class="btn sm" onclick="v13SelectAllBank(true)">☑ Pilih Semua</button><button type="button" class="btn sm" onclick="v13SelectAllBank(false)">☐ Lepas Semua</button><button type="button" class="btn sm primary" onclick="v13SendSelectedToPackage()">➕ Kirim ke Paket</button><button type="button" class="btn sm" onclick="v13ExportBankJson()">⬇ Export JSON</button><label class="btn sm" style="cursor:pointer">⬆ Import JSON<input type="file" accept=".json,application/json" style="display:none" onchange="v13ImportBankJson(this)"></label>';
+    list.parentNode.insertBefore(bar,list);
+   }
+  },700);
+ });
+})();
+</script><script id="v13-docx-gallery">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+  var r=document.getElementById('importResult');if(!r||document.getElementById('v13DocxGallery'))return;
+  var g=document.createElement('div');g.id='v13DocxGallery';g.style.marginTop='10px';r.parentNode.insertBefore(g,r.nextSibling);
+  var obs=new MutationObserver(function(){var imgs=window.__V13_DOCX_IMAGES__||[];if(!imgs.length){g.innerHTML='';return}g.innerHTML='<div class="small"><b>Gambar dari Word ('+imgs.length+')</b> — klik gambar untuk menjadikannya gambar pertanyaan.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:7px">'+imgs.map(function(src,i){return '<button type="button" class="btn sm" data-docx-img="'+i+'">Gambar '+(i+1)+'</button>'}).join('')+'</div>';});
+  obs.observe(r,{childList:true,subtree:true,characterData:true});
+  g.addEventListener('click',function(e){var b=e.target.closest('[data-docx-img]');if(!b)return;var src=(window.__V13_DOCX_IMAGES__||[])[Number(b.dataset.docxImg)];if(!src)return;imageData=src;var u=document.getElementById('qImageUrl');if(u)u.value='';showImage();changed();document.getElementById('v12EditorCard')?.scrollIntoView({behavior:'smooth'});});
+ },700);
+});
+</script></body></html>+a+sp+b+'
+ let options=Array.isArray(q.opsi)?q.opsi:(q.answers?.options||[]);
+ let rawKey=q.kunci!==undefined?q.kunci:q.answers?.keys;
+ let keyList=Array.isArray(rawKey)?rawKey:String(rawKey??'').split(',').map(x=>x.trim()).filter(Boolean);
+ let keys=keyList.map(x=>typeof x==='number'?x:'ABCDE'.indexOf(String(x).trim().toUpperCase())).filter(x=>x>=0);
+ let answers=q.answers||{options:options.slice(0,n),keys,short:'',essayKey:'',statements:[]};
+ if(type==='isian')answers={options:[],keys:[],short:String(Array.isArray(rawKey)?rawKey[0]??'':rawKey??''),essayKey:'',statements:[]};
+ if(type==='esai')answers={options:[],keys:[],short:'',essayKey:String(Array.isArray(rawKey)?rawKey[0]??'':rawKey??''),statements:[]};
+ return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:q.question||q.soal||'',image:q.image||'',imageRotation:0,answers,explanation:q.explanation||q.pembahasan||'',explanationImage:'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:(q.source||'Gemini AI'),aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()}
+}
+async function importDocx(file){
+ if(!window.mammoth){$('importResult').innerHTML='<div class="notice bad">Library DOCX belum termuat. Pastikan internet aktif saat membuka halaman.</div>';return}
+ $('importResult').innerHTML='<div class="notice">Membaca teks dan gambar Word...</div>';
+ try{
+   const ab=await file.arrayBuffer(),images=[];
+   const html=await mammoth.convertToHtml({arrayBuffer:ab},{convertImage:mammoth.images.imgElement(async function(img){
+     const b64=await img.read('base64'),src='data:'+img.contentType+';base64,'+b64;images.push(src);return {src};
+   })});
+   const r=await mammoth.extractRawText({arrayBuffer:ab}),raw=(r.value||'').trim();
+   if(!raw)throw new Error('Tidak ada teks yang terbaca');
+   $('aiMaterial').value=raw;$('aiMode').value='material';
+   if(images.length&&!imageData&&!$('qImageUrl').value){imageData=images[0];showImage();changed()}
+   window.__V13_DOCX_IMAGES__=images;
+   $('importResult').innerHTML='<div class="notice good">✓ Word berhasil dibaca: '+raw.length+' karakter dan '+images.length+' gambar. Teks masuk ke Gemini Generator.'+(images.length?' Gambar pertama juga dimasukkan ke editor; gambar lain tetap tersedia selama sesi ini.':'')+'</div>';
+ }catch(e){$('importResult').innerHTML='<div class="notice bad">Gagal membaca DOCX: '+esc(e.message)+'</div>'}
+}
+function openCropper(){
+ let src=imageData||$('qImageUrl').value;if(!src)return alert('Masukkan/upload gambar terlebih dahulu.');
+ cropImg=new Image();cropImg.crossOrigin='anonymous';
+ cropImg.onload=()=>{let cv=$('cropCanvas'),max=800,scale=Math.min(1,max/cropImg.width);cv.width=Math.round(cropImg.width*scale);cv.height=Math.round(cropImg.height*scale);cv.getContext('2d').drawImage(cropImg,0,0,cv.width,cv.height);$('cropX').value=0;$('cropY').value=0;$('cropW').value=cv.width;$('cropH').value=cv.height;$('cropModal').classList.add('show')};
+ cropImg.onerror=()=>alert('Gambar URL tidak dapat diedit karena pembatasan CORS. Upload file gambar langsung agar crop berfungsi.');
+ cropImg.src=src;
+}
+function applyCrop(){
+ let cv=$('cropCanvas'),x=Math.max(0,Number($('cropX').value)||0),y=Math.max(0,Number($('cropY').value)||0),w=Math.max(1,Number($('cropW').value)||1),h=Math.max(1,Number($('cropH').value)||1);
+ x=Math.min(x,cv.width-1);y=Math.min(y,cv.height-1);w=Math.min(w,cv.width-x);h=Math.min(h,cv.height-y);
+ let out=document.createElement('canvas');out.width=w;out.height=h;out.getContext('2d').drawImage(cv,x,y,w,h,0,0,w,h);
+ imageData=out.toDataURL('image/jpeg',.9);$('qImageUrl').value='';imageRotation=0;showImage();changed();closeModal('cropModal');
+}
+(function loadConnUI(){setTimeout(()=>{let c=getConnection();if($('gasUrl')){$('gasUrl').value=c.url||'';$('storageMode').value=c.mode||'local'}},0)})();
+
+
+const PACKAGE_BANK_KEY='kf_package_bank_v1', PACKAGE_DRAFT_KEY='kf_package_draft_v1';
+let packageDraft={name:'',count:10,current:0,questions:Array(10).fill(null)};
+
+
+let practiceState={package:null,current:0,answers:[]};
+
+function startPractice(id){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ practiceState={package:JSON.parse(JSON.stringify(p)),current:0,answers:p.questions.map(()=>null)};
+ nav('practice');$('practiceStart').style.display='none';$('practiceResult').style.display='none';$('practiceWork').style.display='block';
+ $('practiceTitle').textContent=p.name;$('practiceMeta').textContent=p.questions.length+' soal';
+ renderPractice();
+}
+function exitPractice(){if(confirm('Keluar dari latihan? Jawaban latihan ini akan dihapus.')){practiceState={package:null,current:0,answers:[]};nav('bank')}}
+function practiceAnswered(i){
+ const a=practiceState.answers[i],q=practiceState.package?.questions[i];if(!q)return false;
+ if(['pg5','pg4'].includes(q.type))return Number.isInteger(a);
+ if(q.type==='mcma')return Array.isArray(a)&&a.length>0;
+ if(q.type==='kategori')return a&&Object.keys(a).length>0;
+ return typeof a==='string'&&a.trim()!=='';
+}
+function renderPractice(){
+ const p=practiceState.package;if(!p)return;let i=practiceState.current,q=p.questions[i],done=practiceState.answers.filter((_,j)=>practiceAnswered(j)).length;
+ $('practicePosition').textContent='Soal '+(i+1)+' dari '+p.questions.length;
+ $('practiceProgressBar').style.width=(done/p.questions.length*100)+'%';
+ $('practiceNumbers').innerHTML=p.questions.map((x,j)=>`<button class="${j===i?'current ':''}${practiceAnswered(j)?'answered':''}" onclick="goPractice(${j})">${j+1}</button>`).join('');
+ $('practiceQuestion').innerHTML=practiceQuestionHTML(q,i);
+ if(window.MathJax?.typesetPromise)MathJax.typesetPromise([$('practiceQuestion')]).catch(()=>{});
+}
+function practiceQuestionHTML(q,i){
+ let a=practiceState.answers[i],h=`<div style="font-size:16px"><b>${i+1}.</b> ${renderMathText(q.question||'')}</div>`;
+ if(q.image)h+=`<img class="qimg" src="${q.image}" style="transform:rotate(${q.imageRotation||0}deg)">`;
+ if(['pg5','pg4'].includes(q.type)){
+  (q.answers?.options||[]).forEach((o,k)=>{let im=q.answers?.optionImageData?.[k]||q.answers?.optionImages?.[k];h+=`<label class="student-option"><input type="radio" name="studentAnswer" ${a===k?'checked':''} onchange="setPracticeSingle(${k})"><b>${'ABCDE'[k]}.</b> ${renderMathText(o||'')}${im?`<br><img class="qimg" src="${im}">`:''}</label>`})
+ }else if(q.type==='mcma'){
+  (q.answers?.options||[]).forEach((o,k)=>{let im=q.answers?.optionImageData?.[k]||q.answers?.optionImages?.[k],checked=Array.isArray(a)&&a.includes(k);h+=`<label class="student-option"><input type="checkbox" ${checked?'checked':''} onchange="togglePracticeMulti(${k},this.checked)"><b>${'ABCDE'[k]}.</b> ${renderMathText(o||'')}${im?`<br><img class="qimg" src="${im}">`:''}</label>`})
+ }else if(q.type==='kategori'){
+  a=a||{};(q.answers?.statements||[]).forEach((x,k)=>h+=`<div class="student-option"><div>${k+1}. ${renderMathText(x.text||'')}</div><select onchange="setPracticeCategory(${k},this.value)"><option value="">Pilih jawaban</option><option ${a[k]==='Benar'?'selected':''}>Benar</option><option ${a[k]==='Salah'?'selected':''}>Salah</option></select></div>`)
+ }else if(q.type==='isian')h+=`<label>Jawaban</label><input id="studentTextAnswer" value="${esc(a||'')}" oninput="setPracticeText(this.value)" placeholder="Ketik jawaban...">`;
+ else h+=`<label>Jawaban Esai</label><textarea id="studentTextAnswer" oninput="setPracticeText(this.value)" placeholder="Tuliskan jawaban...">${esc(a||'')}</textarea>`;
+ return h;
+}
+function setPracticeSingle(k){practiceState.answers[practiceState.current]=k;renderPractice()}
+function togglePracticeMulti(k,on){let a=practiceState.answers[practiceState.current];if(!Array.isArray(a))a=[];a=on?[...new Set([...a,k])]:a.filter(x=>x!==k);practiceState.answers[practiceState.current]=a;renderPractice()}
+function setPracticeCategory(k,v){let a=practiceState.answers[practiceState.current]||{};a[k]=v;practiceState.answers[practiceState.current]=a;renderPractice()}
+function setPracticeText(v){practiceState.answers[practiceState.current]=v;let p=practiceState.package,done=practiceState.answers.filter((_,j)=>practiceAnswered(j)).length;$('practiceProgressBar').style.width=(done/p.questions.length*100)+'%';let b=$('practiceNumbers').children[practiceState.current];if(b)b.classList.toggle('answered',!!v.trim())}
+function goPractice(i){practiceState.current=i;renderPractice()}
+function practicePrev(){if(practiceState.current>0){practiceState.current--;renderPractice()}}
+function practiceNext(){if(practiceState.current<practiceState.package.questions.length-1){practiceState.current++;renderPractice()}}
+function normalizeTextAnswer(v){return String(v??'').trim().toLowerCase().replace(/\s+/g,' ')}
+function gradePracticeQuestion(q,a){
+ if(['pg5','pg4'].includes(q.type)){let ok=(q.answers?.keys||[])[0]===a;return {auto:true,score:ok?1:0,max:1,correct:ok}}
+ if(q.type==='mcma'){
+  let key=[...(q.answers?.keys||[])].sort((x,y)=>x-y),ans=Array.isArray(a)?[...a].sort((x,y)=>x-y):[],exact=key.length===ans.length&&key.every((x,i)=>x===ans[i]);
+  if(q.scoring==='partial'){
+   let opts=q.answers?.options?.length||5,good=ans.filter(x=>key.includes(x)).length,bad=ans.filter(x=>!key.includes(x)).length;
+   let score=Math.max(0,Math.min(1,(good/Math.max(1,key.length))-(bad/Math.max(1,opts-key.length))));
+   return {auto:true,score,max:1,correct:exact}
+  }
+  return {auto:true,score:exact?1:0,max:1,correct:exact}
+ }
+ if(q.type==='kategori'){
+  let st=q.answers?.statements||[],correct=st.filter((x,i)=>(a||{})[i]===x.answer).length,score=st.length?correct/st.length:0;
+  return {auto:true,score,max:1,correct:score===1}
+ }
+ if(q.type==='isian'){let ok=normalizeTextAnswer(a)===normalizeTextAnswer(q.answers?.short);return {auto:true,score:ok?1:0,max:1,correct:ok}}
+ return {auto:false,score:0,max:0,correct:null}
+}
+function studentAnswerText(q,a){
+ if(['pg5','pg4'].includes(q.type))return Number.isInteger(a)?('ABCDE'[a]+'. '+(q.answers?.options?.[a]||'')):'Belum dijawab';
+ if(q.type==='mcma')return Array.isArray(a)&&a.length?a.map(i=>'ABCDE'[i]).join(', '):'Belum dijawab';
+ if(q.type==='kategori')return (q.answers?.statements||[]).map((x,i)=>(i+1)+'. '+((a||{})[i]||'-')).join('; ');
+ return String(a||'Belum dijawab');
+}
+function finishPractice(){
+ const p=practiceState.package;if(!p)return;
+ let unanswered=p.questions.map((q,i)=>practiceAnswered(i)?null:i+1).filter(Boolean);
+ if(unanswered.length&&!confirm('Masih ada soal belum dijawab: '+unanswered.join(', ')+'. Tetap cek hasil?'))return;
+ let grades=p.questions.map((q,i)=>gradePracticeQuestion(q,practiceState.answers[i])),auto=grades.filter(g=>g.auto),manual=grades.filter(g=>!g.auto).length;
+ let earned=auto.reduce((a,g)=>a+g.score,0),max=auto.reduce((a,g)=>a+g.max,0),score=max?Math.round(earned/max*100):0;
+ let correct=auto.filter(g=>g.correct===true).length,wrong=auto.length-correct;
+ $('practiceWork').style.display='none';$('practiceResult').style.display='block';
+ $('practiceResult').innerHTML=`<div class="card"><h2>📊 Hasil Latihan — ${esc(p.name)}</h2>
+ <div class="result-summary"><div class="result-box"><b>${score}</b>Nilai Objektif</div><div class="result-box"><b>${correct}</b>Benar</div><div class="result-box"><b>${wrong}</b>Salah/Parsial</div><div class="result-box"><b>${manual}</b>Perlu Guru</div></div>
+ ${manual?'<div class="notice">Nilai di atas dihitung dari soal yang dapat dikoreksi otomatis. Jawaban esai perlu diperiksa guru.</div>':''}
+ <div class="actions"><button class="btn" onclick="retryPractice()">↻ Kerjakan Ulang</button><button class="btn primary" onclick="nav('bank')">Kembali ke Bank Soal</button></div></div>`+
+ p.questions.map((q,i)=>practiceResultItem(q,i,practiceState.answers[i],grades[i])).join('');
+ if(window.MathJax?.typesetPromise)MathJax.typesetPromise([$('practiceResult')]).catch(()=>{});
+}
+function practiceResultItem(q,i,a,g){
+ let cls=!g.auto?'manual':g.correct?'correct':'wrong',label=!g.auto?'Perlu diperiksa guru':g.correct?'Benar':g.score>0?'Sebagian benar':'Salah';
+ return `<div class="result-item ${cls}"><b>Soal ${i+1} — ${label}${g.auto&&g.score>0&&g.score<1?' ('+Math.round(g.score*100)+'%)':''}</b>
+ <div style="margin-top:6px">${renderMathText(q.question||'')}</div>
+ <div class="result-answer"><b>Jawaban siswa:</b> ${renderMathText(studentAnswerText(q,a))}</div>
+ <div class="result-answer"><b>Kunci:</b> ${renderMathText(answerKeyText(q))}</div>
+ ${q.explanation?`<div class="result-answer"><b>Pembahasan:</b> ${renderMathText(q.explanation)}</div>`:''}</div>`;
+}
+function retryPractice(){let p=practiceState.package;practiceState={package:p,current:0,answers:p.questions.map(()=>null)};$('practiceResult').style.display='none';$('practiceWork').style.display='block';renderPractice()}
+
+function showExportMenu(id,format){$('exportPackageId').value=id;$('exportFormat').value=format;$('exportModal').classList.add('show')}
+function runPackageExport(){
+ const id=$('exportPackageId').value,format=$('exportFormat').value,mode=$('exportContent').value;
+ closeModal('exportModal');
+ if(format==='docx')exportPackageDOCX(id,mode);else exportPackagePDF(id,mode);
+}
+function answerKeyText(q){
+ if(['pg5','pg4','mcma'].includes(q.type))return (q.answers?.keys||[]).map(i=>'ABCDE'[i]).join(', ')||'-';
+ if(q.type==='kategori')return (q.answers?.statements||[]).map((x,i)=>(i+1)+'. '+(x.answer||'-')).join('; ');
+ if(q.type==='isian')return q.answers?.short||'-';
+ if(q.type==='esai')return q.answers?.essayKey||'Dinilai guru';
+ return '-';
+}
+function stripLatexForExport(t){return String(t||'').replace(/\$\$/g,'').replace(/\$/g,'')}
+function dataUrlToUint8(dataUrl){
+ const b64=String(dataUrl).split(',')[1]||'',bin=atob(b64),u=new Uint8Array(bin.length);
+ for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;
+}
+async function imageSizeFromSrc(src,maxW=520,maxH=340){
+ return await new Promise(resolve=>{let im=new Image();im.onload=()=>{let r=Math.min(maxW/im.width,maxH/im.height,1);resolve({width:Math.round(im.width*r),height:Math.round(im.height*r)})};im.onerror=()=>resolve({width:320,height:200});im.src=src});
+}
+async function docxImageParagraph(src){
+ if(!src||!String(src).startsWith('data:image'))return null;
+ const d=window.docx,sz=await imageSizeFromSrc(src);
+ return new d.Paragraph({children:[new d.ImageRun({data:dataUrlToUint8(src),transformation:sz})],spacing:{after:120}});
+}
+async function exportPackageDOCX(id,mode){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ if(!window.docx||!window.saveAs)return alert('Library DOCX belum termuat. Pastikan internet aktif.');
+ const d=window.docx,children=[];
+ children.push(new d.Paragraph({text:p.name,heading:d.HeadingLevel.TITLE,alignment:d.AlignmentType.CENTER}));
+ children.push(new d.Paragraph({text:`Jumlah soal: ${p.questions.length}`,alignment:d.AlignmentType.CENTER,spacing:{after:300}}));
+ for(let n=0;n<p.questions.length;n++){
+  let q=p.questions[n],qtext=stripLatexForExport(q.question);
+  children.push(new d.Paragraph({children:[new d.TextRun({text:(n+1)+'. ',bold:true}),new d.TextRun(qtext)],spacing:{after:100}}));
+  let qi=await docxImageParagraph(q.image);if(qi)children.push(qi);
+  if(['pg5','pg4','mcma'].includes(q.type)){
+   for(let i=0;i<(q.answers?.options||[]).length;i++){
+    let opt=q.answers.options[i],img=q.answers?.optionImageData?.[i]||q.answers?.optionImages?.[i];
+    if(opt)children.push(new d.Paragraph({text:`   ${'ABCDE'[i]}. ${stripLatexForExport(opt)}`,spacing:{after:60}}));
+    let oi=await docxImageParagraph(img);if(oi)children.push(oi);
+   }
+  }else if(q.type==='kategori'){
+   (q.answers?.statements||[]).forEach((x,i)=>children.push(new d.Paragraph({text:`   ${i+1}) ${stripLatexForExport(x.text)}`,spacing:{after:60}})));
+  }
+  if(mode==='answers'||mode==='full')children.push(new d.Paragraph({children:[new d.TextRun({text:'Kunci: ',bold:true}),new d.TextRun(answerKeyText(q))],spacing:{before:100,after:80}}));
+  if(mode==='full'&&q.explanation)children.push(new d.Paragraph({children:[new d.TextRun({text:'Pembahasan: ',bold:true}),new d.TextRun(stripLatexForExport(q.explanation))],spacing:{after:180}}));
+  children.push(new d.Paragraph({text:'',spacing:{after:100}}));
+ }
+ const doc=new d.Document({sections:[{properties:{page:{margin:{top:720,right:720,bottom:720,left:720}}},children}]});
+ const blob=await d.Packer.toBlob(doc);saveAs(blob,(p.name||'paket-soal').replace(/[\\/:*?"<>|]/g,'_')+'.docx');
+}
+function printableQuestionHTML(q,n,mode){
+ let h=`<div class="print-q"><div class="qtext"><b>${n}.</b> ${renderMathText(q.question||'')}</div>`;
+ if(q.image)h+=`<img src="${q.image}" class="print-img">`;
+ if(['pg5','pg4','mcma'].includes(q.type)){
+  (q.answers?.options||[]).forEach((o,i)=>{h+=`<div class="print-opt"><b>${'ABCDE'[i]}.</b> ${renderMathText(o||'')}`;let im=q.answers?.optionImageData?.[i]||q.answers?.optionImages?.[i];if(im)h+=`<br><img src="${im}" class="print-img small-img">`;h+='</div>'})
+ }else if(q.type==='kategori'){(q.answers?.statements||[]).forEach((x,i)=>h+=`<div class="print-opt">${i+1}) ${renderMathText(x.text||'')}</div>`)}
+ else if(q.type==='isian')h+='<div class="answer-line">Jawaban: __________________________________________</div>';
+ else if(q.type==='esai')h+='<div class="essay-lines"></div>';
+ if(mode==='answers'||mode==='full')h+=`<div class="key"><b>Kunci:</b> ${esc(answerKeyText(q))}</div>`;
+ if(mode==='full'&&q.explanation)h+=`<div class="explain"><b>Pembahasan:</b> ${renderMathText(q.explanation)}</div>`;
+ return h+'</div>';
+}
+function exportPackagePDF(id,mode){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ const w=window.open('','_blank');if(!w)return alert('Pop-up diblokir browser. Izinkan pop-up untuk membuat PDF.');
+ const body=p.questions.map((q,i)=>printableQuestionHTML(q,i+1,mode)).join('');
+ w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(p.name)}</title>
+ <scr${'ipt'}>window.MathJax={tex:{inlineMath:[['$','$'],['\\\\(','\\\\)']]},svg:{fontCache:'global'}};<\/script>
+ <scr${'ipt'} src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\/script>
+ <style>@page{size:A4;margin:16mm}body{font-family:Arial,sans-serif;color:#111;font-size:12pt;line-height:1.45}h1{text-align:center;font-size:18pt;margin:0 0 4px}.meta{text-align:center;margin-bottom:22px;color:#555}.print-q{page-break-inside:avoid;margin:0 0 20px}.qtext{margin-bottom:8px}.print-opt{margin:5px 0 5px 22px}.print-img{display:block;max-width:520px;max-height:330px;margin:8px 0}.small-img{max-width:300px;max-height:180px}.key{margin-top:8px;padding:6px;background:#f1f1f1}.explain{margin-top:6px;padding:8px;border-left:3px solid #777;background:#fafafa}.answer-line{margin:12px 0}.essay-lines{height:100px;border-bottom:1px solid #aaa;background:repeating-linear-gradient(to bottom,transparent 0,transparent 23px,#ddd 24px)}.toolbar{position:fixed;right:15px;top:15px}@media print{.toolbar{display:none}}</style></head><body>
+ <button class="toolbar" onclick="window.print()">🖨 Simpan sebagai PDF</button><h1>${esc(p.name)}</h1><div class="meta">${p.questions.length} soal</div>${body}
+ <scr${'ipt'}>window.onload=()=>setTimeout(()=>window.print(),1000)<\/script></body></html>`);w.document.close();
+}
+
+function packageBank(){try{return JSON.parse(localStorage.getItem(PACKAGE_BANK_KEY)||'[]')}catch(e){return []}}
+function setPackageBank(v){localStorage.setItem(PACKAGE_BANK_KEY,JSON.stringify(v));renderPackageBank()}
+function savePackageDraftLocal(){
+ localStorage.setItem(PACKAGE_DRAFT_KEY,JSON.stringify(packageDraft));
+ let el=$('packageAutosaveStatus');
+ if(el){let now=new Date();el.textContent='✓ Draft tersimpan otomatis '+now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+}
+function loadPackageDraftLocal(){try{let x=JSON.parse(localStorage.getItem(PACKAGE_DRAFT_KEY)||'null');if(x&&Array.isArray(x.questions)){packageDraft=x;$('packageName').value=x.name||'';$('packageCount').value=x.questions.length}}catch(e){}}
+function startQuestionPackage(){let count=Math.max(1,Math.min(50,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
+function packageQuestionValid(q){if(!q||!(q.question||q.image))return false;if(['pg5','pg4','mcma'].includes(q.type))return (q.answers?.options||[]).filter(x=>String(x||'').trim()).length>=2&&(q.answers?.keys||[]).length>0;if(q.type==='kategori')return (q.answers?.statements||[]).some(x=>String(x.text||'').trim());if(q.type==='isian')return !!String(q.answers?.short||'').trim();return true}
+function saveCurrentToPackage(){
+ packageDraft.name=($('packageName').value||'').trim()||'Paket Soal';
+ let q=collect(),issues=packageQuestionIssues(q);
+ q.id=q.id||uid();q.packageIndex=packageDraft.current+1;q.updatedAt=new Date().toISOString();
+ packageDraft.questions[packageDraft.current]=q;
+ savePackageDraftLocal();renderPackageNavigator();
+ $('draftStatus').textContent=issues.length?'⚠ Soal '+(packageDraft.current+1)+' tersimpan, tetapi: '+issues.join(' • '):'✓ Soal '+(packageDraft.current+1)+' tersimpan dan lengkap.';
+ return issues.length===0;
+}
+function renderPackageNavigator(){let n=packageDraft.questions.length||1,done=packageDraft.questions.filter(packageQuestionValid).length;$('packagePosition').textContent='Soal '+(packageDraft.current+1)+' dari '+n;$('packageDone').textContent='• '+done+' selesai';$('packageProgressBar').style.width=(done/n*100)+'%';$('questionNumberNav').innerHTML=packageDraft.questions.map((q,i)=>`<button class="${i===packageDraft.current?'current ':''}${packageQuestionValid(q)?'done':''}" onclick="goPackageQuestion(${i})">${i+1}${packageQuestionValid(q)?'✓':''}</button>`).join('')}
+function editorHasContent(){return !!(($('question')?.value||'').trim()||($('explanation')?.value||'').trim()||imageData||($('qImageUrl')?.value||'').trim()||(answerState.options||[]).some(x=>String(x||'').trim())||String(answerState.short||'').trim()||String(answerState.essayKey||'').trim()||(answerState.statements||[]).some(x=>String(x?.text||'').trim()))}
+function goPackageQuestion(i){if(i<0||i>=packageDraft.questions.length)return;if(editorHasContent())saveCurrentToPackage();packageDraft.current=i;let q=packageDraft.questions[i];q?loadPackageQuestionToEditor(q):clearPackageEditor(false);renderPackageNavigator();savePackageDraftLocal()}
+function packagePrev(){if(packageDraft.current>0)goPackageQuestion(packageDraft.current-1)}
+function packageNext(){if(packageDraft.current<packageDraft.questions.length-1)goPackageQuestion(packageDraft.current+1)}
+function loadPackageQuestionToEditor(q){currentType=q.type||'pg5';if($('typeSelect'))$('typeSelect').value=currentType;['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','explanation','scoring'].forEach(id=>{if($(id)&&q[id]!==undefined)$(id).value=q[id]});imageData=q.image||'';imageRotation=q.imageRotation||0;answerState=JSON.parse(JSON.stringify(q.answers||{}));initAnswersForType(false);renderAnswerEditor();showImage();updatePreview();validate()}
+function clearPackageEditor(render=true){currentType='pg5';if($('typeSelect'))$('typeSelect').value='pg5';['kelas','topik','subtopik','tags','question','qImageUrl','explanation'].forEach(id=>{if($(id))$(id).value=''});imageData='';imageRotation=0;answerState={};initAnswersForType(true);renderAnswerEditor();showImage();updatePreview();validate();if(render)renderPackageNavigator()}
+
+function packageQuestionIssues(q){
+ let issues=[];
+ if(!q){return ['Soal belum dibuat'];}
+ if(!String(q.question||'').trim()&&!q.image)issues.push('Pertanyaan belum diisi');
+ if(['pg5','pg4','mcma'].includes(q.type)){
+   let required=q.type==='pg5'?5:q.type==='pg4'?4:2;
+   let opts=(q.answers?.options||[]).filter(x=>String(x||'').trim());
+   if(opts.length<required)issues.push('Pilihan jawaban belum lengkap');
+   if(!(q.answers?.keys||[]).length)issues.push('Kunci jawaban belum dipilih');
+ }
+ if(q.type==='kategori'){
+   let st=q.answers?.statements||[];
+   if(!st.length)issues.push('Pernyataan kategori belum dibuat');
+   if(st.some(x=>!String(x.text||'').trim()||!x.answer))issues.push('Pernyataan/kategori jawaban belum lengkap');
+ }
+ if(q.type==='isian'&&!String(q.answers?.short||'').trim())issues.push('Kunci isian belum diisi');
+ return issues;
+}
+function reviewPackage(){
+ if(editorHasContent())saveCurrentToPackage();
+ let total=packageDraft.questions.length,details=packageDraft.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)}));
+ let bad=details.filter(x=>x.issues.length),ok=total-bad.length;
+ $('reviewPackageSummary').textContent=total+' soal • '+ok+' lengkap • '+bad.length+' perlu diperbaiki';
+ $('reviewPackageNumbers').innerHTML=details.map(x=>`<button class="${x.issues.length?'':'done'}" onclick="closeModal('reviewPackageModal');goPackageQuestion(${x.i})" title="${esc(x.issues.join(', ')||'Lengkap')}">${x.i+1}${x.issues.length?'⚠':'✓'}</button>`).join('');
+ $('reviewPackageIssues').innerHTML=bad.length
+  ? '<div class="notice"><b>Perlu diperbaiki:</b></div>'+bad.map(x=>`<div class="result-item wrong"><b>Soal ${x.i+1}</b><div class="small">${x.issues.map(esc).join(' • ')}</div><button class="btn sm" style="margin-top:7px" onclick="closeModal('reviewPackageModal');goPackageQuestion(${x.i})">Perbaiki Soal</button></div>`).join('')
+  : '<div class="notice" style="border-color:#86d7a2;background:#ecfdf3!important"><b>✓ Semua soal sudah lengkap dan siap disimpan ke Bank Soal.</b></div>';
+ $('reviewSaveBtn').disabled=bad.length>0;
+ $('reviewSaveBtn').title=bad.length?'Lengkapi soal yang ditandai sebelum menyimpan paket.':'Simpan paket ke Bank Soal';
+ $('reviewPackageModal').classList.add('show');
+}
+
+async 
+async function v12ProcessPaste(){const text=($('v12PasteMaterial')?.value||'').trim(),st=$('v12PasteStatus');if(!text)return alert('Tempel teks soal terlebih dahulu.');const instr=[$('v12Translate')?.checked?'Terjemahkan teks asing ke Bahasa Indonesia.':'',$('v12RelevantImage')?.checked?'Pertahankan hanya gambar/diagram relevan.':'',$('v12MakeKey')?.checked?'Lengkapi kunci dan pembahasan sistematis bila belum tersedia.':'',$('v12Validate')?.checked?'Validasi satuan, angka, opsi, dan kecocokan kunci.':'',$('v12Variation')?.checked?'Buat satu variasi soal.':''].filter(Boolean).join('\n');try{if(st)st.textContent='✨ Gemini sedang menyusun soal...';let r=await postGAS('processText',{text:text+'\n\n'+instr,jenjang:$('v12PackageLevel')?.value||'SMA',topik:$('v12PackageTopic')?.value||'Umum',jumlah:Math.max(1,Math.min(50,Number($('packageCount')?.value)||10))});if(!r||!Array.isArray(r.questions))throw new Error('Respons Gemini tidak berisi daftar soal.');const qs=r.questions.map(normalizeAIQuestion);packageDraft.name=$('v12PackageTitle')?.value||'Paket Soal';packageDraft.count=qs.length;packageDraft.current=0;packageDraft.questions=qs;$('packageName').value=packageDraft.name;$('packageCount').value=qs.length;savePackageDraftLocal();loadPackageQuestionToEditor(qs[0]);renderPackageNavigator();if(st)st.textContent='✓ '+qs.length+' soal masuk ke Daftar Soal. Periksa sebelum publish.';$('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){if(st)st.textContent='✗ '+(e?.message||e)}}
+function v12PublicationMeta(){return{name:($('v12PackageTitle')?.value||$('packageName')?.value||packageDraft.name||'Paket Soal').trim(),kind:$('v12PackageKind')?.value||'latihan',duration:Number($('v12PackageDuration')?.value)||0,attempts:Math.max(1,Number($('v12PackageAttempts')?.value)||1),start:$('v12PackageStart')?.value||null,end:$('v12PackageEnd')?.value||null,subscription:'Semua Paket Aktif',sourceVersion:13}}
+async function v12PublishPackageAs(id,kind){const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');const pub=Object.assign({},p,v12PublicationMeta(),{kind:kind||p.kind||'latihan',name:p.name||v12PublicationMeta().name});try{if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');await window.KFPackagePublisher.publish(pub);const now=new Date().toISOString();setPackageBank(packageBank().map(x=>x.id===id?Object.assign({},x,pub,{published:true,publishedAt:now,updatedAt:now}):x));alert('✓ Paket berhasil diterbitkan sebagai '+(pub.kind==='tryout'?'Tryout':'Latihan Interaktif')+' dan tersimpan di Supabase.')}catch(e){console.error('[V12 publish]',e);alert('Gagal publish ke Supabase: '+(e?.message||e))}}
+async function savePackageToBank(fromReview=false){
+ if(editorHasContent())saveCurrentToPackage();
+ let bad=packageDraft.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
+ if(bad.length){reviewPackage();return}
+ if(!fromReview){reviewPackage();return}
+ let arr=packageBank(),now=new Date().toISOString(),pack={
+   id:'PKG-'+Date.now(),
+   ...v12PublicationMeta(),
+   name:($('v12PackageTitle')?.value||$('packageName').value||packageDraft.name||'Paket Soal').trim(),
+   count:packageDraft.questions.length,
+   questions:JSON.parse(JSON.stringify(packageDraft.questions)),
+   createdAt:now,updatedAt:now
+ };
+ arr.unshift(pack);setPackageBank(arr);localStorage.removeItem(PACKAGE_DRAFT_KEY);
+ pack.published=false;
+ setPackageBank(packageBank().map(x=>x.id===pack.id?pack:x));
+ alert('Paket "'+pack.name+'" ('+pack.count+' soal) berhasil disimpan sebagai DRAFT di Bank Soal.\n\nGunakan tombol ▶ Latihan atau 🏆 Tryout saat paket sudah siap dipublikasikan ke Supabase.');
+}
+async function publishSavedPackage(id){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ try{
+   if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');
+   await window.KFPackagePublisher.publish(p);
+   p.published=true;p.publishedAt=new Date().toISOString();p.updatedAt=p.publishedAt;
+   setPackageBank(packageBank().map(x=>x.id===id?p:x));
+   alert('✓ Paket berhasil dipublikasikan ke Supabase V15.');
+ }catch(e){console.error('[V12 publish]',e);alert('Gagal publish ke Supabase: '+(e?.message||e));}
+}
+function renderPackageBank(){
+ let el=$('packageBankList');if(!el)return;let arr=packageBank();
+ if($('packageBankStats'))$('packageBankStats').textContent=arr.length+' Paket • '+arr.reduce((n,p)=>n+(p.questions?.length||0),0)+' Soal';
+ if(!arr.length){el.innerHTML='<div class="notice">Belum ada paket soal.</div>';return}
+ el.innerHTML=arr.map(p=>`<div class="bank-item">
+   <div><b>📦 ${esc(p.name)}</b><div class="small">${p.questions.length} soal • ${p.published?'☁️ TERBIT • Supabase':'📝 DRAFT • belum diterbitkan'}</div></div>
+   <div class="actions">
+    <button class="btn sm ok" onclick="startPractice('${p.id}')">▶ Kerjakan</button>
+    <button class="btn sm primary" onclick="v12PublishPackageAs('${p.id}','latihan')">▶ Latihan</button><button class="btn sm pink" onclick="v12PublishPackageAs('${p.id}','tryout')">🏆 Tryout</button>
+    <button class="btn sm" onclick="openSavedPackage('${p.id}')">Buka/Edit</button>
+    <button class="btn sm" onclick="showExportMenu('${p.id}','docx')">⬇ DOCX</button>
+    <button class="btn sm" onclick="showExportMenu('${p.id}','pdf')">⬇ PDF</button>
+    <button class="btn sm" onclick="duplicateSavedPackage('${p.id}')">Duplikat</button>
+    <button class="btn sm danger" onclick="deleteSavedPackage('${p.id}')">Hapus</button>
+   </div></div>`).join('');
+}
+function openSavedPackage(id){let p=packageBank().find(x=>x.id===id);if(!p)return;packageDraft={name:p.name,count:p.questions.length,current:0,questions:JSON.parse(JSON.stringify(p.questions))};$('packageName').value=p.name;$('packageCount').value=p.questions.length;savePackageDraftLocal();loadPackageQuestionToEditor(packageDraft.questions[0]);renderPackageNavigator();nav('buat')}
+function duplicateSavedPackage(id){let arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return;let c=JSON.parse(JSON.stringify(p));c.id='PKG-'+Date.now();c.name=p.name+' (Salinan)';c.published=false;delete c.publishedAt;c.createdAt=c.updatedAt=new Date().toISOString();arr.unshift(c);setPackageBank(arr)}
+function deleteSavedPackage(id){if(confirm('Hapus paket soal ini?'))setPackageBank(packageBank().filter(x=>x.id!==id))}
+
+$('qFormulaBar').innerHTML=formulaBar('question');$('exFormulaBar').innerHTML=formulaBar('explanation');
+loadPackageDraftLocal();initAnswersForType(true);renderAnswerEditor();updatePreview();validate();updateCounts();renderPackageNavigator();renderPackageBank();
+</script>
+<script>
+function kembaliKeAdminV12(){if(window.opener&&!window.opener.closed){window.opener.focus();return}location.href="admin.html"}
+async function keluarAdminV12(){
+ if(!confirm("Keluar dari Admin Member Area?"))return;
+ try{
+  if(window.supabase&&window.KF_SUPABASE_CONFIG){const c=window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);await c.auth.signOut({scope:"local"})}
+  Object.keys(localStorage).filter(k=>k.startsWith("sb-")&&k.endsWith("-auth-token")).forEach(k=>localStorage.removeItem(k));
+ }catch(e){}
+ if(window.opener&&!window.opener.closed)try{window.opener.location.replace("index.html?logged_out=1")}catch(e){}
+ location.replace("index.html?logged_out=1");
+}
+</script><script id="v12-pro-hash-nav">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+  if(location.hash){var el=document.querySelector(location.hash);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+ },500);
+});
+</script><script id="v13-unified-hub">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+  var host=document.getElementById('v12IsiSoal'); if(!host||document.getElementById('v13UnifiedHub'))return;
+  var box=document.createElement('div'); box.className='card'; box.id='v13UnifiedHub';
+  box.innerHTML='<h2>🧩 Satu Sistem Pembuat Soal V13</h2><div class="sub">Manual • Gemini AI • Word/DOCX • PDF/Crop • Tempel • Gambar/Rumus • Bank Soal → satu editor → Latihan/Tryout → Supabase.</div><div class="actions" style="margin-top:12px;flex-wrap:wrap"><button class="btn primary" data-go="manual">✍️ Manual</button><button class="btn pink" data-go="ai">✨ Gemini AI</button><button class="btn" data-go="word">📄 Word / DOCX</button><button class="btn" data-go="paste">📋 Tempel Soal</button><button class="btn" data-go="pdf">📕 PDF / Crop</button><button class="btn" data-go="formula">🧮 Rumus / Gambar</button><button class="btn" data-go="bank">📚 Bank Soal</button></div><div id="v13PdfPanel" style="display:none;margin-top:14px;padding:14px;border:1px dashed #cba9e8;border-radius:14px"><b>📕 Mesin PDF V13</b><div class="sub">Pilih PDF untuk memeriksa bahwa mesin PDF aktif. Fitur crop penuh akan memakai alur editor yang sama.</div><div class="notice">PDF Crop Studio akan dimuat di panel ini.</div></div>';
+  host.insertBefore(box,host.firstChild);
+  box.addEventListener('click',function(e){var b=e.target.closest('[data-go]');if(!b)return;var g=b.dataset.go;if(g==='manual')document.getElementById('v12EditorCard')?.scrollIntoView({behavior:'smooth'});if(g==='ai')document.getElementById('v12MovedAI')?.scrollIntoView({behavior:'smooth'});if(g==='word')document.getElementById('v12MovedImport')?.scrollIntoView({behavior:'smooth'});if(g==='paste')document.querySelector('.v12-paste-box')?.scrollIntoView({behavior:'smooth'});if(g==='pdf'){document.getElementById('v13PdfPanel').style.display='block';document.getElementById('v13PdfPanel').scrollIntoView({behavior:'smooth'})}if(g==='formula')document.getElementById('v12EditorCard')?.scrollIntoView({behavior:'smooth'});if(g==='bank'&&window.kfV12Navigate)kfV12Navigate('bank')});
+  
+ },350);
+});
+</script><style id="v13-pdf-crop-style">
+#v13PdfCanvasWrap{position:relative;display:inline-block;line-height:0}#v13PdfCanvas{display:block}#v13PdfSelection{position:absolute;display:none;border:2px solid #7b2ff7;background:rgba(123,47,247,.13);pointer-events:none}.v13-pdf-scroll{overflow:auto;max-height:650px;margin-top:10px;padding:10px;background:#ece8f0;border-radius:12px}
+</style>
+<script id="v13-pdf-crop-engine">
+(function(){
+ let pdf=null,pageno=1,selection=null,drag=false,start=null;
+ function msg(t){var e=document.getElementById('v13PdfMsg');if(e)e.textContent=t}
+ function pt(ev){var cv=document.getElementById('v13PdfCanvas'),r=cv.getBoundingClientRect();return{x:(ev.clientX-r.left)*cv.width/r.width,y:(ev.clientY-r.top)*cv.height/r.height}}
+ function box(){var b=document.getElementById('v13PdfSelection'),cv=document.getElementById('v13PdfCanvas');if(!b||!cv||!selection){if(b)b.style.display='none';return}var r=cv.getBoundingClientRect(),sx=r.width/cv.width,sy=r.height/cv.height,x=Math.min(selection.x0,selection.x1),y=Math.min(selection.y0,selection.y1);b.style.display='block';b.style.left=(x*sx)+'px';b.style.top=(y*sy)+'px';b.style.width=(Math.abs(selection.x1-selection.x0)*sx)+'px';b.style.height=(Math.abs(selection.y1-selection.y0)*sy)+'px'}
+ async function render(){if(!pdf)return;var p=await pdf.getPage(pageno),vp=p.getViewport({scale:1.5}),cv=document.getElementById('v13PdfCanvas');cv.width=vp.width;cv.height=vp.height;await p.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;selection=null;box();document.getElementById('v13PdfPage').textContent=pageno+' / '+pdf.numPages}
+ window.v13PdfLoadCrop=async function(){var file=document.getElementById('v13PdfFile').files[0];if(!file){msg('Pilih PDF terlebih dahulu.');return}try{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;pageno=1;document.getElementById('v13PdfCropWorkspace').style.display='block';await render();msg('✓ PDF siap. Seret kotak pada area soal atau opsi yang ingin diambil.')}catch(e){msg('Gagal membuka PDF: '+e.message)}};
+ window.v13PdfMove=async function(d){if(!pdf)return;pageno=Math.max(1,Math.min(pdf.numPages,pageno+d));await render()};
+ window.v13PdfCropQuestion=function(){if(!selection){msg('Kotakkan area soal terlebih dahulu.');return}var cv=document.getElementById('v13PdfCanvas'),x=Math.round(Math.min(selection.x0,selection.x1)),y=Math.round(Math.min(selection.y0,selection.y1)),w=Math.round(Math.abs(selection.x1-selection.x0)),h=Math.round(Math.abs(selection.y1-selection.y0));if(w<10||h<10){msg('Area crop terlalu kecil.');return}var out=document.createElement('canvas');out.width=w;out.height=h;out.getContext('2d').drawImage(cv,x,y,w,h,0,0,w,h);var data=out.toDataURL('image/png');try{clearEditor();var t=document.getElementById('v13PdfCropType').value;document.getElementById('typeSelect').value=t;changeType();document.getElementById('question').value='Perhatikan gambar berikut.';var target=prompt('Masukkan tujuan crop: SOAL atau A/B/C/D/E','SOAL')||'SOAL';target=target.trim().toUpperCase();if(target==='SOAL'){var iu=document.getElementById('qImageUrl');if(iu)iu.value=data;imageData=data;showImage()}else{var oi='ABCDE'.indexOf(target);if(oi<0)return msg('Tujuan crop tidak valid.');answerState.optionImageData=answerState.optionImageData||{};answerState.optionImageData[oi]=data;renderAnswerEditor()}updatePreview();changed();msg('✓ Crop masuk ke '+(target==='SOAL'?'gambar pertanyaan':'opsi '+target)+'.');document.getElementById('v12EditorCard').scrollIntoView({behavior:'smooth'})}catch(e){msg('Crop selesai tetapi editor menolak: '+e.message)}};
+ document.addEventListener('DOMContentLoaded',function(){setTimeout(function(){var old=document.getElementById('v13PdfPanel');if(!old)return;old.innerHTML='<b>📕 PDF Crop Studio</b><div class="sub">Sama seperti konsep Admin Tryout: buka PDF, pindah halaman, blok area soal, lalu masukkan hasilnya ke editor terpadu.</div><div class="row two" style="margin-top:10px"><div><label>PDF</label><input type="file" id="v13PdfFile" accept="application/pdf"></div><div><label>Tipe soal</label><select id="v13PdfCropType"><option value="pg5">PG 5 opsi</option><option value="pg4">PG 4 opsi</option><option value="isian">Isian singkat</option><option value="esai">Esai</option></select></div></div><div class="actions"><button type="button" class="btn primary" onclick="v13PdfLoadCrop()">📂 Muat PDF</button><button type="button" class="btn" onclick="v13PdfMove(-1)">◀</button><span class="tag" id="v13PdfPage">0 / 0</span><button type="button" class="btn" onclick="v13PdfMove(1)">▶</button><button type="button" class="btn pink" onclick="v13PdfCropQuestion()">✂ Jadikan Soal</button></div><div id="v13PdfMsg" class="notice" style="margin-top:8px">Siap.</div><div id="v13PdfCropWorkspace" class="v13-pdf-scroll" style="display:none"><div id="v13PdfCanvasWrap"><canvas id="v13PdfCanvas"></canvas><div id="v13PdfSelection"></div></div></div>';var cv=document.getElementById('v13PdfCanvas');cv.addEventListener('pointerdown',function(e){drag=true;start=pt(e);selection={x0:start.x,y0:start.y,x1:start.x,y1:start.y};box();cv.setPointerCapture(e.pointerId)});cv.addEventListener('pointermove',function(e){if(!drag)return;var p=pt(e);selection.x1=p.x;selection.y1=p.y;box()});cv.addEventListener('pointerup',function(){drag=false})},600)});
+})();
+</script><style id="v13-pro-bank-style">
+.v13-bankbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.v13-bankbar .btn{min-height:38px}.v13-bank-status{font-size:11px;color:#74667e}
+</style>
+<script id="v13-production-tools">
+(function(){
+ function $v(id){return document.getElementById(id)}
+ function selectedBank(){return Array.from(document.querySelectorAll('.bankSelect:checked')).map(x=>x.value)}
+ window.v13SelectAllBank=function(on){document.querySelectorAll('.bankSelect').forEach(x=>x.checked=on)}
+ window.v13SendSelectedToPackage=function(){
+  var ids=selectedBank();if(!ids.length)return alert('Pilih soal di Bank Soal terlebih dahulu.');
+  var src=bank().filter(q=>ids.includes(q.id));if(!src.length)return;
+  if(editorHasContent())saveCurrentToPackage();
+  src.forEach(function(q){var copy=JSON.parse(JSON.stringify(q));copy.id=uid();copy.source='Bank Soal';packageDraft.questions.push(copy)});
+  if(packageDraft.questions.length>1&&!editorHasContent()&&!packageQuestionValid(packageDraft.questions[0]))packageDraft.questions.shift();
+  packageDraft.current=Math.max(0,packageDraft.questions.length-src.length);
+  savePackageDraftLocal();loadPackageQuestionToEditor(packageDraft.questions[packageDraft.current]);renderPackageNavigator();nav('buat');
+  alert(src.length+' soal berhasil dimasukkan ke paket aktif.');
+ };
+ window.v13ExportBankJson=function(){
+  var ids=selectedBank(),rows=ids.length?bank().filter(q=>ids.includes(q.id)):bank();
+  var blob=new Blob([JSON.stringify({version:'V13',exportedAt:new Date().toISOString(),questions:rows},null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bank-soal-klinikfisikapku-v13.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+ };
+ window.v13ImportBankJson=function(input){
+  var file=input.files&&input.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var obj=JSON.parse(r.result),arr=Array.isArray(obj)?obj:obj.questions;if(!Array.isArray(arr))throw new Error('Format questions tidak ditemukan');var old=bank(),map=new Map(old.map(q=>[q.id,q]));arr.forEach(function(q){q=normalizeAIQuestion(q);map.set(q.id||uid(),q)});setBank(Array.from(map.values()));renderBank();alert(arr.length+' soal berhasil diimpor.')}catch(e){alert('Import JSON gagal: '+e.message)}input.value=''};r.readAsText(file);
+ };
+ window.v13ImproveQuestionAI=async function(){
+  var q=($v('question')?.value||'').trim();if(!q)return alert('Isi/buka soal terlebih dahulu.');
+  var st=$v('explanationAIStatus');if(st)st.textContent='✨ Gemini sedang merapikan soal...';
+  try{
+   var payload={prompt:'Rapikan redaksi soal berikut tanpa mengubah konsep, data, opsi, atau jawaban benar. Kembalikan hanya teks soal yang sudah rapi.\n\n'+q,jumlah:1,tipe:currentType,jenjang:$v('jenjang')?.value||'',topik:$v('topik')?.value||''};
+   var res=await postGAS('assistant',payload).catch(()=>postGAS('testAI',payload));
+   var text=res?.text||res?.message;if(!text)throw new Error('Gemini tidak mengembalikan teks.');
+   if(/^OK$/i.test(String(text).trim()))throw new Error('Endpoint AI hanya mengembalikan status tes, bukan hasil perapihan.');
+   $v('question').value=String(text).trim();$v('question').dispatchEvent(new Event('input'));if(st)st.textContent='✓ Redaksi soal diperbarui. Periksa kembali sebelum disimpan.';
+  }catch(e){if(st)st.textContent='✗ '+e.message}
+ };
+ document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(function(){
+   var editor=$v('v12EditorCard');
+   if(editor&&!$v('v13EditorAiTools')){
+    var bar=document.createElement('div');bar.id='v13EditorAiTools';bar.className='actions';bar.style.margin='0 0 12px';
+    bar.innerHTML='<button type="button" class="btn pink" onclick="v13ImproveQuestionAI()">✨ Rapikan Redaksi dengan Gemini</button><span class="small">Gemini yang sama dengan Apps Script admin; hasil tetap harus direview.</span>';
+    editor.insertBefore(bar,editor.firstChild);
+   }
+   var list=$v('bankList');
+   if(list&&!$v('v13BankTools')){
+    var bar=document.createElement('div');bar.id='v13BankTools';bar.className='v13-bankbar';
+    bar.innerHTML='<button type="button" class="btn sm" onclick="v13SelectAllBank(true)">☑ Pilih Semua</button><button type="button" class="btn sm" onclick="v13SelectAllBank(false)">☐ Lepas Semua</button><button type="button" class="btn sm primary" onclick="v13SendSelectedToPackage()">➕ Kirim ke Paket</button><button type="button" class="btn sm" onclick="v13ExportBankJson()">⬇ Export JSON</button><label class="btn sm" style="cursor:pointer">⬆ Import JSON<input type="file" accept=".json,application/json" style="display:none" onchange="v13ImportBankJson(this)"></label>';
+    list.parentNode.insertBefore(bar,list);
+   }
+  },700);
+ });
+})();
+</script><script id="v13-docx-gallery">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+  var r=document.getElementById('importResult');if(!r||document.getElementById('v13DocxGallery'))return;
+  var g=document.createElement('div');g.id='v13DocxGallery';g.style.marginTop='10px';r.parentNode.insertBefore(g,r.nextSibling);
+  var obs=new MutationObserver(function(){var imgs=window.__V13_DOCX_IMAGES__||[];if(!imgs.length){g.innerHTML='';return}g.innerHTML='<div class="small"><b>Gambar dari Word ('+imgs.length+')</b> — klik gambar untuk menjadikannya gambar pertanyaan.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:7px">'+imgs.map(function(src,i){return '<button type="button" class="btn sm" data-docx-img="'+i+'">Gambar '+(i+1)+'</button>'}).join('')+'</div>';});
+  obs.observe(r,{childList:true,subtree:true,characterData:true});
+  g.addEventListener('click',function(e){var b=e.target.closest('[data-docx-img]');if(!b)return;var src=(window.__V13_DOCX_IMAGES__||[])[Number(b.dataset.docxImg)];if(!src)return;imageData=src;var u=document.getElementById('qImageUrl');if(u)u.value='';showImage();changed();document.getElementById('v12EditorCard')?.scrollIntoView({behavior:'smooth'});});
+ },700);
+});
+</script></body></html>);
+ return s;
+}
 function normalizeAIQuestion(q){
  let type=String(q.type||q.tipe||$('aiType').value).toLowerCase(),n=type==='pg4'?4:5;
  let options=Array.isArray(q.opsi)?q.opsi:(q.answers?.options||[]);
