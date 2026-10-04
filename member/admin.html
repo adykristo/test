@@ -2103,14 +2103,21 @@ function bacaBankV12(targetKind="",targetId=""){
   <details><summary style="cursor:pointer;margin-top:10px;font-weight:800">Pilih soal tertentu</summary><div class="v12-select-list">${(p.questions||[]).map((q,qi)=>`<label class="v12-select-row"><input type="checkbox" class="v12pick-${pi}" value="${qi}"><span><b>${qi+1}.</b> ${h((q.question||"").slice(0,150))}</span></label>`).join("")}</div><div class="pkg-actions"><button class="btn ghost small" onclick="kirimPilihanV12(${pi},'latihan','${targetKind==="latihan"?targetId:""}')">Kirim pilihan → Latihan</button><button class="btn ghost small" onclick="kirimPilihanV12(${pi},'tryout','${targetKind==="tryout"?targetId:""}')">Kirim pilihan → Tryout</button></div></details>
  </div>`).join(""):'<div class="sub">Bank Paket V13 masih kosong.</div>'}catch(e){box.innerHTML='<div class="notice" style="display:block">Bank V13 belum dapat dibaca. Pastikan Pembuat Soal V13 berada pada domain yang sama.<br>'+h(e.message)+'</div>'}
 }
-function addV12Questions(kind,targetId,srcPack,questions){
+async function addV12Questions(kind,targetId,srcPack,questions){
  let a=pkgGet(kind),p=targetId?a.find(x=>x.id===targetId):null;
- if(!p){let name=prompt(kind==="tryout"?"Nama Paket Tryout:":"Nama Paket Latihan:",srcPack.name||"Paket V13");if(name===null)return;p=newPkg(kind,name.trim()||srcPack.name);a.unshift(p)}
+ if(!p){
+   const name=await KFUI.prompt(kind==="tryout"?"Nama Paket Tryout:":"Nama Paket Latihan:",srcPack.name||"Paket V13",kind==="tryout"?"Buat Paket Tryout":"Buat Paket Latihan");
+   if(name===null)return;
+   p=newPkg(kind,name.trim()||srcPack.name);a.unshift(p);
+ }
  questions.forEach(q=>{let c=cloneObj(q);c.sourceV12Package=srcPack.id;c.sourceV12Question=q.id||"";c.packageEdited=false;p.questions.push(c)});
- p.updatedAt=new Date().toISOString();let i=a.findIndex(x=>x.id===p.id);if(i>=0)a[i]=p;localStorage.setItem(pkgKey(kind),JSON.stringify(a));renderPkgManagers();alert("✓ "+questions.length+" soal ditambahkan ke "+(kind==="tryout"?"Paket Tryout":"Paket Latihan")+".");openPanel(kind==="tryout"?"tryout":"latihan");
+ p.updatedAt=new Date().toISOString();let i=a.findIndex(x=>x.id===p.id);if(i>=0)a[i]=p;
+ localStorage.setItem(pkgKey(kind),JSON.stringify(a));renderPkgManagers();
+ KFUI.toast(questions.length+" soal ditambahkan ke "+(kind==="tryout"?"Paket Tryout":"Paket Latihan")+".","ok",4500);
+ openPanel(kind==="tryout"?"tryout":"latihan");
 }
-function kirimPaketV12(pid,kind,targetId=""){let b=v12bank(),p=b.find(x=>String(x.id)===String(pid));if(p)addV12Questions(kind,targetId,p,p.questions||[])}
-function kirimPilihanV12(pi,kind,targetId=""){let b=v12bank(),p=b[pi];if(!p)return;let ids=[...document.querySelectorAll(".v12pick-"+pi+":checked")].map(x=>Number(x.value));if(!ids.length)return alert("Pilih minimal satu soal.");addV12Questions(kind,targetId,p,ids.map(i=>p.questions[i]).filter(Boolean))}
+async function kirimPaketV12(pid,kind,targetId=""){let b=v12bank(),p=b.find(x=>String(x.id)===String(pid));if(p)await addV12Questions(kind,targetId,p,p.questions||[])}
+async function kirimPilihanV12(pi,kind,targetId=""){let b=v12bank(),p=b[pi];if(!p)return;let ids=[...document.querySelectorAll(".v12pick-"+pi+":checked")].map(x=>Number(x.value));if(!ids.length)return KFUI.toast("Pilih minimal satu soal.","info");await addV12Questions(kind,targetId,p,ids.map(i=>p.questions[i]).filter(Boolean))}
 
 function v12ToMember(q,p,kind,no){
  let a=q.answers||{},tipe=q.type||"pg4",k="";
