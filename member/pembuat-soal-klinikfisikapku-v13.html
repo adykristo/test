@@ -1857,21 +1857,43 @@ async function v13RenderPublished(){
 }
 async function v13LoadExistingParticipantContent(){
  const box=$('v13ExistingParticipantContent');if(!box)return;
- box.innerHTML='<div class="empty">Memuat data Admin/Supabase…</div>';
+ box.innerHTML='<div class="empty">Memuat data V12/V13 dari Admin/Supabase…</div>';
  try{
   const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;if(!db)throw new Error('Supabase Admin belum siap.');
-  const tables=['member_secure_content','member_content','contents'];let legacy=[],lastErr=null;
-  for(const table of tables){try{const r=await db.from(table).select('*');if(!r.error){legacy=r.data||[];if(legacy.length)break}else lastErr=r.error}catch(e){lastErr=e}}
+  // V13 tidak memindahkan/menggandakan data V12. Semua sumber lama dibaca dan digabung.
+  const tables=['member_secure_content','member_content','contents'];
+  let legacy=[],errors=[];
+  for(const table of tables){
+   try{
+    const r=await db.from(table).select('*');
+    if(!r.error)legacy.push(...(r.data||[]).map(x=>Object.assign({_kfSourceTable:table},x)));
+    else errors.push(table+': '+(r.error.message||r.error));
+   }catch(e){errors.push(table+': '+(e?.message||e))}
+  }
+  // Ambil nama paket yang sama dengan halaman peserta.
+  let pkgNames=new Map(),contentPackages=new Map();
+  try{
+   const p=await db.from('member_packages').select('id,nama,kode,jenjang').neq('nama','_PAYMENT_CONFIG_');
+   if(!p.error)(p.data||[]).forEach(x=>pkgNames.set(String(x.id),x.nama||x.kode||'Paket'));
+   const m=await db.from('member_content_packages').select('content_id,package_id');
+   if(!m.error)(m.data||[]).forEach(x=>{
+    const k=String(x.content_id),a=contentPackages.get(k)||[];a.push(String(x.package_id));contentPackages.set(k,a);
+   });
+  }catch(e){console.warn('[V13] Pemetaan paket lama:',e)}
   let finals=[];try{if(window.KFPackagePublisher){const r=await window.KFPackagePublisher.adminList();finals=Array.isArray(r)?r:[]}}catch(e){console.warn(e)}
   const kind=x=>String(x.jenis||x.kind||x.type||x.content_type||'').toLowerCase();
   const accepted=new Set(['pdf','modul','module','video','soal','latihan','practice','tryout']);
+  const legacyRows=legacy.filter(x=>accepted.has(kind(x))).map(x=>{
+    const mapped=(contentPackages.get(String(x.id))||[]).map(id=>pkgNames.get(id)).filter(Boolean);
+    return {id:x.id,kind:kind(x),name:x.judul||x.title||x.name||'Tanpa judul',level:x.jenjang||x.level||'',pkg:mapped.join(', ')||x.package_name||x.paket||x.subscription||'',source:x._kfSourceTable==='member_content'?'Data V12/V13 Peserta':'Data lama'};
+  });
   const all=[
-   ...legacy.filter(x=>accepted.has(kind(x))).map(x=>({id:x.id,kind:kind(x),name:x.judul||x.title||x.name||'Tanpa judul',level:x.jenjang||x.level||'',pkg:x.package_name||x.paket||x.subscription||'',source:'Admin'})),
-   ...finals.filter(x=>x&&['latihan','tryout'].includes(String(x.kind||'').toLowerCase())).map(x=>({id:x.id,kind:String(x.kind).toLowerCase(),name:x.name||'Tanpa nama',level:x.jenjang||'',pkg:x.subscription||'',source:'Bank Soal'}))
+   ...legacyRows,
+   ...finals.filter(x=>x&&['latihan','tryout'].includes(String(x.kind||'').toLowerCase())).map(x=>({id:x.id,kind:String(x.kind).toLowerCase(),name:x.name||'Tanpa nama',level:x.jenjang||'',pkg:x.subscription||'',source:'Bank Soal V13'}))
   ];
-  const seen=new Set(),rows=all.filter(x=>{const k=x.source+'|'+x.id+'|'+x.kind;if(seen.has(k))return false;seen.add(k);return true});
+  const seen=new Set(),rows=all.filter(x=>{const k=String(x.id)+'|'+x.kind;if(seen.has(k))return false;seen.add(k);return true});
   const label=k=>({pdf:'📘 Modul',modul:'📘 Modul',module:'📘 Modul',video:'🎥 Video',soal:'✎ Latihan',latihan:'✎ Latihan',practice:'✎ Latihan',tryout:'🏆 Tryout'}[k]||k);
-  box.innerHTML=rows.length?rows.map(x=>'<div class="bank-item"><div><b>'+label(x.kind)+' · '+esc(x.name)+'</b><div class="small">'+esc([x.level,x.pkg,x.source].filter(Boolean).join(' • '))+'</div></div><span class="tag">Terbaca</span></div>').join(''):'<div class="notice">Belum ada konten yang terbaca.'+(lastErr?' '+esc(lastErr.message||lastErr):'')+'</div>';
+  box.innerHTML=rows.length?rows.map(x=>'<div class="bank-item"><div><b>'+label(x.kind)+' · '+esc(x.name)+'</b><div class="small">'+esc([x.level,x.pkg,x.source].filter(Boolean).join(' • '))+'</div></div><span class="tag">Terbaca V13</span></div>').join(''):'<div class="notice">Belum ada konten peserta yang dapat dibaca.'+(errors.length?' '+esc(errors.join(' | ')):'')+'</div>';
  }catch(e){box.innerHTML='<div class="notice bad">Gagal membaca konten peserta: '+esc(e?.message||e)+'</div>'}
 }
 function v13RenderDistributionQueues(){
