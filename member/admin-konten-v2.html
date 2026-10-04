@@ -50,7 +50,7 @@
 </dialog>
 <dialog id="pkgDlg"><div class="dh"><b id="pkgTitle">Pemetaan Paket</b><button class="btn" onclick="pkgDlg.close()">×</button></div><div class="db"><div id="pkgChoices" class="pkggrid"></div></div><div class="df"><button class="btn" onclick="pkgDlg.close()">Batal</button><button class="btn primary" id="savePkg">Simpan Pemetaan</button></div></dialog>
 <dialog id="prevDlg"><div class="dh"><b id="prevTitle">Preview</b><button class="btn" onclick="prevDlg.close()">×</button></div><div class="db preview" id="prevBody"></div><div class="df"><button class="btn" onclick="prevDlg.close()">Tutup</button></div></dialog>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js"></script><script src="supabase-admin.js?v=20261003-v2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js"></script><script src="supabase-admin.js?v=20261005-final2"></script>
 <script>
 let DB,items=[],packages=[],maps=[],kind="pdf",exerciseMode="pdf",editing=null,mapping=null;
 const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
