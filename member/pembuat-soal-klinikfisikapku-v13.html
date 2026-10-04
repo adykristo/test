@@ -332,6 +332,9 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 <script>
+window.v13GoBuatAnchor=function(id){
+ try{window.kfV12Navigate('buat');setTimeout(function(){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},80);return false;}catch(e){return false}
+};
 window.kfV12Navigate=function(page){
  try{
   var target=document.getElementById('page-'+page);
@@ -362,6 +365,8 @@ window.kfV12Navigate=function(page){
     <a class="v12-nav-link active" data-page="buat" href="?tab=buat">✏️ <span>Buat Soal</span></a>
     <a class="v12-nav-link" href="?tab=buat#v12MovedAI">✨ <span>AI Pembuat Soal</span></a>
     <a class="v12-nav-link" href="?tab=buat#v12MovedImport">📥 <span>Import Word / PDF</span></a>
+    <a class="v12-nav-link" href="?tab=buat#v12PasteMaterial" onclick="return v13GoBuatAnchor('v12PasteMaterial')">📋 <span>Tempel Soal + Gambar</span></a>
+    <a class="v12-nav-link" href="?tab=buat#v12EditorCard" onclick="return v13GoBuatAnchor('v12EditorCard')">📝 <span>Editor Soal</span> <em id="editorCountTop">0</em></a>
     <a class="v12-nav-link" data-page="bank" href="?tab=bank">📚 <span>Bank Soal</span> <em id="bankCountTop">0</em></a>
     <a class="v12-nav-link" data-page="paket" href="?tab=paket">🚀 <span>Latihan & Tryout</span></a>
     <a class="v12-nav-link" data-page="essaygrade" href="?tab=essaygrade" onclick="setTimeout(v13LoadEssayGrading,0)">📝 <span>Penilaian Esai</span> <em id="essayPendingBadge">0</em></a>
@@ -560,6 +565,13 @@ Pembahasan: $\\sum F=ma$</pre></details>
 
 
 
+<script>
+(function(){
+ function syncEditorTop(){var a=document.getElementById('v12QuestionBadge'),b=document.getElementById('editorCountTop');if(b)b.textContent=a?a.textContent:'0'}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(syncEditorTop,150)});else setTimeout(syncEditorTop,150);
+ setTimeout(function(){var a=document.getElementById('v12QuestionBadge');if(a){new MutationObserver(syncEditorTop).observe(a,{childList:true,subtree:true,characterData:true})}},250);
+})();
+</script>
 <div class="modal" id="reviewPackageModal"><div class="modalbox" style="max-width:760px">
 <div class="actions" style="justify-content:space-between"><div><h2 style="margin:0">🔎 Pemeriksaan Paket</h2><div class="sub" id="reviewPackageSummary"></div></div><button class="btn danger" onclick="closeModal('reviewPackageModal')">✕</button></div>
 <div id="reviewPackageNumbers" class="number-nav" style="margin-top:14px"></div>
