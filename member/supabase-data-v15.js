@@ -18,6 +18,26 @@
     return (rows||[]).map(q=>({...q,id:q.question_id,position:q.question_position,type:q.question_type}));
   }
   async function saveAnswer(attemptId,questionId,answer){return await rpc("kf_save_answer",{p_attempt:attemptId,p_question:questionId,p_answer:answer});}
+  async function saveEssaySubmission(packageId,questionId,answerText,answerFileUrl){
+    const db=client();
+    const {data:sessionData,error:sessionError}=await db.auth.getSession();
+    if(sessionError)throw sessionError;
+    const uid=sessionData?.session?.user?.id;
+    if(!uid)throw new Error("Peserta belum login.");
+    const row={
+      participant_id:uid,
+      package_id:String(packageId||""),
+      question_id:String(questionId||""),
+      answer_text:String(answerText||""),
+      answer_file_url:String(answerFileUrl||""),
+      updated_at:new Date().toISOString()
+    };
+    const {data,error}=await db.from("essay_submissions")
+      .upsert(row,{onConflict:"participant_id,package_id,question_id"})
+      .select().single();
+    if(error)throw error;
+    return data;
+  }
   async function submit(attemptId,auto){
     try{return await rpc("kf_submit_attempt_v13",{p_attempt:attemptId,p_auto:!!auto});}
     catch(e){
@@ -26,5 +46,5 @@
     }
   }
   async function results(){return await rpc("kf_my_results");}
-  window.KFPackageDB={client,rpc,listPackages,memberCatalog,memberTopics,paymentMethods,createPackageOrder,startAttempt,questions,saveAnswer,submit,results};
+  window.KFPackageDB={client,rpc,listPackages,memberCatalog,memberTopics,paymentMethods,createPackageOrder,startAttempt,questions,saveAnswer,saveEssaySubmission,submit,results};
 })();
