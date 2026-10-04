@@ -18,7 +18,13 @@
     return (rows||[]).map(q=>({...q,id:q.question_id,position:q.question_position,type:q.question_type}));
   }
   async function saveAnswer(attemptId,questionId,answer){return await rpc("kf_save_answer",{p_attempt:attemptId,p_question:questionId,p_answer:answer});}
-  async function submit(attemptId,auto){return await rpc("kf_submit_attempt",{p_attempt:attemptId,p_auto:!!auto});}
+  async function submit(attemptId,auto){
+    try{return await rpc("kf_submit_attempt_v13",{p_attempt:attemptId,p_auto:!!auto});}
+    catch(e){
+      console.warn("[KF V15] RPC submit V13 gagal; fallback ke RPC lama.",e?.message||e);
+      return await rpc("kf_submit_attempt",{p_attempt:attemptId,p_auto:!!auto});
+    }
+  }
   async function results(){return await rpc("kf_my_results");}
   window.KFPackageDB={client,rpc,listPackages,memberCatalog,memberTopics,paymentMethods,createPackageOrder,startAttempt,questions,saveAnswer,submit,results};
 })();
