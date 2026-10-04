@@ -1574,7 +1574,7 @@ function savePackageDraftLocal(){
  if(el){let now=new Date();el.textContent='✓ Draft tersimpan otomatis '+now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 }
 function loadPackageDraftLocal(){try{let x=JSON.parse(localStorage.getItem(PACKAGE_DRAFT_KEY)||'null');if(x&&Array.isArray(x.questions)){packageDraft=x;$('packageName').value=x.name||'';$('packageCount').value=x.questions.length}}catch(e){}}
-function startQuestionPackage(){let count=Math.max(1,Math.min(200,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
+function startQuestionPackage(){let count=Math.max(1,Math.min(200,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(![5,10,20].includes(count)&&!confirm('Jumlah paket '+count+' soal.\n\nRekomendasi KlinikFisikapku adalah 5, 10, atau 20 soal. Tetap lanjutkan?'))return;if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
 function loadQuestionsToWorkspace(qs,name){
  qs=(Array.isArray(qs)?qs:[]).filter(Boolean).map(q=>v13NormalizeQuestionObject(JSON.parse(JSON.stringify(q))));
  if(!qs.length)return;
@@ -1958,6 +1958,8 @@ async function savePackageToBank(fromReview=false){
  let bad=packageDraft.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
  if(bad.length){reviewPackage();return}
  if(!fromReview){reviewPackage();return}
+ const total=packageDraft.questions.length;
+ if(![5,10,20].includes(total)&&!confirm('Paket ini berisi '+total+' soal.\n\nJumlah standar yang disarankan: 5, 10, atau 20 soal. Simpan sebagai jumlah bebas?'))return;
  let arr=packageBank(),now=new Date().toISOString(),pack={
    id:'PKG-'+Date.now(),
    ...v12PublicationMeta(),
@@ -1989,7 +1991,7 @@ function renderPackageBank(){
    <div><b>📦 ${p.published?esc(p.name):'Draft • '+p.questions.length+' soal'}</b><div class="small">${p.questions.length} soal • ${p.published?'☁️ TERBIT • '+(p.kind==='tryout'?'Tryout':'Latihan'):'📝 Belum diberi nama paket • pilih Latihan/Tryout untuk mengatur'}</div></div>
    <div class="actions">
     <button class="btn sm ok" onclick="startPractice('${p.id}')">▶ Kerjakan</button>
-    <button class="btn sm primary" onclick="v13SendPackageToAdmin('${p.id}','latihan')">▶ Kirim ke Soal Latihan Admin</button><button class="btn sm pink" onclick="v13SendPackageToAdmin('${p.id}','tryout')">🏆 Kirim ke Tryout Mingguan Admin</button>
+    <button class="btn sm primary" onclick="v13SendPackageToAdmin('${p.id}','latihan')">▶ Jadikan Paket Latihan</button><button class="btn sm pink" onclick="v13SendPackageToAdmin('${p.id}','tryout')">🏆 Jadikan Paket Tryout</button>
     <button class="btn sm" onclick="openSavedPackage('${p.id}')">Buka/Edit</button>
     <button class="btn sm" onclick="showExportMenu('${p.id}','docx')">⬇ DOCX</button>
     <button class="btn sm" onclick="showExportMenu('${p.id}','pdf')">⬇ PDF</button>
