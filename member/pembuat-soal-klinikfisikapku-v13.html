@@ -646,7 +646,7 @@ function renderAnswerEditor(){
  let h='';
  if(['pg5','pg4','mcma'].includes(currentType)){
   let n=currentType==='pg4'?4:5;answerState.options=(answerState.options||[]).slice(0,n);while(answerState.options.length<n)answerState.options.push('');answerState.optionImages=answerState.optionImages||{};answerState.optionImageData=answerState.optionImageData||{};
-  answerState.options.forEach((o,i)=>h+=`<div class="ref-option"><div class="ref-option-grid"><div class="ref-letter">${'ABCDE'[i]}</div><div>${formulaBar('opt'+i)}<textarea id="opt${i}" style="min-height:72px" placeholder="Teks opsi ${'ABCDE'[i]} (boleh $LaTeX$)" oninput="answerState.options[${i}]=this.value;changed()">${esc(o)}</textarea><div id="optPrev${i}" class="math-preview">Pratinjau akan muncul di sini...</div><div class="image-row"><input type="file" accept="image/*" onchange="loadOptionImage(${i},this)"><input value="${esc(answerState.optionImages[i]||'')}" placeholder="Link gambar ${'ABCDE'[i]}" oninput="answerState.optionImages[${i}]=this.value;changed()"><button class="btn sm danger" onclick="clearOptionImage(${i})">Hapus</button></div><div>${(answerState.optionImageData[i]||answerState.optionImages[i])?`<img class="qimg" src="${esc(answerState.optionImageData[i]||answerState.optionImages[i])}">`:''}</div></div><button type="button" class="key-pick ${answerState.keys.includes(i)?'on':''}" onclick="toggleKey(${i})">◎<br>Kunci</button></div></div>`);
+  answerState.options.forEach((o,i)=>h+=`<div class="ref-option"><div class="ref-option-grid"><div class="ref-letter">${'ABCDE'[i]}</div><div>${formulaBar('opt'+i)}<textarea id="opt${i}" style="min-height:72px" placeholder="Teks opsi ${'ABCDE'[i]} (boleh $LaTeX$)" oninput="answerState.options[${i}]=this.value;changed()">${esc(o)}</textarea><div id="optPrev${i}" class="math-preview">Pratinjau akan muncul di sini...</div><div class="image-row"><input type="file" accept="image/*" onchange="loadOptionImage(${i},this)"><input class="option-image-url" data-option-index="${i}" value="${esc(answerState.optionImages[i]||'')}" placeholder="Link gambar ${'ABCDE'[i]} • atau tempel gambar Ctrl+V" oninput="answerState.optionImages[${i}]=this.value;changed()"><button class="btn sm danger" onclick="clearOptionImage(${i})">Hapus</button></div><div>${(answerState.optionImageData[i]||answerState.optionImages[i])?`<img class="qimg" src="${esc(answerState.optionImageData[i]||answerState.optionImages[i])}">`:''}</div></div><button type="button" class="key-pick ${answerState.keys.includes(i)?'on':''}" onclick="toggleKey(${i})">◎<br>Kunci</button></div></div>`);
  } else if(currentType==='kategori'){h='<div class="notice">Tambahkan pernyataan lalu tentukan Benar/Salah.</div>';answerState.statements.forEach((x,i)=>h+=`<div class="statement"><textarea style="min-height:60px" oninput="answerState.statements[${i}].text=this.value;changed()">${esc(x.text)}</textarea><select onchange="answerState.statements[${i}].answer=this.value;changed()"><option ${x.answer==='Benar'?'selected':''}>Benar</option><option ${x.answer==='Salah'?'selected':''}>Salah</option></select><button class="btn sm danger" onclick="removeStatement(${i})">Hapus</button></div>`);h+='<button class="btn sm" onclick="addStatement()">+ Pernyataan</button>'}
  else if(currentType==='isian')h=`${formulaBar('shortAnswer')}<input id="shortAnswer" value="${esc(answerState.short||'')}" oninput="answerState.short=this.value;changed()" placeholder="Jawaban benar">`;
  else h=`${formulaBar('essayKey')}<textarea id="essayKey" oninput="answerState.essayKey=this.value;changed()" placeholder="Pedoman jawaban esai">${esc(answerState.essayKey||'')}</textarea>`;
@@ -654,6 +654,12 @@ function renderAnswerEditor(){
 }
 function toggleKey(i){if(currentType==='mcma'){answerState.keys=answerState.keys||[];answerState.keys=answerState.keys.includes(i)?answerState.keys.filter(x=>x!==i):[...answerState.keys,i]}else answerState.keys=[i];renderAnswerEditor();changed()}
 function loadOptionImage(i,input){let f=input.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{answerState.optionImageData=answerState.optionImageData||{};answerState.optionImageData[i]=r.result;renderAnswerEditor();changed()};r.readAsDataURL(f)}
+function pasteOptionImage(i,file){
+ if(!file)return;
+ let r=new FileReader();
+ r.onload=()=>{answerState.optionImageData=answerState.optionImageData||{};answerState.optionImageData[i]=r.result;renderAnswerEditor();changed();setTimeout(()=>document.querySelector('.option-image-url[data-option-index="'+i+'"]')?.focus(),0)};
+ r.readAsDataURL(file);
+}
 function clearOptionImage(i){if(answerState.optionImages)delete answerState.optionImages[i];if(answerState.optionImageData)delete answerState.optionImageData[i];renderAnswerEditor();changed()}
 function setKey(i,checked){if(currentType==='mcma'){if(checked&&!answerState.keys.includes(i))answerState.keys.push(i);if(!checked)answerState.keys=answerState.keys.filter(x=>x!==i)}else answerState.keys=[i];changed()}
 function setOptionImage(i){let u=prompt('Masukkan URL gambar untuk opsi '+('ABCDE'[i])+':',answerState.optionImages?.[i]||'');if(u!==null){answerState.optionImages=answerState.optionImages||{};answerState.optionImages[i]=u;renderAnswerEditor();changed()}}
@@ -667,16 +673,23 @@ let draftT;function saveDraftDebounced(){clearTimeout(draftT);draftT=setTimeout(
 $('qImageFile').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{imageData=r.result;imageRotation=0;showImage();changed()};r.readAsDataURL(f)});
 
 document.addEventListener('paste',e=>{
- for(const it of (e.clipboardData?.items||[])){
-  if(!it.type.startsWith('image/'))continue;
-  let r=new FileReader();
-  r.onload=()=>{
-   const inExplanation=e.target?.id==='explanation'||e.target?.closest?.('#explanationMathPreview');
-   if(inExplanation){explanationImageData=r.result;showExplanationImage();changed()}
-   else{imageData=r.result;showImage();changed()}
-  };
-  r.readAsDataURL(it.getAsFile());break;
+ const items=[...(e.clipboardData?.items||[])];
+ const imageItem=items.find(it=>String(it.type||'').startsWith('image/'));
+ if(!imageItem)return;
+ const file=imageItem.getAsFile();if(!file)return;
+ const optionInput=e.target?.closest?.('.option-image-url');
+ if(optionInput){
+  e.preventDefault();
+  pasteOptionImage(Number(optionInput.dataset.optionIndex),file);
+  return;
  }
+ let r=new FileReader();
+ r.onload=()=>{
+  const inExplanation=e.target?.id==='explanation'||e.target?.id==='explanationImageUrl'||e.target?.closest?.('#explanationMathPreview,#explanationImagePreview');
+  if(inExplanation){explanationImageData=r.result;showExplanationImage();changed()}
+  else{imageData=r.result;showImage();changed()}
+ };
+ r.readAsDataURL(file);
 });
 function showImage(){let u=imageData||$('qImageUrl').value;$('qImagePreview').innerHTML=u?`<img class="qimg" src="${esc(u)}" style="transform:rotate(${imageRotation}deg)">`:''}
 function rotateImage(){imageRotation=(imageRotation+90)%360;showImage();changed()}
