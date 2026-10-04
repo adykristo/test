@@ -781,7 +781,7 @@ table{max-width:100%}
 }
 </style>
 </head>
-  <body>
+  <body><div id="kfAdminLoginGate" style="display:none;position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#f8efff,#fff0f8);align-items:center;justify-content:center;padding:20px"><div style="width:min(440px,100%);background:#fff;border:1px solid #ead8f4;border-radius:22px;padding:30px;box-shadow:0 24px 70px #4b17642b;text-align:center"><div style="font-size:38px">🔐</div><h2 style="margin:10px 0 6px;color:#512066">Admin KlinikFisikapku</h2><p style="color:#765f82;line-height:1.55">Masuk menggunakan akun Google Super Admin yang terdaftar.</p><button type="button" class="btn" style="width:100%;min-height:46px;margin-top:12px" onclick="KFLoginAdminGoogle()">Masuk dengan Google</button><a href="index.html" style="display:block;margin-top:16px;color:#7b2cab">← Kembali ke Member</a></div></div>
     <header class="top">
       <div class="brand">
         <b>KlinikFisikapku</b><small>Admin Member Area</small>
@@ -1173,7 +1173,7 @@ table{max-width:100%}
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
     <script src="supabase-config.js"></script>
-    <script src="supabase-admin.js?v=20261005-final3"></script>
+    <script src="supabase-admin.js?v=20261005-final4"></script>
     <script src="supabase-publisher-v15.js?v=20261005-final3"></script>
     <script src="gas-workspace-bridge-v15.js?v=20261005-final3"></script>
     <script>
@@ -1983,7 +1983,12 @@ function openPanel(id, b) {
         if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
         if (window.KFSupabaseAdmin) {
           const boleh = await window.KFSupabaseAdmin.ensureAdmin();
-          if (!boleh) return;
+          if (!boleh) {
+            const gate=document.getElementById("kfAdminLoginGate");
+            if(gate)gate.style.display="flex";
+            return;
+          }
+          const gate=document.getElementById("kfAdminLoginGate");if(gate)gate.style.display="none";
           await renderMemberAdmin();
           await renderKontenAdmin();
           await renderPaketAdmin();
