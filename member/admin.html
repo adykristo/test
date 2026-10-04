@@ -1592,27 +1592,24 @@ function openPanel(id, b) {
       }
       async function tolakMember(id) {
         const m=MEMBER_CACHE.find(x=>x.id===id);if(!m)return;
-        const catatan=prompt("Alasan penolakan untuk "+m.nama+" (opsional):","");if(catatan===null)return;
-        if(!confirm(`Tolak pendaftaran ${m.nama}?\n\nData tidak dihapus dan masih dapat ditinjau Admin.`))return;
-        try{await adminApi("adminTolak",{id,catatan});renderMemberAdmin()}catch(err){alert("Gagal menolak: "+err.message)}
+        const catatan=await KFUI.prompt("Alasan penolakan untuk "+m.nama+" (opsional):","","Tolak Pendaftaran");if(catatan===null)return;
+        if(!(await KFUI.confirm("Tolak pendaftaran "+m.nama+"?\n\nData tidak dihapus dan masih dapat ditinjau Admin.","Konfirmasi Penolakan")))return;
+        try{await adminApi("adminTolak",{id,catatan});KFUI.toast("Pendaftaran "+m.nama+" ditolak.","ok");await renderMemberAdmin()}catch(err){KFUI.toast("Gagal menolak: "+err.message,"err",6000)}
       }
       async function ubahAktifMember(id,jadiAktif) {
         const m=MEMBER_CACHE.find(x=>x.id===id);if(!m)return;
-        const pesan=jadiAktif
-          ? `AKTIFKAN KEMBALI\n\nPeserta: ${m.nama}\n\nAkses dibuka kembali.\n\nLanjutkan?`
-          : `NONAKTIFKAN SEMENTARA\n\nPeserta: ${m.nama}\n\nAkses dihentikan sementara; data, progres, dan riwayat tetap disimpan.\n\nLanjutkan?`;
-        if(!confirm(pesan))return;
-        try{await adminApi(jadiAktif?"adminAktifkanKembali":"adminNonaktifkan",{id,catatan:"Perubahan status melalui Admin"});renderMemberAdmin()}catch(err){alert("Gagal mengubah status: "+err.message)}
+        const pesan=jadiAktif?"Aktifkan kembali akses "+m.nama+"?":"Nonaktifkan sementara "+m.nama+"?\n\nData, progres, dan riwayat tetap disimpan.";
+        if(!(await KFUI.confirm(pesan,jadiAktif?"Aktifkan Kembali":"Nonaktifkan Peserta")))return;
+        try{await adminApi(jadiAktif?"adminAktifkanKembali":"adminNonaktifkan",{id,catatan:"Perubahan status melalui Admin"});KFUI.toast(jadiAktif?"Akses peserta kembali aktif.":"Akses peserta dinonaktifkan sementara.","ok");await renderMemberAdmin()}catch(err){KFUI.toast("Gagal mengubah status: "+err.message,"err",6000)}
       }
       async function hapusMember(id) {
         const p=MEMBER_CACHE.find(x=>x.id===id);if(!p)return;
-        const ketik=prompt(`ARSIPKAN PESERTA — perlindungan salah pencet\n\nPeserta: ${p.nama}\nEmail: ${p.email||"-"}\n\nData tidak dihapus permanen. Ketik nama peserta persis untuk melanjutkan:\n\n${p.nama}`,"");
+        const ketik=await KFUI.prompt("Data tidak dihapus permanen. Untuk mencegah salah pencet, ketik nama peserta persis:\n\n"+p.nama,"","Arsipkan Peserta");
         if(ketik===null)return;
-        if(ketik.trim()!==String(p.nama||"").trim())return alert("Dibatalkan. Nama tidak sama; data peserta tetap aman.");
-        if(!confirm(`Konfirmasi terakhir:\n\nArsipkan ${p.nama}?\n\nRiwayat tetap dipertahankan.`))return;
-        try{await adminApi("adminHapusMember",{id,catatan:"Diarsipkan melalui Admin dengan konfirmasi nama peserta"});alert("✓ Peserta diarsipkan.");renderMemberAdmin()}catch(err){alert("Gagal mengarsipkan: "+err.message)}
+        if(ketik.trim()!==String(p.nama||"").trim())return KFUI.toast("Nama tidak sama. Pengarsipan dibatalkan.","err",4500);
+        if(!(await KFUI.confirm("Arsipkan "+p.nama+"?\n\nRiwayat peserta tetap dipertahankan.","Konfirmasi Terakhir")))return;
+        try{await adminApi("adminHapusMember",{id,catatan:"Diarsipkan melalui Admin dengan konfirmasi nama peserta"});KFUI.toast("Peserta berhasil diarsipkan.","ok");await renderMemberAdmin()}catch(err){KFUI.toast("Gagal mengarsipkan: "+err.message,"err",6000)}
       }
-
       async function renderKontenAdmin() {
         try {
           const res = await adminApi("adminListKonten", {});
