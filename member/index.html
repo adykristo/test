@@ -1171,6 +1171,19 @@ iframe.pdfview{display:block;min-height:520px}
       function renderPaketLevel(){const b=document.getElementById("pendingPackageOptions"),a=(window.PAKET_CACHE||[]).filter(p=>paketLevel(p)===KF_LEVEL_SELECTED);b.innerHTML=a.length?a.map(p=>{const o=!!p.owned,c=KF_BUNDLE_SELECTED.has(p.id);return `<label class="package-choice bundle-choice${o?" selected":""}${c?" checked":""}"><div class="package-choice-head"><div><h3>${esc(p.nama)}</h3><p>${esc(p.deskripsi||"Deskripsi akan ditambahkan Admin.")}</p></div><div class="price">${formatRupiah(p.harga)}</div></div><div class="bundle-check-row">${o?'<span class="owned-mark">✓ Sudah Dimiliki</span>':`<input type="checkbox" ${c?"checked":""} onchange="toggleBundlePackage('${p.id}',this.checked)"><span>Pilih paket ini</span>`}</div></label>`}).join(""):'<div class="empty">Belum ada paket aktif.</div>'}
       async function toggleBundlePackage(id,c){if(c)KF_BUNDLE_SELECTED.add(id);else KF_BUNDLE_SELECTED.delete(id);renderPaketLevel();await updateBundleSummary()}
       async function updateBundleSummary(){const p=document.getElementById("bundleSummary"),ids=[...KF_BUNDLE_SELECTED];if(!ids.length){p.style.display="none";KF_BUNDLE_QUOTE=null;return}p.style.display="flex";try{const r=await KFMemberAuth.quoteBundle(ids);KF_BUNDLE_QUOTE=r.data;bundleCount.textContent=r.data.package_count+" paket dipilih";bundleSubtotal.textContent=formatRupiah(r.data.subtotal);bundleDiscount.textContent=Number(r.data.discount_percent)+"% (−"+formatRupiah(r.data.discount_amount)+")";bundleTotal.textContent=formatRupiah(r.data.total_amount);const bp=document.getElementById("bundlePayable");if(bp)bp.textContent=formatRupiah(r.data.total_amount)}catch(e){KFMemberUI.toast("Gagal menghitung total: "+e.message,"err",5500)}}
+      async function salinNomorRekening(){
+        const el=document.getElementById("paymentAccountNumber");
+        const nomor=(el&&el.textContent||"").trim();
+        if(!nomor||nomor==="-"||/memuat/i.test(nomor)){KFMemberUI.toast("Nomor rekening belum tersedia.","err",3500);return;}
+        try{
+          if(navigator.clipboard&&window.isSecureContext) await navigator.clipboard.writeText(nomor);
+          else{
+            const ta=document.createElement("textarea");ta.value=nomor;ta.setAttribute("readonly","");ta.style.position="fixed";ta.style.opacity="0";
+            document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();
+          }
+          KFMemberUI.toast("Nomor rekening berhasil disalin.","ok",3000);
+        }catch(e){KFMemberUI.toast("Tidak dapat menyalin otomatis. Nomor: "+nomor,"err",5000);}
+      }
       async function lanjutPembayaranBundle(){const ids=[...KF_BUNDLE_SELECTED];if(!ids.length)return KFMemberUI.toast("Pilih minimal satu paket.","info");try{if(!KF_BUNDLE_QUOTE)await updateBundleSummary();const mr=await KFMemberAuth.metodePembayaran(),m=mr.data||[];if(!m.length)throw Error("Kontak Admin belum diatur.");const r=await KFMemberAuth.buatOrderBundle(ids,m[0].id);const selectedNames=(window.PAKET_CACHE||[]).filter(p=>KF_BUNDLE_SELECTED.has(p.id)).map(p=>p.nama);const packageLines=selectedNames.map((n,i)=>(i+1)+". "+n).join("%0A");const wa=document.getElementById("paymentWhatsAppLink");if(wa&&m[0].whatsapp){const adminNo=String(m[0].whatsapp).replace(/\D/g,"");const nama=profilAktif&&profilAktif.nama?profilAktif.nama:"Member";const msg="Halo Admin KlinikFisikapku%0A%0A"+"Saya ingin mengaktifkan paket belajar berikut:%0A%0A"+"Nama: "+encodeURIComponent(nama)+"%0A"+"Jenjang: "+encodeURIComponent(KF_LEVEL_SELECTED)+"%0A"+"Paket dipilih:%0A"+packageLines+"%0A%0A"+"Biaya yang harus dibayar: "+encodeURIComponent(formatRupiah(KF_BUNDLE_QUOTE.total_amount||0))+"%0A%0A"+"ID Permintaan:%0A"+encodeURIComponent(r.id)+"%0A%0A"+"Saya akan mengirim bukti pembayaran pada chat ini.%0A"+"Mohon dibantu proses aktivasi paket.%0A%0A"+"Terima kasih.";window.open("https://wa.me/"+adminNo+"?text="+msg,"_blank","noopener");}await muatPermintaanPaketSaya();KFMemberUI.toast("Pilihan paket tersimpan. Admin akan mengaktifkan paket setelah pembayaran diverifikasi.","ok",5500)}catch(e){KFMemberUI.toast("Gagal menyimpan pilihan paket: "+e.message,"err",6000)}}
       function renderMetodePembayaranMember(a){window.KF_PAYMENT_METHODS=a||[];const m=a&&a[0],b=document.getElementById("paymentBank"),n=document.getElementById("paymentAccountNumber"),o=document.getElementById("paymentAccountOwner");if(!m){if(b)b.textContent="Belum diatur Admin";if(n)n.textContent="-";if(o)o.textContent="-";return}if(b)b.textContent=((m.jenis||"").toUpperCase()+" · "+(m.nama||"")).replace(/^ · /,"");if(n)n.textContent=m.nomor_akun||"-";if(o)o.textContent=m.pemilik||"-"}
       async function bukaPilihPaket(){
@@ -1693,7 +1706,8 @@ iframe.pdfview{display:block;min-height:520px}
           if(pdfUrl){
             const pdfBlobOrUrl=pdfDisplayUrl(pdfUrl);
             const isBlob=String(pdfBlobOrUrl).startsWith("blob:");
-            const sumberPdf=isBlob?pdfBlobOrUrl:`https://docs.google.com/viewer?url=${encodeURIComponent(pdfBlobOrUrl)}&embedded=true`;
+            const isPrivateSigned=String(pdfBlobOrUrl).includes("/storage/v1/object/sign/learning-files-private/");
+            const sumberPdf=(isBlob||isPrivateSigned)?pdfBlobOrUrl:`https://docs.google.com/viewer?url=${encodeURIComponent(pdfBlobOrUrl)}&embedded=true`;
             const namaPdf=String(x.judul||"latihan").replace(/[\\/:*?"<>|]+/g,"-")+".pdf";
             html += `<iframe class="pdfview" title="Latihan PDF" src="${esc(sumberPdf)}"></iframe>
               <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
