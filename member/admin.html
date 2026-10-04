@@ -1045,7 +1045,7 @@ table{max-width:100%}
         
         <section id="latihan" class="panel">
           <h1>Soal Latihan</h1>
-          <p class="sub">Kelola paket latihan untuk peserta berlangganan. Soal dibuat di Pembuat Soal V12, kemudian dipilih, diedit sebagai salinan paket, dan dipublikasikan dari sini.</p>
+          <p class="sub">Kelola paket latihan untuk peserta berlangganan. Soal dari Bank Soal V13 masuk ke sini terlebih dahulu. Atur/edit paket latihan di Admin, lalu publikasikan dan tentukan akses Paket Peserta dari sini.</p>
           <div class="card">
             <div class="head"><div><h2>Paket Latihan</h2><p class="sub" style="margin:4px 0 0">Paket tersimpan di browser admin. Saat dipublikasikan, soal dikirim ke database Member Area.</p></div><button class="btn" onclick="buatPaketKelola('latihan')">+ Paket Latihan</button></div>
             <div id="latihanPackageManager" class="manage-list"></div><div class="distribution-box" style="margin-top:14px"><b>Distribusi Paket Final</b><p class="sub">Setelah paket latihan dipublikasikan ke Supabase, atur paket peserta yang boleh mengaksesnya.</p><div id="latihanAccessManager" class="manage-list"></div></div><div class="card" style="margin-top:14px"><div class="head"><h3>Paket Final di Supabase</h3><button class="btn ghost small" onclick="renderSupabasePackageStatus()">↻ Panggil dari Supabase</button></div><div id="latihanPackageManagerSupabase" class="manage-list"><div class="sub">Klik muat untuk melihat data final.</div></div></div>
@@ -1102,7 +1102,7 @@ table{max-width:100%}
         
         <section id="tryout" class="panel">
           <h1>Tryout Mingguan</h1>
-          <p class="sub">Kelola paket tryout untuk peserta pelatihan yang berlangganan. Soal berasal dari V12 dan dapat diedit khusus untuk paket yang dipilih.</p>
+          <p class="sub">Soal dari Bank Soal V13 masuk ke sini terlebih dahulu. Atur durasi, jadwal, susunan soal dan akses di Admin, lalu publikasikan ke Paket Peserta dari sini.</p>
           <div class="card">
             <div class="head"><div><h2>Paket Tryout</h2><p class="sub" style="margin:4px 0 0">Atur durasi, jadwal, akses paket langganan, susunan soal, dan publikasi.</p></div><button class="btn" onclick="buatPaketKelola('tryout')">+ Paket Tryout</button></div>
             <div id="tryoutPackageManager" class="manage-list"></div><div class="distribution-box" style="margin-top:14px"><b>Distribusi Paket Final</b><p class="sub">Atur paket peserta dan topik yang boleh mengakses setiap tryout final.</p><div id="tryoutAccessManager" class="manage-list"></div></div><div class="card" style="margin-top:14px"><div class="head"><h3>Paket Final di Supabase</h3><button class="btn ghost small" onclick="renderSupabasePackageStatus()">↻ Panggil dari Supabase</button></div><div id="tryoutPackageManagerSupabase" class="manage-list"><div class="sub">Klik muat untuk melihat data final.</div></div></div>
@@ -2122,7 +2122,7 @@ async function publikasiPkg(kind,id){
    await renderSupabasePackageStatus();
  }catch(e){alert("Gagal publikasi Supabase: "+e.message)}
 }
-window.addEventListener("load",()=>{renderPkgManagers();let f=document.getElementById("v12Frame");if(f)f.addEventListener("load",()=>setTimeout(()=>bacaBankV12(),250))});
+window.addEventListener("load",()=>{renderPkgManagers();let f=document.getElementById("v12Frame");if(f)f.addEventListener("load",()=>setTimeout(()=>bacaBankV12(),250));setTimeout(()=>{if(location.hash==='#latihan'){openPanel('latihan');renderPkgManagers()}else if(location.hash==='#tryout'){openPanel('tryout');renderPkgManagers()}},250)});
 
 </script>
 <script>
