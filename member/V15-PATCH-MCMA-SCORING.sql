@@ -5,7 +5,7 @@
 
 begin;
 
-create or replace function public.kf_submit_attempt(p_attempt uuid, p_auto boolean)
+create or replace function public.kf_submit_attempt(p_attempt uuid, p_auto boolean default false)
 returns jsonb
 language plpgsql
 security definer
