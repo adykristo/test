@@ -673,12 +673,13 @@ async function generateAIBatch(batchCount){
  let r=await postGAS('buatSoalGemini',payload).catch(async()=>await postGAS('generateAI',payload)).catch(async()=>await postGAS('generate',payload));
  if(!r||!Array.isArray(r.questions))throw new Error('Format respons Gemini tidak sesuai.');
  let batch=r.questions.map(normalizeAIQuestion);
- aiDrafts=batch;renderAI();
+ aiDrafts.push(...batch);renderAI();
  return batch;
 }
 
 async function generateAI(){
  let total=Math.max(1,Math.min(50,Number($('aiCount').value)||1));
+ aiDrafts=[];renderAI();
  let remaining=total,all=[],batchNo=0,totalBatches=Math.ceil(total/10);
  let btn=event?.currentTarget; if(btn)btn.disabled=true;
  try{
@@ -695,9 +696,30 @@ async function generateAI(){
  return all;
 }
 
-function renderAI(){$('aiResults').innerHTML=aiDrafts.length?aiDrafts.map((q,i)=>`<div class="bankitem"><div class="tags"><span class="tag">${typeName(q.type)}</span><span class="tag">${esc(q.difficulty)}</span></div><h3>${esc(q.question)}</h3><div class="actions"><button class="btn sm primary" onclick="editAIDraft(${i})">Edit di Editor</button><button class="btn sm ok" onclick="acceptAI(${i})">Terima ke Bank</button><button class="btn sm" onclick="regenAI(${i})">Regenerate</button><button class="btn sm danger" onclick="aiDrafts.splice(${i},1);renderAI()">Hapus</button></div></div>`).join(''):'<div class="empty">Belum ada hasil AI.</div>'}
+function renderAI(){
+ const el=$('aiResults');if(!el)return;
+ if(!aiDrafts.length){el.innerHTML='<div class="empty">Belum ada hasil AI.</div>';return}
+ el.innerHTML=`<div class="actions" style="margin:0 0 12px"><button class="btn ok" onclick="acceptAllAI()">✓ Terima Semua ke Bank Soal (${aiDrafts.length})</button><span class="small">Semua soal disimpan sebagai Draft dan tetap dapat diedit sebelum dipublish.</span></div>`+
+ aiDrafts.map((q,i)=>`<div class="bankitem"><div class="tags"><span class="tag">${typeName(q.type)}</span><span class="tag">${esc(q.difficulty)}</span><span class="tag">Draft AI</span></div><h3>${esc(q.question)}</h3><div class="actions"><button class="btn sm primary" onclick="editAIDraft(${i})">Edit di Editor</button><button class="btn sm ok" onclick="acceptAI(${i})">Terima ke Bank</button><button class="btn sm" onclick="regenAI(${i})">Regenerate</button><button class="btn sm danger" onclick="aiDrafts.splice(${i},1);renderAI()">Hapus</button></div></div>`).join('');
+}
 function editAIDraft(i){loadQuestion(aiDrafts[i])}
-function acceptAI(i){let q=aiDrafts[i];q.reviewStatus='reviewed';q.reviewedAt=new Date().toISOString();let b=bank();b.unshift(q);setBank(b);aiDrafts.splice(i,1);renderAI()}
+function prepareAIBankQuestion(q){
+ const x=JSON.parse(JSON.stringify(q));x.status='Draft';x.reviewStatus='reviewed';x.reviewedAt=new Date().toISOString();x.updatedAt=new Date().toISOString();return x;
+}
+function acceptAI(i){
+ const q=aiDrafts[i];if(!q)return;
+ let b=bank(),x=prepareAIBankQuestion(q);
+ if(!b.some(z=>z.id===x.id))b.unshift(x);
+ setBank(b);aiDrafts.splice(i,1);renderAI();
+}
+function acceptAllAI(){
+ if(!aiDrafts.length)return;
+ let b=bank(),ids=new Set(b.map(x=>x.id)),added=0;
+ aiDrafts.forEach(q=>{let x=prepareAIBankQuestion(q);if(!ids.has(x.id)){b.unshift(x);ids.add(x.id);added++}});
+ setBank(b);aiDrafts=[];renderAI();
+ if($('aiStatus'))$('aiStatus').textContent='✓ '+added+' soal AI tersimpan ke Bank Soal sebagai Draft.';
+ alert(added+' soal berhasil masuk ke Bank Soal sebagai Draft.');
+}
 function regenAI(i){aiDrafts[i]=aiQuestion(i);renderAI()}
 
 function pickFormulaImageForExplanation(){const x=$('formulaImageInput');if(x)x.click()}
