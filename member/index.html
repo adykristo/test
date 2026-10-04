@@ -1969,5 +1969,19 @@ const _renderPaketSayaOnLoad=renderPaketSayaDashboard;
 renderList=function(){_renderListV15();setTimeout(kfLoadServerPackages,0)};
 </script>
 
+
+<style id="kf-member-feedback-style">
+.kfm-toast-stack{position:fixed;right:18px;top:78px;z-index:100000;display:grid;gap:9px;max-width:min(390px,calc(100vw - 28px))}
+.kfm-toast{background:#fff;border:1px solid #eadcf5;border-left:4px solid #9a35d2;border-radius:14px;box-shadow:0 14px 36px rgba(45,18,80,.16);padding:12px 14px;font-size:13px;font-weight:700;color:#321747}
+.kfm-toast.ok{border-left-color:#20b26b}.kfm-toast.err{border-left-color:#ef476f}
+.kfm-backdrop{position:fixed;inset:0;background:rgba(31,15,48,.46);backdrop-filter:blur(3px);z-index:100001;display:grid;place-items:center;padding:18px}
+.kfm-dialog{width:min(500px,100%);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 22px 70px rgba(32,12,54,.28)}
+.kfm-head{padding:17px 19px;background:linear-gradient(110deg,#7224ba,#ec3d9b);color:#fff}.kfm-body{padding:18px 19px;white-space:pre-wrap;line-height:1.55;color:#321747}.kfm-actions{display:flex;justify-content:flex-end;gap:9px;padding:0 19px 18px}
+</style>
+<script>
+window.KFMemberUI=window.KFMemberUI||{};
+KFMemberUI.toast=function(message,type="info",timeout=3400){let s=document.getElementById("kfmToastStack");if(!s){s=document.createElement("div");s.id="kfmToastStack";s.className="kfm-toast-stack";document.body.appendChild(s)}const t=document.createElement("div");t.className="kfm-toast "+type;t.textContent=String(message||"");s.appendChild(t);setTimeout(()=>t.remove(),timeout)};
+KFMemberUI.confirm=function(message,title="Konfirmasi"){return new Promise(resolve=>{const b=document.createElement("div");b.className="kfm-backdrop";b.innerHTML='<div class="kfm-dialog" role="dialog" aria-modal="true"><div class="kfm-head"><b></b></div><div class="kfm-body"></div><div class="kfm-actions"><button class="btn btn-ghost" data-no>Kembali</button><button class="btn btn-main" data-yes>Ya, Lanjutkan</button></div></div>';b.querySelector(".kfm-head b").textContent=title;b.querySelector(".kfm-body").textContent=message;const done=v=>{b.remove();resolve(v)};b.querySelector("[data-no]").onclick=()=>done(false);b.querySelector("[data-yes]").onclick=()=>done(true);b.onclick=e=>{if(e.target===b)done(false)};document.body.appendChild(b);b.querySelector("[data-yes]").focus()})};
+</script>
 </body>
 </html>
