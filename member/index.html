@@ -1899,7 +1899,7 @@ async function kfServerSaveCurrent(){
      const ea=(a&&typeof a==="object")?a:{text:String(a||""),file_url:""};
      await KFPackageDB.saveAnswer(kfRun.attemptId,q.id,ea.text||"");
      if(!KFPackageDB.saveEssaySubmission)throw new Error("Fungsi penyimpanan Esai belum termuat. Muat ulang halaman.");
-     await KFPackageDB.saveEssaySubmission(kfRun.packageId,q.id,ea.text||"",ea.file_url||"");
+     await KFPackageDB.saveEssaySubmission(kfRun.attemptId,q.id,ea.text||"",ea.file_url||"");
    }else{
      await KFPackageDB.saveAnswer(kfRun.attemptId,q.id,a);
    }
