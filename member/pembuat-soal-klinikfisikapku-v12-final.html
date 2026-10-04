@@ -562,17 +562,19 @@ function aiQuestion(i){
 let aiDrafts=[];
 async function generateAIBatch(batchCount){
  let n=Math.max(1,Math.min(10,Number(batchCount)||1)),c=getConnection();
+ let baseInstruction=($('aiMaterial').value||'').trim();
  let payload={
    jenjang:$('aiJenjang').value,
    topik:$('aiTopik').value,
    tipe:$('aiType').value,
    sulit:$('aiDiff').value,
    jumlah:n,
-   instruksi:[($('aiMaterial').value||''), 'Mata pelajaran: '+($('aiMapel').value||'Fisika'), 'Mode: '+($('aiMode').value||'topic')].filter(Boolean).join('\n')
+   prompt:[baseInstruction,'WAJIB: Buat pembahasan siap pakai dan sistematis untuk setiap soal dengan urutan: Diketahui, Ditanya, Konsep fisika/persamaan yang digunakan, Penyelesaian langkah demi langkah, dan Jawaban akhir. Gunakan LaTeX untuk semua rumus, angka konsisten, serta jangan menulis instruksi untuk admin.'].filter(Boolean).join('\n\n'),
+   instruksi:[baseInstruction,'Mata pelajaran: '+($('aiMapel').value||'Fisika'),'Mode: '+($('aiMode').value||'topic'),'Pembahasan wajib sistematis: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir.'].filter(Boolean).join('\n')
  };
  if(!c.url)throw new Error('URL Apps Script belum diisi pada menu Koneksi.');
  $('aiResults').innerHTML='<div class="notice">✨ Gemini sedang membuat '+n+' soal...</div>';
- let r=await postGAS('generateAI',payload).catch(async()=>await postGAS('generate',payload));
+ let r=await postGAS('buatSoalGemini',payload).catch(async()=>await postGAS('generateAI',payload)).catch(async()=>await postGAS('generate',payload));
  if(!r||!Array.isArray(r.questions))throw new Error('Format respons Gemini tidak sesuai.');
  let batch=r.questions.map(normalizeAIQuestion);
  aiDrafts=batch;renderAI();
