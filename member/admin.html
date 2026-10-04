@@ -2012,6 +2012,13 @@ function openPanel(id, b) {
           await renderPaketAdmin();
           renderPkgManagers();
           muatPilihanPaket();
+          try{await renderSupabasePackageStatus();}catch(e){console.warn("Status paket:",e)}
+          try{await renderPaketBaru();}catch(e){console.warn("Paket baru:",e)}
+          try{await renderMetodePembayaran();}catch(e){console.warn("Metode pembayaran:",e)}
+          try{await renderAccessManagers();}catch(e){console.warn("Akses paket:",e)}
+          try{await renderDiscountRules();}catch(e){console.warn("Diskon:",e)}
+          try{await renderBundleOrders();}catch(e){console.warn("Permintaan paket:",e)}
+          if(localStorage.getItem("kf_v12_studio_open")==="0")toggleV12Studio(false);
           return;
         }
         tampilkanPetunjukBackend();
@@ -2192,7 +2199,7 @@ async function sembunyikanPaketSupabase(externalId){
  try{await KFPackagePublisher.unpublish(externalId);await renderSupabasePackageStatus();KFUI.toast("Paket disembunyikan dari peserta.","ok")}
  catch(e){KFUI.toast("Gagal menyembunyikan paket: "+e.message,"err",6000)}
 }
-window.addEventListener("load",()=>setTimeout(renderSupabasePackageStatus,1200));
+/* V15: Supabase package status initialized only after verified admin boot. */
 
 
 /* ===== V15 Paket Mandiri Integration ===== */
@@ -2514,7 +2521,7 @@ tambahItem=async function(jenjang,item){
  }catch(e){alert("Konten tersimpan tetapi distribusi paket gagal: "+e.message)}
 };
 
-window.addEventListener("load",()=>setTimeout(async()=>{try{if(!window.KFSupabaseAdmin)return;const allowed=await window.KFSupabaseAdmin.ensureAdmin();if(!allowed)return;await renderPaketBaru();await renderMetodePembayaran();await renderAccessManagers();if(localStorage.getItem("kf_v12_studio_open")==="0")toggleV12Studio(false)}catch(e){console.warn("Upgrade UI:",e)}},1400));
+/* V15: package/payment/access initialization moved to verified admin boot. */
 
 /* ===== Preview Admin + compact member actions ===== */
 function closeAdminPreview(){document.getElementById("kfPreviewModal")?.classList.remove("open")}
@@ -2678,7 +2685,7 @@ async function approveBundleOrder(id,c,uid){
  KFUI.toast(c+" paket berhasil diaktifkan"+(tambahan?". Paket lama tetap tersimpan.":"."),"ok",4800);
  await renderBundleOrders();await renderMemberAdmin();
 }
-window.addEventListener("load",()=>setTimeout(()=>{renderDiscountRules();renderBundleOrders()},1400));
+/* V15: discount/bundle initialization moved to verified admin boot. */
 </script>
 <script>
 async function lihatStatusSuperAdmin(){
