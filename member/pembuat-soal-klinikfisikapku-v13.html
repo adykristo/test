@@ -386,15 +386,15 @@ window.kfV12Navigate=function(page){
 <div class="row"><div><label>Jenjang</label><select id="jenjang"><option>SD</option><option>SMP</option><option selected>SMA</option></select></div><div><label>Mata Pelajaran</label><input id="mapel" value="Fisika"></div><div><label>Kelas</label><input id="kelas" placeholder="Contoh: XII"></div><div><label>Tingkat Kesulitan</label><select id="difficulty"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div></div>
 <div class="row two" style="margin-top:8px"><div><label>Topik / Materi</label><input id="topik" placeholder="Listrik Statis"></div><div><label>Subtopik</label><input id="subtopik" placeholder="Hukum Coulomb"></div></div><div style="margin-top:8px"><label>Tag</label><input id="tags" placeholder="coulomb, muatan listrik"></div>
 <label style="margin-top:10px">Tipe soal</label><select id="typeSelect" onchange="changeTypeSelect(this.value)"><option value="pg5">Pilihan Ganda — 5 opsi (A–E)</option><option value="pg4">Pilihan Ganda — 4 opsi (A–D)</option><option value="mcma">PG Kompleks / MCMA</option><option value="kategori">PG Kompleks Kategori</option><option value="isian">Isian Singkat</option><option value="esai">Esai</option></select>
-<label style="margin-top:10px">Pertanyaan <span class="small">(teks + rumus LaTeX + angka; boleh kosong jika hanya gambar)</span></label><div id="qFormulaBar"></div><textarea id="question" placeholder="Contoh: Sebuah benda bermassa $m=2\\,\\mathrm{kg}$ ditarik gaya $F=10\\,\\mathrm{N}$. Percepatannya..."></textarea><div id="questionMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div class="actions" style="margin-top:7px"><button class="btn sm" onclick="aiImprove()">✨ Rapikan soal ini dengan AI</button></div>
+<label style="margin-top:10px">Pertanyaan <span class="small">(teks + rumus LaTeX + angka; boleh kosong jika hanya gambar)</span></label><div id="qFormulaBar"></div><div class="actions" style="margin:6px 0"><button type="button" class="btn sm primary" onclick="insertImageMarker('question')">🖼 Sisip Gambar di Pertanyaan</button><span class="small">Letakkan kursor pada posisi yang diinginkan, lalu klik tombol ini.</span></div><textarea id="question" placeholder="Contoh: Sebuah benda bermassa $m=2\\,\\mathrm{kg}$ ditarik gaya $F=10\\,\\mathrm{N}$. Percepatannya..."></textarea><div id="questionMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div class="actions" style="margin-top:7px"><button class="btn sm" onclick="aiImprove()">✨ Rapikan soal ini dengan AI</button></div>
 <div class="notice" style="margin-top:10px;background:#fbf7ff;border:1px solid #eadcff">
  <b>📌 Sisip Gambar di posisi yang diinginkan</b>
  <div class="small" style="margin-top:6px;line-height:1.65">
- Klik tepat pada posisi di teks Pertanyaan, Opsi, atau Pembahasan, lalu tekan <b>🖼 Sisip Gambar</b>. Pilih gambar, kemudian tentukan posisi Kiri/Tengah/Kanan dan ukuran. Gambar akan tampil tepat di lokasi kursor pada preview.
+ Klik tepat pada posisi di teks Pertanyaan, Opsi, atau Pembahasan, lalu tekan <b>🖼 Sisip Gambar</b>. Pilih gambar dan tentukan Kiri/Tengah/Kanan. Gambar memakai ukuran aslinya (hanya diperkecil otomatis bila lebih lebar dari area soal) dan tampil tepat di lokasi kursor pada preview.
  </div>
 </div>
 <div class="sep"></div><div id="answerCard"><label><b>Pilihan jawaban / kunci</b></label><div class="small">Setiap opsi boleh berisi teks, rumus, gambar, atau keduanya.</div><div id="answerEditor"></div></div>
-<div class="sep"></div><label><b>Pembahasan / pedoman jawaban esai</b> <span class="small">(opsional: teks + LaTeX + angka)</span></label><div id="exFormulaBar"></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea>
+<div class="sep"></div><label><b>Pembahasan / pedoman jawaban esai</b> <span class="small">(opsional: teks + LaTeX + angka)</span></label><div id="exFormulaBar"></div><div class="actions" style="margin:6px 0"><button type="button" class="btn sm primary" onclick="insertImageMarker('explanation')">🖼 Sisip Gambar di Pembahasan</button><span class="small">Letakkan kursor pada posisi yang diinginkan, lalu klik tombol ini.</span></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea>
 <div id="explanationMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div>
 <div style="margin-top:10px;max-width:360px">
 <label>Penilaian MCMA</label>
@@ -638,10 +638,10 @@ function formulaBar(target){
 function insertFormulaTo(id,t){let el=$(id);if(!el)return;let p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+'$'+t+'$'+el.value.slice(p);el.dispatchEvent(new Event('input'));el.focus()}
 function renderRichText(text=''){
  let safe=esc(cleanAIMathText(text));
- safe=safe.replace(/\[GAMBAR\|(left|center|right)\|(25|33|50|67|75|100)\]([\s\S]*?)\[\/GAMBAR\]/g,function(_,align,width,src){
+ safe=safe.replace(/\[GAMBAR\|(left|center|right)(?:\|(25|33|50|67|75|100))?\]([\s\S]*?)\[\/GAMBAR\]/g,function(_,align,width,src){
    src=String(src||'').trim();
    if(!/^(data:image\/|https?:\/\/)/i.test(src))return '';
-   return '<div class="kf-inline-image-wrap '+align+'"><img src="'+esc(src)+'" style="width:'+width+'%"></div>';
+   return '<div class="kf-inline-image-wrap '+align+'"><img src="'+esc(src)+'"></div>';
  });
  return safe.replace(/\n/g,'<br>');
 }
@@ -655,9 +655,7 @@ function insertImageMarker(id){
    reader.onload=function(){
      let align=(prompt('Posisi gambar: kiri, tengah, atau kanan','tengah')||'tengah').trim().toLowerCase();
      align=align==='kiri'?'left':align==='kanan'?'right':'center';
-     let width=parseInt(prompt('Lebar gambar: 25, 33, 50, 67, 75, atau 100 (%)','50')||'50',10);
-     if(![25,33,50,67,75,100].includes(width))width=50;
-     const marker='\n[GAMBAR|'+align+'|'+width+']'+reader.result+'[/GAMBAR]\n';
+     const marker='\n[GAMBAR|'+align+']'+reader.result+'[/GAMBAR]\n';
      el.value=el.value.slice(0,start)+marker+el.value.slice(end);
      const p=start+marker.length;el.focus();el.setSelectionRange(p,p);
      el.dispatchEvent(new Event('input'));changed();updatePreview();
@@ -762,7 +760,7 @@ function positionedImageHTML(src,pos,align,width){
 }
 function renderExplanationWithImage(q){
  let raw=cleanAIMathText(q.explanation||'');
- if(/\[GAMBAR\|(?:left|center|right)\|(?:25|33|50|67|75|100)\]/.test(raw))return '<div class="sep"></div><b>Pembahasan:</b><br>'+renderRichText(raw);
+ if(/\[GAMBAR\|(?:left|center|right)(?:\|(?:25|33|50|67|75|100))?\]/.test(raw))return '<div class="sep"></div><b>Pembahasan:</b><br>'+renderRichText(raw);
  let img=positionedImageHTML(q.explanationImage,q.explanationImagePosition,q.explanationImageAlign,q.explanationImageWidth);
  let body='';
  if(q.explanationImage&&((q.explanationImagePosition||'bottom')==='middle')){
