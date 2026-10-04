@@ -1145,4 +1145,58 @@ document.addEventListener('DOMContentLoaded',function(){
  window.v13PdfCropQuestion=function(){if(!selection){msg('Kotakkan area soal terlebih dahulu.');return}var cv=document.getElementById('v13PdfCanvas'),x=Math.round(Math.min(selection.x0,selection.x1)),y=Math.round(Math.min(selection.y0,selection.y1)),w=Math.round(Math.abs(selection.x1-selection.x0)),h=Math.round(Math.abs(selection.y1-selection.y0));if(w<10||h<10){msg('Area crop terlalu kecil.');return}var out=document.createElement('canvas');out.width=w;out.height=h;out.getContext('2d').drawImage(cv,x,y,w,h,0,0,w,h);var data=out.toDataURL('image/png');try{clearEditor();var t=document.getElementById('v13PdfCropType').value;document.getElementById('typeSelect').value=t;changeType();document.getElementById('question').value='Perhatikan gambar berikut.';var iu=document.getElementById('qImageUrl');if(iu)iu.value=data;updatePreview();msg('✓ Crop dimasukkan ke editor. Lengkapi kunci, opsi dan pembahasan lalu Tambah ke Paket.');document.getElementById('v12EditorCard').scrollIntoView({behavior:'smooth'})}catch(e){msg('Crop selesai tetapi editor menolak: '+e.message)}};
  document.addEventListener('DOMContentLoaded',function(){setTimeout(function(){var old=document.getElementById('v13PdfPanel');if(!old)return;old.innerHTML='<b>📕 PDF Crop Studio</b><div class="sub">Sama seperti konsep Admin Tryout: buka PDF, pindah halaman, blok area soal, lalu masukkan hasilnya ke editor terpadu.</div><div class="row two" style="margin-top:10px"><div><label>PDF</label><input type="file" id="v13PdfFile" accept="application/pdf"></div><div><label>Tipe soal</label><select id="v13PdfCropType"><option value="pg5">PG 5 opsi</option><option value="pg4">PG 4 opsi</option><option value="isian">Isian singkat</option><option value="esai">Esai</option></select></div></div><div class="actions"><button type="button" class="btn primary" onclick="v13PdfLoadCrop()">📂 Muat PDF</button><button type="button" class="btn" onclick="v13PdfMove(-1)">◀</button><span class="tag" id="v13PdfPage">0 / 0</span><button type="button" class="btn" onclick="v13PdfMove(1)">▶</button><button type="button" class="btn pink" onclick="v13PdfCropQuestion()">✂ Jadikan Soal</button></div><div id="v13PdfMsg" class="notice" style="margin-top:8px">Siap.</div><div id="v13PdfCropWorkspace" class="v13-pdf-scroll" style="display:none"><div id="v13PdfCanvasWrap"><canvas id="v13PdfCanvas"></canvas><div id="v13PdfSelection"></div></div></div>';var cv=document.getElementById('v13PdfCanvas');cv.addEventListener('pointerdown',function(e){drag=true;start=pt(e);selection={x0:start.x,y0:start.y,x1:start.x,y1:start.y};box();cv.setPointerCapture(e.pointerId)});cv.addEventListener('pointermove',function(e){if(!drag)return;var p=pt(e);selection.x1=p.x;selection.y1=p.y;box()});cv.addEventListener('pointerup',function(){drag=false})},600)});
 })();
+</script><style id="v13-pro-bank-style">
+.v13-bankbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.v13-bankbar .btn{min-height:38px}.v13-bank-status{font-size:11px;color:#74667e}
+</style>
+<script id="v13-production-tools">
+(function(){
+ function $v(id){return document.getElementById(id)}
+ function selectedBank(){return Array.from(document.querySelectorAll('.bankSelect:checked')).map(x=>x.value)}
+ window.v13SelectAllBank=function(on){document.querySelectorAll('.bankSelect').forEach(x=>x.checked=on)}
+ window.v13SendSelectedToPackage=function(){
+  var ids=selectedBank();if(!ids.length)return alert('Pilih soal di Bank Soal terlebih dahulu.');
+  var src=bank().filter(q=>ids.includes(q.id));if(!src.length)return;
+  if(editorHasContent())saveCurrentToPackage();
+  src.forEach(function(q){var copy=JSON.parse(JSON.stringify(q));copy.id=uid();copy.source='Bank Soal';packageDraft.questions.push(copy)});
+  if(packageDraft.questions.length>1&&!editorHasContent()&&!packageQuestionValid(packageDraft.questions[0]))packageDraft.questions.shift();
+  packageDraft.current=Math.max(0,packageDraft.questions.length-src.length);
+  savePackageDraftLocal();loadPackageQuestionToEditor(packageDraft.questions[packageDraft.current]);renderPackageNavigator();nav('buat');
+  alert(src.length+' soal berhasil dimasukkan ke paket aktif.');
+ };
+ window.v13ExportBankJson=function(){
+  var ids=selectedBank(),rows=ids.length?bank().filter(q=>ids.includes(q.id)):bank();
+  var blob=new Blob([JSON.stringify({version:'V13',exportedAt:new Date().toISOString(),questions:rows},null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bank-soal-klinikfisikapku-v13.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+ };
+ window.v13ImportBankJson=function(input){
+  var file=input.files&&input.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var obj=JSON.parse(r.result),arr=Array.isArray(obj)?obj:obj.questions;if(!Array.isArray(arr))throw new Error('Format questions tidak ditemukan');var old=bank(),map=new Map(old.map(q=>[q.id,q]));arr.forEach(function(q){q=normalizeAIQuestion(q);map.set(q.id||uid(),q)});setBank(Array.from(map.values()));renderBank();alert(arr.length+' soal berhasil diimpor.')}catch(e){alert('Import JSON gagal: '+e.message)}input.value=''};r.readAsText(file);
+ };
+ window.v13ImproveQuestionAI=async function(){
+  var q=($v('question')?.value||'').trim();if(!q)return alert('Isi/buka soal terlebih dahulu.');
+  var st=$v('explanationAIStatus');if(st)st.textContent='✨ Gemini sedang merapikan soal...';
+  try{
+   var payload={prompt:'Rapikan redaksi soal berikut tanpa mengubah konsep, data, opsi, atau jawaban benar. Kembalikan hanya teks soal yang sudah rapi.\n\n'+q,jumlah:1,tipe:currentType,jenjang:$v('jenjang')?.value||'',topik:$v('topik')?.value||''};
+   var res=await postGAS('assistant',payload).catch(()=>postGAS('testAI',payload));
+   var text=res?.text||res?.message;if(!text)throw new Error('Gemini tidak mengembalikan teks.');
+   if(/^OK$/i.test(String(text).trim()))throw new Error('Endpoint AI hanya mengembalikan status tes, bukan hasil perapihan.');
+   $v('question').value=String(text).trim();$v('question').dispatchEvent(new Event('input'));if(st)st.textContent='✓ Redaksi soal diperbarui. Periksa kembali sebelum disimpan.';
+  }catch(e){if(st)st.textContent='✗ '+e.message}
+ };
+ document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(function(){
+   var editor=$v('v12EditorCard');
+   if(editor&&!$v('v13EditorAiTools')){
+    var bar=document.createElement('div');bar.id='v13EditorAiTools';bar.className='actions';bar.style.margin='0 0 12px';
+    bar.innerHTML='<button type="button" class="btn pink" onclick="v13ImproveQuestionAI()">✨ Rapikan Redaksi dengan Gemini</button><span class="small">Gemini yang sama dengan Apps Script admin; hasil tetap harus direview.</span>';
+    editor.insertBefore(bar,editor.firstChild);
+   }
+   var list=$v('bankList');
+   if(list&&!$v('v13BankTools')){
+    var bar=document.createElement('div');bar.id='v13BankTools';bar.className='v13-bankbar';
+    bar.innerHTML='<button type="button" class="btn sm" onclick="v13SelectAllBank(true)">☑ Pilih Semua</button><button type="button" class="btn sm" onclick="v13SelectAllBank(false)">☐ Lepas Semua</button><button type="button" class="btn sm primary" onclick="v13SendSelectedToPackage()">➕ Kirim ke Paket</button><button type="button" class="btn sm" onclick="v13ExportBankJson()">⬇ Export JSON</button><label class="btn sm" style="cursor:pointer">⬆ Import JSON<input type="file" accept=".json,application/json" style="display:none" onchange="v13ImportBankJson(this)"></label>';
+    list.parentNode.insertBefore(bar,list);
+   }
+  },700);
+ });
+})();
 </script></body></html>
