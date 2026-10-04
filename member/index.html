@@ -1470,7 +1470,7 @@ iframe.pdfview{display:block;min-height:520px}
           .filter(o=>o.x&&o.x.visible!==false&&!selesaiItem(o.x)&&normalJenis(o.x)!=="tryout"&&tujuanItem(o.x)!=="tryout");
 
         if(!kandidat.length){
-          alert("🎉 Semua materi yang tersedia sudah selesai. Hebat!");
+          KFMemberUI.toast("Semua materi yang tersedia sudah selesai. Hebat!","ok",4500);
           return;
         }
 
@@ -1634,11 +1634,11 @@ iframe.pdfview{display:block;min-height:520px}
         const x = dataMateri[i];
         if (!x) return;
         if (x.jenis === "tryout" || tujuanItem(x) === "tryout") {
-          alert("Tryout dibuka dari bagian Paket Latihan & Tryout setelah diaktifkan Admin.");
+          KFMemberUI.toast("Tryout dibuka dari bagian Paket Latihan & Tryout setelah diaktifkan Admin.","info",5000);
           return;
         }
         if (!bolehBuka(x)) {
-          alert("🔒 Selesaikan latihan topik sebelumnya terlebih dahulu.");
+          KFMemberUI.toast("Selesaikan latihan topik sebelumnya terlebih dahulu.","info",5000);
           return;
         }
         detailAktif = i;
