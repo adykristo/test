@@ -705,7 +705,7 @@ function renderAI(){
  const el=$('aiResults');if(!el)return;
  if(!aiDrafts.length){el.innerHTML='<div class="empty">Belum ada hasil AI.</div>';return}
  el.innerHTML=`<div class="actions" style="margin:0 0 12px"><button class="btn ok" onclick="acceptAllAI()">✓ Terima Semua ke Bank Soal (${aiDrafts.length})</button><span class="small">Semua soal disimpan sebagai Draft dan tetap dapat diedit sebelum dipublish.</span></div>`+
- aiDrafts.map((q,i)=>`<div class="bankitem"><div class="tags"><span class="tag">${typeName(q.type)}</span><span class="tag">${esc(q.difficulty)}</span><span class="tag">Draft AI</span></div><h3>${esc(q.question)}</h3><div class="actions"><button class="btn sm primary" onclick="editAIDraft(${i})">Edit di Editor</button><button class="btn sm ok" onclick="acceptAI(${i})">Terima ke Bank</button><button class="btn sm" onclick="regenAI(${i})">Regenerate</button><button class="btn sm danger" onclick="aiDrafts.splice(${i},1);renderAI()">Hapus</button></div></div>`).join('');
+ aiDrafts.map((q,i)=>`<div class="bankitem"><div class="tags"><span class="tag">${typeName(q.type)}</span><span class="tag">${esc(q.difficulty)}</span><span class="tag">Draft AI</span></div><h3>${esc(q.question)}</h3><div class="actions"><button class="btn sm primary" onclick="editAIDraft(${i})">Edit di Editor</button><button class="btn sm ok" onclick="acceptAI(${i})">Terima ke Bank</button><button class="btn sm" onclick="regenAI(${i})">Regenerate</button><button class="btn sm danger" onclick="aiDrafts.splice(${i},1);renderAI()">Hapus</button></div></div>`).join('');typesetMath('aiResults');
 }
 function editAIDraft(i){loadQuestion(aiDrafts[i])}
 function prepareAIBankQuestion(q){
@@ -812,17 +812,25 @@ async function syncOnline(){
 }
 async function testAIConnection(){const st=$('connectionStatus');st.className='notice';st.textContent='Menguji Gemini melalui Apps Script...';try{let r=await postGAS('buatSoalGemini',{prompt:'Buat tepat 1 soal Fisika SMA sangat sederhana tentang gerak lurus untuk uji koneksi. Sertakan kunci dan pembahasan.',jumlah:1,tipe:'pg4',jenjang:'sma',topik:'Gerak Lurus'});if(!r||!Array.isArray(r.questions)||!r.questions.length)throw new Error(r?.message||'Gemini tidak mengembalikan questions[].');st.className='notice good';st.textContent='✓ Gemini AI aktif dan berhasil membuat soal uji.'}catch(e){st.className='notice bad';st.textContent='✗ Gemini belum terhubung: '+e.message}}
 function cleanAIMathText(v){
- let s=String(v??'').replace(/\\\\\\\\/g,'\\\\');
- // Repair common Gemini output where TeX commands accidentally sit just outside $ delimiters.
- s=s.replace(/\$([^$\n]+)\$([ \\t]*)(\\\\(?:text|mathrm|mu|theta|Delta|pi|times|frac|sqrt|vec|cdot)\b(?:\{[^{}]*\})?)/g,(m,a,sp,b)=>'
+ let s=String(v??'');
+ // Kurangi escape ganda dari JSON/Gemini tanpa merusak perintah TeX normal.
+ s=s.replace(/\\\\\\\\/g,'\\\\');
+ return s;
+}
+function normalizeAIQuestion(q){
+ let type=String(q.type||q.tipe||$('aiType').value).toLowerCase(),n=type==='pg4'?4:5;
  let options=(Array.isArray(q.opsi)?q.opsi:(q.answers?.options||[])).map(cleanAIMathText);
  let rawKey=q.kunci!==undefined?q.kunci:q.answers?.keys;
  let keyList=Array.isArray(rawKey)?rawKey:String(rawKey??'').split(',').map(x=>x.trim()).filter(Boolean);
  let keys=keyList.map(x=>typeof x==='number'?x:'ABCDE'.indexOf(String(x).trim().toUpperCase())).filter(x=>x>=0);
- let answers=q.answers||{options:options.slice(0,n),keys,short:'',essayKey:'',statements:[]};
- if(type==='isian')answers={options:[],keys:[],short:String(Array.isArray(rawKey)?rawKey[0]??'':rawKey??''),essayKey:'',statements:[]};
- if(type==='esai')answers={options:[],keys:[],short:'',essayKey:String(Array.isArray(rawKey)?rawKey[0]??'':rawKey??''),statements:[]};
- return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:cleanAIMathText(q.question||q.soal||''),image:q.image||'',imageRotation:0,answers,explanation:cleanAIMathText(q.explanation||q.pembahasan||''),explanationImage:'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:(q.source||'Gemini AI'),aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()}
+ let answers=q.answers?JSON.parse(JSON.stringify(q.answers)):{options:options.slice(0,n),keys,short:'',essayKey:'',statements:[]};
+ if(['pg5','pg4','mcma'].includes(type)){answers.options=options.slice(0,n);answers.keys=keys.length?keys:(answers.keys||[]);}
+ if(type==='kategori'){
+   answers.statements=(q.statements||answers.statements||[]).map(x=>({text:cleanAIMathText(x.text||x.pernyataan||''),image:x.image||'',answer:x.answer||x.key||x.kunci||'Benar'}));
+ }
+ if(type==='isian')answers={options:[],keys:[],short:cleanAIMathText(q.jawaban||q.short||answers.short||rawKey||''),essayKey:'',statements:[]};
+ if(type==='esai')answers={options:[],keys:[],short:'',essayKey:cleanAIMathText(q.jawaban||q.essayKey||answers.essayKey||rawKey||''),statements:[]};
+ return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||q.sulit||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:cleanAIMathText(q.question||q.soal||''),image:q.image||'',imageRotation:Number(q.imageRotation)||0,answers,explanation:cleanAIMathText(q.explanation||q.pembahasan||''),explanationImage:q.explanationImage||'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:q.source||'Gemini AI',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()};
 }
 async function importDocx(file){
  if(!window.mammoth){$('importResult').innerHTML='<div class="notice bad">Library DOCX belum termuat. Pastikan internet aktif saat membuka halaman.</div>';return}
