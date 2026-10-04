@@ -21,7 +21,7 @@
       kelas:p.questions?.[0]?.kelas||null,mapel:p.questions?.[0]?.mapel||"Fisika",
       subscription:p.subscription||"Semua Paket Aktif",duration_minutes:Number(p.duration)||0,
       starts_at:p.start||null,ends_at:p.end||null,max_attempts:Number(p.attempts)||1,
-      visible:true,source:"V12",source_version:Number(p.sourceVersion)||1,ai_provider:p.aiProvider||p.questions?.find(q=>q.aiProvider)?.aiProvider||null,review_status:"reviewed",published_at:new Date().toISOString(),updated_at:new Date().toISOString()
+      visible:true,source:Number(p.sourceVersion)===13?"V13":"V12",source_version:Number(p.sourceVersion)||1,ai_provider:p.aiProvider||p.questions?.find(q=>q.aiProvider)?.aiProvider||null,review_status:"reviewed",published_at:new Date().toISOString(),updated_at:new Date().toISOString()
     };
     let {data:pack,error}=await db.from("kf_packages").upsert(meta,{onConflict:"external_id"}).select().single();
     if(error)throw error;
