@@ -568,7 +568,7 @@ function formulaBar(target){
 }
 function insertFormulaTo(id,t){let el=$(id);if(!el)return;let p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+'$'+t+'$'+el.value.slice(p);el.dispatchEvent(new Event('input'));el.focus()}
 function insertImageMarker(id){let el=$(id);if(el){let p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+' [GAMBAR] '+el.value.slice(p);el.dispatchEvent(new Event('input'))}}
-function readFormulaPhoto(target){alert('Tombol siap dihubungkan ke Gemini Vision melalui Apps Script untuk membaca foto rumus menjadi LaTeX.')}
+function readFormulaPhoto(target){const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async function(){const file=input.files&&input.files[0];if(!file)return;try{const image=await fileToBase64Payload(file),r=await postGAS('imageToLatex',{image});if(!r?.latex)throw new Error(r?.message||'Rumus tidak terbaca');const el=$(target);if(!el)throw new Error('Kolom tujuan tidak ditemukan');const p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+r.latex+el.value.slice(p);el.dispatchEvent(new Event('input'));el.focus()}catch(e){alert('Gagal membaca rumus: '+e.message)}};input.click()}
 function changeTypeSelect(v){currentType=v;initAnswersForType(true);renderAnswerEditor();changed()}
 function renderAnswerEditor(){
  let h='';
@@ -722,7 +722,7 @@ async function aiTidyExplanation(){
   el.value=r.text;el.dispatchEvent(new Event('input'));st.textContent='✓ Pembahasan sudah dirapikan. Periksa lalu simpan.';
  }catch(e){st.textContent='✗ '+e.message+' Pastikan Gemini dan Apps Script sudah terhubung.'}
 }
-function aiImprove(){let q=$('question').value;if(!q)return alert('Buka/isi soal di editor terlebih dahulu.');alert('Tombol ini siap dihubungkan ke Gemini Apps Script untuk memperbaiki redaksi tanpa mengubah konsep.')}
+async function aiImprove(){const q=$('question').value.trim();if(!q)return alert('Buka/isi soal di editor terlebih dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang merapikan redaksi soal...';try{const r=await postGAS('assistant',{jenis:'rapikan soal',text:'Rapikan redaksi soal berikut tanpa mengubah konsep, data, opsi, atau jawaban benar. Kembalikan hanya teks soal. '+q});const t=r?.text||r?.result||r?.message;if(!t||/^OK$/i.test(String(t).trim()))throw new Error('Gemini tidak mengembalikan hasil perapihan.');$('question').value=String(t).trim();$('question').dispatchEvent(new Event('input'));st.textContent='✓ Redaksi diperbarui. Periksa sebelum disimpan.'}catch(e){st.textContent='✗ '+e.message}}
 async function aiExplain(){const q=$('question').value.trim();if(!q)return alert('Isi soal dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang membuat pembahasan...';try{const r=await postGAS('assistant',{jenis:'pembahasan',text:'Buat pembahasan sistematis dengan urutan Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir. Gunakan LaTeX. Soal: '+q+' Opsi: '+JSON.stringify(answerState.options||[])+' Kunci: '+JSON.stringify(answerState.keys||[])});const t=r?.text||r?.result||r?.message;if(!t)throw new Error('Gemini tidak mengembalikan pembahasan.');$('explanation').value=t;$('explanation').dispatchEvent(new Event('input'));st.textContent='✓ Pembahasan dibuat. Periksa sebelum disimpan.'}catch(e){st.textContent='✗ '+e.message}}
 async function aiVariation(){const q=$('question').value.trim();if(!q)return alert('Isi soal dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang membuat variasi...';try{const r=await postGAS('assistant',{jenis:'variasi soal',text:'Buat satu variasi soal dengan konsep dan tingkat kesulitan setara, tetapi angka atau konteks berbeda. Kembalikan hanya teks soal. Soal asal: '+q});const t=r?.text||r?.result||r?.message;if(!t)throw new Error('Gemini tidak mengembalikan variasi.');$('question').value=t;editingId=null;$('question').dispatchEvent(new Event('input'));st.textContent='✓ Variasi dibuat sebagai draft baru.'}catch(e){st.textContent='✗ '+e.message}}
 
@@ -762,8 +762,8 @@ async function syncOnline(){
  if(status){status.className='notice';status.textContent='Menyinkronkan paket ke Supabase...'}
  try{
   if(!window.KFPackagePublisher||typeof window.KFPackagePublisher.publish!=='function')throw new Error('Penghubung Supabase V15 belum tersedia.');
-  const packs=packageBank();
-  if(!packs.length){if(status){status.className='notice good';status.textContent='✓ Tidak ada paket yang perlu disinkronkan.'}return}
+  const packs=packageBank().filter(p=>p&&p.published===true);
+  if(!packs.length){if(status){status.className='notice good';status.textContent='✓ Tidak ada paket TERBIT yang perlu disinkronkan. Draft tidak dikirim ke Supabase.'}return}
   let ok=0,fail=0,lastErr='';
   for(const p of packs){
    try{await window.KFPackagePublisher.publish(p);ok++}
@@ -1090,7 +1090,7 @@ function renderPackageBank(){
  if($('packageBankStats'))$('packageBankStats').textContent=arr.length+' Paket • '+arr.reduce((n,p)=>n+(p.questions?.length||0),0)+' Soal';
  if(!arr.length){el.innerHTML='<div class="notice">Belum ada paket soal.</div>';return}
  el.innerHTML=arr.map(p=>`<div class="bank-item">
-   <div><b>📦 ${esc(p.name)}</b><div class="small">${p.questions.length} soal • ${p.published?'☁️ Supabase':'💾 Lokal'}</div></div>
+   <div><b>📦 ${esc(p.name)}</b><div class="small">${p.questions.length} soal • ${p.published?'☁️ TERBIT • Supabase':'📝 DRAFT • belum diterbitkan'}</div></div>
    <div class="actions">
     <button class="btn sm ok" onclick="startPractice('${p.id}')">▶ Kerjakan</button>
     <button class="btn sm primary" onclick="v12PublishPackageAs('${p.id}','latihan')">▶ Latihan</button><button class="btn sm pink" onclick="v12PublishPackageAs('${p.id}','tryout')">🏆 Tryout</button>
@@ -1102,7 +1102,7 @@ function renderPackageBank(){
    </div></div>`).join('');
 }
 function openSavedPackage(id){let p=packageBank().find(x=>x.id===id);if(!p)return;packageDraft={name:p.name,count:p.questions.length,current:0,questions:JSON.parse(JSON.stringify(p.questions))};$('packageName').value=p.name;$('packageCount').value=p.questions.length;savePackageDraftLocal();loadPackageQuestionToEditor(packageDraft.questions[0]);renderPackageNavigator();nav('buat')}
-function duplicateSavedPackage(id){let arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return;let c=JSON.parse(JSON.stringify(p));c.id='PKG-'+Date.now();c.name=p.name+' (Salinan)';c.createdAt=c.updatedAt=new Date().toISOString();arr.unshift(c);setPackageBank(arr)}
+function duplicateSavedPackage(id){let arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return;let c=JSON.parse(JSON.stringify(p));c.id='PKG-'+Date.now();c.name=p.name+' (Salinan)';c.published=false;delete c.publishedAt;c.createdAt=c.updatedAt=new Date().toISOString();arr.unshift(c);setPackageBank(arr)}
 function deleteSavedPackage(id){if(confirm('Hapus paket soal ini?'))setPackageBank(packageBank().filter(x=>x.id!==id))}
 
 $('qFormulaBar').innerHTML=formulaBar('question');$('exFormulaBar').innerHTML=formulaBar('explanation');
