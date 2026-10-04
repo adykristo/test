@@ -361,7 +361,6 @@ window.kfV12Navigate=function(page){
     <a class="v12-nav-link" href="?tab=buat#v12MovedAI">✨ <span>AI Pembuat Soal</span></a>
     <a class="v12-nav-link" href="?tab=buat#v12MovedImport">📥 <span>Import Word / PDF</span></a>
     <a class="v12-nav-link" data-page="bank" href="?tab=bank">📚 <span>Bank Soal</span> <em id="bankCountTop">0</em></a>
-    <a class="v12-nav-link" data-page="paket" href="?tab=paket">🚀 <span>Latihan & Tryout</span></a>
     <a class="v12-nav-link" data-page="settings" href="?tab=settings">⚙️ <span>Koneksi</span></a>
     <div class="v12-nav-sep"></div>
     <a class="v12-nav-link" href="../admin.html">← <span>Admin</span></a>
@@ -372,7 +371,7 @@ window.kfV12Navigate=function(page){
 
 <main class="wrap">
 <section id="page-buat" class="page active editor-compact"><div class="card" id="v12EditorCard">
-<div class="editor-head"><div><h2 id="editorTitle">Pembuat Soal</h2><div class="sub">Fokus membuat, mengedit, memeriksa kunci, rumus, gambar, dan pembahasan. Nama paket, tujuan Latihan/Tryout, jadwal, durasi, dan akses peserta diatur setelah soal dipilih dari Bank Soal.</div></div></div>
+<div class="editor-head"><div><h2 id="editorTitle">Pembuat Soal</h2><div class="sub">Fokus membuat, mengedit, memeriksa kunci, rumus, gambar, dan pembahasan. Halaman ini khusus membuat, mengedit, memeriksa kunci, rumus, gambar, dan pembahasan soal.</div></div></div>
 <div class="package-builder" style="display:none">
 <div class="package-grid"><div><label>Nama Paket Soal</label><input id="packageName" placeholder="Contoh: Latihan Hukum Coulomb"></div><div><label>Jumlah Soal (1–50)</label><input id="packageCount" type="number" min="1" max="50" value="10"></div><button class="btn primary" type="button" onclick="startQuestionPackage()">Buat Paket</button></div>
 <div style="margin-top:9px"><b id="packagePosition">Soal 1 dari 10</b> <span class="small" id="packageDone">• 0 selesai</span></div><div class="package-progress"><div id="packageProgressBar"></div></div>
@@ -424,38 +423,6 @@ window.kfV12Navigate=function(page){
 <div class="actions" style="margin-top:12px"><button class="btn" onclick="exportCSV()">Export CSV</button><button class="btn danger" onclick="deleteSelected()">Hapus Terpilih</button><button class="btn" onclick="selectAllVisible()">Pilih Semua</button></div>
 <div id="bankList"></div></div></section>
 
-<section id="page-paket" class="page">
-<div class="card"><h2>🚀 Latihan & Tryout</h2>
-<div class="sub">Soal terpilih dari Bank Soal masuk ke sini terlebih dahulu. Data Paket Peserta diambil langsung dari paket yang sudah ada di Admin/Supabase; data Modul & Video lama tetap dipertahankan.</div>
-<div class="notice" style="margin-top:12px"><b>Alur:</b> Bank Soal → pilih soal → Kirim ke Latihan / Kirim ke Tryout → Atur Distribusi → Publish ke Peserta.</div>
-<div class="actions" style="margin-top:12px"><button class="btn" onclick="nav('bank')">← Pilih Soal dari Bank</button></div></div>
-<div class="card"><h3>▶ Draft Latihan</h3><div class="small">Klik paket/draft di bawah untuk mengatur dan mengirim ke peserta.</div><div id="v13LatihanQueue" class="sub">Belum ada soal yang dikirim ke Latihan.</div></div>
-<div class="card"><h3>🏆 Draft Tryout</h3><div class="small">Klik paket/draft di bawah untuk mengatur dan mengirim ke peserta.</div><div id="v13TryoutQueue" class="sub">Belum ada soal yang dikirim ke Tryout.</div></div>
-<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">☁️ Sudah Dikirim ke Peserta</h3><div class="sub">Data final dibaca langsung dari Supabase. Modul dan Video lama tidak diubah.</div></div><button class="btn sm" onclick="v13RenderPublished()">↻ Muat Ulang</button></div><div id="v13PublishedPackages" style="margin-top:12px"><div class="small">Memuat paket final…</div></div></div>
-<div class="card" style="margin-top:14px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">📚 Konten yang Sudah Ada di Halaman Peserta</h3><div class="sub">Dibaca langsung dari data Admin/Supabase seperti V12. Tidak membuat salinan dan tidak mengubah Modul/Video lama.</div></div><button class="btn sm" onclick="v13LoadExistingParticipantContent()">↻ Muat dari Admin/Supabase</button></div><div id="v13ExistingParticipantContent" style="margin-top:12px"><div class="small">Memuat konten peserta…</div></div></div>
-</section>
-
-
-<section id="page-practice" class="page">
-<div class="practice-shell">
-<div id="practiceStart" class="card">
-<h2>🧑‍🎓 Latihan Siswa</h2><div id="practiceStartInfo" class="sub">Pilih paket dari Bank Soal lalu klik Kerjakan.</div>
-</div>
-<div id="practiceWork" style="display:none">
-<div class="card">
- <div class="practice-head"><div><h2 id="practiceTitle" style="margin:0">Latihan</h2><div class="sub" id="practiceMeta"></div></div><button class="btn danger" onclick="exitPractice()">Keluar Latihan</button></div>
- <div class="practice-progress"><div id="practiceProgressBar"></div></div>
- <div id="practiceNumbers" class="practice-numbers"></div>
-</div>
-<div class="card">
- <div class="small" id="practicePosition"></div>
- <div id="practiceQuestion" style="margin-top:10px"></div>
- <div class="actions" style="margin-top:14px"><button class="btn" onclick="practicePrev()">← Sebelumnya</button><button class="btn" onclick="practiceNext()">Berikutnya →</button><button class="btn primary" onclick="finishPractice()">✓ Selesai & Cek Hasil</button></div>
-</div>
-</div>
-<div id="practiceResult" style="display:none"></div>
-</div>
-</section>
 <section id="page-settings" class="page">
 <div class="card">
 <h2>⚙️ Koneksi & Penyimpanan Online</h2>
@@ -1301,7 +1268,7 @@ function renderPackageBank(){
    <div><b>📦 ${p.published?esc(p.name):'Draft • '+p.questions.length+' soal'}</b><div class="small">${p.questions.length} soal • ${p.published?'☁️ TERBIT • '+(p.kind==='tryout'?'Tryout':'Latihan'):'📝 Belum diberi nama paket • pilih Latihan/Tryout untuk mengatur'}</div></div>
    <div class="actions">
     <button class="btn sm ok" onclick="startPractice('${p.id}')">▶ Kerjakan</button>
-    ${p.stage?'<button class="btn sm" onclick="nav(\'paket\');v13RenderDistributionQueues()">📤 Sudah di '+(p.stage==='tryout'?'Tryout':'Latihan')+'</button>':'<button class="btn sm primary" onclick="v13MovePackageToQueue(\''+p.id+'\',\'latihan\')">▶ Kirim ke Latihan</button><button class="btn sm pink" onclick="v13MovePackageToQueue(\''+p.id+'\',\'tryout\')">🏆 Kirim ke Tryout</button>'}
+    ${p.stage?'<button class="btn sm" onclick="nav(\'paket\');v13RenderDistributionQueues()">📤 Sudah di '+(p.stage==='tryout'?'Tryout':'Latihan')+'</button>':''}
     <button class="btn sm" onclick="openSavedPackage('${p.id}')">Buka/Edit</button>
     <button class="btn sm" onclick="showExportMenu('${p.id}','docx')">⬇ DOCX</button>
     <button class="btn sm" onclick="showExportMenu('${p.id}','pdf')">⬇ PDF</button>
