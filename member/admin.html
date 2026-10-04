@@ -781,7 +781,7 @@ table{max-width:100%}
 }
 </style>
 </head>
-  <body><div id="kfAdminLoginGate" style="display:none;position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#f8efff,#fff0f8);align-items:center;justify-content:center;padding:20px"><div style="width:min(440px,100%);background:#fff;border:1px solid #ead8f4;border-radius:22px;padding:30px;box-shadow:0 24px 70px #4b17642b;text-align:center"><div style="font-size:38px">🔐</div><h2 style="margin:10px 0 6px;color:#512066">Admin KlinikFisikapku</h2><p style="color:#765f82;line-height:1.55">Masuk menggunakan akun Google Super Admin yang terdaftar.</p><button type="button" class="btn" style="width:100%;min-height:46px;margin-top:12px" onclick="KFLoginAdminGoogle()">Masuk dengan Google</button><a href="index.html" style="display:block;margin-top:16px;color:#7b2cab">← Kembali ke Member</a></div></div>
+  <body><div id="kfAdminLoginGate" style="display:none;position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#f8efff,#fff0f8);align-items:center;justify-content:center;padding:20px"><div style="width:min(440px,100%);background:#fff;border:1px solid #ead8f4;border-radius:22px;padding:30px;box-shadow:0 24px 70px #4b17642b;text-align:center"><div style="font-size:38px">🔐</div><h2 style="margin:10px 0 6px;color:#512066">Admin KlinikFisikapku</h2><p style="color:#765f82;line-height:1.55">Masuk menggunakan akun Google Super Admin yang terdaftar.</p><button type="button" class="btn" style="width:100%;min-height:46px;margin-top:12px" onclick="KFAdminGoogleLoginDirect(this)">Masuk dengan Google</button><a href="index.html" style="display:block;margin-top:16px;color:#7b2cab">← Kembali ke Member</a></div></div>
     <header class="top">
       <div class="brand">
         <b>KlinikFisikapku</b><small>Admin Member Area</small>
@@ -1176,6 +1176,24 @@ table{max-width:100%}
     <script src="supabase-admin.js?v=20261005-final4"></script>
     <script src="supabase-publisher-v15.js?v=20261005-final3"></script>
     <script src="gas-workspace-bridge-v15.js?v=20261005-final3"></script>
+    <script>
+      async function KFAdminGoogleLoginDirect(btn){
+        const old=btn?btn.textContent:"";
+        try{
+          if(btn){btn.disabled=true;btn.textContent="Menghubungkan ke Google...";}
+          if(!window.supabase || !window.KF_SUPABASE_CONFIG) throw new Error("Supabase belum termuat. Muat ulang halaman.");
+          const client=(window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client)
+            ? window.KFSupabaseAdmin.client
+            : window.supabase.createClient(window.KF_SUPABASE_CONFIG.url,window.KF_SUPABASE_CONFIG.anonKey);
+          const redirectTo=window.location.origin+window.location.pathname;
+          const {error}=await client.auth.signInWithOAuth({provider:"google",options:{redirectTo}});
+          if(error)throw error;
+        }catch(e){
+          alert("Login Google Admin gagal: "+(e&&e.message?e.message:e));
+          if(btn){btn.disabled=false;btn.textContent=old||"Masuk dengan Google";}
+        }
+      }
+    </script>
     <script>
       window.addEventListener("load", function () {
         if (!window.KFSupabaseAdmin || !window.KFSupabaseAdmin.configured) {
