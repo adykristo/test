@@ -919,10 +919,19 @@ let aiDrafts=[];
 async function generateAIBatch(batchCount){
  let n=Math.max(1,Math.min(10,Number(batchCount)||1)),cfg=getConnection();
  let baseInstruction=($('aiMaterial').value||'').trim(),type=$('aiType').value;
- let pgRule=['pg4','pg5','mcma'].includes(type)?'Untuk setiap soal pilihan ganda sertakan pertanyaan, semua opsi, kunci jawaban, dan pembahasan.':'';
+ let pgRule=['pg4','pg5','mcma'].includes(type)?'WAJIB setiap soal pilihan ganda memiliki pertanyaan, semua opsi '+(type==='pg4'?'A-D':'A-E')+', kunci jawaban yang benar, dan pembahasan lengkap. Jangan gabungkan opsi ke dalam teks pertanyaan.':'';
  let payload={jenjang:$('aiJenjang').value,mapel:$('aiMapel').value||'Fisika',topik:$('aiTopik').value,tipe:type,sulit:$('aiDiff').value,jumlah:n,
- prompt:[baseInstruction,pgRule,'Pembahasan: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir. Gunakan LaTeX untuk rumus.'].filter(Boolean).join('\n\n'),
- instruksi:[baseInstruction,pgRule].filter(Boolean).join('\n')};
+ prompt:[baseInstruction,
+ 'WAJIB gunakan Bahasa Indonesia untuk seluruh pertanyaan, opsi jawaban, kunci, dan pembahasan. Jika bahan/perintah awal berbahasa Inggris, terjemahkan hasil akhirnya ke Bahasa Indonesia.',
+ pgRule,
+ 'Kembalikan data soal TERSTRUKTUR. Field setiap soal: question (hanya batang soal), opsi (array pilihan tanpa label A/B/C/D/E), kunci (huruf jawaban benar), pembahasan (pembahasan lengkap), type.',
+ 'Pembahasan wajib berurutan: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir. Gunakan LaTeX valid untuk rumus.'
+ ].filter(Boolean).join('\n\n'),
+ instruksi:[baseInstruction,
+ 'Bahasa keluaran wajib Bahasa Indonesia.',
+ pgRule,
+ 'Jangan menaruh opsi jawaban di field question. Jangan mengosongkan kunci atau pembahasan.'
+ ].filter(Boolean).join('\n')};
  if(!cfg.url)throw new Error('URL Apps Script belum diisi pada menu Koneksi.');
  $('aiResults').innerHTML='<div class="notice">✨ Gemini sedang membuat '+n+' soal...</div>';
  let lastErr=null,r=null;
@@ -1001,19 +1010,19 @@ async function postAIAssistant(jenis,text,extra={}){
 async function aiImprove(){
  const q=$('question').value.trim();if(!q)return alert('Buka/isi soal di editor terlebih dahulu.');
  const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang merapikan redaksi soal...';
- try{const r=await postAIAssistant('rapikan soal','Rapikan redaksi soal berikut tanpa mengubah konsep, data, opsi, atau jawaban benar. Kembalikan hanya teks soal. '+q);
+ try{const r=await postAIAssistant('rapikan soal','Gunakan Bahasa Indonesia. Rapikan redaksi soal berikut tanpa mengubah konsep, data, opsi, atau jawaban benar. Kembalikan hanya teks soal. '+q);
  let t=r?.text||r?.result||r?.question||r?.questions?.[0]?.question||r?.questions?.[0]?.soal;if(!t)throw new Error(r?.message||'Gemini tidak mengembalikan hasil.');
  $('question').value=String(t).trim();$('question').dispatchEvent(new Event('input'));st.textContent='✓ Redaksi diperbarui.'}catch(e){st.textContent='✗ '+e.message}
 }
 async function aiExplain(){
  const q=$('question').value.trim();if(!q)return alert('Isi soal dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang membuat pembahasan...';
- try{const prompt='Buat pembahasan sistematis: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir. Soal: '+q+' Opsi: '+JSON.stringify(answerState.options||[])+' Kunci: '+JSON.stringify(answerState.keys||[]);
+ try{const prompt='Gunakan Bahasa Indonesia. Buat pembahasan sistematis: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir. Soal: '+q+' Opsi: '+JSON.stringify(answerState.options||[])+' Kunci: '+JSON.stringify(answerState.keys||[]);
  const r=await postAIAssistant('pembahasan',prompt);let t=r?.text||r?.result||r?.explanation||r?.pembahasan||r?.questions?.[0]?.explanation||r?.questions?.[0]?.pembahasan;
  if(!t)throw new Error(r?.message||'Gemini tidak mengembalikan pembahasan.');$('explanation').value=String(t);$('explanation').dispatchEvent(new Event('input'));st.textContent='✓ Pembahasan dibuat.'}catch(e){st.textContent='✗ '+e.message}
 }
 async function aiVariation(){
  const q=$('question').value.trim();if(!q)return alert('Isi soal dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang membuat variasi...';
- try{const r=await postAIAssistant('variasi soal','Buat satu variasi soal setara dengan angka/konteks berbeda. Soal asal: '+q);let t=r?.text||r?.result||r?.question||r?.questions?.[0]?.question||r?.questions?.[0]?.soal;
+ try{const r=await postAIAssistant('variasi soal','Gunakan Bahasa Indonesia. Buat satu variasi soal setara dengan angka/konteks berbeda. Soal asal: '+q);let t=r?.text||r?.result||r?.question||r?.questions?.[0]?.question||r?.questions?.[0]?.soal;
  if(!t)throw new Error(r?.message||'Gemini tidak mengembalikan variasi.');$('question').value=String(t);editingId=null;$('question').dispatchEvent(new Event('input'));st.textContent='✓ Variasi dibuat.'}catch(e){st.textContent='✗ '+e.message}
 }
 function makePackage(){let ids=selectedIds();let b=bank(),limit=Number($('cbtPackageCount').value)||10,qs=ids.length?b.filter(x=>ids.includes(x.id)):b.slice(0,limit);if(!qs.length)return alert('Bank Soal kosong.');qs=qs.slice(0,limit);let p={name:$('cbtPackageName').value,time:Number($('packageTime').value)||60,pass:Number($('packagePass').value)||75,shuffle:$('shuffleQ').checked,showExplain:$('showExplain').checked,questions:qs};if(p.shuffle)p.questions.sort(()=>Math.random()-.5);localStorage.setItem(PACK,JSON.stringify(p));$('packageInfo').innerHTML=`✓ Paket <b>${esc(p.name)}</b> dibuat dengan ${qs.length} soal.`}
@@ -1118,8 +1127,18 @@ function normalizeAIQuestion(q){
  if(type==='kategori')answers.statements=(q.statements||q.pernyataan||answers.statements||[]).map(x=>({text:cleanAIMathText(x.text||x.pernyataan||''),image:x.image||'',answer:x.answer||x.key||x.kunci||'Benar'}));
  if(type==='isian')answers={options:[],keys:[],short:cleanAIMathText(q.jawaban||q.short||answers.short||rawKey||''),essayKey:'',statements:[]};
  if(type==='esai')answers={options:[],keys:[],short:'',essayKey:cleanAIMathText(q.jawaban||q.essayKey||answers.essayKey||rawKey||''),statements:[]};
+ // Jika backend masih menggabungkan batang soal dan opsi A-D/E dalam satu teks, pecah otomatis.
+ let questionText=cleanAIMathText(q.question||q.soal||q.pertanyaan||'');
+ if(['pg4','pg5','mcma'].includes(type)&&!options.length){
+   let parts=questionText.split(/(?:\r?\n|\s{2,})(?=[A-E][\.\)\:]\s*)/);
+   if(parts.length>1){
+     questionText=parts.shift().trim();
+     options=parts.map(x=>x.replace(/^[A-E][\.\)\:]\s*/,'').trim()).filter(Boolean).slice(0,n);
+     answers.options=options;
+   }
+ }
  let explanation=cleanAIMathText(q.explanation||q.pembahasan||q.solution||q.solusi||q.penjelasan||'');
- return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||q.sulit||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:cleanAIMathText(q.question||q.soal||q.pertanyaan||''),image:q.image||'',imageRotation:Number(q.imageRotation)||0,answers,explanation,explanationImage:q.explanationImage||'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:q.source||'Gemini AI',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()};
+ return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||q.sulit||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:questionText,image:q.image||'',imageRotation:Number(q.imageRotation)||0,answers,explanation,explanationImage:q.explanationImage||'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:q.source||'Gemini AI',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()};
 }
 async function importDocx(file){
  if(!window.mammoth){$('importResult').innerHTML='<div class="notice bad">Library DOCX belum termuat. Pastikan internet aktif saat membuka halaman.</div>';return}
