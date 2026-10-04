@@ -1916,9 +1916,28 @@ async function kfShowReview(attemptId){
   if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([body]);
  }catch(e){body.innerHTML='<div class="result bad">Pembahasan belum dapat dimuat: '+esc(e.message)+'</div><button class="btn btn-ghost" onclick="buka(\'dash\')">Kembali</button>'}
 }
+function kfConfirmSubmit(){
+ return new Promise(resolve=>{
+  let d=document.getElementById("kfSubmitConfirmDialog");
+  if(!d){
+   d=document.createElement("dialog");d.id="kfSubmitConfirmDialog";
+   d.style.cssText="border:0;padding:0;border-radius:20px;max-width:460px;width:calc(100% - 32px);box-shadow:0 24px 70px rgba(45,15,72,.28);overflow:hidden";
+   d.innerHTML=`<div style="background:linear-gradient(135deg,#7027c9,#f13f9a);padding:22px 24px;color:#fff"><div style="font-size:34px;margin-bottom:6px">📤</div><h2 style="margin:0;font-size:21px;color:#fff">Kirim Jawaban?</h2><p style="margin:6px 0 0;opacity:.9;font-size:13px">Pastikan semua jawaban sudah sesuai sebelum dikirim.</p></div><div style="padding:22px 24px;background:#fff"><div style="background:#faf6ff;border:1px solid #eadcf7;border-radius:13px;padding:13px 14px;color:#5b4374;line-height:1.55"><b>Perhatian</b><br>Setelah jawaban dikirim, jawaban tidak dapat diubah lagi. Nilai dan pembahasan akan tersedia setelah proses pengiriman selesai.</div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px"><button id="kfConfirmCancel" class="btn btn-ghost" type="button">← Periksa Lagi</button><button id="kfConfirmSend" class="btn btn-main" type="button">✓ Ya, Kirim Jawaban</button></div></div>`;
+   document.body.appendChild(d);
+  }
+  const done=v=>{d.close();resolve(v)};
+  d.querySelector("#kfConfirmCancel").onclick=()=>done(false);
+  d.querySelector("#kfConfirmSend").onclick=()=>done(true);
+  d.oncancel=e=>{e.preventDefault();done(false)};
+  d.showModal();
+ });
+}
 kfSubmitPackage=async function(auto){
  if(!kfRun?.server)return alert("Paket tidak berasal dari server. Muat ulang halaman lalu coba lagi.");
- if(!auto&&!confirm("Selesaikan dan kirim jawaban? Setelah dikirim jawaban tidak dapat diubah."))return;
+ if(!auto){
+   const ok=await kfConfirmSubmit();
+   if(!ok)return;
+ }
  clearInterval(kfTimerHandle);
  try{
    await kfServerSaveCurrent();
