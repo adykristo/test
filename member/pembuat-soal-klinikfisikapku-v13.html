@@ -386,7 +386,7 @@ window.kfV12Navigate=function(page){
 <div class="row"><div><label>Jenjang</label><select id="jenjang"><option>SD</option><option>SMP</option><option selected>SMA</option></select></div><div><label>Mata Pelajaran</label><input id="mapel" value="Fisika"></div><div><label>Kelas</label><input id="kelas" placeholder="Contoh: XII"></div><div><label>Tingkat Kesulitan</label><select id="difficulty"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div></div>
 <div class="row two" style="margin-top:8px"><div><label>Topik / Materi</label><input id="topik" placeholder="Listrik Statis"></div><div><label>Subtopik</label><input id="subtopik" placeholder="Hukum Coulomb"></div></div><div style="margin-top:8px"><label>Tag</label><input id="tags" placeholder="coulomb, muatan listrik"></div>
 <label style="margin-top:10px">Tipe soal</label><select id="typeSelect" onchange="changeTypeSelect(this.value)"><option value="pg5">Pilihan Ganda — 5 opsi (A–E)</option><option value="pg4">Pilihan Ganda — 4 opsi (A–D)</option><option value="mcma">PG Kompleks / MCMA</option><option value="kategori">PG Kompleks Kategori</option><option value="isian">Isian Singkat</option><option value="esai">Esai</option></select>
-<label style="margin-top:10px">Pertanyaan <span class="small">(teks + rumus LaTeX + angka; boleh kosong jika hanya gambar)</span></label><div id="qFormulaBar"></div><div class="actions" style="margin:6px 0"><button type="button" class="btn sm primary" onclick="insertImageMarker('question')">🖼 Sisip Gambar di Pertanyaan</button><span class="small">Letakkan kursor pada posisi yang diinginkan, lalu klik tombol ini.</span></div><textarea id="question" placeholder="Contoh: Sebuah benda bermassa $m=2\\,\\mathrm{kg}$ ditarik gaya $F=10\\,\\mathrm{N}$. Percepatannya..."></textarea><div id="questionMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div class="actions" style="margin-top:7px"><button class="btn sm" onclick="aiImprove()">✨ Rapikan soal ini dengan AI</button></div>
+<label style="margin-top:10px">Pertanyaan <span class="small">(teks + rumus LaTeX + angka; boleh kosong jika hanya gambar)</span></label><div id="qFormulaBar"></div><textarea id="question" placeholder="Contoh: Sebuah benda bermassa $m=2\\,\\mathrm{kg}$ ditarik gaya $F=10\\,\\mathrm{N}$. Percepatannya..."></textarea><div id="questionMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div class="actions" style="margin-top:7px"><button class="btn sm" onclick="aiImprove()">✨ Rapikan soal ini dengan AI</button></div>
 <div class="notice" style="margin-top:10px;background:#fbf7ff;border:1px solid #eadcff">
  <b>📌 Sisip Gambar di posisi yang diinginkan</b>
  <div class="small" style="margin-top:6px;line-height:1.65">
@@ -394,7 +394,7 @@ window.kfV12Navigate=function(page){
  </div>
 </div>
 <div class="sep"></div><div id="answerCard"><label><b>Pilihan jawaban / kunci</b></label><div class="small">Setiap opsi boleh berisi teks, rumus, gambar, atau keduanya.</div><div id="answerEditor"></div></div>
-<div class="sep"></div><label><b>Pembahasan / pedoman jawaban esai</b> <span class="small">(opsional: teks + LaTeX + angka)</span></label><div id="exFormulaBar"></div><div class="actions" style="margin:6px 0"><button type="button" class="btn sm primary" onclick="insertImageMarker('explanation')">🖼 Sisip Gambar di Pembahasan</button><span class="small">Letakkan kursor pada posisi yang diinginkan, lalu klik tombol ini.</span></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea>
+<div class="sep"></div><label><b>Pembahasan / pedoman jawaban esai</b> <span class="small">(opsional: teks + LaTeX + angka)</span></label><div id="exFormulaBar"></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea>
 <div id="explanationMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div>
 <div style="margin-top:10px;max-width:360px">
 <label>Penilaian MCMA</label>
@@ -1818,27 +1818,5 @@ document.addEventListener('DOMContentLoaded',function(){
  },700);
 });
 </script>
-<script id="v13-inline-image-toolbar-fix">
-(function(){
- function addButtonNearTextarea(id,label){
-   var ta=document.getElementById(id);if(!ta)return;
-   var key='v13-inline-'+id;if(document.getElementById(key))return;
-   var bar=document.createElement('div');bar.id=key;bar.className='actions';bar.style.margin='6px 0';
-   var btn=document.createElement('button');btn.type='button';btn.className='btn sm primary';btn.textContent='🖼 '+label;
-   btn.addEventListener('click',function(){insertImageMarker(id)});
-   var hint=document.createElement('span');hint.className='small';hint.textContent='Kursor menentukan posisi gambar.';
-   bar.appendChild(btn);bar.appendChild(hint);ta.parentNode.insertBefore(bar,ta);
- }
- function install(){
-   addButtonNearTextarea('question','Sisip Gambar');
-   addButtonNearTextarea('explanation','Sisip Gambar');
-   document.querySelectorAll('textarea[id^="opt"]').forEach(function(ta){if(/^opt\d+$/.test(ta.id))addButtonNearTextarea(ta.id,'Sisip Gambar')});
- }
- document.addEventListener('DOMContentLoaded',function(){
-   install();var root=document.getElementById('answerEditor');
-   if(root)new MutationObserver(install).observe(root,{childList:true,subtree:true});
-   setTimeout(install,300);setTimeout(install,1000);
- });
-})();
-</script>
+
 </body></html>
