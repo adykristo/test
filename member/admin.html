@@ -2614,24 +2614,24 @@ async function renderBundleOrders(){
  }catch(e){b.innerHTML='<div class="sub">'+escMember(e.message)+'</div>'}
 }
 async function batalkanBundleOrder(id){
- if(!confirm("Batalkan permintaan paket ini?\n\nPaket tidak akan diaktifkan dan data transaksi tetap tersimpan sebagai riwayat."))return;
+ if(!(await KFUI.confirm("Batalkan permintaan paket ini?\n\nPaket tidak akan diaktifkan dan transaksi tetap tersimpan sebagai riwayat.","Batalkan Permintaan")))return;
  const q=await kfdb().rpc("kf_admin_cancel_bundle_order",{p_order:id,p_note:"Dibatalkan oleh Admin"});
- if(q.error)return alert("Gagal membatalkan: "+q.error.message);
- alert("✓ Permintaan paket dibatalkan.");await renderBundleOrders();
+ if(q.error)return KFUI.toast("Gagal membatalkan: "+q.error.message,"err",6000);
+ KFUI.toast("Permintaan paket dibatalkan.","ok");await renderBundleOrders();
 }
 async function hapusBundleOrder(id){
- if(!confirm("HAPUS / ARSIPKAN PERMINTAAN\n\nGunakan ini untuk permintaan salah/duplikat. Paket aktif peserta tidak akan dicabut.\n\nLanjutkan?"))return;
+ if(!(await KFUI.confirm("Arsipkan permintaan salah/duplikat ini?\n\nPaket aktif peserta tidak akan dicabut.","Arsipkan Permintaan")))return;
  const q=await kfdb().rpc("kf_admin_archive_bundle_order",{p_order:id,p_note:"Diarsipkan oleh Admin"});
- if(q.error)return alert("Gagal mengarsipkan: "+q.error.message);
- alert("✓ Permintaan diarsipkan.");await renderBundleOrders();
+ if(q.error)return KFUI.toast("Gagal mengarsipkan: "+q.error.message,"err",6000);
+ KFUI.toast("Permintaan berhasil diarsipkan.","ok");await renderBundleOrders();
 }
 async function approveBundleOrder(id,c,uid){
- const m=MEMBER_CACHE.find(x=>String(x.id)===String(uid));
- const tambahan=m&&String(m.status||"").toLowerCase()==="aktif";
- if(!confirm((tambahan?"AKTIFKAN PAKET TAMBAHAN":"AKTIFKAN PAKET")+(m?"\n\nPeserta: "+m.nama:"")+"\nJumlah: "+c+" paket\n\nPaket lama tidak akan dihapus. Lanjutkan?"))return;
- const n=prompt("Catatan Admin:",tambahan?"Paket tambahan diaktifkan oleh Admin":"Paket diaktifkan oleh Admin");if(n===null)return;
- const q=await kfdb().rpc("kf_admin_approve_bundle_order",{p_order:id,p_note:n});if(q.error)return alert(q.error.message);
- alert("✓ "+c+" paket berhasil diaktifkan"+(tambahan?" sebagai paket tambahan. Paket lama tetap tersimpan.":"."));
+ const m=MEMBER_CACHE.find(x=>String(x.id)===String(uid)),tambahan=m&&String(m.status||"").toLowerCase()==="aktif";
+ const msg=(tambahan?"Aktifkan paket tambahan":"Aktifkan paket")+(m?" untuk "+m.nama:"")+"?\n\nJumlah: "+c+" paket. Paket lama tidak akan dihapus.";
+ if(!(await KFUI.confirm(msg,tambahan?"Aktifkan Paket Tambahan":"Aktifkan Paket")))return;
+ const n=await KFUI.prompt("Catatan Admin:",tambahan?"Paket tambahan diaktifkan oleh Admin":"Paket diaktifkan oleh Admin","Catatan Aktivasi");if(n===null)return;
+ const q=await kfdb().rpc("kf_admin_approve_bundle_order",{p_order:id,p_note:n});if(q.error)return KFUI.toast(q.error.message,"err",6000);
+ KFUI.toast(c+" paket berhasil diaktifkan"+(tambahan?". Paket lama tetap tersimpan.":"."),"ok",4800);
  await renderBundleOrders();await renderMemberAdmin();
 }
 window.addEventListener("load",()=>setTimeout(()=>{renderDiscountRules();renderBundleOrders()},1400));
