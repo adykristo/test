@@ -49,7 +49,7 @@ begin
  end if;
  select coalesce(jsonb_agg(jsonb_build_object(
   'question',jsonb_build_object('id',q.id,'position',q.position,'type',q.type,'question',q.question,'image',q.image,'options',coalesce(q.options,'[]'::jsonb),'statements',coalesce(q.statements,'[]'::jsonb),'category_labels',coalesce(q.category_labels,'[]'::jsonb),'answer_key',q.answer_key,'explanation',coalesce(q.explanation,'')),
-  'answer',case when a.question_id is null then null else jsonb_build_object('question_id',a.question_id,'answer',a.answer,'is_correct',a.is_correct,'score',a.score) end
+  'answer',case when a.question_id is null then null else jsonb_build_object('question_id',a.question_id,'answer',a.answer,'is_correct',public.kf_is_correct(q.type,q.answer_key,a.answer),'score',case when public.kf_is_correct(q.type,q.answer_key,a.answer) then coalesce(q.points,1) else 0 end) end
  ) order by q.position),'[]'::jsonb) into v_items
  from public.kf_questions q left join public.kf_answers a on a.attempt_id=v_attempt.id and a.question_id=q.id
  where q.package_id=v_attempt.package_id;
