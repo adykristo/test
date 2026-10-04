@@ -201,9 +201,7 @@
       const {data:p}=await supabase.from("member_profiles").select(PROFILE_FIELDS).eq("id",s.session.user.id).single();
       if(p && typeof masukPeserta==="function"){const d=document.getElementById("dash");if(d&&window.getComputedStyle(d).display==="none")masukPeserta(p);}
     }
-    supabase.from("member_packages").select("deskripsi").eq("nama","_PAYMENT_CONFIG_").maybeSingle().then(function(res){
-      const d=res.data;if(!d||!d.deskripsi)return;try{const pay=JSON.parse(d.deskripsi);[["paymentBank",pay.bank],["paymentAccountNumber",pay.nomorRekening],["paymentAccountOwner",pay.pemilikRekening]].forEach(x=>{const e=document.getElementById(x[0]);if(e)e.textContent=x[1]||"-";});const w=document.getElementById("paymentWhatsAppLink");if(w&&pay.whatsapp){let pkt="Paket";try{const p=JSON.parse(localStorage.getItem("kf_member_profile")||"null");if(p&&p.paket)pkt=p.paket;}catch(e){}w.href="https://wa.me/"+pay.whatsapp+"?text="+encodeURIComponent("Halo Admin KlinikFisikapku, saya ingin mengirim bukti transfer untuk aktivasi Member Area.\n\nPaket: "+pkt);}}catch(e){}
-    });
+  });
   });
 
   window.kirimResetPassword=async function(){const el=document.getElementById("user")||document.getElementById("email");const e=el?gmail(el.value):"";if(!e){alert("Masukkan alamat Email Google Anda terlebih dahulu.");return;}const {error}=await supabase.auth.resetPasswordForEmail(e,{redirectTo:window.location.origin+window.location.pathname+"#reset"});alert(error?"Gagal mengirim link reset: "+error.message:"Link pemulihan password telah dikirim ke email Anda.");};
