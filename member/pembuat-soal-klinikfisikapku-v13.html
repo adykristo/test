@@ -316,7 +316,7 @@ window.kfSaveConnectionSafe=function(){
    if(status){status.className='notice bad';status.textContent='✗ URL harus berupa Web App Google Apps Script yang berakhir /exec.';}
    return false;
   }
-  localStorage.setItem(window.KF_V12_CONN_KEY,JSON.stringify({url:url,mode:mode}));
+  localStorage.setItem(window.KF_V12_CONN_KEY,JSON.stringify({url:url,mode:mode}));var keyEl=document.getElementById('gasAdminKey'),key=(keyEl&&keyEl.value||'').trim();if(key)localStorage.setItem('kf_hasil_admin_key',key);
   if(status){status.className='notice good';status.textContent='✓ Koneksi berhasil disimpan di browser ini.';}
   return false;
  }catch(err){
@@ -327,7 +327,7 @@ window.kfSaveConnectionSafe=function(){
 document.addEventListener('DOMContentLoaded',function(){
  var cfg=window.kfGetConnectionSafe(),u=document.getElementById('gasUrl'),m=document.getElementById('storageMode');
  if(u&&cfg.url)u.value=cfg.url;
- if(m&&cfg.mode)m.value=cfg.mode;
+ if(m&&cfg.mode)m.value=cfg.mode;var k=document.getElementById('gasAdminKey');if(k)k.value=localStorage.getItem('kf_hasil_admin_key')||'';
 });
 </script>
 <script>
@@ -459,6 +459,7 @@ window.kfV12Navigate=function(page){
 <div><label>URL Web App Google Apps Script</label><input id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
 <div><label>Mode Penyimpanan</label><select id="storageMode"><option value="local">Lokal saja (browser)</option><option value="online">Online + cadangan lokal</option></select></div>
 </div>
+<div style="margin-top:10px"><label>Kode Rahasia Admin (ADMIN_KEY)</label><input type="password" id="gasAdminKey" placeholder="Sama dengan Kode Rahasia Admin pada Admin lama"><div class="small">Disimpan hanya di browser ini untuk koneksi privat Apps Script/Gemini.</div></div>
 <div class="actions" style="margin-top:12px">
 <button class="btn primary" onclick="return kfSaveConnectionSafe()">Simpan Koneksi</button>
 <button class="btn" onclick="testConnection()">Tes Koneksi</button>
@@ -744,7 +745,7 @@ async function postGAS(action,data={}){
  let c=getConnection();if(!c.url)throw new Error('URL Apps Script belum diisi. Simpan URL Apps Script pada Admin lama lalu kembali ke V13.');
  const adminKey=(localStorage.getItem('kf_hasil_admin_key')||'').trim();let accessToken='';
  try{const client=window.KFSupabaseAdmin?.client;if(client){const {data:s}=await client.auth.getSession();accessToken=s?.session?.access_token||''}}catch(e){}
- if(!adminKey&&!accessToken)throw new Error('Koneksi admin tidak ditemukan. Login Super Admin atau simpan Kode Rahasia Admin pada Admin lama.');
+ if(!adminKey&&!accessToken)throw new Error('Kode Rahasia Admin belum tersedia. Isi ADMIN_KEY pada menu Koneksi V13 lalu klik Simpan Koneksi.');
  const auth=adminKey?{key:adminKey}:{accessToken};
  const res=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...auth,...data})});
  if(!res.ok)throw new Error('Apps Script HTTP '+res.status);
@@ -772,7 +773,7 @@ async function syncOnline(){
   }
  }catch(e){if(status){status.className='notice bad';status.textContent='✗ Sinkron gagal: '+(e?.message||e)}}
 }
-async function testAIConnection(){try{let r=await postGAS('testAI',{jenis:'uji koneksi',text:'Balas hanya dengan kata OK'});$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Gemini merespons: '+(r.text||r.message||'OK')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ Gemini belum terhubung: '+e.message}}
+async function testAIConnection(){const st=$('connectionStatus');st.className='notice';st.textContent='Menguji Gemini melalui Apps Script...';try{let r=await postGAS('buatSoalGemini',{prompt:'Buat tepat 1 soal Fisika SMA sangat sederhana tentang gerak lurus untuk uji koneksi. Sertakan kunci dan pembahasan.',jumlah:1,tipe:'pg4',jenjang:'sma',topik:'Gerak Lurus'});if(!r||!Array.isArray(r.questions)||!r.questions.length)throw new Error(r?.message||'Gemini tidak mengembalikan questions[].');st.className='notice good';st.textContent='✓ Gemini AI aktif dan berhasil membuat soal uji.'}catch(e){st.className='notice bad';st.textContent='✗ Gemini belum terhubung: '+e.message}}
 function normalizeAIQuestion(q){
  let type=String(q.type||q.tipe||$('aiType').value).toLowerCase(),n=type==='pg4'?4:5;
  let options=Array.isArray(q.opsi)?q.opsi:(q.answers?.options||[]);
