@@ -1640,7 +1640,7 @@ iframe.pdfview{display:block;min-height:520px}
         return m ? m[1] : "";
       }
 
-      function bukaDetail(i) {
+      async function bukaDetail(i) {
         const x = dataMateri[i];
         if (!x) return;
         if (normalJenis(x) === "soal" || normalJenis(x) === "tryout" || tujuanItem(x) === "tryout") {
@@ -1658,10 +1658,15 @@ iframe.pdfview{display:block;min-height:520px}
           window.KFMemberAuth.simpanProgress(x.id,{dibuka:true}).catch(err=>console.warn("Waktu buka materi belum tersinkron:",err));
         }
         let html = `<div class="topik">${esc(x.topik || "")}</div><h2 style="margin-top:4px">${esc(x.judul || "")}</h2>`;
+        let privatePdfUrl="";
+        if(x.storage_path && window.KFMemberAuth && typeof window.KFMemberAuth.signedLearningFile==="function"){
+          try{privatePdfUrl=await window.KFMemberAuth.signedLearningFile(x.storage_path);}
+          catch(err){console.warn("Akses PDF private ditolak:",err);KFMemberUI.toast("PDF tidak dapat dibuka. Pastikan paket Anda masih aktif.","err",5000);}
+        }
 
         if (x.jenis === "pdf") {
           html += `<p style="color:#5b4374">Modul dalam format PDF — bisa dibaca langsung di sini atau diunduh.</p>`;
-          const pdfUrl=safePdfUrl(x.pdfUrl);
+          const pdfUrl=safePdfUrl(privatePdfUrl||x.pdfUrl);
           if (pdfUrl) {
             const pdfBlobOrUrl = pdfDisplayUrl(pdfUrl);
             const isBlob = String(pdfBlobOrUrl).startsWith("blob:");
@@ -1683,7 +1688,7 @@ iframe.pdfview{display:block;min-height:520px}
           }
         } else if (x.jenis === "soal" && String(x.source_type||"").toLowerCase() === "pdf") {
           // Latihan PDF harus membuka file PDF, bukan mesin soal interaktif.
-          const pdfUrl=safePdfUrl(x.pdfUrl||x.pdf_url||x.file_url||x.url||"");
+          const pdfUrl=safePdfUrl(privatePdfUrl||x.pdfUrl||x.pdf_url||x.file_url||x.url||"");
           html += `<p style="color:#5b4374">Latihan dalam format PDF — baca langsung atau buka file pada tab baru.</p>`;
           if(pdfUrl){
             const pdfBlobOrUrl=pdfDisplayUrl(pdfUrl);
