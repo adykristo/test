@@ -263,7 +263,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 /* ===== V12 STUDIO ADMIN-STYLE 2026 ===== */
 .v12-step-card{border:1px solid #ead7f7!important;border-radius:18px!important;background:#fff!important;padding:20px!important;margin-bottom:18px!important;box-shadow:0 10px 28px rgba(92,35,140,.07)!important}.v12-step-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}.v12-step-no{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#7137c8,#ec4899);color:#fff;font-weight:900}.v12-step-title{font-size:16px;font-weight:900;color:#3b1758}.v12-step-title small{font-size:11px;font-weight:500;color:#8a7894}.v12-info-grid{display:grid;grid-template-columns:1.5fr .75fr .75fr;gap:12px}.v12-paste-box{border:1px dashed #c995ee;border-radius:15px;padding:16px;background:#fff}.v12-paste-box textarea{min-height:180px}.v12-checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.v12-checks label{padding:10px;border-radius:9px;background:#fbf7ff;font-weight:600}.v12-checks input{width:auto;margin-right:7px}.v12-gradient-btn{width:100%;background:linear-gradient(90deg,#f04b9a,#812cf4)!important;color:#fff!important}.v12-section-label{display:flex;align-items:center;gap:10px;margin:22px 0 10px}.v12-section-label h2{margin:0;font-size:17px}.v12-hidden-nav{display:none!important}@media(max-width:760px){.v12-info-grid,.v12-checks{grid-template-columns:1fr}}
 .topbar,.topbar .toprow,.topbar .nav,.topbar .nav button{pointer-events:auto!important}.topbar{z-index:100000!important}.wrap{position:relative;z-index:1}
-</style>
+.explanation-view{margin-top:12px;line-height:1.7}.ex-title{font-weight:800;color:#176b54;margin:12px 0 5px}.ex-line{margin:3px 0}.ex-step{display:flex;gap:8px;margin:6px 0}</style>
 
 <script src="https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.umd.cjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
@@ -604,6 +604,19 @@ function validate(q=collect()){
 }
 function saveQuestion(){let q=collect(),errs=validate(q);if(errs.length&&!confirm('Masih ada yang perlu diperiksa:\n- '+errs.join('\n- ')+'\n\nTetap simpan sebagai Draft?'))return;if(errs.length)q.status='Draft';let b=bank(),i=b.findIndex(x=>x.id===q.id);if(i>=0)b[i]=q;else b.unshift(q);setBank(b);editingId=q.id;alert('Soal tersimpan di Bank Soal.');nav('bank')}
 function updatePreview(){showImage();updateMathPreviews()}
+function formatExplanation(text){
+ let s=String(text||'').replace(/\\r/g,'').trim(),html=[];
+ for(const raw of s.split('\\n')){
+  let line=raw.trim(); if(!line){html.push('<div style="height:5px"></div>');continue}
+  line=line.replace(/^\\*{1,2}\\s*/,'').replace(/\\s*\\*{1,2}$/,'');
+  const h=line.match(/^(Diketahui|Ditanya|Konsep|Persamaan|Penyelesaian|Jawaban akhir|Jawaban|Kesimpulan)\\s*:?\\s*(.*)$/i);
+  if(h){html.push('<div class="ex-title">'+esc(h[1])+':</div>');if(h[2])html.push('<div class="ex-line">'+esc(cleanAIMathText(h[2]))+'</div>');continue}
+  const n=line.match(/^(\\d+)[.)]\\s*(.*)$/);if(n){html.push('<div class="ex-step"><b>'+esc(n[1])+'.</b><div>'+esc(cleanAIMathText(n[2]))+'</div></div>');continue}
+  const b=line.match(/^[-•]\\s*(.*)$/);if(b){html.push('<div class="ex-line">• '+esc(cleanAIMathText(b[1]))+'</div>');continue}
+  html.push('<div class="ex-line">'+esc(cleanAIMathText(line))+'</div>');
+ }
+ return '<div class="explanation-view">'+html.join('')+'</div>';
+}
 function questionHTML(q,interactive=true){
  let h=`<div class="tags"><span class="tag">${esc(typeName(q.type))}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.difficulty)}</span></div><h3 style="line-height:1.5">${q.question?esc(cleanAIMathText(q.question)).replace(/\n/g,'<br>'):'<span class="small">Pertanyaan akan tampil di sini…</span>'}</h3>`;
  if(q.image)h+=`<img class="qimg" src="${esc(q.image)}" style="transform:rotate(${q.imageRotation||0}deg)">`;
@@ -615,7 +628,7 @@ function questionHTML(q,interactive=true){
 }
 function previewCurrent(){let q=collect();$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button class="btn primary" onclick='checkPreview(${JSON.stringify(q).replace(/'/g,"&#39;")})'>Periksa Jawaban</button></div><div id="pvResult"></div>`;$('previewModal').classList.add('show');typesetMath('studentPreview')}
 function checkPreview(q){let ok=false,detail='';if(['pg5','pg4','mcma'].includes(q.type)){let chosen=[...document.querySelectorAll('#studentPreview input[name=pvans]:checked')].map(x=>Number(x.value)).sort();let keys=[...q.answers.keys].sort();ok=JSON.stringify(chosen)===JSON.stringify(keys);if(q.type==='mcma'&&q.scoring==='partial'){let hit=chosen.filter(x=>keys.includes(x)).length,wrong=chosen.filter(x=>!keys.includes(x)).length;let pct=Math.max(0,(hit-wrong)/keys.length);detail=` Skor parsial: ${Math.round(pct*100)}%.`}}else if(q.type==='kategori'){ok=[...document.querySelectorAll('#studentPreview .catans')].every(x=>x.value===q.answers.statements[Number(x.dataset.i)].answer)}else if(q.type==='isian')ok=($('pvShort').value||'').trim().toLowerCase()===(q.answers.short||'').trim().toLowerCase();else{detail='Esai memerlukan penilaian guru.'}
- $('pvResult').innerHTML=`<div class="notice ${q.type==='esai'?'':ok?'good':'bad'}" style="margin-top:12px">${q.type==='esai'?'Jawaban tersimpan untuk dinilai guru.':ok?'✓ Jawaban benar.':'✗ Jawaban belum benar.'}${detail}${q.explanation?`<div class="sep"></div><b>Pembahasan:</b><br>${esc(q.explanation).replace(/\n/g,'<br>')}`:''}</div>`};typesetMath('pvResult')
+ $('pvResult').innerHTML=`<div class="notice ${q.type==='esai'?'':ok?'good':'bad'}" style="margin-top:12px">${q.type==='esai'?'Jawaban tersimpan untuk dinilai guru.':ok?'✓ Jawaban benar.':'✗ Jawaban belum benar.'}${detail}${q.explanation?`<div class="sep"></div><b>Pembahasan:</b><br>${formatExplanation(q.explanation)}`:''}</div>`};typesetMath('pvResult')
 function closeModal(id){$(id).classList.remove('show')}
 function duplicateCurrent(){editingId=null;$('editorTitle').textContent='Duplikat Soal';changed();alert('Draft diduplikat. Edit seperlunya lalu Simpan.')}
 function resetEditor(){if(!confirm('Bersihkan editor?'))return;editingId=null;currentType='pg5';answerState={options:['','','','',''],keys:[0],short:'',essayKey:'',statements:[{text:'',answer:'Benar'},{text:'',answer:'Salah'}]};['kelas','topik','subtopik','tags','question','qImageUrl','explanation'].forEach(x=>{if($(x))$(x).value=''});imageData='';explanationImageData='';imageRotation=0;if($('typeSelect'))$('typeSelect').value='pg5';renderAnswerEditor();updatePreview();validate()}
