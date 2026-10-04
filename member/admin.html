@@ -2159,9 +2159,15 @@ async function renderSupabasePackageStatus(){
   let a=await KFPackagePublisher.adminList();
   [["latihan","latihanPackageManagerSupabase"],["tryout","tryoutPackageManagerSupabase"]].forEach(([kind,id])=>{
    let box=document.getElementById(id);if(!box)return;let rows=a.filter(x=>x.kind===kind);
-   box.innerHTML=rows.length?rows.map(x=>`<div class="manage-item"><div><b>${h(x.name)}</b><p>${x.kf_questions?.[0]?.count||0} soal · ${x.visible?"Aktif":"Nonaktif"} · ${h(x.subscription||"Semua Paket Aktif")}</p></div><div class="row-actions"><button class="btn ghost small" onclick="KFPackagePublisher.unpublish('${x.external_id}').then(renderSupabasePackageStatus)">Sembunyikan</button></div></div>`).join(""):'<div class="sub">Belum ada paket final di Supabase.</div>';
+   box.innerHTML=rows.length?rows.map(x=>`<div class="manage-item"><div><b>${h(x.name)}</b><p>${x.kf_questions?.[0]?.count||0} soal · ${x.visible?"Aktif":"Nonaktif"} · Sumber: ${h(x.source||("V"+(x.source_version||"?")))} · ${h(x.subscription||"Semua Paket Aktif")}</p></div><div class="row-actions"><button class="btn ghost small" onclick="sembunyikanPaketSupabase('${x.external_id}')">Sembunyikan</button></div></div>`).join(""):'<div class="sub">Belum ada paket final di Supabase.</div>';
   });
  }catch(e){console.warn("Paket Supabase belum dapat dipanggil:",e)}
+}
+async function sembunyikanPaketSupabase(externalId){
+ const ok=await KFUI.confirm("Sembunyikan paket ini dari peserta? Data paket dan soal tetap tersimpan di Supabase.","Sembunyikan Paket");
+ if(!ok)return;
+ try{await KFPackagePublisher.unpublish(externalId);await renderSupabasePackageStatus();KFUI.toast("Paket disembunyikan dari peserta.","ok")}
+ catch(e){KFUI.toast("Gagal menyembunyikan paket: "+e.message,"err",6000)}
 }
 window.addEventListener("load",()=>setTimeout(renderSupabasePackageStatus,1200));
 
