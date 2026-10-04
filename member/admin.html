@@ -2020,7 +2020,8 @@ function openPanel(id, b) {
 /* ===== V13 -> PAKET LATIHAN / TRYOUT ===== */
 const KF_TRAIN_PACKAGES="kf_member_training_packages_v13";
 const KF_TRYOUT_PACKAGES="kf_member_tryout_packages_v13";
-const KF_V12_BANK="kf_package_bank_v1";
+const KF_V13_BANK="kf_package_bank_v1"; // legacy storage key dipertahankan agar Bank Soal lama tidak hilang
+const KF_V12_BANK=KF_V13_BANK; // alias kompatibilitas internal
 let PKG_EDIT={kind:"",id:""};
 
 function pkgKey(k){return k==="tryout"?KF_TRYOUT_PACKAGES:KF_TRAIN_PACKAGES}
@@ -2028,7 +2029,7 @@ function pkgGet(k){try{return JSON.parse(localStorage.getItem(pkgKey(k))||"[]")}
 function pkgSet(k,v){localStorage.setItem(pkgKey(k),JSON.stringify(v));renderPkgManagers()}
 function uidPkg(){return "MP-"+Date.now()+"-"+Math.random().toString(36).slice(2,7)}
 function cloneObj(x){return JSON.parse(JSON.stringify(x))}
-function v12win(){let f=document.getElementById("v12Frame");if(!f||!f.contentWindow)throw Error("V12 belum dimuat.");return f.contentWindow}
+function v12win(){let f=document.getElementById("v12Frame");if(!f||!f.contentWindow)throw Error("Studio V13 belum dimuat.");return f.contentWindow}
 function v12bank(){
  try{
    const direct=JSON.parse(localStorage.getItem(KF_V12_BANK)||"[]");
@@ -2544,7 +2545,7 @@ window.addEventListener("load",()=>{setTimeout(()=>{compactMemberActions();enhan
 
 /* ===== V12 Dedicated Tab Launcher ===== */
 function openV12NewTab(){
-  const w=window.open("pembuat-soal-klinikfisikapku-v13.html","KF_V12_STUDIO");
+  const w=window.open("pembuat-soal-klinikfisikapku-v13.html","KF_V13_STUDIO");
   if(w){try{w.focus()}catch(e){}}
   else alert("Tab baru diblokir browser. Izinkan pop-up untuk klinikfisikapku.com lalu coba lagi.");
 }
