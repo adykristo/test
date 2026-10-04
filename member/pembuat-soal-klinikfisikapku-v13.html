@@ -428,8 +428,8 @@ window.kfV12Navigate=function(page){
 <section id="page-import" class="page">
 <div class="card">
  <div class="tags"><span class="tag" style="background:#7b2ff7;color:#fff">Direkomendasikan</span></div>
- <h2>📄 Dari file Word</h2>
- <div class="sub">Satu file .docx berisi semua soal + LaTeX + gambar. Semua soal dari Word masuk ke Editor Soal terlebih dahulu. Periksa/edit sebanyak yang diperlukan, lalu kirim ke Bank Soal.</div>
+ <h2>📄 Dari file Word / PDF</h2>
+ <div class="sub">File .docx atau .pdf berisi soal. Semua hasil import masuk ke Editor Soal terlebih dahulu. Periksa/edit sebanyak yang diperlukan, lalu kirim ke Bank Soal.</div>
  <div class="row two" style="margin-top:14px">
   <div>
    <label>Jumlah soal</label><input type="number" id="templateJumlahSoalV13" value="10" min="1" max="50">
@@ -442,9 +442,9 @@ window.kfV12Navigate=function(page){
    </div>
   </div>
   <div>
-   <label>Pilih file .docx</label><input type="file" id="wordSoalFileV13" accept=".docx">
-   <button class="btn primary" style="width:100%;margin-top:12px" onclick="prosesWordKeV13(false)">⬆️ Import ke daftar soal</button>
-   <button class="btn pink" style="width:100%;margin-top:8px" onclick="prosesWordKeV13(true)">✨ AI Gemini — lengkapi & import</button>
+   <label>Pilih file Word / PDF</label><input type="file" id="wordSoalFileV13" accept=".docx,.pdf,application/pdf">
+   <button class="btn primary" style="width:100%;margin-top:12px" onclick="prosesWordKeV13(false)">⬆️ Import ke Editor Soal</button>
+   <button class="btn pink" style="width:100%;margin-top:8px" onclick="prosesWordKeV13(true)">✨ AI Gemini — lengkapi → Editor</button>
   </div>
  </div>
  <div id="statusWordSoalV13" style="margin-top:10px"></div>
@@ -990,13 +990,23 @@ function v13ParseWordDirect(raw){
 }
 function v13CountWordQuestions(raw){const m=String(raw||'').replace(/\r/g,'').match(/^(?:\[(?:ESAI|PGK[^\]]*)\]\s*)?\d+[.)]\s+.+$/gmi);return m?m.length:0}
 async function prosesWordKeV13(useAI){
- const file=$('wordSoalFileV13')?.files?.[0];if(!file)return v13WordStatus('Pilih file Word (.docx) dulu.','err');
- if(!window.mammoth)return v13WordStatus('Pustaka Mammoth belum termuat. Muat ulang halaman.','err');
+ const file=$('wordSoalFileV13')?.files?.[0];if(!file)return v13WordStatus('Pilih file Word (.docx) atau PDF dulu.','err');
  try{
-  v13WordStatus('Membaca teks, gambar, dan struktur Word…');
-  const ab=await file.arrayBuffer(),images=[];
-  await mammoth.convertToHtml({arrayBuffer:ab},{convertImage:mammoth.images.imgElement(async img=>{const b64=await img.read('base64'),src='data:'+img.contentType+';base64,'+b64;images.push(src);return {src}})});
-  const rr=await mammoth.extractRawText({arrayBuffer:ab}),raw=(rr.value||'').trim();if(!raw)throw new Error('Tidak ada teks yang terbaca.');
+  const isPdf=/\.pdf$/i.test(file.name)||file.type==='application/pdf';
+  const ab=await file.arrayBuffer(),images=[];let raw='';
+  if(isPdf){
+    if(!window.pdfjsLib)throw new Error('Pustaka PDF belum termuat. Muat ulang halaman.');
+    v13WordStatus('Membaca teks dan struktur PDF…');
+    const pdf=await pdfjsLib.getDocument({data:new Uint8Array(ab)}).promise,parts=[];
+    for(let p=1;p<=pdf.numPages;p++){const pg=await pdf.getPage(p),tc=await pg.getTextContent();parts.push(tc.items.map(x=>x.str).join(' '))}
+    raw=parts.join('\n').trim();
+  }else{
+    if(!window.mammoth)throw new Error('Pustaka Mammoth belum termuat. Muat ulang halaman.');
+    v13WordStatus('Membaca teks, gambar, dan struktur Word…');
+    await mammoth.convertToHtml({arrayBuffer:ab},{convertImage:mammoth.images.imgElement(async img=>{const b64=await img.read('base64'),src='data:'+img.contentType+';base64,'+b64;images.push(src);return {src}})});
+    const rr=await mammoth.extractRawText({arrayBuffer:ab});raw=(rr.value||'').trim();
+  }
+  if(!raw)throw new Error('Tidak ada teks yang terbaca dari file.');
   window.__V13_DOCX_IMAGES__=images;
   let qs=[];
   if(useAI){
@@ -1070,7 +1080,14 @@ async function generateAI(){
 function loadAIQueueToEditor(i){
  if(!aiEditorQueue.length)return;
  aiEditorIndex=Math.max(0,Math.min(aiEditorQueue.length-1,i));
- loadQuestion(aiEditorQueue[aiEditorIndex]);
+ // AI drafts already live inside packageDraft via loadQuestionsToWorkspace().
+ // Navigate that same workspace so Save edits the correct question number.
+ if(packageDraft&&Array.isArray(packageDraft.questions)&&packageDraft.questions.length===aiEditorQueue.length){
+   goPackageQuestion(aiEditorIndex);
+ }else{
+   loadQuestionsToWorkspace(aiEditorQueue,'Hasil AI Gemini');
+   goPackageQuestion(aiEditorIndex);
+ }
  if($('editorTitle'))$('editorTitle').textContent='Review Soal AI '+(aiEditorIndex+1)+' dari '+aiEditorQueue.length;
  renderAIQueueNavigator();
 }
@@ -1725,7 +1742,9 @@ async function v12ProcessPaste(){
    'Validasi bahwa question, options, correct_answer, explanation dan gambar semuanya milik soal yang SAMA. Jangan memakai isi dari riwayat atau contoh lain.',
    'Kembalikan tepat 1 soal kecuali sumber jelas berisi beberapa nomor soal terpisah.'
   ].filter(Boolean).join('\n');
-  const payload={documentText:markerText,text:markerText,images:data.images.map(({id,mimeType,data})=>({id,mimeType,data})),prompt,instruksi:prompt,jenjang:flags.level,jumlah:1,tipe:'auto'};
+  const numbered=(data.text.match(/(?:^|\n)\s*(?:\[?(?:ESAI|PGK[^\]]*)\]?\s*)?\d+[.)]\s+/gi)||[]).length;
+  const estimated=Math.max(1,Math.min(50,numbered||(data.images.length>1?data.images.length:1)));
+  const payload={documentText:markerText,text:markerText,images:data.images.map(({id,mimeType,data})=>({id,mimeType,data})),prompt:prompt+'\nJika sumber berisi beberapa soal bernomor, kembalikan SEMUA soal tersebut sebagai array questions, maksimal '+estimated+' soal.',instruksi:prompt,jenjang:flags.level,jumlah:estimated,tipe:'auto'};
   let r=await postGAS('analisisWordTryout',payload);
   const raw=Array.isArray(r?.questions)?r.questions:(Array.isArray(r?.data?.questions)?r.data.questions:[]);
   if(!raw.length)throw new Error(r?.message||'Gemini Vision tidak mengembalikan soal.');
