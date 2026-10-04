@@ -549,8 +549,7 @@ document.addEventListener('click',function(e){
 });
 document.addEventListener('DOMContentLoaded',function(){
  const tab=new URLSearchParams(window.location.search).get('tab');
- if(tab==='settings'||tab==='bank'||tab==='buat')nav(tab);
- else if(tab==='paket')nav('bank');
+ if(tab==='settings'||tab==='bank'||tab==='buat'||tab==='paket')nav(tab);
 });
 
 document.querySelectorAll('#typeButtons button').forEach(b=>b.onclick=()=>{currentType=b.dataset.type;document.querySelectorAll('#typeButtons button').forEach(x=>x.classList.toggle('primary',x===b));initAnswersForType(false);renderAnswerEditor();updatePreview()});
