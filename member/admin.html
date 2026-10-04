@@ -2709,5 +2709,39 @@ document.addEventListener("click",function(e){
  else if(t==="hapus"){e.preventDefault();e.stopImmediatePropagation();hapusKonten(id)}
 },true);
 </script>
+
+<style id="kf-modern-dialog-style">
+.kf-toast-stack{position:fixed;right:22px;top:88px;z-index:100000;display:grid;gap:10px;max-width:min(390px,calc(100vw - 28px))}
+.kf-toast{background:#fff;border:1px solid #eadcf5;border-radius:14px;box-shadow:0 14px 36px rgba(45,18,80,.16);padding:12px 14px;font-size:13px;font-weight:700;animation:kfToastIn .18s ease}
+.kf-toast.ok{border-left:4px solid #20b26b}.kf-toast.err{border-left:4px solid #ef476f}.kf-toast.info{border-left:4px solid #9a35d2}
+@keyframes kfToastIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+.kf-dialog-backdrop{position:fixed;inset:0;background:rgba(31,15,48,.48);backdrop-filter:blur(3px);z-index:100001;display:grid;place-items:center;padding:18px}
+.kf-dialog{width:min(520px,100%);background:#fff;border-radius:18px;box-shadow:0 22px 70px rgba(32,12,54,.28);overflow:hidden;border:1px solid #eadcf5}
+.kf-dialog-head{padding:17px 19px;background:linear-gradient(110deg,#7224ba,#ec3d9b);color:#fff}.kf-dialog-head b{font-size:16px}
+.kf-dialog-body{padding:18px 19px;color:#28133d;white-space:pre-wrap;line-height:1.55}.kf-dialog-input{width:100%;box-sizing:border-box;margin-top:12px;padding:11px 12px;border:1px solid #d8c6e8;border-radius:11px;font:inherit}
+.kf-dialog-actions{display:flex;justify-content:flex-end;gap:9px;padding:0 19px 18px}.kf-dialog-actions button{min-width:88px}
+</style>
+<script>
+/* Modern feedback layer: dipakai untuk aksi baru; fungsi lama tetap kompatibel. */
+window.KFUI=window.KFUI||{};
+KFUI.toast=function(message,type="info",timeout=3200){
+ let s=document.getElementById("kfToastStack");if(!s){s=document.createElement("div");s.id="kfToastStack";s.className="kf-toast-stack";document.body.appendChild(s)}
+ const t=document.createElement("div");t.className="kf-toast "+type;t.textContent=String(message||"");s.appendChild(t);setTimeout(()=>t.remove(),timeout);return t;
+};
+KFUI.confirm=function(message,title="Konfirmasi"){
+ return new Promise(resolve=>{
+  const b=document.createElement("div");b.className="kf-dialog-backdrop";b.innerHTML='<div class="kf-dialog" role="dialog" aria-modal="true"><div class="kf-dialog-head"><b></b></div><div class="kf-dialog-body"></div><div class="kf-dialog-actions"><button class="btn ghost" data-no>Batal</button><button class="btn" data-yes>Ya, Lanjutkan</button></div></div>';
+  b.querySelector(".kf-dialog-head b").textContent=title;b.querySelector(".kf-dialog-body").textContent=message;
+  const done=v=>{b.remove();resolve(v)};b.querySelector("[data-no]").onclick=()=>done(false);b.querySelector("[data-yes]").onclick=()=>done(true);b.onclick=e=>{if(e.target===b)done(false)};document.body.appendChild(b);b.querySelector("[data-yes]").focus();
+ });
+};
+KFUI.prompt=function(message,value="",title="Isi Data"){
+ return new Promise(resolve=>{
+  const b=document.createElement("div");b.className="kf-dialog-backdrop";b.innerHTML='<div class="kf-dialog" role="dialog" aria-modal="true"><div class="kf-dialog-head"><b></b></div><div class="kf-dialog-body"><div data-msg></div><input class="kf-dialog-input" data-input></div><div class="kf-dialog-actions"><button class="btn ghost" data-no>Batal</button><button class="btn" data-yes>Simpan</button></div></div>';
+  b.querySelector(".kf-dialog-head b").textContent=title;b.querySelector("[data-msg]").textContent=message;const inp=b.querySelector("[data-input]");inp.value=value||"";
+  const done=v=>{b.remove();resolve(v)};b.querySelector("[data-no]").onclick=()=>done(null);b.querySelector("[data-yes]").onclick=()=>done(inp.value);inp.onkeydown=e=>{if(e.key==="Enter")done(inp.value);if(e.key==="Escape")done(null)};document.body.appendChild(b);inp.focus();inp.select();
+ });
+};
+</script>
 </body>
 </html>
