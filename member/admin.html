@@ -2085,11 +2085,33 @@ function renderPkgManagers(){
     <button class="btn small" onclick="bukaPkgEditor('${kind}','${p.id}')">✎ Atur & Edit Soal</button>
     <button class="btn ghost small" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal V13</button>
     <button class="btn ghost small" onclick="duplikatPkg('${kind}','${p.id}')">Duplikat</button>
+    <button class="btn ghost small" onclick="eksporPaketWord('${kind}','${p.id}')">📄 Word</button>
+    <button class="btn ghost small" onclick="eksporPaketPDF('${kind}','${p.id}')">📕 PDF</button>
     <button class="btn ${p.visible?"ghost":""} small" onclick="publikasiPkg('${kind}','${p.id}')">${p.visible?"↻ Sinkron Ulang":"✓ Publikasikan"}</button>
     <button class="btn danger small" onclick="hapusPkg('${kind}','${p.id}')">Hapus</button>
    </div></div>`).join(""):'<div class="sub">Belum ada paket. Buat paket lalu ambil soal dari Bank V13.</div>';
  })
 }
+
+function kfExportText(v){const d=document.createElement("div");d.innerHTML=String(v==null?"":v);return (d.textContent||d.innerText||"").replace(/\u00a0/g," ").trim()}
+function kfExportSafeName(v){return String(v||"paket-soal").replace(/[\\/:*?"<>|]+/g,"-").replace(/\s+/g," ").trim().slice(0,90)||"paket-soal"}
+function kfExportAnswer(q){const a=q.answers||{},t=q.type||"";if(t==="pg4"||t==="pg5")return "ABCDE"[Number((a.keys||[])[0]??0)]||"";if(t==="mcma")return(a.keys||[]).map(x=>"ABCDE"[Number(x)]||x).join(", ");if(t==="kategori")return(a.statements||[]).map((x,i)=>(i+1)+". "+(x.answer||x.key||"")).join("; ");if(t==="isian")return a.short||"";if(t==="esai")return a.essayKey||a.short||"";return ""}
+function kfExportLines(q,no,withKey){const a=q.answers||{},t=q.type||"",out=[no+". "+kfExportText(q.question||q.soal||"")];if(["pg4","pg5","mcma"].includes(t))(a.options||q.opsi||[]).forEach((x,i)=>out.push("   "+("ABCDE"[i]||String(i+1))+". "+kfExportText(x)));else if(t==="kategori")(a.statements||q.statements||[]).forEach((x,i)=>out.push("   "+(i+1)+". "+kfExportText(typeof x==="string"?x:(x.text||""))));if(withKey){const k=kfExportAnswer(q);if(k)out.push("Kunci: "+kfExportText(k));if(q.explanation||q.pembahasan)out.push("Pembahasan: "+kfExportText(q.explanation||q.pembahasan))}return out}
+async function kfPilihModeEkspor(){return await KFUI.confirm("Sertakan KUNCI JAWABAN dan PEMBAHASAN?\n\nYa = Soal + Kunci/Pembahasan\nBatal = Soal saja","Ekspor Paket Soal")}
+async function eksporPaketWord(kind,id){
+ const p=getPkg(kind,id);if(!p||!p.questions?.length)return KFUI.toast("Paket belum memiliki soal.","info");if(!window.JSZip)return KFUI.toast("Mesin Word belum termuat. Muat ulang halaman.","err");
+ const withKey=await kfPilihModeEkspor(),body=[];body.push(paragrafDocx("KLINIKFISIKAPKU",true),paragrafDocx(p.name,true),paragrafDocx((kind==="tryout"?"TRYOUT":"LATIHAN")+" · "+p.questions.length+" soal"),paragrafDocx(""));
+ p.questions.forEach((q,i)=>{kfExportLines(q,i+1,withKey).forEach((line,j)=>body.push(paragrafDocx(line,j===0)));body.push(paragrafDocx(""))});
+ const zip=new JSZip();zip.file("[Content_Types].xml",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');zip.folder("_rels").file(".rels",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');zip.folder("word").file("document.xml",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+body.join("")+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/></w:sectPr></w:body></w:document>');
+ const blob=await zip.generateAsync({type:"blob",mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=kfExportSafeName(p.name)+(withKey?" - Kunci Pembahasan":" - Soal")+".docx";a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);KFUI.toast("File Word berhasil dibuat.","ok")
+}
+async function eksporPaketPDF(kind,id){
+ const p=getPkg(kind,id);if(!p||!p.questions?.length)return KFUI.toast("Paket belum memiliki soal.","info");if(!window.jspdf?.jsPDF)return KFUI.toast("Mesin PDF belum termuat. Muat ulang halaman.","err");
+ const withKey=await kfPilihModeEkspor(),{jsPDF}=window.jspdf,doc=new jsPDF({unit:"mm",format:"a4"}),margin=16,maxW=178;let y=18;
+ const add=(txt,size=10,bold=false,gap=5)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);const lines=doc.splitTextToSize(String(txt||""),maxW),hh=lines.length*gap;if(y+hh>282){doc.addPage();y=18}doc.text(lines,margin,y);y+=hh};
+ add("KLINIKFISIKAPKU",13,true,6);add(p.name,15,true,7);add((kind==="tryout"?"TRYOUT":"LATIHAN")+" · "+p.questions.length+" soal",9,false,5);y+=3;p.questions.forEach((q,i)=>{kfExportLines(q,i+1,withKey).forEach((x,j)=>add(x,j===0?10:9,j===0,j===0?5.5:4.5));y+=3});doc.save(kfExportSafeName(p.name)+(withKey?" - Kunci Pembahasan":" - Soal")+".pdf");KFUI.toast("File PDF berhasil dibuat.","ok")
+}
+
 function bukaPkgEditor(kind,id){
  let p=getPkg(kind,id);if(!p)return;PKG_EDIT={kind,id};
  document.getElementById("pkgEditorTitle").textContent=(kind==="tryout"?"Paket Tryout · ":"Paket Latihan · ")+p.name;
