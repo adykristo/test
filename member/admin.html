@@ -2430,7 +2430,7 @@ let KF_ACCESS_EDITOR={kfid:null,kind:null};
 async function aturAksesFinal(kfid,kind){
  await loadPackageCore();
  const active=KF_PACKAGES_NEW.filter(p=>p.aktif);
- if(!active.length)return alert("Belum ada Paket Peserta aktif.");
+ if(!active.length)return KFUI.toast("Belum ada Paket Peserta aktif.","info",5000);
  KF_ACCESS_EDITOR={kfid,kind};
  let selected=new Set();
  try{
@@ -2455,13 +2455,18 @@ function kfAccessFilter(){kfAccessApplyFilter()}
 function kfAccessApplyFilter(){const q=(document.getElementById("kfAccessSearch")?.value||"").trim().toLowerCase(),level=KF_ACCESS_EDITOR.level||"SD";document.querySelectorAll("#kfAccessChoices .kf-access-choice").forEach(x=>{const okLevel=level==="ALL"||x.dataset.level===level,okSearch=!q||x.dataset.name.includes(q);x.style.display=okLevel&&okSearch?"flex":"none"})}
 async function kfAccessSave(){
  const ids=[...document.querySelectorAll("#kfAccessChoices .kf-access-check:checked")].map(x=>x.value);
- if(!ids.length&&!confirm("Tidak ada paket dipilih. Ini akan menghapus seluruh akses paket peserta untuk konten ini. Lanjutkan?"))return;
+ if(!ids.length){
+   const ok=await KFUI.confirm("Tidak ada paket peserta yang dipilih.\n\nJika dilanjutkan, seluruh akses paket peserta untuk Latihan/Tryout ini akan dihapus.","Hapus Seluruh Distribusi");
+   if(!ok)return;
+ }
  const btn=document.querySelector("#kfAccessDialog .dialog-body .row-actions .btn:not(.ghost)");if(btn){btn.disabled=true;btn.textContent="Menyimpan…"}
  try{
   const db=kfdb();const del=await db.from("kf_package_access").delete().eq("kf_package_id",KF_ACCESS_EDITOR.kfid);if(del.error)throw del.error;
   if(ids.length){const ins=await db.from("kf_package_access").insert(ids.map(member_package_id=>({kf_package_id:KF_ACCESS_EDITOR.kfid,member_package_id})));if(ins.error)throw ins.error}
-  document.getElementById("kfAccessDialog").close();alert("✓ Distribusi tersimpan untuk "+ids.length+" paket peserta.");await renderAccessManagers();
- }catch(e){alert("Gagal menyimpan distribusi: "+(e?.message||e))}
+  document.getElementById("kfAccessDialog").close();
+  KFUI.toast(ids.length?"Distribusi tersimpan untuk "+ids.length+" paket peserta.":"Seluruh distribusi paket peserta telah dikosongkan.","ok",5000);
+  await renderAccessManagers();
+ }catch(e){KFUI.toast("Gagal menyimpan distribusi: "+(e?.message||e),"err",6000)}
  finally{if(btn){btn.disabled=false;btn.textContent="💾 Simpan Distribusi"}}
 }
 
