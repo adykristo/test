@@ -86,3 +86,39 @@ function kfGemini_(prompt) {
 function kfStripFence_(s){
   return String(s||'').trim().replace(/^\x60\x60\x60(?:json)?\s*/i,'').replace(/\s*\x60\x60\x60$/,'');
 }
+
+
+// ============================================================
+// KOMPATIBILITAS V12 DENGAN WORKFLOW GEMINI ADMIN LAMA
+// Tempel fungsi/route ini ke project Apps Script V12 bila memakai
+// Question Engine FINAL-INTEGRATED.
+// ============================================================
+
+/**
+ * ID model API harus berupa slug, bukan nama tampilan seperti
+ * "Gemini 3.6 Flash". Default stabil untuk V12: gemini-2.5-flash.
+ */
+function kfGeminiModel_() {
+  var raw = String(PropertiesService.getScriptProperties().getProperty('GEMINI_MODEL') || '').trim();
+  if (!raw || /\s/.test(raw) || /^Gemini\s/i.test(raw)) return 'gemini-2.5-flash';
+  return raw;
+}
+
+/**
+ * Adapter payload yang sama dengan tombol AI admin lama.
+ * Route doPost:
+ * if (action === 'buatSoalGemini') return kfBuatSoalGemini_(body, admin.user.id);
+ */
+function kfBuatSoalGemini_(body, userId) {
+  body = body || {};
+  body.instruksi = [
+    String(body.prompt || body.instruksi || body.material || ''),
+    'WAJIB: Buat pembahasan siap pakai dan sistematis untuk setiap soal.',
+    'Urutan pembahasan: Diketahui, Ditanya, Konsep fisika/persamaan yang digunakan, Penyelesaian langkah demi langkah, dan Jawaban akhir.',
+    'Gunakan LaTeX untuk semua rumus, angka konsisten, serta jangan menulis instruksi untuk admin.'
+  ].filter(Boolean).join('\n\n');
+
+  // Memakai generator V12 yang sudah ada agar format hasil tetap kompatibel
+  // dengan editor, Bank Soal, Latihan Interaktif, Tryout, dan Supabase.
+  return createQuestions_(body, userId);
+}
