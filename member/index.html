@@ -725,6 +725,17 @@ iframe.pdfview{display:block;min-height:520px}
 #dash .package-owned-panel .owned-package-grid{margin-top:0}
 @media(min-width:641px){#dash .summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style>
+<style id="kf-package-card-disclosure">
+#activePackageCard{appearance:none;-webkit-appearance:none;width:100%;font:inherit;text-align:left;color:inherit}
+#activePackageCard.package-summary-trigger{border:1px solid var(--line);transition:.18s ease}
+#activePackageCard.package-summary-trigger:hover,#activePackageCard.package-summary-trigger[aria-expanded="true"]{border-color:#bd83e5;box-shadow:0 7px 20px rgba(105,38,145,.10);transform:translateY(-1px)}
+#activePackageCard .package-card-hint{float:right;font-size:9px;font-weight:800;color:#9b52c6;margin-left:8px}
+.package-card-disclosure{margin:-8px 0 14px;padding:0;border:1px solid #dfc9ef;border-radius:14px;background:#fff;box-shadow:0 10px 26px rgba(73,26,102,.08);overflow:hidden}
+.package-card-disclosure-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid #eee2f6;background:linear-gradient(100deg,#fbf7ff,#fff);color:#32124d}
+.package-card-disclosure-head button{border:0;background:transparent;color:#8d35d6;font-weight:900;cursor:pointer;padding:5px 8px;border-radius:8px}
+.package-card-disclosure .compact-account-body{max-height:360px}
+@media(max-width:640px){#activePackageCard .package-card-hint{float:none;display:block;margin:3px 0 0}.package-card-disclosure{margin-top:-2px}}
+</style>
 </head>
   <body>
     <header>
@@ -847,18 +858,18 @@ iframe.pdfview{display:block;min-height:520px}
         <div class="summary-grid" aria-label="Ringkasan belajar">
           <div class="summary-card"><small>Progress belajar</small><strong id="statProgress">0%</strong><div class="progress-track"><div id="progressFill" class="progress-fill"></div></div></div>
           <div class="summary-card"><small>Materi selesai</small><strong id="statSelesai">0 / 0</strong></div>
-          <div class="summary-card"><small>Paket aktif</small><strong id="statHari">0</strong><span id="statAksesDetail" style="display:block;margin-top:5px;font-size:11px;color:#756782">—</span></div>
+          <button id="activePackageCard" class="summary-card package-summary-trigger" type="button" onclick="togglePaketAktif()" aria-expanded="false" aria-controls="ownedPackagesDetails"><small>Paket aktif <span class="package-card-hint">Klik untuk lihat ▾</span></small><strong id="statHari">0</strong><span id="statAksesDetail" style="display:block;margin-top:5px;font-size:11px;color:#756782">—</span></button>
           <div class="summary-card"><small>Tryout terakhir</small><strong id="statSkor">—</strong></div>
+        </div>
+        <div id="ownedPackagesDetails" class="package-card-disclosure" style="display:none" aria-live="polite">
+          <div class="package-card-disclosure-head"><b>📦 Paket aktif Anda</b><button type="button" onclick="togglePaketAktif(false)" aria-label="Tutup daftar paket">✕</button></div>
+          <div id="ownedPackagesPanel" class="compact-account-body"></div>
         </div>
         <div class="dashboard-actions">
           <button id="lanjutBtn" class="btn btn-main" type="button" onclick="lanjutBelajar()">▶ Lanjut Belajar</button>
           <button class="btn btn-ghost" type="button" onclick="toggleRiwayat()">📈 Riwayat &amp; Sertifikat</button>
           <button class="btn btn-ghost" type="button" onclick="toggleBookmarkFilter(this)">★ Materi tersimpan</button>
         </div>
-        <details id="ownedPackagesDetails" class="compact-account-panel package-owned-panel" style="display:none">
-          <summary>📦 Paket Saya <span id="ownedPackagesSummary">0 paket aktif · Lihat</span></summary>
-          <div id="ownedPackagesPanel" class="compact-account-body"></div>
-        </details>
         <details id="packageProgressDetails" class="compact-account-panel" style="display:none">
           <summary>📈 Progress per Paket <span>Lihat rincian</span></summary>
           <div id="packageProgressPanel" class="compact-account-body"></div>
@@ -1378,14 +1389,13 @@ iframe.pdfview{display:block;min-height:520px}
       }
       function renderPaketSayaDashboard(){
         const owned=window.KF_OWNED_PACKAGES||[];
-        const details=document.getElementById("ownedPackagesDetails");
         const panel=document.getElementById("ownedPackagesPanel");
-        const summary=document.getElementById("ownedPackagesSummary");
-        if(!details||!panel)return;
-        if(summary)summary.textContent=owned.length+" paket aktif · Lihat";
+        const card=document.getElementById("activePackageCard");
+        if(!panel)return;
+        if(card)card.style.cursor=owned.length?"pointer":"default";
         if(!owned.length){
-          details.style.display="none";
-          panel.innerHTML="";
+          panel.innerHTML='<div class="empty">Belum ada paket aktif pada akun ini.</div>';
+          togglePaketAktif(false);
           return;
         }
         panel.innerHTML='<div class="owned-package-grid">'+owned.map(p=>{
@@ -1393,7 +1403,20 @@ iframe.pdfview{display:block;min-height:520px}
           const sampai=p.expiresAt?"Berlaku s.d. "+new Date(p.expiresAt).toLocaleDateString("id-ID"):"Akses paket aktif";
           return '<div class="owned-package"><b>'+nama+'</b><span>✓ Aktif</span><small>'+esc(sampai)+'</small></div>';
         }).join("")+'</div>';
-        details.style.display="block";
+      }
+      function togglePaketAktif(force){
+        const box=document.getElementById("ownedPackagesDetails");
+        const card=document.getElementById("activePackageCard");
+        if(!box)return;
+        const owned=window.KF_OWNED_PACKAGES||[];
+        if(!owned.length)return;
+        const buka=typeof force==="boolean"?force:box.style.display==="none";
+        box.style.display=buka?"block":"none";
+        if(card){
+          card.setAttribute("aria-expanded",buka?"true":"false");
+          const hint=card.querySelector(".package-card-hint");
+          if(hint)hint.textContent=buka?"Tutup ▴":"Klik untuk lihat ▾";
+        }
       }
       function renderProgressPerPaket(){
         const panel=document.getElementById("packageProgressPanel");
@@ -1798,15 +1821,12 @@ function kfRenderServerPackageBoxes(){
   let now=Date.now(),start=p.starts_at?new Date(p.starts_at).getTime():0,end=p.ends_at?new Date(p.ends_at).getTime():0,blocked=start&&now<start?"Belum dimulai":end&&now>end?"Sudah berakhir":kind==="tryout"&&Number(p.attempts_used)>=Number(p.max_attempts)?"Percobaan habis":"";
   return `<div class="kf-pkg-card ${blocked?"kf-pkg-locked":""}"><h3>${kind==="tryout"?"🏆":"✎"} ${esc(p.name)}</h3><div class="kf-pkg-meta">${p.question_count} soal${kind==="tryout"?` · ${p.duration_minutes||0} menit · Percobaan ${p.attempts_used}/${p.max_attempts}`:""}<br>${blocked||"Tersedia untuk paket langganan Anda"}</div><button class="btn ${blocked?"btn-ghost":"btn-main"}" ${blocked?"disabled":`onclick="kfStartServerPackage('${p.id}')"`}>${blocked?"Tidak tersedia":"Mulai"}</button></div>`;
  }).join("");
- const owned=(window.KF_OWNED_PACKAGES||[]);
- const ownedHtml=owned.length?`<div class="owned-package-grid">${owned.map(p=>`<div class="owned-package"><b>${esc(p.nama)}</b><span>✓ Aktif</span><small>${p.expiresAt?"Berlaku s.d. "+new Date(p.expiresAt).toLocaleDateString("id-ID"):"Akses paket aktif"}</small></div>`).join("")}</div>`:'<div class="empty">Belum ada paket aktif pada akun ini.</div>';
- const account=`<details class="compact-account-panel"><summary>📦 Paket Saya <span>${owned.length} paket aktif · Lihat</span></summary><div class="compact-account-body">${ownedHtml}</div></details>`;
  if(filterAktif==="soal"){
-   old.innerHTML=account+`<div class="server-section-head"><small>LATIHAN INTERAKTIF</small><h2>✍️ Latihan Soal</h2><p>Latihan yang tersedia untuk paket aktif Anda.</p></div><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty learning-empty">Belum ada latihan yang tersedia pada paket Anda.</div>'}</div>`;
+   old.innerHTML=`<div class="server-section-head"><small>LATIHAN INTERAKTIF</small><h2>✍️ Latihan Soal</h2><p>Latihan yang tersedia untuk paket aktif Anda.</p></div><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty learning-empty">Belum ada latihan yang tersedia pada paket Anda.</div>'}</div>`;
  }else if(filterAktif==="tryout"){
-   old.innerHTML=account+`<div class="server-section-head tryout-head"><small>SIMULASI OLIMPIADE</small><h2>🏆 Tryout</h2><p>Tryout hanya tersedia setelah diaktifkan Admin untuk paket Anda.</p></div><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty learning-empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
+   old.innerHTML=`<div class="server-section-head tryout-head"><small>SIMULASI OLIMPIADE</small><h2>🏆 Tryout</h2><p>Tryout hanya tersedia setelah diaktifkan Admin untuk paket Anda.</p></div><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty learning-empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
  }else{
-   old.innerHTML=account;
+   old.innerHTML="";
  }
  old.style.display=(filterAktif==="soal"||filterAktif==="tryout")?"block":"none";
 }
