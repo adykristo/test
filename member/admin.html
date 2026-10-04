@@ -2130,6 +2130,9 @@ function v12ToMember(q,p,kind,no){
 async function publikasiPkg(kind,id){
  let p=getPkg(kind,id);if(!p||!p.questions.length)return KFUI.toast("Paket belum memiliki soal.","err");
  if(!window.KFPackagePublisher)return KFUI.toast("Mesin Supabase belum termuat. Muat ulang halaman lalu coba lagi.","err",5000);
+ // Paket yang berasal dari Bank Soal V13 harus selalu ditandai V13 sebelum publish.
+ // ID lokal tetap dipertahankan agar sinkron ulang melakukan upsert paket yang sama, bukan membuat duplikat.
+ p.sourceVersion=13;
  const ok=await KFUI.confirm('Publikasikan/sinkronkan "'+p.name+'" ('+p.questions.length+' soal) ke Supabase?','Publikasikan Paket');
  if(!ok)return;
  try{
