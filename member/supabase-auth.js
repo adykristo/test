@@ -157,14 +157,12 @@
     },
     kontenMember: async function(jenjang){
       const wanted=clean(jenjang).toLowerCase();
-      const results=await Promise.all([
-        supabase.rpc("kf_member_content_v2"),
-        supabase.rpc("kf_member_question_content")
-      ]);
+      const primaryResult=await supabase.rpc("kf_member_content_v2");
 
-      // Sumber utama tetap RPC V2 karena RPC menerapkan hak akses paket di server.
-      let primary=!results[0].error && Array.isArray(results[0].data) ? results[0].data : [];
-      const legacyQuestions=results[1].error ? [] : (results[1].data||[]);
+      // Konten belajar umum berasal dari RPC V2. Latihan interaktif dan Tryout
+      // TIDAK lagi dimuat melalui jalur legacy; keduanya wajib melalui V15
+      // kf_list_available_packages -> kf_start_attempt -> kf_attempt_questions.
+      let primary=!primaryResult.error && Array.isArray(primaryResult.data) ? primaryResult.data : [];
 
       // Fallback produksi:
       // SQL/RPC pernah berubah sehingga kf_member_content_v2() dapat mengembalikan []
@@ -180,14 +178,21 @@
         if(!fallback.error && Array.isArray(fallback.data) && fallback.data.length){
           primary=fallback.data;
           console.warn("kf_member_content_v2 kosong; memakai fallback member_content yang dilindungi RLS.");
-        }else if(results[0].error && fallback.error){
-          throw results[0].error;
-        }else if(results[0].error && !fallback.data){
-          throw results[0].error;
+        }else if(primaryResult.error && fallback.error){
+          throw primaryResult.error;
+        }else if(primaryResult.error && !fallback.data){
+          throw primaryResult.error;
         }
       }
 
-      const list=primary.map(flattenContent).concat(legacyQuestions.map(flattenContent));
+      const list=primary.map(flattenContent).filter(function(x){
+        const jenis=clean(x&&x.jenis).toLowerCase();
+        const tujuan=clean(x&&x.tujuan).toLowerCase();
+        // Latihan PDF tetap lolos sebagai jenis pdf/modul. Yang diblok hanya
+        // mesin soal interaktif/tryout legacy.
+        return !["soal","quiz","question","qset","tryout"].includes(jenis)
+          && tujuan!=="tryout";
+      });
       const filtered=wanted
         ? list.filter(x=>clean(x&&x.jenjang).toLowerCase()===wanted)
         : list;
@@ -199,9 +204,8 @@
       const r=await Promise.all([supabase.from("member_progress").select("*").eq("user_id",uid),supabase.from("member_bookmarks").select("*").eq("user_id",uid),supabase.from("member_answer_attempts").select("*").eq("user_id",uid).order("created_at",{ascending:false}).limit(30)]);
       return {progress:r[0].data||[],bookmarks:r[1].data||[],attempts:r[2].data||[],certificates:[]};
     },
-    cekJawaban: async function(contentId,jawaban){
-      if(String(contentId||"").indexOf("qset:")===0){const p=String(contentId).split(":");let n;if(Array.isArray(jawaban))n=jawaban.map(v=>typeof v==="number"?"ABCDE"[v]:String(v));else if(typeof jawaban==="number")n=["ABCDE"[jawaban]];else n=[String(jawaban)];const {data,error}=await supabase.rpc("kf_check_set_answer",{p_set_id:p[1],p_question_id:p[2],p_answer:n});if(error)throw error;return data;}
-      const {data,error}=await supabase.rpc("check_member_answer",{p_content_id:contentId,p_answer:jawaban});if(error)throw error;return data;
+    cekJawaban: async function(){
+      throw new Error("Latihan interaktif legacy dinonaktifkan. Gunakan Paket Latihan & Tryout V15.");
     },
     simpanProgress: async function(contentId,state){if(!contentId)return {ok:false};if(String(contentId).indexOf("qset:")===0)return {ok:true,state:state||null};const {error}=await supabase.rpc("touch_member_content",{p_content_id:contentId});if(error)throw error;return {ok:true,state:state||null};},
     setBookmark: async function(contentId,aktif){const {data:u}=await supabase.auth.getUser();const user=u&&u.user;if(!user)return;if(aktif){const {error}=await supabase.from("member_bookmarks").upsert({user_id:user.id,content_id:contentId},{onConflict:"user_id,content_id"});if(error)throw error;}else{const {error}=await supabase.from("member_bookmarks").delete().match({user_id:user.id,content_id:contentId});if(error)throw error;}return {ok:true};}
