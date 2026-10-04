@@ -122,3 +122,41 @@ function kfBuatSoalGemini_(body, userId) {
   // dengan editor, Bank Soal, Latihan Interaktif, Tryout, dan Supabase.
   return createQuestions_(body, userId);
 }
+
+
+/**
+ * Gemini Vision untuk V13 Tempel Soal + Gambar.
+ * Router doPost harus mengarahkan:
+ * if (action === 'analisisWordTryout') return kfAnalisisWordTryout_(body);
+ */
+function kfAnalisisWordTryout_(body) {
+  body = body || {};
+  var key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!key) throw new Error('GEMINI_API_KEY belum diisi di Script Properties.');
+  var model = kfGeminiModel_();
+  var prompt = [
+    String(body.prompt || body.instruksi || ''),
+    'Teks/marker dokumen:',
+    String(body.documentText || body.text || ''),
+    'Kembalikan JSON valid {"questions":[...]}.',
+    'Setiap question gunakan field: type, question, options (A-E), answer, explanation, question_image_refs.',
+    'Untuk question_image_refs gunakan ID gambar yang memang diperlukan oleh soal.',
+    'JANGAN membuat soal baru yang berbeda dari gambar.'
+  ].join('\n\n');
+  var parts = [{text:prompt}];
+  (Array.isArray(body.images) ? body.images : []).slice(0,12).forEach(function(img){
+    var mime = String(img && img.mimeType || 'image/png');
+    var data = String(img && img.data || '').replace(/^data:image\/[^;]+;base64,/i,'');
+    if (data) parts.push({inlineData:{mimeType:mime,data:data}});
+  });
+  if (parts.length < 2) throw new Error('Gambar soal tidak diterima oleh Gemini Vision.');
+  var url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
+  var payload={contents:[{role:'user',parts:parts}],generationConfig:{responseMimeType:'application/json'}};
+  var r=UrlFetchApp.fetch(url,{method:'post',contentType:'application/json',payload:JSON.stringify(payload),muteHttpExceptions:true});
+  if(r.getResponseCode()>=300) throw new Error('Gemini Vision HTTP '+r.getResponseCode()+': '+r.getContentText().slice(0,500));
+  var j=JSON.parse(r.getContentText());
+  var raw=((((j.candidates||[])[0]||{}).content||{}).parts||[]).map(function(p){return p.text||'';}).join('');
+  var parsed=JSON.parse(kfStripFence_(raw));
+  if(!parsed || !Array.isArray(parsed.questions)) throw new Error('Gemini Vision tidak mengembalikan questions[].');
+  return {status:'ok',ok:true,questions:parsed.questions};
+}
