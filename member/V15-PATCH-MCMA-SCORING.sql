@@ -1,11 +1,11 @@
--- KlinikFisikapku V15/V13 — PATCH PENILAIAN MCMA EXACT + PARTIAL
+-- KlinikFisikapku V15/V13 — PATCH PENILAIAN MCMA EXACT + PARTIAL — RPC V13 AMAN
 -- Jalankan di Supabase SQL Editor.
--- Patch ini mempertahankan pola fungsi produksi yang sudah ada dan menambah scoring MCMA.
+-- Patch ini membuat RPC baru kf_submit_attempt_v13 sehingga fungsi produksi lama tidak perlu dihapus/ditimpa.
 -- Prasyarat: kf_questions memiliki kolom scoring (publisher V13 sudah mengisinya).
 
 begin;
 
-create or replace function public.kf_submit_attempt(p_attempt uuid, p_auto boolean default false)
+create or replace function public.kf_submit_attempt_v13(p_attempt uuid, p_auto boolean default false)
 returns jsonb
 language plpgsql
 security definer
@@ -151,7 +151,7 @@ begin
 end
 $function$;
 
-revoke all on function public.kf_submit_attempt(uuid,boolean) from public;
-grant execute on function public.kf_submit_attempt(uuid,boolean) to authenticated;
+revoke all on function public.kf_submit_attempt_v13(uuid,boolean) from public;
+grant execute on function public.kf_submit_attempt_v13(uuid,boolean) to authenticated;
 
 commit;
