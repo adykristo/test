@@ -1,0 +1,88 @@
+/**
+ * KlinikFisikapku — handler tambahan untuk Google Apps Script V12.
+ *
+ * CARA PAKAI:
+ * 1. Tempel fungsi-fungsi ini ke project Apps Script V12 yang SUDAH memiliki doPost/auth Super Admin.
+ * 2. Di Script Properties simpan:
+ *      OPENAI_API_KEY = ...     (untuk ChatGPT)
+ *      GEMINI_API_KEY = ...     (untuk Gemini)
+ * 3. Pada router action Anda, arahkan action "generateAI" ke kfGenerateAI_(body).
+ *
+ * PENTING: jangan taruh API key di HTML/GitHub.
+ */
+function kfGenerateAI_(body) {
+  var provider = String(body.provider || 'gemini').toLowerCase();
+  var count = Math.max(1, Math.min(10, Number(body.jumlah || 1)));
+  var schemaInstruction = [
+    'Kembalikan JSON valid berbentuk {"questions":[...]}.',
+    'Setiap soal wajib: type, jenjang, mapel, kelas, difficulty, topik, question, opsi, kunci, pembahasan, score, scoring.',
+    'type hanya pg5, pg4, mcma, kategori, isian, esai.',
+    'Untuk pg4/pg5/mcma, opsi adalah array string dan kunci menggunakan huruf A-E.',
+    'Untuk semua soal berikan pembahasan yang benar dan cukup untuk belajar.',
+    'Gunakan LaTeX dengan delimiter $...$ bila ada rumus.',
+    'Jangan sertakan markdown fence.'
+  ].join('\n');
+  var prompt = [
+    'Buat '+count+' soal '+String(body.mapel || 'Fisika')+'.',
+    'Jenjang: '+String(body.jenjang || ''),
+    'Topik: '+String(body.topik || ''),
+    'Jenis: '+String(body.tipe || 'pg5'),
+    'Kesulitan: '+String(body.sulit || 'Sedang'),
+    String(body.instruksi || ''),
+    schemaInstruction
+  ].join('\n');
+
+  var raw = provider === 'openai' ? kfOpenAI_(prompt) : kfGemini_(prompt);
+  var parsed = JSON.parse(kfStripFence_(raw));
+  if (!parsed || !Array.isArray(parsed.questions)) throw new Error('AI tidak mengembalikan questions[].');
+  parsed.questions.forEach(function(q){
+    q.source = provider === 'openai' ? 'ChatGPT AI' : 'Gemini AI';
+  });
+  return {ok:true, provider:provider, questions:parsed.questions};
+}
+
+function kfOpenAI_(prompt) {
+  var key = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
+  if (!key) throw new Error('OPENAI_API_KEY belum diisi di Script Properties.');
+  var payload = {
+    model: 'gpt-5-mini',
+    input: [
+      {role:'system', content:[{type:'input_text', text:'Anda adalah pembuat soal Fisika Indonesia. Hasil harus akurat, terstruktur, dan siap direview guru.'}]},
+      {role:'user', content:[{type:'input_text', text:prompt}]}
+    ],
+    text: {format:{type:'json_object'}}
+  };
+  var r = UrlFetchApp.fetch('https://api.openai.com/v1/responses',{
+    method:'post',
+    contentType:'application/json',
+    headers:{Authorization:'Bearer '+key},
+    payload:JSON.stringify(payload),
+    muteHttpExceptions:true
+  });
+  if (r.getResponseCode() >= 300) throw new Error('OpenAI HTTP '+r.getResponseCode()+': '+r.getContentText().slice(0,500));
+  var j=JSON.parse(r.getContentText());
+  if (j.output_text) return j.output_text;
+  var out=[];
+  (j.output||[]).forEach(function(item){(item.content||[]).forEach(function(x){if(x.text)out.push(x.text);});});
+  if(!out.length) throw new Error('Respons OpenAI tidak berisi output text.');
+  return out.join('\n');
+}
+
+function kfGemini_(prompt) {
+  var key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!key) throw new Error('GEMINI_API_KEY belum diisi di Script Properties.');
+  var model='gemini-2.5-flash';
+  var url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(key);
+  var payload={
+    contents:[{role:'user',parts:[{text:prompt}]}],
+    generationConfig:{responseMimeType:'application/json'}
+  };
+  var r=UrlFetchApp.fetch(url,{method:'post',contentType:'application/json',payload:JSON.stringify(payload),muteHttpExceptions:true});
+  if(r.getResponseCode()>=300)throw new Error('Gemini HTTP '+r.getResponseCode()+': '+r.getContentText().slice(0,500));
+  var j=JSON.parse(r.getContentText());
+  return (((j.candidates||[])[0]||{}).content||{}).parts?.[0]?.text || '';
+}
+
+function kfStripFence_(s){
+  return String(s||'').trim().replace(/^\x60\x60\x60(?:json)?\s*/i,'').replace(/\s*\x60\x60\x60$/,'');
+}
