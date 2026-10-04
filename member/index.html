@@ -1885,7 +1885,7 @@ async function kfStartServerPackage(packageId){
   const a=await KFPackageDB.startAttempt(p.id),qs=await KFPackageDB.questions(a.attempt_id);
   kfRun={server:true,attemptId:a.attempt_id,packageId:p.id,kind:p.kind,name:p.name,questions:(qs||[]).map(q=>({id:q.id,tipe:q.type,topik:q.topic,soal:q.question,gambar:q.image,opsi:(q.options||[]).map(o=>o&&typeof o==='object'?{text:String(o.text||''),image:o.image||null}:String(o??'')),statements:(q.statements||[]).map(s=>({text:String(s?.text??s??'')})),category_labels:q.category_labels||[]})),index:0,answers:{},startedAt:Date.now(),deadline:a.deadline_at?new Date(a.deadline_at).getTime():0,attempt:a.attempt_no};
   kfRenderRunner();buka("paketRunner");if(kfRun.deadline)kfStartTimer();
- }catch(e){alert("Tidak dapat memulai: "+e.message);await kfLoadServerPackages()}
+ }catch(e){KFMemberUI.toast("Tidak dapat memulai: "+e.message,"err",6000);await kfLoadServerPackages()}
 }
 async function kfServerSaveCurrent(){
  if(!kfRun||!kfRun.server)return;let q=kfRun.questions[kfRun.index],a=kfRun.answers[kfRun.index];
@@ -1902,7 +1902,7 @@ async function kfServerSaveCurrent(){
  }catch(e){console.warn("Jawaban belum tersimpan:",e);throw e}
 }
 const _kfGoBase=kfGo;
-kfGo=async function(n){if(kfRun?.server){try{await kfServerSaveCurrent()}catch(e){return alert("Jawaban gagal disimpan ke server: "+e.message)}}return _kfGoBase(n)};
+kfGo=async function(n){if(kfRun?.server){try{await kfServerSaveCurrent()}catch(e){KFMemberUI.toast("Jawaban gagal disimpan ke server: "+e.message,"err",6000);return}}return _kfGoBase(n)};
 function kfReviewAnswerText(q,a){
  const v=a?.answer;if(v===null||v===undefined||v==="")return "Tidak dijawab";
  if(q.type==="pg4"||q.type==="pg5"){const n=Number(v);return Number.isFinite(n)?("ABCDE"[n]||String(v))+". "+kfOptionText((q.options||[])[n]):String(v)}
@@ -1949,7 +1949,7 @@ function kfConfirmSubmit(){
  });
 }
 kfSubmitPackage=async function(auto){
- if(!kfRun?.server)return alert("Paket tidak berasal dari server. Muat ulang halaman lalu coba lagi.");
+ if(!kfRun?.server)return KFMemberUI.toast("Paket belum siap dari server. Muat ulang halaman lalu coba lagi.","err",5500);
  if(!auto){
    const ok=await kfConfirmSubmit();
    if(!ok)return;
@@ -1962,7 +1962,7 @@ kfSubmitPackage=async function(auto){
    const reviewBtn=kind==="latihan"?`<button class="btn btn-main" style="margin-top:14px" onclick="kfShowReview('${attemptId}')">📖 Lihat Kunci & Pembahasan</button>`:`<button class="btn btn-ghost" style="margin-top:14px" onclick="kfShowReview('${attemptId}')">🔒 Cek Ketersediaan Pembahasan</button>`;
    document.getElementById("kfPkgRunnerBody").innerHTML=`<h2>✓ ${auto?"Waktu Habis — ":""}Pengerjaan Selesai</h2><div class="kf-pkg-result"><b>Nilai: ${Number(r.score||0).toFixed(0)}</b>${Number(r.essay_count||0)>0?`<br><span>${Number(r.essay_count)} jawaban esai menunggu penilaian guru.</span>`:""}<br>Hasil tersimpan di Supabase.</div><div style="display:flex;gap:10px;flex-wrap:wrap">${reviewBtn}<button class="btn btn-ghost" style="margin-top:14px" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button></div>`;
    kfRun=null;await kfLoadServerPackages();
- }catch(e){alert("Submit gagal: "+e.message)}
+ }catch(e){KFMemberUI.toast("Jawaban gagal dikirim: "+e.message,"err",6500)}
 };
 const _renderListV15=renderList;
 const _renderPaketSayaOnLoad=renderPaketSayaDashboard;
