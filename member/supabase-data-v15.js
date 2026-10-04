@@ -18,25 +18,15 @@
     return (rows||[]).map(q=>({...q,id:q.question_id,position:q.question_position,type:q.question_type}));
   }
   async function saveAnswer(attemptId,questionId,answer){return await rpc("kf_save_answer",{p_attempt:attemptId,p_question:questionId,p_answer:answer});}
-  async function saveEssaySubmission(packageId,questionId,answerText,answerFileUrl){
-    const db=client();
-    const {data:sessionData,error:sessionError}=await db.auth.getSession();
-    if(sessionError)throw sessionError;
-    const uid=sessionData?.session?.user?.id;
-    if(!uid)throw new Error("Peserta belum login.");
-    const row={
-      participant_id:uid,
-      package_id:String(packageId||""),
-      question_id:String(questionId||""),
-      answer_text:String(answerText||""),
-      answer_file_url:String(answerFileUrl||""),
-      updated_at:new Date().toISOString()
-    };
-    const {data,error}=await db.from("essay_submissions")
-      .upsert(row,{onConflict:"participant_id,package_id,question_id"})
-      .select().single();
-    if(error)throw error;
-    return data;
+  async function saveEssaySubmission(attemptId,questionId,answerText,answerFileUrl){
+    // SECURITY: package_id/participant_id tidak lagi dipercaya dari browser.
+    // Server memvalidasi auth.uid(), pemilik attempt, deadline, paket, dan tipe soal.
+    return await rpc("kf_save_essay_submission",{
+      p_attempt:attemptId,
+      p_question:questionId,
+      p_answer_text:String(answerText||""),
+      p_answer_file_url:String(answerFileUrl||"")
+    });
   }
   async function submit(attemptId,auto){
     // SECURITY: satu-satunya submit engine peserta adalah V13.
