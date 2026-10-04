@@ -157,39 +157,14 @@
     },
     kontenMember: async function(jenjang){
       const wanted=clean(jenjang).toLowerCase();
-      const primaryResult=await supabase.rpc("kf_member_content_v2");
-
-      // Konten belajar umum berasal dari RPC V2. Latihan interaktif dan Tryout
-      // TIDAK lagi dimuat melalui jalur legacy; keduanya wajib melalui V15
-      // kf_list_available_packages -> kf_start_attempt -> kf_attempt_questions.
-      let primary=!primaryResult.error && Array.isArray(primaryResult.data) ? primaryResult.data : [];
-
-      // Fallback produksi:
-      // SQL/RPC pernah berubah sehingga kf_member_content_v2() dapat mengembalikan []
-      // walaupun member_content masih berisi modul. Query langsung ini TETAP tunduk
-      // pada RLS Supabase, jadi browser tidak dapat melewati policy akses database.
-      if(!primary.length){
-        let q=supabase
-          .from("member_content")
-          .select("id,jenjang,jenis,tujuan,topik,judul,visible,data,created_at")
-          .eq("visible",true);
-        if(wanted) q=q.ilike("jenjang",wanted);
-        const fallback=await q.order("created_at",{ascending:true});
-        if(!fallback.error && Array.isArray(fallback.data) && fallback.data.length){
-          primary=fallback.data;
-          console.warn("kf_member_content_v2 kosong; memakai fallback member_content yang dilindungi RLS.");
-        }else if(primaryResult.error && fallback.error){
-          throw primaryResult.error;
-        }else if(primaryResult.error && !fallback.data){
-          throw primaryResult.error;
-        }
-      }
-
-      const list=primary.map(flattenContent).filter(function(x){
+      // SECURITY: fail closed. Konten member hanya boleh berasal dari RPC server
+      // yang menerapkan entitlement paket. Tidak ada fallback SELECT member_content.
+      const {data,error}=await supabase.rpc("kf_member_content_v2");
+      if(error) throw error;
+      const list=(Array.isArray(data)?data:[]).map(flattenContent).filter(function(x){
         const jenis=clean(x&&x.jenis).toLowerCase();
         const tujuan=clean(x&&x.tujuan).toLowerCase();
-        // Latihan PDF tetap lolos sebagai jenis pdf/modul. Yang diblok hanya
-        // mesin soal interaktif/tryout legacy.
+        // Mesin latihan/tryout interaktif hanya melalui engine V15.
         return !["soal","quiz","question","qset","tryout"].includes(jenis)
           && tujuan!=="tryout";
       });
@@ -201,8 +176,9 @@
     dataBelajar: async function(){
       const {data:s}=await supabase.auth.getSession(); if(!s.session)return {progress:[],bookmarks:[],attempts:[],certificates:[]};
       const uid=s.session.user.id;
-      const r=await Promise.all([supabase.from("member_progress").select("*").eq("user_id",uid),supabase.from("member_bookmarks").select("*").eq("user_id",uid),supabase.from("member_answer_attempts").select("*").eq("user_id",uid).order("created_at",{ascending:false}).limit(30)]);
-      return {progress:r[0].data||[],bookmarks:r[1].data||[],attempts:r[2].data||[],certificates:[]};
+      const r=await Promise.all([supabase.from("member_progress").select("*").eq("user_id",uid),supabase.from("member_bookmarks").select("*").eq("user_id",uid)]);
+      // Riwayat Latihan/Tryout tidak lagi membaca member_answer_attempts legacy.
+      return {progress:r[0].data||[],bookmarks:r[1].data||[],attempts:[],certificates:[]};
     },
     cekJawaban: async function(){
       throw new Error("Latihan interaktif legacy dinonaktifkan. Gunakan Paket Latihan & Tryout V15.");
