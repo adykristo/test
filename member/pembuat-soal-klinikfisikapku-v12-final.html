@@ -259,6 +259,9 @@ a{color:#8b32bd}
 #reviewPackageNumbers button{width:42px}
 #reviewPackageNumbers button:not(.done){border-color:#f3a1c6!important;background:#fff1f7!important;color:#c32678!important}
 button:disabled{opacity:.5;cursor:not-allowed}
+
+/* ===== V12 STUDIO ADMIN-STYLE 2026 ===== */
+.v12-step-card{border:1px solid #ead7f7!important;border-radius:18px!important;background:#fff!important;padding:20px!important;margin-bottom:18px!important;box-shadow:0 10px 28px rgba(92,35,140,.07)!important}.v12-step-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}.v12-step-no{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#7137c8,#ec4899);color:#fff;font-weight:900}.v12-step-title{font-size:16px;font-weight:900;color:#3b1758}.v12-step-title small{font-size:11px;font-weight:500;color:#8a7894}.v12-info-grid{display:grid;grid-template-columns:1.5fr .75fr .75fr;gap:12px}.v12-paste-box{border:1px dashed #c995ee;border-radius:15px;padding:16px;background:#fff}.v12-paste-box textarea{min-height:180px}.v12-checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.v12-checks label{padding:10px;border-radius:9px;background:#fbf7ff;font-weight:600}.v12-checks input{width:auto;margin-right:7px}.v12-gradient-btn{width:100%;background:linear-gradient(90deg,#f04b9a,#812cf4)!important;color:#fff!important}.v12-section-label{display:flex;align-items:center;gap:10px;margin:22px 0 10px}.v12-section-label h2{margin:0;font-size:17px}.v12-hidden-nav{display:none!important}@media(max-width:760px){.v12-info-grid,.v12-checks{grid-template-columns:1fr}}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.umd.cjs"></script>
@@ -293,8 +296,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </div></div></header>
 
 <main class="wrap">
-<section id="page-buat" class="page active editor-compact"><div class="card">
-<div class="editor-head"><div><h2 id="editorTitle">Pembuatan Paket Soal</h2><div class="sub">Buat 1–50 soal, lalu simpan sebagai satu paket ke Bank Soal.</div></div></div>
+<section id="page-buat" class="page active editor-compact"><div class="card" id="v12EditorCard">
+<div class="editor-head"><div><h2 id="editorTitle">Daftar Soal</h2><div class="sub">Periksa kunci jawaban tiap soal sebelum publish. Soal dapat diedit, diurutkan, dipreview, dan disimpan sebagai satu paket.</div></div></div>
 <div class="package-builder">
 <div class="package-grid"><div><label>Nama Paket Soal</label><input id="packageName" placeholder="Contoh: Latihan Hukum Coulomb"></div><div><label>Jumlah Soal (1–50)</label><input id="packageCount" type="number" min="1" max="50" value="10"></div><button class="btn primary" type="button" onclick="startQuestionPackage()">Buat Paket</button></div>
 <div style="margin-top:9px"><b id="packagePosition">Soal 1 dari 10</b> <span class="small" id="packageDone">• 0 selesai</span></div><div class="package-progress"><div id="packageProgressBar"></div></div>
@@ -401,6 +404,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 </main>
 </div>
+<script id="kf-v12-studio-layout">
+(function(){function E(tag,cls,html){const x=document.createElement(tag);if(cls)x.className=cls;if(html!=null)x.innerHTML=html;return x}function build(){const page=document.getElementById('page-buat'),editor=document.getElementById('v12EditorCard');if(!page||!editor||document.getElementById('v12InfoPaket'))return;const info=E('div','v12-step-card','<div class="v12-step-head"><span class="v12-step-no">1</span><div class="v12-step-title">Info paket</div></div><div class="v12-info-grid"><div><label>Judul paket *</label><input id="v12PackageTitle" placeholder="Contoh: Tryout OSN Fisika SMA — Gaya"></div><div><label>Jenjang</label><select id="v12PackageLevel"><option>SD</option><option>SMP</option><option selected>SMA</option></select></div><div><label>Durasi (menit)</label><input id="v12PackageDuration" type="number" min="0" value="60"></div></div><div class="v12-info-grid" style="margin-top:10px"><div><label>Topik</label><input id="v12PackageTopic" placeholder="mis. Gaya, Listrik"></div><div><label>Tujuan publikasi</label><select id="v12PackageKind"><option value="latihan">Latihan Interaktif</option><option value="tryout">Tryout</option><option value="bank_soal">Bank Soal saja</option></select></div><div><label>Maks. percobaan</label><input id="v12PackageAttempts" type="number" min="1" value="1"></div></div><details style="margin-top:12px"><summary class="notice" style="cursor:pointer">⚙ Pengaturan lanjutan (jadwal, mode hasil, draft)</summary><div class="row two" style="margin-top:10px"><div><label>Mulai (opsional)</label><input id="v12PackageStart" type="datetime-local"></div><div><label>Berakhir (opsional)</label><input id="v12PackageEnd" type="datetime-local"></div></div></details>');info.id='v12InfoPaket';const methods=E('div','v12-step-card','<div class="v12-step-head"><span class="v12-step-no">2</span><div class="v12-step-title">Isi soal <small>— pilih salah satu cara, atau gabungkan</small></div></div><div id="v12MovedImport"></div><div class="v12-paste-box"><div style="font-weight:900;color:#4a176c">📋 Tempel Soal + Gambar</div><div class="small">Tempel teks soal dari Word, PDF, atau situs lain. Gemini menyusunnya menjadi draft yang dapat diedit.</div><textarea id="v12PasteMaterial" placeholder="Tempel teks soal di sini (Ctrl+V)..."></textarea><div class="v12-checks"><label><input id="v12Translate" type="checkbox" checked> Terjemahkan teks asing ke Bahasa Indonesia</label><label><input id="v12RelevantImage" type="checkbox" checked> Pilih hanya gambar/diagram relevan</label><label><input id="v12MakeKey" type="checkbox" checked> Buat kunci & pembahasan bila belum ada</label><label><input id="v12Validate" type="checkbox" checked> Validasi satuan, angka, opsi, kunci</label><label><input id="v12Variation" type="checkbox"> Buat variasi soal</label></div><button class="btn v12-gradient-btn" style="margin-top:12px" type="button" onclick="v12ProcessPaste()">✨ Susun dengan Gemini ke Daftar Soal</button><div id="v12PasteStatus" class="small" style="margin-top:7px"></div></div><div id="v12MovedAI" style="margin-top:14px"></div>');methods.id='v12IsiSoal';const label=E('div','v12-section-label','<span class="v12-step-no">3</span><h2>Daftar soal <span id="v12QuestionBadge" class="tag">0</span></h2>');page.insertBefore(info,editor);page.insertBefore(methods,editor);page.insertBefore(label,editor);const ip=document.getElementById('page-import'),ap=document.getElementById('page-ai');if(ip){while(ip.firstChild)document.getElementById('v12MovedImport').appendChild(ip.firstChild);ip.remove()}if(ap){while(ap.firstChild)document.getElementById('v12MovedAI').appendChild(ap.firstChild);ap.remove()}document.querySelectorAll('.nav button[data-page="ai"],.nav button[data-page="import"]').forEach(x=>x.classList.add('v12-hidden-nav'));const sync=()=>{if(document.getElementById('packageName'))document.getElementById('packageName').value=document.getElementById('v12PackageTitle').value;if(document.getElementById('jenjang'))document.getElementById('jenjang').value=document.getElementById('v12PackageLevel').value;if(document.getElementById('topik'))document.getElementById('topik').value=document.getElementById('v12PackageTopic').value};['v12PackageTitle','v12PackageLevel','v12PackageTopic'].forEach(id=>document.getElementById(id).addEventListener('input',sync));sync()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else setTimeout(build,0)})();
+</script>
+
 
 
 
@@ -938,15 +945,19 @@ function reviewPackage(){
  $('reviewPackageModal').classList.add('show');
 }
 
-async function savePackageToBank(fromReview=false){
+async 
+async function v12ProcessPaste(){const text=($('v12PasteMaterial')?.value||'').trim(),st=$('v12PasteStatus');if(!text)return alert('Tempel teks soal terlebih dahulu.');const instr=[$('v12Translate')?.checked?'Terjemahkan teks asing ke Bahasa Indonesia.':'',$('v12RelevantImage')?.checked?'Pertahankan hanya gambar/diagram relevan.':'',$('v12MakeKey')?.checked?'Lengkapi kunci dan pembahasan sistematis bila belum tersedia.':'',$('v12Validate')?.checked?'Validasi satuan, angka, opsi, dan kecocokan kunci.':'',$('v12Variation')?.checked?'Buat satu variasi soal.':''].filter(Boolean).join('\n');try{if(st)st.textContent='✨ Gemini sedang menyusun soal...';let r=await postGAS('processText',{text:text+'\n\n'+instr,jenjang:$('v12PackageLevel')?.value||'SMA',topik:$('v12PackageTopic')?.value||'Umum',jumlah:Math.max(1,Math.min(50,Number($('packageCount')?.value)||10))});if(!r||!Array.isArray(r.questions))throw new Error('Respons Gemini tidak berisi daftar soal.');const qs=r.questions.map(normalizeAIQuestion);packageDraft.name=$('v12PackageTitle')?.value||'Paket Soal';packageDraft.count=qs.length;packageDraft.current=0;packageDraft.questions=qs;$('packageName').value=packageDraft.name;$('packageCount').value=qs.length;savePackageDraftLocal();loadPackageQuestionToEditor(qs[0]);renderPackageNavigator();if(st)st.textContent='✓ '+qs.length+' soal masuk ke Daftar Soal. Periksa sebelum publish.';$('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){if(st)st.textContent='✗ '+(e?.message||e)}}
+function v12PublicationMeta(){return{name:($('v12PackageTitle')?.value||$('packageName')?.value||packageDraft.name||'Paket Soal').trim(),kind:$('v12PackageKind')?.value||'latihan',duration:Number($('v12PackageDuration')?.value)||0,attempts:Math.max(1,Number($('v12PackageAttempts')?.value)||1),start:$('v12PackageStart')?.value||null,end:$('v12PackageEnd')?.value||null,subscription:'Semua Paket Aktif'}}
+async function v12PublishPackageAs(id,kind){const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');const pub=Object.assign({},p,v12PublicationMeta(),{kind:kind||p.kind||'latihan',name:p.name||v12PublicationMeta().name});try{if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');await window.KFPackagePublisher.publish(pub);const now=new Date().toISOString();setPackageBank(packageBank().map(x=>x.id===id?Object.assign({},x,pub,{published:true,publishedAt:now,updatedAt:now}):x));alert('✓ Paket berhasil diterbitkan sebagai '+(pub.kind==='tryout'?'Tryout':'Latihan Interaktif')+' dan tersimpan di Supabase.')}catch(e){console.error('[V12 publish]',e);alert('Gagal publish ke Supabase: '+(e?.message||e))}}
+function savePackageToBank(fromReview=false){
  if(editorHasContent())saveCurrentToPackage();
  let bad=packageDraft.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
  if(bad.length){reviewPackage();return}
  if(!fromReview){reviewPackage();return}
  let arr=packageBank(),now=new Date().toISOString(),pack={
    id:'PKG-'+Date.now(),
-   name:($('packageName').value||packageDraft.name||'Paket Soal').trim(),
-   kind:'bank_soal',
+   ...v12PublicationMeta(),
+   name:($('v12PackageTitle')?.value||$('packageName').value||packageDraft.name||'Paket Soal').trim(),
    count:packageDraft.questions.length,
    questions:JSON.parse(JSON.stringify(packageDraft.questions)),
    duration:0,attempts:1,subscription:'Semua Paket Aktif',
@@ -984,7 +995,7 @@ function renderPackageBank(){
    <div><b>📦 ${esc(p.name)}</b><div class="small">${p.questions.length} soal • ${p.published?'☁️ Supabase':'💾 Lokal'}</div></div>
    <div class="actions">
     <button class="btn sm ok" onclick="startPractice('${p.id}')">▶ Kerjakan</button>
-    <button class="btn sm primary" onclick="publishSavedPackage('${p.id}')">☁️ Publish</button>
+    <button class="btn sm primary" onclick="v12PublishPackageAs('${p.id}','latihan')">▶ Latihan</button><button class="btn sm pink" onclick="v12PublishPackageAs('${p.id}','tryout')">🏆 Tryout</button>
     <button class="btn sm" onclick="openSavedPackage('${p.id}')">Buka/Edit</button>
     <button class="btn sm" onclick="showExportMenu('${p.id}','docx')">⬇ DOCX</button>
     <button class="btn sm" onclick="showExportMenu('${p.id}','pdf')">⬇ PDF</button>
