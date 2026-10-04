@@ -908,25 +908,22 @@ function saveConnection(){let c={url:($('gasUrl').value||'').trim(),mode:$('stor
 async function postGAS(action,data={}){
  const cfg=getConnection();
  if(!cfg.url)throw new Error('URL Apps Script belum diisi pada menu Koneksi.');
- let client=window.KFSupabaseAdmin?.client||null;
- if(!client&&window.supabase&&window.KF_SUPABASE_CONFIG&&window.KF_SUPABASE_CONFIG.isValid!==false){
+ const adminKey=(localStorage.getItem('kf_hasil_admin_key')||'').trim();
+ let accessToken='';
+ try{
+  let client=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client||null;
+  if(!client&&window.supabase&&window.KF_SUPABASE_CONFIG&&window.KF_SUPABASE_CONFIG.isValid!==false){
    client=window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);
-   window.KFSupabaseAdmin=window.KFSupabaseAdmin||{};
-   window.KFSupabaseAdmin.client=client;
- }
- if(!client)throw new Error('Client Supabase Admin tidak tersedia. Buka kembali V13 dari halaman Admin.');
- const {data:sessionData,error:sessionError}=await client.auth.getSession();
- if(sessionError)throw new Error('Gagal membaca sesi Super Admin: '+sessionError.message);
- const session=sessionData?.session;
- if(!session?.access_token)throw new Error('Sesi Super Admin Supabase tidak ditemukan. Login ulang melalui halaman Admin.');
- const res=await fetch(cfg.url,{
-   method:'POST',
-   headers:{'Content-Type':'text/plain;charset=utf-8'},
-   body:JSON.stringify({action,accessToken:session.access_token,...data})
- });
+   window.KFSupabaseAdmin=window.KFSupabaseAdmin||{};window.KFSupabaseAdmin.client=client;
+  }
+  if(client){const s=await client.auth.getSession();accessToken=s?.data?.session?.access_token||''}
+ }catch(e){}
+ if(!adminKey&&!accessToken)throw new Error('Autentikasi Admin belum tersedia. Buka V13 dari Admin Member atau simpan ADMIN_KEY pada Koneksi.');
+ const body={action,...data};if(adminKey)body.key=adminKey;if(accessToken)body.accessToken=accessToken;
+ const res=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
  if(!res.ok)throw new Error('Apps Script HTTP '+res.status);
  let out;try{out=JSON.parse(await res.text())}catch(err){throw new Error('Respons Apps Script bukan JSON yang valid.')}
- if(out?.ok===false)throw new Error(out.error||out.message||'Apps Script menolak permintaan.');
+ if(out?.ok===false||out?.status==='error')throw new Error(out.error||out.message||'Apps Script menolak permintaan.');
  return out;
 }
 async function testConnection(){saveConnection();$('connectionStatus').className='notice';$('connectionStatus').textContent='Menguji koneksi...';try{let r=await postGAS('health');$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Apps Script terhubung'+(r.message?' — '+r.message:'')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ '+e.message}}
@@ -1271,8 +1268,9 @@ async function v12ProcessPaste(){
   try{r=await postGAS('analisisWordTryout',payload)}catch(e1){
    try{r=await postGAS('processText',payload)}catch(e2){r=await postGAS('buatSoalGemini',payload)}
   }
-  if(!r||!Array.isArray(r.questions))throw new Error('Respons Gemini tidak berisi daftar soal.');
-  const qs=r.questions.map(normalizeAIQuestion).filter(q=>String(q.question||'').trim());
+  const rawQuestions=Array.isArray(r?.questions)?r.questions:(Array.isArray(r?.data?.questions)?r.data.questions:(Array.isArray(r?.result?.questions)?r.result.questions:[]));
+  if(!rawQuestions.length)throw new Error(r?.message||'Respons Gemini tidak berisi daftar soal.');
+  const qs=rawQuestions.map(normalizeAIQuestion).filter(q=>String(q.question||'').trim());
   if(!qs.length)throw new Error('Gemini belum menemukan soal pada tempelan.');
   // Bila hanya satu gambar ditempel dan AI tidak mengembalikan mapping, pertahankan sebagai gambar soal pertama.
   if(data.images.length===1&&qs[0]&&!qs[0].image)qs[0].image=data.images[0].src;
@@ -1291,7 +1289,7 @@ document.addEventListener('paste',function(ev){
  const text=ev.clipboardData?.getData('text/plain')||'';if(text)document.execCommand('insertText',false,text);
  imgs.forEach(item=>{const file=item.getAsFile();if(!file)return;const rd=new FileReader();rd.onload=()=>{const im=document.createElement('img');im.src=rd.result;im.style.maxWidth='260px';im.style.maxHeight='190px';im.style.display='inline-block';im.style.margin='6px';im.style.borderRadius='8px';box.appendChild(im);v12UpdatePasteSummary()};rd.readAsDataURL(file)});
 });
-document.addEventListener('input',function(ev){if(ev.target?.id==='v12PasteMaterial')v12UpdatePasteSummary()});
+document.addEventListener('input',function(ev){if(ev.target?.id==='v12PasteMaterial')v12UpdatePasteSummary()});setTimeout(v12UpdatePasteSummary,0);
 function v12PublicationMeta(){return{name:'Paket Soal',kind:'latihan',duration:60,attempts:1,start:null,end:null,subscription:'Semua Paket Aktif',sourceVersion:13}}
 window.v13MemberPackages=window.v13MemberPackages||[];
 async function v13LoadMemberPackages(){
