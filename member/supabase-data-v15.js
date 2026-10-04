@@ -39,11 +39,9 @@
     return data;
   }
   async function submit(attemptId,auto){
-    try{return await rpc("kf_submit_attempt_v13",{p_attempt:attemptId,p_auto:!!auto});}
-    catch(e){
-      console.warn("[KF V15] RPC submit V13 gagal; fallback ke RPC lama.",e?.message||e);
-      return await rpc("kf_submit_attempt",{p_attempt:attemptId,p_auto:!!auto});
-    }
+    // SECURITY: satu-satunya submit engine peserta adalah V13.
+    // Tidak ada fallback ke engine lama agar scoring/deadline selalu konsisten.
+    return await rpc("kf_submit_attempt_v13",{p_attempt:attemptId,p_auto:!!auto});
   }
   async function reviewAttempt(attemptId){
     // SECURITY: kunci/pembahasan tidak pernah diambil dengan SELECT langsung dari browser.
