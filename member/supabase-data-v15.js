@@ -45,6 +45,19 @@
       return await rpc("kf_submit_attempt",{p_attempt:attemptId,p_auto:!!auto});
     }
   }
+  async function reviewAttempt(attemptId){
+    const db=client();
+    const {data:a,error:ae}=await db.from("kf_attempts").select("id,package_id,status,score,submitted_at").eq("id",attemptId).single();
+    if(ae)throw ae;if(!a||a.status!=="submitted")throw new Error("Pembahasan hanya tersedia setelah jawaban dikirim.");
+    const {data:p,error:pe}=await db.from("kf_packages").select("id,kind,ends_at,name").eq("id",a.package_id).single();
+    if(pe)throw pe;
+    if(p.kind==="tryout"&&p.ends_at&&Date.now()<new Date(p.ends_at).getTime())return {locked:true,ends_at:p.ends_at,items:[]};
+    const {data:qs,error:qe}=await db.from("kf_questions").select("id,position,type,question,image,options,statements,category_labels,answer_key,explanation").eq("package_id",a.package_id).order("position",{ascending:true});
+    if(qe)throw qe;
+    const {data:ans,error:anse}=await db.from("kf_answers").select("question_id,answer,is_correct,score").eq("attempt_id",attemptId);
+    if(anse)throw anse;const amap=new Map((ans||[]).map(x=>[String(x.question_id),x]));
+    return {locked:false,score:a.score,kind:p.kind,name:p.name,items:(qs||[]).map(q=>({question:q,answer:amap.get(String(q.id))||null}))};
+  }
   async function results(){return await rpc("kf_my_results");}
-  window.KFPackageDB={client,rpc,listPackages,memberCatalog,memberTopics,paymentMethods,createPackageOrder,startAttempt,questions,saveAnswer,saveEssaySubmission,submit,results};
+  window.KFPackageDB={client,rpc,listPackages,memberCatalog,memberTopics,paymentMethods,createPackageOrder,startAttempt,questions,saveAnswer,saveEssaySubmission,submit,reviewAttempt,results};
 })();
