@@ -16,7 +16,7 @@
  * - API key tidak pernah dikirim kembali ke browser.
  */
 
-var KF_VERSION = 'V13-FAILOVER-1';
+var KF_VERSION = 'V13-FAILOVER-2-DISCOVERY';
 
 function doGet() {
   return kfJson_({ok:true,status:'ok',service:'KlinikFisikapku Question Engine',version:KF_VERSION});
@@ -30,7 +30,7 @@ function doPost(e) {
 
     if (action === 'health') return kfJson_({
       ok:true,status:'ok',service:'KlinikFisikapku Question Engine',
-      version:KF_VERSION,models:kfModels_(),keysConfigured:kfKeys_().length
+      version:KF_VERSION,models:kfModels_(),configuredModels:kfConfiguredModels_(),keysConfigured:kfKeys_().length
     });
 
     if (action === 'analisisWordTryout') return kfJson_(kfAnalisisWordTryout_(body));
@@ -73,18 +73,49 @@ function kfKeys_(){
   });
   return out;
 }
-function kfModels_(){
+function kfConfiguredModels_(){
   var p=PropertiesService.getScriptProperties();
-  var primary=String(p.getProperty('GEMINI_MODEL')||'gemini-2.5-flash').trim();
-  var extra=String(p.getProperty('GEMINI_MODELS')||'gemini-2.5-flash,gemini-2.5-flash-lite').split(',');
-  var out=[primary].concat(extra).map(function(x){return String(x||'').trim()}).filter(Boolean);
+  var primary=String(p.getProperty('GEMINI_MODEL')||'').trim();
+  var extra=String(p.getProperty('GEMINI_MODELS')||'').split(',');
+  var out=[primary].concat(extra).map(function(x){return String(x||'').trim().replace(/^models\//,'')}).filter(Boolean);
   return out.filter(function(v,i,a){return a.indexOf(v)===i});
 }
-function kfTargets_(){
-  var keys=kfKeys_(),models=kfModels_(),out=[];
-  // Utamakan pergantian model pada key/project utama, baru key/project cadangan.
-  keys.forEach(function(key,ki){models.forEach(function(model,mi){out.push({key:key,keyIndex:ki+1,model:model,modelIndex:mi+1})})});
+function kfDiscoverModelsForKey_(key){
+  var url='https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(key);
+  var r=UrlFetchApp.fetch(url,{method:'get',muteHttpExceptions:true});
+  var code=r.getResponseCode();
+  if(code>=300)throw new Error('Daftar model Gemini HTTP '+code+'. Periksa API key/project.');
+  var j=JSON.parse(r.getContentText()),out=[];
+  (j.models||[]).forEach(function(m){
+    var methods=m.supportedGenerationMethods||[];
+    if(methods.indexOf('generateContent')<0)return;
+    var name=String(m.name||'').replace(/^models\//,'');
+    if(name&&out.indexOf(name)<0)out.push(name);
+  });
   return out;
+}
+function kfTargets_(){
+  var keys=kfKeys_(),configured=kfConfiguredModels_(),out=[];
+  keys.forEach(function(key,ki){
+    var available=[];
+    try{available=kfDiscoverModelsForKey_(key)}catch(e){
+      // Bila discovery gagal sementara, tetap izinkan model yang dikonfigurasi untuk diuji.
+      available=configured.slice();
+    }
+    var preferred=configured.filter(function(m){return available.indexOf(m)>=0});
+    var automatic=available.filter(function(m){
+      return preferred.indexOf(m)<0 && /gemini/i.test(m) && !/(embedding|image|tts|robotics|computer-use)/i.test(m);
+    });
+    preferred.concat(automatic).forEach(function(model,mi){
+      out.push({key:key,keyIndex:ki+1,model:model,modelIndex:mi+1});
+    });
+  });
+  return out;
+}
+function kfModels_(){
+  var keys=kfKeys_();
+  if(!keys.length)return kfConfiguredModels_();
+  try{return kfDiscoverModelsForKey_(keys[0])}catch(e){return kfConfiguredModels_()}
 }
 function kfRetryable_(code){return code===404||code===408||code===429||code>=500}
 function kfSleep_(attempt){
@@ -94,12 +125,13 @@ function kfSleep_(attempt){
 function kfGeminiFailover_(parts, opts) {
   opts=opts||{};
   var targets=kfTargets_();
-  if(!targets.length)throw new Error('GEMINI_API_KEY belum diisi di Script Properties.');
+  if(!kfKeys_().length)throw new Error('GEMINI_API_KEY belum diisi di Script Properties.');
+  if(!targets.length)throw new Error('Tidak ada model Gemini yang mendukung generateContent pada API key/project ini.');
   var payload={
     contents:[{role:'user',parts:parts}],
     generationConfig:{responseMimeType:opts.json===false?'text/plain':'application/json'}
   };
-  var attempts=[],max=Math.min(targets.length,6);
+  var attempts=[],max=Math.min(targets.length,12);
   for(var i=0;i<max;i++){
     var t=targets[i];
     var url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(t.model)+':generateContent?key='+encodeURIComponent(t.key);
