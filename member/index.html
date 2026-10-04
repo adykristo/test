@@ -1769,13 +1769,15 @@ iframe.pdfview{display:block;min-height:520px}
           if(el)el.textContent=String(mm).padStart(2,"0")+":"+String(ss).padStart(2,"0");
         },1000);
       }
+      function kfOptionText(o){return o&&typeof o==="object"?String(o.text||""):String(o??"")}
+      function kfOptionImage(o){return o&&typeof o==="object"?safeImageUrl(o.image||""):""}
       function kfRenderRunner(){
         if(!kfRun)return;
         let q=kfRun.questions[kfRun.index],i=kfRun.index,ans=kfRun.answers[i],tipe=q.tipe||"pg4";
         let html=`<div class="head"><div><div class="topik">${esc(kfRun.kind==="tryout"?"TRYOUT":"LATIHAN")}</div><h2 style="margin:3px 0">${esc(kfRun.name)}</h2></div>${kfRun.deadline?'<div class="kf-timer">⏱ <span id="kfTimer">--:--</span></div>':""}</div><div class="kf-pkg-nav">${kfRun.questions.map((_,n)=>`<button class="${n===i?"active":""} ${kfRun.answers[n]!=null?"answered":""}" onclick="kfGo(${n})">${n+1}</button>`).join("")}</div><hr style="border:0;border-top:1px solid var(--line)"><h3>Soal ${i+1} dari ${kfRun.questions.length}</h3><div>${textWithBreaks(q.soal||"")}</div>`;
         let img=safeImageUrl(q.gambar);if(img)html+=`<img src="${img}" alt="Gambar soal" style="max-width:100%;max-height:360px;margin:12px 0;border-radius:10px">`;
-        if(tipe==="pg4"||tipe==="pg5")html+=(q.opsi||[]).map((o,n)=>`<label class="opt"><input type="radio" name="kfAns" value="${n}" ${Number(ans)===n?"checked":""} onchange="kfSaveAns(${n})"><span><b>${"ABCDE"[n]}.</b> ${esc(o)}</span></label>`).join("");
-        else if(tipe==="mcma")html+=(q.opsi||[]).map((o,n)=>`<label class="opt"><input type="checkbox" name="kfAnsMulti" value="${n}" ${Array.isArray(ans)&&ans.includes(n)?"checked":""} onchange="kfSaveMulti()"><span><b>${"ABCDE"[n]}.</b> ${esc(o)}</span></label>`).join("");
+        if(tipe==="pg4"||tipe==="pg5")html+=(q.opsi||[]).map((o,n)=>`<label class="opt"><input type="radio" name="kfAns" value="${n}" ${Number(ans)===n?"checked":""} onchange="kfSaveAns(${n})"><span><b>${"ABCDE"[n]}.</b> ${esc(kfOptionText(o))}${kfOptionImage(o)?`<img class="question-image" src="${kfOptionImage(o)}" alt="Gambar opsi ${"ABCDE"[n]}">`:""}</span></label>`).join("");
+        else if(tipe==="mcma")html+=(q.opsi||[]).map((o,n)=>`<label class="opt"><input type="checkbox" name="kfAnsMulti" value="${n}" ${Array.isArray(ans)&&ans.includes(n)?"checked":""} onchange="kfSaveMulti()"><span><b>${"ABCDE"[n]}.</b> ${esc(kfOptionText(o))}${kfOptionImage(o)?`<img class="question-image" src="${kfOptionImage(o)}" alt="Gambar opsi ${"ABCDE"[n]}">`:""}</span></label>`).join("");
         else if(tipe==="kategori")html+=(q.statements||[]).map((st,n)=>`<div class="category-question"><p><b>${n+1}.</b> ${esc(st.text||st)}</p><div class="category-options">${(q.category_labels||["Benar","Salah"]).map((l,j)=>`<label><input type="radio" name="kfCat${n}" value="${j}" ${Array.isArray(ans)&&ans[n]===j?"checked":""} onchange="kfSaveCat()">${esc(l)}</label>`).join("")}</div></div>`).join("");
         else if(tipe==="isian")html+=`<label>Jawaban</label><input id="kfTextAns" value="${esc(ans||"")}" oninput="kfRun.answers[${i}]=this.value">`;
         else html+=`<label>Jawaban Esai</label><textarea id="kfTextAns" oninput="kfRun.answers[${i}]=this.value">${esc(ans||"")}</textarea>`;
@@ -1841,7 +1843,7 @@ async function kfStartServerPackage(packageId){
   if(end&&now>end) throw new Error("Paket sudah berakhir.");
   if(p.kind==="tryout"&&Number(p.attempts_used)>=Number(p.max_attempts)) throw new Error("Percobaan Tryout sudah habis.");
   const a=await KFPackageDB.startAttempt(p.id),qs=await KFPackageDB.questions(a.attempt_id);
-  kfRun={server:true,attemptId:a.attempt_id,kind:p.kind,name:p.name,questions:(qs||[]).map(q=>({id:q.id,tipe:q.type,topik:q.topic,soal:q.question,gambar:q.image,opsi:q.options||[],statements:q.statements||[],category_labels:q.category_labels||[]})),index:0,answers:{},startedAt:Date.now(),deadline:a.deadline_at?new Date(a.deadline_at).getTime():0,attempt:a.attempt_no};
+  kfRun={server:true,attemptId:a.attempt_id,kind:p.kind,name:p.name,questions:(qs||[]).map(q=>({id:q.id,tipe:q.type,topik:q.topic,soal:q.question,gambar:q.image,opsi:(q.options||[]).map(o=>o&&typeof o==='object'?{text:String(o.text||''),image:o.image||null}:String(o??'')),statements:(q.statements||[]).map(s=>({text:String(s?.text??s??'')})),category_labels:q.category_labels||[]})),index:0,answers:{},startedAt:Date.now(),deadline:a.deadline_at?new Date(a.deadline_at).getTime():0,attempt:a.attempt_no};
   kfRenderRunner();buka("paketRunner");if(kfRun.deadline)kfStartTimer();
  }catch(e){alert("Tidak dapat memulai: "+e.message);await kfLoadServerPackages()}
 }
