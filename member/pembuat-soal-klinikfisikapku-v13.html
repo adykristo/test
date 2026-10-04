@@ -374,14 +374,14 @@ window.kfV12Navigate=function(page){
 <main class="wrap">
 <section id="page-buat" class="page active editor-compact"><div class="card" id="v12EditorCard">
 <div class="editor-head"><div><h2 id="editorTitle">Pembuat Soal</h2><div class="sub">Fokus membuat, mengedit, memeriksa kunci, rumus, gambar, dan pembahasan. Nama paket, tujuan Latihan/Tryout, jadwal, durasi, dan akses peserta diatur setelah soal dipilih dari Bank Soal.</div></div></div>
-<div class="package-builder" style="display:none">
-<div class="package-grid"><div><label>Nama Paket Soal</label><input id="packageName" placeholder="Contoh: Latihan Hukum Coulomb"></div><div><label>Jumlah Soal (1–50)</label><input id="packageCount" type="number" min="1" max="50" value="10"></div><button class="btn primary" type="button" onclick="startQuestionPackage()">Buat Paket</button></div>
+<div class="package-builder" id="multiQuestionBuilder">
+<div class="package-grid"><div><label>Nama kumpulan soal</label><input id="packageName" placeholder="Contoh: Latihan Hukum Coulomb"></div><div><label>Jumlah editor awal</label><input id="packageCount" type="number" min="1" max="200" value="10"><div class="small">Bisa ditambah lagi kapan saja.</div></div><button class="btn primary" type="button" onclick="startQuestionPackage()">Mulai Editor Banyak Soal</button></div>
 <div style="margin-top:9px"><b id="packagePosition">Soal 1 dari 10</b> <span class="small" id="packageDone">• 0 selesai</span></div><div class="package-progress"><div id="packageProgressBar"></div></div>
 <div class="small" id="packageAutosaveStatus" style="margin-top:7px">💾 Draft siap disimpan otomatis.</div>
 <div id="questionNumberNav" class="number-nav"></div>
-<div class="package-actions"><button class="btn" onclick="packagePrev()">← Sebelumnya</button><button class="btn" onclick="packageNext()">Berikutnya →</button><button class="btn ok" onclick="saveCurrentToPackage()">✓ Simpan Soal Ini</button>
-<button class="btn" onclick="reviewPackage()">🔎 Periksa Paket</button>
-<button class="btn primary" onclick="savePackageToBank()">💾 Simpan Paket ke Bank Soal</button></div>
+<div class="package-actions"><button class="btn" onclick="packagePrev()">← Sebelumnya</button><button class="btn" onclick="packageNext()">Berikutnya →</button><button class="btn" onclick="addManualQuestion()">＋ Tambah Soal Manual</button><button class="btn ok" onclick="saveCurrentToPackage()">✓ Simpan Soal Ini</button>
+<button class="btn" onclick="reviewPackage()">🔎 Periksa Semua</button>
+<button class="btn primary" onclick="sendWorkspaceToBank()">📚 Kirim Semua ke Bank Soal</button></div>
 </div>
 <div class="row"><div><label>Jenjang</label><select id="jenjang"><option>SD</option><option>SMP</option><option selected>SMA</option></select></div><div><label>Mata Pelajaran</label><input id="mapel" value="Fisika"></div><div><label>Kelas</label><input id="kelas" placeholder="Contoh: XII"></div><div><label>Tingkat Kesulitan</label><select id="difficulty"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div></div>
 <div class="row two" style="margin-top:8px"><div><label>Topik / Materi</label><input id="topik" placeholder="Listrik Statis"></div><div><label>Subtopik</label><input id="subtopik" placeholder="Hukum Coulomb"></div></div><div style="margin-top:8px"><label>Tag</label><input id="tags" placeholder="coulomb, muatan listrik"></div>
@@ -415,14 +415,14 @@ window.kfV12Navigate=function(page){
 <label style="color:#fff;margin-top:10px">Materi / Instruksi Tambahan</label><textarea id="aiMaterial" placeholder="Paste materi, kompetensi, atau instruksi khusus di sini..."></textarea>
 <div class="actions"><button class="btn pink" onclick="generateAI()">✨ Generate Draft</button><button class="btn dark" onclick="aiImprove()">🪄 Perbaiki Soal di Editor</button><button class="btn dark" onclick="aiExplain()">💡 Buat Pembahasan</button><button class="btn dark" onclick="aiVariation()">🔁 Buat Variasi</button></div>
 </div>
-<div class="card"><h3>Hasil AI — Draft</h3><div class="sub">Tinjau dulu sebelum masuk Bank Soal.</div><div id="aiResults" class="empty">Belum ada hasil AI.</div></div>
+<div class="card"><h3>Hasil AI — Draft</h3><div class="sub">Hasil Gemini otomatis masuk ke Editor Soal untuk ditinjau sebelum dikirim ke Bank Soal.</div><div id="aiResults" class="empty">Belum ada hasil AI.</div></div>
 </section>
 
 <section id="page-import" class="page">
 <div class="card">
  <div class="tags"><span class="tag" style="background:#7b2ff7;color:#fff">Direkomendasikan</span></div>
  <h2>📄 Dari file Word</h2>
- <div class="sub">Satu file .docx berisi semua soal + LaTeX + gambar. Alur impor mengikuti pembuat soal Admin lama, tetapi hasil akhirnya masuk ke editor/Bank Soal V13.</div>
+ <div class="sub">Satu file .docx berisi semua soal + LaTeX + gambar. Semua soal dari Word masuk ke Editor Soal terlebih dahulu. Periksa/edit sebanyak yang diperlukan, lalu kirim ke Bank Soal.</div>
  <div class="row two" style="margin-top:14px">
   <div>
    <label>Jumlah soal</label><input type="number" id="templateJumlahSoalV13" value="10" min="1" max="50">
@@ -539,7 +539,7 @@ Pembahasan: $\\sum F=ma$</pre></details>
 </main>
 </div>
 <script id="kf-v12-studio-layout">
-(function(){function E(tag,cls,html){const x=document.createElement(tag);if(cls)x.className=cls;if(html!=null)x.innerHTML=html;return x}function build(){const page=document.getElementById('page-buat'),editor=document.getElementById('v12EditorCard');if(!page||!editor||document.getElementById('v12InfoPaket'))return;const info=null;const methods=E('div','v12-step-card','<div class="v12-step-head"><span class="v12-step-no">1</span><div class="v12-step-title">Buat / masukkan soal <small>— pilih salah satu cara, atau gabungkan</small></div></div><div id="v12MovedImport"></div><div class="v12-paste-box"><div style="font-weight:900;color:#4a176c">📋 Tempel Soal + Gambar</div><div class="small">Salin soal dari Word, PDF, screenshot, atau situs lain lalu Ctrl+V. Teks dan gambar dibaca Gemini; diagram yang relevan dipertahankan dan hasil masuk sebagai Draft.</div><div id="v12PasteMaterial" contenteditable="true" style="min-height:220px;border:1.5px solid #d9c4ee;border-radius:10px;padding:12px;margin-top:10px;background:#fff;overflow:auto" data-placeholder="Tempel teks dan gambar soal di sini (Ctrl+V)…"></div><div id="v12PasteSummary" class="small" style="margin:7px 0">Belum ada isi ditempel.</div><div class="v12-checks"><label><input id="v12Translate" type="checkbox" checked> Terjemahkan teks asing ke Bahasa Indonesia</label><label><input id="v12RelevantImage" type="checkbox" checked> AI pilih hanya diagram/gambar relevan</label><label><input id="v12MakeKey" type="checkbox" checked> Buat opsi, kunci & pembahasan bila belum ada</label><label><input id="v12Validate" type="checkbox" checked> Validasi satuan, angka, opsi, dan kecocokan kunci</label><label><input id="v12Variation" type="checkbox"> Buat 1 variasi soal setipe</label><label>Jenjang target <select id="v12PasteLevel"><option>SD</option><option>SMP</option><option selected>SMA</option><option>OSN</option></select></label></div><div class="actions" style="margin-top:12px"><button class="btn v12-gradient-btn" type="button" onclick="v12ProcessPaste()">✨ AI Susun Soal & Gambar</button><button class="btn" type="button" onclick="v12ClearPaste()">Bersihkan</button></div><div id="v12PasteStatus" class="small" style="margin-top:7px"></div></div><div id="v12MovedAI" style="margin-top:14px"></div>');methods.id='v12IsiSoal';const label=E('div','v12-section-label','<span class="v12-step-no">2</span><h2>Editor soal <span id="v12QuestionBadge" class="tag">0</span></h2>');page.insertBefore(methods,editor);page.insertBefore(label,editor);const ip=document.getElementById('page-import'),ap=document.getElementById('page-ai');if(ip){while(ip.firstChild)document.getElementById('v12MovedImport').appendChild(ip.firstChild);ip.remove()}if(ap){while(ap.firstChild)document.getElementById('v12MovedAI').appendChild(ap.firstChild);ap.remove()}document.querySelectorAll('.nav button[data-page="ai"],.nav button[data-page="import"]').forEach(x=>x.classList.add('v12-hidden-nav'));const sync=()=>{if(document.getElementById('packageName'))document.getElementById('packageName').value=document.getElementById('v12PackageTitle').value;if(document.getElementById('jenjang'))document.getElementById('jenjang').value=document.getElementById('v12PackageLevel').value;if(document.getElementById('topik'))document.getElementById('topik').value=document.getElementById('v12PackageTopic').value};['v12PackageTitle','v12PackageLevel','v12PackageTopic'].forEach(id=>document.getElementById(id).addEventListener('input',sync));sync()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else setTimeout(build,0)})();
+(function(){function E(tag,cls,html){const x=document.createElement(tag);if(cls)x.className=cls;if(html!=null)x.innerHTML=html;return x}function build(){const page=document.getElementById('page-buat'),editor=document.getElementById('v12EditorCard');if(!page||!editor||document.getElementById('v12InfoPaket'))return;const info=null;const methods=E('div','v12-step-card','<div class="v12-step-head"><span class="v12-step-no">1</span><div class="v12-step-title">Buat / masukkan soal <small>— pilih salah satu cara, atau gabungkan</small><div class="tags" style="margin-top:6px"><span class="tag" style="background:#7b2ff7;color:#fff">Direkomendasikan: Word + AI Gemini → Editor Soal</span></div></div></div><div id="v12MovedImport"></div><div id="v12MovedAI" style="margin-top:14px"></div><div class="v12-paste-box"><div style="font-weight:900;color:#4a176c">📋 Tempel Soal + Gambar</div><div class="small">Salin soal dari Word, PDF, screenshot, atau situs lain lalu Ctrl+V. Teks dan gambar dibaca Gemini; diagram yang relevan dipertahankan dan hasil masuk sebagai Draft.</div><div id="v12PasteMaterial" contenteditable="true" style="min-height:220px;border:1.5px solid #d9c4ee;border-radius:10px;padding:12px;margin-top:10px;background:#fff;overflow:auto" data-placeholder="Tempel teks dan gambar soal di sini (Ctrl+V)…"></div><div id="v12PasteSummary" class="small" style="margin:7px 0">Belum ada isi ditempel.</div><div class="v12-checks"><label><input id="v12Translate" type="checkbox" checked> Terjemahkan teks asing ke Bahasa Indonesia</label><label><input id="v12RelevantImage" type="checkbox" checked> AI pilih hanya diagram/gambar relevan</label><label><input id="v12MakeKey" type="checkbox" checked> Buat opsi, kunci & pembahasan bila belum ada</label><label><input id="v12Validate" type="checkbox" checked> Validasi satuan, angka, opsi, dan kecocokan kunci</label><label><input id="v12Variation" type="checkbox"> Buat 1 variasi soal setipe</label><label>Jenjang target <select id="v12PasteLevel"><option>SD</option><option>SMP</option><option selected>SMA</option><option>OSN</option></select></label></div><div class="actions" style="margin-top:12px"><button class="btn v12-gradient-btn" type="button" onclick="v12ProcessPaste()">✨ AI Susun Soal & Gambar</button><button class="btn" type="button" onclick="v12ClearPaste()">Bersihkan</button></div><div id="v12PasteStatus" class="small" style="margin-top:7px"></div></div>');methods.id='v12IsiSoal';const label=E('div','v12-section-label','<span class="v12-step-no">2</span><h2>Editor soal <span id="v12QuestionBadge" class="tag">0</span></h2>');page.insertBefore(methods,editor);page.insertBefore(label,editor);const ip=document.getElementById('page-import'),ap=document.getElementById('page-ai');if(ip){while(ip.firstChild)document.getElementById('v12MovedImport').appendChild(ip.firstChild);ip.remove()}if(ap){while(ap.firstChild)document.getElementById('v12MovedAI').appendChild(ap.firstChild);ap.remove()}document.querySelectorAll('.nav button[data-page="ai"],.nav button[data-page="import"]').forEach(x=>x.classList.add('v12-hidden-nav'));const sync=()=>{if(document.getElementById('packageName'))document.getElementById('packageName').value=document.getElementById('v12PackageTitle').value;if(document.getElementById('jenjang'))document.getElementById('jenjang').value=document.getElementById('v12PackageLevel').value;if(document.getElementById('topik'))document.getElementById('topik').value=document.getElementById('v12PackageTopic').value};['v12PackageTitle','v12PackageLevel','v12PackageTopic'].forEach(id=>document.getElementById(id).addEventListener('input',sync));sync()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else setTimeout(build,0)})();
 </script>
 
 
@@ -928,9 +928,10 @@ async function prosesWordKeV13(useAI){
    if(qs.length!==jumlah)throw new Error('Gemini menghasilkan '+qs.length+' soal, sedangkan Word terbaca '+jumlah+' soal. Coba ulangi.');
   }else qs=v13ParseWordDirect(raw);
   if(!qs.length)throw new Error('Tidak ada soal yang berhasil dikenali.');
-  const b=bank();qs.forEach((q,i)=>{if(images[i]&&!q.image)q.image=images[i];b.unshift(q)});setBank(b);renderBank();
-  v13WordStatus('✓ '+qs.length+' soal berhasil diimpor sebagai Draft ke Bank Soal V13.'+(images.length?' '+images.length+' gambar Word berhasil dibaca.':'')+' Periksa kunci dan pembahasan sebelum digunakan.','ok');
-  setTimeout(()=>nav('bank'),900);
+  qs.forEach((q,i)=>{if(images[i]&&!q.image)q.image=images[i]});
+  loadQuestionsToWorkspace(qs,'Import Word');
+  v13WordStatus('✓ '+qs.length+' soal berhasil dibaca dan dimasukkan ke Editor Soal.'+(images.length?' '+images.length+' gambar Word berhasil dibaca.':'')+' Periksa/edit lalu kirim ke Bank Soal.','ok');
+  setTimeout(()=>{$('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'})},300);
  }catch(e){v13WordStatus('Gagal memproses Word: '+esc(e.message||e),'err')}
 }
 function importQuestions(){let f=$('importFile').files[0];if(!f)return alert('Pilih file.');if(f.name.toLowerCase().endsWith('.docx')){importDocx(f);return;}let r=new FileReader();r.onload=()=>{let rows=parseCSV(r.result);if(rows.length<2)return alert('Data kosong.');let head=rows[0].map(x=>x.trim().toLowerCase()),b=bank(),count=0;rows.slice(1).forEach(a=>{let o={};head.forEach((h,i)=>o[h]=a[i]||'');let type=o.jenis||'pg5',opts=[o.a,o.b,o.c,o.d,o.e].filter((x,i)=>type!=='pg4'||i<4),keys=(o.kunci||'').split('|').map(x=>'ABCDE'.indexOf(x.trim().toUpperCase())).filter(x=>x>=0);b.unshift({id:uid(),type,jenjang:o.jenjang||'SMA',mapel:o.mapel||'',kelas:o.kelas||'',difficulty:o.kesulitan||'Sedang',topik:o.topik||'',subtopik:'',status:'Draft',tags:'import',question:o.pertanyaan||'',image:'',imageRotation:0,answers:{options:opts,keys,short:type==='isian'?o.kunci:'',essayKey:type==='esai'?o.kunci:'',statements:[]},explanation:o.pembahasan||'',explanationImage:'',score:Number(o.skor)||1,scoring:'exact',source:'Import',updatedAt:new Date().toISOString()});count++});setBank(b);$('importResult').innerHTML=`<div class="notice good">✓ ${count} soal berhasil diimport ke Bank Soal.</div>`};r.readAsText(f)}
@@ -978,7 +979,7 @@ async function generateAI(){
    let remaining=total,all=[];
    while(remaining>0){let take=Math.min(10,remaining);let batch=await generateAIBatch(take);all.push(...batch);remaining-=take}
    aiDrafts=all;aiEditorQueue=all.map(q=>JSON.parse(JSON.stringify(q)));renderAI();
-   if(aiEditorQueue.length){loadAIQueueToEditor(0);if($('aiStatus'))$('aiStatus').textContent='✓ '+all.length+' soal dibuat. Soal pertama dibuka di Editor Soal.'}
+   if(aiEditorQueue.length){loadQuestionsToWorkspace(aiEditorQueue,'Hasil AI Gemini');aiEditorIndex=0;renderAIQueueNavigator();if($('aiStatus'))$('aiStatus').textContent='✓ '+all.length+' soal dibuat dan dimasukkan ke Editor Soal.'}
  }catch(e){
    if($('aiResults'))$('aiResults').innerHTML='<div class="notice bad">✗ '+esc(e.message)+'</div>';
    if($('aiStatus'))$('aiStatus').textContent='✗ '+e.message;
@@ -1400,7 +1401,35 @@ function savePackageDraftLocal(){
  if(el){let now=new Date();el.textContent='✓ Draft tersimpan otomatis '+now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 }
 function loadPackageDraftLocal(){try{let x=JSON.parse(localStorage.getItem(PACKAGE_DRAFT_KEY)||'null');if(x&&Array.isArray(x.questions)){packageDraft=x;$('packageName').value=x.name||'';$('packageCount').value=x.questions.length}}catch(e){}}
-function startQuestionPackage(){let count=Math.max(1,Math.min(50,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
+function startQuestionPackage(){let count=Math.max(1,Math.min(200,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
+function loadQuestionsToWorkspace(qs,name){
+ qs=(Array.isArray(qs)?qs:[]).filter(Boolean).map(q=>JSON.parse(JSON.stringify(q)));
+ if(!qs.length)return;
+ packageEditId=null;
+ packageDraft={name:name||'Draft Soal',count:qs.length,current:0,questions:qs};
+ if($('packageName'))$('packageName').value=packageDraft.name;
+ if($('packageCount'))$('packageCount').value=packageDraft.count;
+ savePackageDraftLocal();loadPackageQuestionToEditor(qs[0]);renderPackageNavigator();
+}
+function addManualQuestion(){
+ if(editorHasContent())saveCurrentToPackage();
+ packageDraft.questions.push(null);packageDraft.count=packageDraft.questions.length;packageDraft.current=packageDraft.questions.length-1;
+ if($('packageCount'))$('packageCount').value=packageDraft.count;
+ editingId=null;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator();
+ $('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function sendWorkspaceToBank(){
+ if(editorHasContent())saveCurrentToPackage();
+ const valid=packageDraft.questions.filter(packageQuestionValid);
+ if(!valid.length)return alert('Belum ada soal lengkap untuk dikirim ke Bank Soal.');
+ const incomplete=packageDraft.questions.length-valid.length;
+ if(incomplete&&!confirm(valid.length+' soal lengkap akan dikirim ke Bank Soal. '+incomplete+' soal belum lengkap tidak dikirim. Lanjutkan?'))return;
+ let rows=bank(),ids=new Set(rows.map(x=>x.id));
+ valid.forEach(q=>{let x=compactQuestionForBank(q);x.id=x.id||uid();x.status='Siap Pakai';x.updatedAt=new Date().toISOString();let idx=rows.findIndex(r=>r.id===x.id);if(idx>=0)rows[idx]=x;else rows.unshift(x);ids.add(x.id)});
+ try{setBank(rows)}catch(e){return alert('Gagal mengirim ke Bank Soal: '+e.message)}
+ alert('✓ '+valid.length+' soal berhasil dikirim ke Bank Soal.');
+ renderBank();nav('bank');
+}
 function packageQuestionValid(q){if(!q||!(q.question||q.image))return false;if(['pg5','pg4','mcma'].includes(q.type))return (q.answers?.options||[]).filter(x=>String(x||'').trim()).length>=2&&(q.answers?.keys||[]).length>0;if(q.type==='kategori')return (q.answers?.statements||[]).some(x=>String(x.text||'').trim());if(q.type==='isian')return !!String(q.answers?.short||'').trim();return true}
 function saveCurrentToPackage(){
  let q=collect(),issues=packageQuestionIssues(q);
@@ -1562,9 +1591,7 @@ async function v12ProcessPaste(){
     return q;
   }).filter(q=>q.question);
   if(!qs.length)throw new Error('Teks soal pada gambar belum berhasil dibaca.');
-  packageDraft.name='Draft Tempel Gambar';packageDraft.count=qs.length;packageDraft.current=0;packageDraft.questions=qs;
-  if($('packageName'))$('packageName').value=packageDraft.name;if($('packageCount'))$('packageCount').value=qs.length;
-  savePackageDraftLocal();loadPackageQuestionToEditor(qs[0]);renderPackageNavigator();
+  loadQuestionsToWorkspace(qs,'Draft Tempel Gambar');
   if(st)st.textContent='✓ Selesai. Soal sudah dibaca'+(flags.translate?' / diterjemahkan bila perlu':'')+', diagram relevan dipilih, opsi & kunci disusun, dan pembahasan ditempatkan di kolom Pembahasan.';
   $('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'});
  }catch(e){if(st)st.textContent='✗ '+(e?.message||e)}
