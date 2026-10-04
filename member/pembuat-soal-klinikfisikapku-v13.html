@@ -412,11 +412,44 @@ window.kfV12Navigate=function(page){
 <div class="card"><h3>Hasil AI — Draft</h3><div class="sub">Tinjau dulu sebelum masuk Bank Soal.</div><div id="aiResults" class="empty">Belum ada hasil AI.</div></div>
 </section>
 
-<section id="page-import" class="page"><div class="card"><h2>📥 Import Soal</h2><div class="sub">Import massal CSV/TSV dan Word .docx. V13 membaca teks + gambar Word di browser; materi diteruskan ke Gemini dan hasilnya tetap masuk editor terpadu sebagai draft.</div>
-<div class="row two"><div><label>File</label><input type="file" id="importFile" accept=".csv,.tsv,.txt,.docx"></div><div><label>Format</label><select id="importFormat"><option value="csv">CSV / TSV</option><option value="word">Word (.docx)</option></select></div></div>
-<div class="notice" style="margin-top:12px">Format CSV: <b>jenis,jenjang,mapel,kelas,topik,kesulitan,pertanyaan,A,B,C,D,E,kunci,pembahasan,skor</b>. Kunci MCMA dapat ditulis A|C. Untuk DOCX, teks dan gambar akan diekstrak lalu dapat diproses Gemini.</div>
-<div class="actions" style="margin-top:12px"><button class="btn primary" onclick="importQuestions()">Import Sekarang</button><button class="btn" onclick="downloadTemplate()">Unduh Template CSV</button></div>
-<div id="importResult" style="margin-top:12px"></div></div></section>
+<section id="page-import" class="page">
+<div class="card">
+ <div class="tags"><span class="tag" style="background:#7b2ff7;color:#fff">Direkomendasikan</span></div>
+ <h2>📄 Dari file Word</h2>
+ <div class="sub">Satu file .docx berisi semua soal + LaTeX + gambar. Alur impor mengikuti pembuat soal Admin lama, tetapi hasil akhirnya masuk ke editor/Bank Soal V13.</div>
+ <div class="row two" style="margin-top:14px">
+  <div>
+   <label>Jumlah soal</label><input type="number" id="templateJumlahSoalV13" value="10" min="1" max="50">
+   <div class="small">1–50. Template menyesuaikan otomatis.</div>
+   <div class="small" style="margin-top:12px"><b>Unduh template:</b></div>
+   <div class="actions">
+    <button class="btn sm" onclick="unduhTemplateWordV13('pg4',this)">PG4</button><button class="btn sm" onclick="unduhTemplateWordV13('pg5',this)">PG5</button>
+    <button class="btn sm" onclick="unduhTemplateWordV13('mcma',this)">PGK MCMA</button><button class="btn sm" onclick="unduhTemplateWordV13('kategori',this)">PGK Kategori</button>
+    <button class="btn sm" onclick="unduhTemplateWordV13('isian',this)">Isian</button><button class="btn sm" onclick="unduhTemplateWordV13('esai',this)">Esai</button>
+   </div>
+  </div>
+  <div>
+   <label>Pilih file .docx</label><input type="file" id="wordSoalFileV13" accept=".docx">
+   <button class="btn primary" style="width:100%;margin-top:12px" onclick="prosesWordKeV13(false)">⬆️ Import ke daftar soal</button>
+   <button class="btn pink" style="width:100%;margin-top:8px" onclick="prosesWordKeV13(true)">✨ AI Gemini — rapikan & import</button>
+  </div>
+ </div>
+ <div id="statusWordSoalV13" style="margin-top:10px"></div>
+ <div class="notice" style="margin-top:12px"><b>Equation Word didukung:</b> rumus dari <i>Insert → Equation</i> dipertahankan saat Word dibaca. Gambar Word juga diekstrak di browser dan tetap tersedia untuk proses penyuntingan.</div>
+ <div class="small" style="margin-top:9px"><b>AI Gemini:</b> gunakan bila Word dibuat bebas/tidak mengikuti template. AI memecah nomor, tipe, opsi, kunci, dan pembahasan, merapikan LaTeX, serta melengkapi kunci/pembahasan yang belum ada. Hasil selalu menjadi <b>Draft</b> untuk diperiksa sebelum dipakai.</div>
+ <details style="margin-top:12px"><summary class="small" style="cursor:pointer"><b>Lihat format penulisan Word</b></summary>
+ <pre style="white-space:pre-wrap;background:#faf7ff;padding:12px;border-radius:10px;margin-top:8px">1. Benda bermassa $m=2\\,\\mathrm{kg}$ ditarik gaya $F=10\\,\\mathrm{N}$. Percepatannya?
+A. $2\\,\\mathrm{m/s^2}$
+B. $5\\,\\mathrm{m/s^2}$
+C. $10\\,\\mathrm{m/s^2}$
+D. $20\\,\\mathrm{m/s^2}$
+E. $0{,}5\\,\\mathrm{m/s^2}$
+Jawaban: B
+Pembahasan: $a=\\dfrac{F}{m}=5\\,\\mathrm{m/s^2}$
+
+[ESAI] 2. Jelaskan Hukum II Newton!
+Pembahasan: $\\sum F=ma$</pre></details>
+</div></section>
 
 <section id="page-bank" class="page"><div class="card"><h2>📦 Bank Soal</h2><div class="sub" id="packageBankStats">0 Paket • 0 Soal</div><div class="sub">Setiap paket berisi sampai 50 soal.</div><div id="packageBankList" style="margin-top:10px"></div></div><div class="card">
 <h2>🗃️ Bank Soal Privat</h2><div class="statgrid"><div class="stat"><b id="statTotal">0</b>Total Soal</div><div class="stat"><b id="statReady">0</b>Siap Pakai</div><div class="stat"><b id="statDraft">0</b>Draft</div><div class="stat"><b id="statTypes">0</b>Jenis Soal</div></div>
@@ -675,6 +708,75 @@ function exportCSV(){let b=bank();let rows=[['jenis','jenjang','mapel','kelas','
 function downloadTemplate(){let s='jenis,jenjang,mapel,kelas,topik,kesulitan,pertanyaan,A,B,C,D,E,kunci,pembahasan,skor\npg5,SMA,Fisika,XII,Hukum Coulomb,Sedang,"Pertanyaan contoh","Opsi A","Opsi B","Opsi C","Opsi D","Opsi E",A,"Pembahasan",1';downloadBlob(s,'template-import-soal.csv','text/csv')}
 function downloadBlob(s,n,t){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:t}));a.download=n;a.click();URL.revokeObjectURL(a.href)}
 function parseCSV(text){let rows=[],row=[],cell='',q=false;for(let i=0;i<text.length;i++){let c=text[i],n=text[i+1];if(c==='"'){if(q&&n==='"'){cell+='"';i++}else q=!q}else if((c===','||c==='\t')&&!q){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=c}row.push(cell);if(row.some(x=>x.trim()))rows.push(row);return rows}
+
+function v13WordStatus(msg,kind){const el=$('statusWordSoalV13');if(el)el.innerHTML='<div class="notice '+(kind==='ok'?'good':kind==='err'?'bad':'')+'">'+msg+'</div>'}
+function v13Xml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function v13TemplateExample(type,i){
+ const n=i+1;
+ if(type==='esai')return '[ESAI] '+n+'. Jelaskan konsep fisika yang ditanyakan.\\nPembahasan: Tuliskan pedoman jawaban lengkap.';
+ if(type==='isian')return n+'. Besaran yang ditanyakan adalah ...\\nJawaban: tulis jawaban singkat\\nPembahasan: tulis langkah penyelesaian.';
+ if(type==='kategori')return '[PGK KATEGORI] '+n+'. Tentukan Benar/Salah untuk setiap pernyataan.\\n1) Pernyataan pertama | Benar\\n2) Pernyataan kedua | Salah\\nPembahasan: jelaskan tiap pernyataan.';
+ const opts=type==='pg4'?['A','B','C','D']:['A','B','C','D','E'];
+ return (type==='mcma'?'[PGK MCMA] ':'')+n+'. Tuliskan pertanyaan di sini.\\n'+opts.map(x=>x+'. Opsi '+x).join('\\n')+'\\nJawaban: '+(type==='mcma'?'A,C':'A')+'\\nPembahasan: Diketahui; Ditanya; Konsep/Persamaan; Penyelesaian; Jawaban akhir.';
+}
+async function unduhTemplateWordV13(type,btn){
+ const count=Math.max(1,Math.min(50,Number($('templateJumlahSoalV13')?.value)||10));
+ if(typeof JSZip==='undefined')return alert('JSZip belum termuat. Muat ulang halaman.');
+ const old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='Menyiapkan…'}
+ try{
+  const zip=new JSZip(),body=Array.from({length:count},(_,i)=>v13TemplateExample(type,i)).join('\\n\\n');
+  const paras=body.split('\\n').map(x=>'<w:p><w:r><w:t xml:space="preserve">'+v13Xml(x)+'</w:t></w:r></w:p>').join('');
+  zip.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+  zip.folder('_rels').file('.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+  zip.folder('word').file('document.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+paras+'<w:sectPr/></w:body></w:document>');
+  const blob=await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Template-Soal-V13-'+type.toUpperCase()+'-'+count+'Soal.docx';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+ }catch(e){alert('Gagal membuat template: '+e.message)}finally{if(btn){btn.disabled=false;btn.textContent=old}}
+}
+function v13ParseWordDirect(raw){
+ const blocks=String(raw||'').replace(/\r/g,'').split(/(?=^(?:\[ESAI\]\s*)?(?:\[PGK[^\]]*\]\s*)?\d+[.)]\s+)/gmi).map(x=>x.trim()).filter(Boolean),out=[];
+ for(const block of blocks){
+  const lines=block.split('\n').map(x=>x.trim()).filter(Boolean);if(!lines.length)continue;
+  let first=lines.shift(),type=/\[ESAI\]/i.test(first)?'esai':/\[PGK\s*MCMA\]/i.test(first)?'mcma':/\[PGK\s*KATEGORI\]/i.test(first)?'kategori':'pg5';
+  first=first.replace(/^\[[^\]]+\]\s*/,'').replace(/^\d+[.)]\s*/,'');
+  let opts=[],key='',exp=[],inExp=false;
+  for(const line of lines){
+   let m=line.match(/^([A-E])[.)]\s*(.*)$/i);if(m){opts['ABCDE'.indexOf(m[1].toUpperCase())]=m[2];continue}
+   m=line.match(/^(?:Jawaban|Kunci)\s*:\s*(.*)$/i);if(m){key=m[1];continue}
+   m=line.match(/^Pembahasan\s*:\s*(.*)$/i);if(m){inExp=true;if(m[1])exp.push(m[1]);continue}
+   if(inExp)exp.push(line);
+  }
+  if(type==='pg5'&&opts.filter(Boolean).length===4)type='pg4';
+  let keys=(key.match(/[A-E]/gi)||[]).map(x=>'ABCDE'.indexOf(x.toUpperCase()));
+  const answers=type==='isian'?{options:[],keys:[],short:key,essayKey:'',statements:[]}:type==='esai'?{options:[],keys:[],short:'',essayKey:key,statements:[]}:{options:opts.filter(x=>x!==undefined),keys,short:'',essayKey:'',statements:[]};
+  out.push({id:uid(),type,jenjang:'SMA',mapel:'Fisika',kelas:'',difficulty:'Sedang',topik:'',subtopik:'',status:'Draft',tags:'Import Word',question:cleanAIMathText(first),image:'',imageRotation:0,answers,explanation:cleanAIMathText(exp.join('\n')),explanationImage:'',score:1,scoring:'exact',source:'Import Word',reviewStatus:'draft',updatedAt:new Date().toISOString()});
+ }
+ return out;
+}
+async function prosesWordKeV13(useAI){
+ const file=$('wordSoalFileV13')?.files?.[0];if(!file)return v13WordStatus('Pilih file Word (.docx) dulu.','err');
+ if(!window.mammoth)return v13WordStatus('Pustaka Mammoth belum termuat. Muat ulang halaman.','err');
+ try{
+  v13WordStatus('Membaca teks, gambar, dan struktur Word…');
+  const ab=await file.arrayBuffer(),images=[];
+  await mammoth.convertToHtml({arrayBuffer:ab},{convertImage:mammoth.images.imgElement(async img=>{const b64=await img.read('base64'),src='data:'+img.contentType+';base64,'+b64;images.push(src);return {src}})});
+  const rr=await mammoth.extractRawText({arrayBuffer:ab}),raw=(rr.value||'').trim();if(!raw)throw new Error('Tidak ada teks yang terbaca.');
+  window.__V13_DOCX_IMAGES__=images;
+  let qs=[];
+  if(useAI){
+   v13WordStatus('✨ Gemini sedang memecah soal, merapikan rumus, kunci, dan pembahasan…');
+   const jumlah=Math.max(1,Math.min(50,Number($('templateJumlahSoalV13')?.value)||10));
+   const prompt='Baca isi Word berikut dan ubah menjadi soal terstruktur. Pertahankan semua soal yang ada. Rapikan bahasa Indonesia, tipe soal, opsi, kunci dan pembahasan. Lengkapi kunci/pembahasan bila belum ada. Semua rumus wajib LaTeX valid dalam delimiter $...$. Pembahasan wajib: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir. Jangan mengubah konsep fisika.\\n\\nISI WORD:\\n'+raw;
+   const r=await postGAS('buatSoalGemini',{prompt,jumlah,tipe:'auto',jenjang:'SMA',topik:'Import Word'});
+   if(!r||!Array.isArray(r.questions))throw new Error('Gemini tidak mengembalikan daftar questions.');
+   qs=r.questions.map(normalizeAIQuestion);
+  }else qs=v13ParseWordDirect(raw);
+  if(!qs.length)throw new Error('Tidak ada soal yang berhasil dikenali.');
+  const b=bank();qs.forEach((q,i)=>{if(images[i]&&!q.image)q.image=images[i];b.unshift(q)});setBank(b);renderBank();
+  v13WordStatus('✓ '+qs.length+' soal berhasil diimpor sebagai Draft ke Bank Soal V13.'+(images.length?' '+images.length+' gambar Word berhasil dibaca.':'')+' Periksa kunci dan pembahasan sebelum digunakan.','ok');
+  setTimeout(()=>nav('bank'),900);
+ }catch(e){v13WordStatus('Gagal memproses Word: '+esc(e.message||e),'err')}
+}
 function importQuestions(){let f=$('importFile').files[0];if(!f)return alert('Pilih file.');if(f.name.toLowerCase().endsWith('.docx')){importDocx(f);return;}let r=new FileReader();r.onload=()=>{let rows=parseCSV(r.result);if(rows.length<2)return alert('Data kosong.');let head=rows[0].map(x=>x.trim().toLowerCase()),b=bank(),count=0;rows.slice(1).forEach(a=>{let o={};head.forEach((h,i)=>o[h]=a[i]||'');let type=o.jenis||'pg5',opts=[o.a,o.b,o.c,o.d,o.e].filter((x,i)=>type!=='pg4'||i<4),keys=(o.kunci||'').split('|').map(x=>'ABCDE'.indexOf(x.trim().toUpperCase())).filter(x=>x>=0);b.unshift({id:uid(),type,jenjang:o.jenjang||'SMA',mapel:o.mapel||'',kelas:o.kelas||'',difficulty:o.kesulitan||'Sedang',topik:o.topik||'',subtopik:'',status:'Draft',tags:'import',question:o.pertanyaan||'',image:'',imageRotation:0,answers:{options:opts,keys,short:type==='isian'?o.kunci:'',essayKey:type==='esai'?o.kunci:'',statements:[]},explanation:o.pembahasan||'',explanationImage:'',score:Number(o.skor)||1,scoring:'exact',source:'Import',updatedAt:new Date().toISOString()});count++});setBank(b);$('importResult').innerHTML=`<div class="notice good">✓ ${count} soal berhasil diimport ke Bank Soal.</div>`};r.readAsText(f)}
 function aiQuestion(i){
  let top=$('aiTopik').value||'topik',type=$('aiType').value,diff=$('aiDiff').value;
