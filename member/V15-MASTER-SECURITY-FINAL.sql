@@ -190,8 +190,9 @@ x as (
    case when p.oid is null then null else has_function_privilege('anon',p.oid,'EXECUTE') end anon_exec,
    case when p.oid is null then null else has_function_privilege('authenticated',p.oid,'EXECUTE') end auth_exec
  from required r
- left join pg_proc p on p.proname=r.name
- left join pg_namespace n on n.oid=p.pronamespace and n.nspname='public'
+ left join pg_proc p
+   on p.proname=r.name
+  and p.pronamespace='public'::regnamespace
 )
 select 'RPC' check_type,name item,
  case when oid is null then 'FAIL: MISSING'
