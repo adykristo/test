@@ -643,7 +643,7 @@ function renderRichText(text=''){
    if(!/^(data:image\/|https?:\/\/)/i.test(src))return '';
    return '<div class="kf-inline-image-wrap '+align+'"><img src="'+esc(src)+'"></div>';
  });
- return safe.replace(/\n/g,'<br>');
+ return safe.replace(/\n/g,'<br>').replace(/(?:<br>\s*)+(<div class="kf-inline-image-wrap)/g,'$1').replace(/(<\/div>)(?:\s*<br>)+/g,'$1');
 }
 function insertImageMarker(id){
  const el=$(id);if(!el)return;
@@ -655,7 +655,7 @@ function insertImageMarker(id){
    reader.onload=function(){
      let align=(prompt('Posisi gambar: kiri, tengah, atau kanan','tengah')||'tengah').trim().toLowerCase();
      align=align==='kiri'?'left':align==='kanan'?'right':'center';
-     const marker='\n[GAMBAR|'+align+']'+reader.result+'[/GAMBAR]\n';
+     const marker='[GAMBAR|'+align+']'+reader.result+'[/GAMBAR]';
      el.value=el.value.slice(0,start)+marker+el.value.slice(end);
      const p=start+marker.length;el.focus();el.setSelectionRange(p,p);
      el.dispatchEvent(new Event('input'));changed();updatePreview();
