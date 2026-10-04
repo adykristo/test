@@ -917,57 +917,55 @@ function aiQuestion(i){
 }
 let aiDrafts=[];
 async function generateAIBatch(batchCount){
- let n=Math.max(1,Math.min(10,Number(batchCount)||1)),c=getConnection();
+ let n=Math.max(1,Math.min(10,Number(batchCount)||1)),cfg=getConnection();
  let baseInstruction=($('aiMaterial').value||'').trim(),type=$('aiType').value;
- let pgRule=['pg4','pg5','mcma'].includes(type)?'WAJIB untuk setiap soal pilihan ganda: pertanyaan lengkap, semua opsi '+(type==='pg4'?'A-D':'A-E')+' lengkap, kunci jawaban, dan pembahasan lengkap. Jangan pernah mengosongkan opsi, kunci, atau pembahasan.':'';
- let payload={
-   jenjang:$('aiJenjang').value,mapel:$('aiMapel').value||'Fisika',topik:$('aiTopik').value,tipe:type,sulit:$('aiDiff').value,jumlah:n,
-   prompt:[baseInstruction,pgRule,'Kembalikan setiap soal dengan field: question, opsi (array), kunci, pembahasan, type. Pembahasan wajib sistematis: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir. Semua rumus gunakan LaTeX valid dalam delimiter $...$.'].filter(Boolean).join('\n\n'),
-   instruksi:[baseInstruction,pgRule,'Jangan kirim soal yang belum memiliki komponen wajib.'].filter(Boolean).join('\n')
- };
- if(!c.url)throw new Error('URL Apps Script belum diisi pada menu Koneksi.');
- $('aiResults').innerHTML='<div class="notice">✨ Gemini sedang membuat '+n+' soal lengkap...</div>';
- let r=await postGAS('buatSoalGemini',payload).catch(async()=>await postGAS('generateAI',payload)).catch(async()=>await postGAS('generate',payload));
- if(!r||!Array.isArray(r.questions))throw new Error('Format respons Gemini tidak sesuai.');
- let batch=r.questions.map(normalizeAIQuestion);
- // Reject incomplete PG drafts rather than silently showing partial questions.
- batch.forEach((q,i)=>{
-   if(['pg4','pg5','mcma'].includes(q.type)){
-     let need=q.type==='pg4'?4:5;
-     if((q.answers?.options||[]).length<need||(q.answers?.options||[]).some(x=>!String(x||'').trim())||!(q.answers?.keys||[]).length||!String(q.explanation||'').trim())
-       throw new Error('Soal AI nomor '+(i+1)+' belum lengkap (opsi/kunci/pembahasan). Generate ulang.');
-   }
- });
- return batch;
+ let pgRule=['pg4','pg5','mcma'].includes(type)?'Untuk setiap soal pilihan ganda sertakan pertanyaan, semua opsi, kunci jawaban, dan pembahasan.':'';
+ let payload={jenjang:$('aiJenjang').value,mapel:$('aiMapel').value||'Fisika',topik:$('aiTopik').value,tipe:type,sulit:$('aiDiff').value,jumlah:n,
+ prompt:[baseInstruction,pgRule,'Pembahasan: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir. Gunakan LaTeX untuk rumus.'].filter(Boolean).join('\n\n'),
+ instruksi:[baseInstruction,pgRule].filter(Boolean).join('\n')};
+ if(!cfg.url)throw new Error('URL Apps Script belum diisi pada menu Koneksi.');
+ $('aiResults').innerHTML='<div class="notice">✨ Gemini sedang membuat '+n+' soal...</div>';
+ let lastErr=null,r=null;
+ for(const action of ['buatSoalGemini','generateAI','generate']){
+   try{r=await postGAS(action,payload);if(r)break}catch(err){lastErr=err}
+ }
+ if(!r)throw lastErr||new Error('Gemini tidak memberikan respons.');
+ let raw=Array.isArray(r.questions)?r.questions:(Array.isArray(r.data)?r.data:(Array.isArray(r.result)?r.result:[]));
+ if(!raw.length)throw new Error(r.message||r.error||'Gemini tidak mengembalikan daftar soal.');
+ return raw.map(normalizeAIQuestion);
 }
 let aiDrafts=[],aiEditorQueue=[],aiEditorIndex=0;
 async function generateAI(){
- let total=Math.max(1,Math.min(50,Number($('aiCount').value)||1));aiDrafts=[];aiEditorQueue=[];aiEditorIndex=0;renderAI();
- let remaining=total,all=[],batchNo=0,totalBatches=Math.ceil(total/10),btn=event?.currentTarget;if(btn)btn.disabled=true;
+ let total=Math.max(1,Math.min(50,Number($('aiCount').value)||1)),btn=event?.currentTarget;
+ aiDrafts=[];aiEditorQueue=[];aiEditorIndex=0;renderAI();if(btn)btn.disabled=true;
  try{
-   while(remaining>0){let take=Math.min(10,remaining);batchNo++;if($('aiStatus'))$('aiStatus').textContent='AI membuat batch '+batchNo+'/'+totalBatches+' ('+take+' soal lengkap)...';let result=await generateAIBatch(take);all.push(...result);remaining-=take;}
-   aiDrafts=all;aiEditorQueue=all.map(q=>JSON.parse(JSON.stringify(q)));aiEditorIndex=0;renderAI();
-   if(aiEditorQueue.length){loadAIQueueToEditor(0);if($('aiStatus'))$('aiStatus').textContent='✓ '+all.length+' soal selesai. Soal 1 sudah dimasukkan ke Editor Soal untuk diperiksa.';}
- }catch(e){$('aiResults').innerHTML='<div class="notice bad">✗ '+esc(e.message)+'</div>';if($('aiStatus'))$('aiStatus').textContent='✗ Generate gagal: '+e.message;}
- finally{if(btn)btn.disabled=false}
- return all;
+   let remaining=total,all=[];
+   while(remaining>0){let take=Math.min(10,remaining);let batch=await generateAIBatch(take);all.push(...batch);remaining-=take}
+   aiDrafts=all;aiEditorQueue=all.map(q=>JSON.parse(JSON.stringify(q)));renderAI();
+   if(aiEditorQueue.length){loadAIQueueToEditor(0);if($('aiStatus'))$('aiStatus').textContent='✓ '+all.length+' soal dibuat. Soal pertama dibuka di Editor Soal.'}
+ }catch(e){
+   if($('aiResults'))$('aiResults').innerHTML='<div class="notice bad">✗ '+esc(e.message)+'</div>';
+   if($('aiStatus'))$('aiStatus').textContent='✗ '+e.message;
+ }finally{if(btn)btn.disabled=false}
 }
 function loadAIQueueToEditor(i){
- if(!aiEditorQueue.length)return;aiEditorIndex=Math.max(0,Math.min(aiEditorQueue.length-1,i));loadQuestion(aiEditorQueue[aiEditorIndex]);
+ if(!aiEditorQueue.length)return;aiEditorIndex=Math.max(0,Math.min(aiEditorQueue.length-1,i));
+ loadQuestion(aiEditorQueue[aiEditorIndex]);
  if($('editorTitle'))$('editorTitle').textContent='Review Soal AI '+(aiEditorIndex+1)+' dari '+aiEditorQueue.length;
- let st=$('draftStatus');if(st)st.textContent='Periksa pertanyaan, opsi, kunci, dan pembahasan. Simpan ke Bank Soal setelah benar.';
 }
 function renderAI(){
  const el=$('aiResults');if(!el)return;
  if(!aiDrafts.length){el.innerHTML='<div class="empty">Belum ada hasil AI.</div>';return}
- el.innerHTML='<div class="notice good"><b>'+aiDrafts.length+' soal lengkap berhasil dibuat.</b> Alur: Gemini → Editor Soal → periksa/edit → Simpan Soal → Bank Soal.</div>'+
- aiDrafts.map((q,i)=>'<div class="bankitem"><div class="tags"><span class="tag">'+typeName(q.type)+'</span><span class="tag">'+esc(q.difficulty)+'</span><span class="tag">Menunggu Review</span></div><h3>'+esc(q.question)+'</h3><div class="small">Opsi: '+((q.answers?.options||[]).length)+' • Kunci: '+((q.answers?.keys||[]).map(k=>'ABCDE'[k]).join(', ')||'-')+' • Pembahasan: '+(q.explanation?'Ada':'Belum ada')+'</div><div class="actions"><button class="btn sm primary" onclick="loadAIQueueToEditor('+i+')">Buka di Editor</button></div></div>').join('');
- typesetMath('aiResults');
+ el.innerHTML=aiDrafts.map((q,i)=>{
+   let opts=(q.answers?.options||[]).filter(x=>String(x||'').trim()).length,key=(q.answers?.keys||[]).map(k=>'ABCDE'[k]).join(', ');
+   return '<div class="bankitem"><div class="tags"><span class="tag">'+typeName(q.type)+'</span><span class="tag">Draft AI</span></div><h3>'+esc(q.question||'(Pertanyaan kosong)')+'</h3><div class="small">Opsi: '+opts+' • Kunci: '+(key||'-')+' • Pembahasan: '+(q.explanation?'Ada':'Belum ada')+'</div><div class="actions"><button class="btn sm primary" onclick="loadAIQueueToEditor('+i+')">Buka di Editor</button></div></div>';
+ }).join('');typesetMath('aiResults');
 }
 function editAIDraft(i){loadAIQueueToEditor(i)}
-function acceptAI(){alert('Soal AI harus diperiksa di Editor Soal terlebih dahulu. Setelah benar, gunakan tombol Simpan Soal untuk memasukkannya ke Bank Soal.')}
-function acceptAllAI(){alert('Untuk keamanan kualitas, soal AI tidak lagi masuk langsung ke Bank Soal. Periksa setiap soal melalui Editor Soal lalu Simpan Soal.')}
-function regenAI(i){alert('Gunakan Generate Draft kembali untuk membuat ulang soal.')}
+function prepareAIBankQuestion(q){const x=JSON.parse(JSON.stringify(q));x.status='Draft';x.updatedAt=new Date().toISOString();return x}
+function acceptAI(i){if(Number.isInteger(i))loadAIQueueToEditor(i)}
+function acceptAllAI(){if(aiEditorQueue.length)loadAIQueueToEditor(0)}
+function regenAI(i){if(Number.isInteger(i)&&aiDrafts[i])loadAIQueueToEditor(i)}
 function pickFormulaImageForExplanation(){const x=$('formulaImageInput');if(x)x.click()}
 function fileToBase64Payload(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({mimeType:file.type||'image/png',data:String(r.result).split(',')[1]||''});r.onerror=reject;r.readAsDataURL(file)})}
 async function convertFormulaImage(input){
@@ -991,10 +989,33 @@ async function aiTidyExplanation(){
   el.value=r.text;el.dispatchEvent(new Event('input'));st.textContent='✓ Pembahasan sudah dirapikan. Periksa lalu simpan.';
  }catch(e){st.textContent='✗ '+e.message+' Pastikan Gemini dan Apps Script sudah terhubung.'}
 }
-async function aiImprove(){const q=$('question').value.trim();if(!q)return alert('Buka/isi soal di editor terlebih dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang merapikan redaksi soal...';try{const r=await postGAS('assistant',{jenis:'rapikan soal',text:'Rapikan redaksi soal berikut tanpa mengubah konsep, data, opsi, atau jawaban benar. Kembalikan hanya teks soal. '+q});const t=r?.text||r?.result||r?.message;if(!t||/^OK$/i.test(String(t).trim()))throw new Error('Gemini tidak mengembalikan hasil perapihan.');$('question').value=String(t).trim();$('question').dispatchEvent(new Event('input'));st.textContent='✓ Redaksi diperbarui. Periksa sebelum disimpan.'}catch(e){st.textContent='✗ '+e.message}}
-async function aiExplain(){const q=$('question').value.trim();if(!q)return alert('Isi soal dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang membuat pembahasan...';try{const r=await postGAS('assistant',{jenis:'pembahasan',text:'Buat pembahasan sistematis dengan urutan Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian langkah demi langkah, Jawaban akhir. Gunakan LaTeX. Soal: '+q+' Opsi: '+JSON.stringify(answerState.options||[])+' Kunci: '+JSON.stringify(answerState.keys||[])});const t=r?.text||r?.result||r?.message;if(!t)throw new Error('Gemini tidak mengembalikan pembahasan.');$('explanation').value=t;$('explanation').dispatchEvent(new Event('input'));st.textContent='✓ Pembahasan dibuat. Periksa sebelum disimpan.'}catch(e){st.textContent='✗ '+e.message}}
-async function aiVariation(){const q=$('question').value.trim();if(!q)return alert('Isi soal dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang membuat variasi...';try{const r=await postGAS('assistant',{jenis:'variasi soal',text:'Buat satu variasi soal dengan konsep dan tingkat kesulitan setara, tetapi angka atau konteks berbeda. Kembalikan hanya teks soal. Soal asal: '+q});const t=r?.text||r?.result||r?.message;if(!t)throw new Error('Gemini tidak mengembalikan variasi.');$('question').value=t;editingId=null;$('question').dispatchEvent(new Event('input'));st.textContent='✓ Variasi dibuat sebagai draft baru.'}catch(e){st.textContent='✗ '+e.message}}
-
+async function postAIAssistant(jenis,text,extra={}){
+ let attempts=[
+  ['assistant',{jenis,text,...extra}],
+  ['geminiAssistant',{jenis,text,...extra}],
+  ['buatSoalGemini',{prompt:text,jumlah:1,tipe:currentType,mode:jenis,...extra}]
+ ],last=null;
+ for(const [action,data] of attempts){try{let r=await postGAS(action,data);if(r)return r}catch(e){last=e}}
+ throw last||new Error('AI tidak memberikan respons.');
+}
+async function aiImprove(){
+ const q=$('question').value.trim();if(!q)return alert('Buka/isi soal di editor terlebih dahulu.');
+ const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang merapikan redaksi soal...';
+ try{const r=await postAIAssistant('rapikan soal','Rapikan redaksi soal berikut tanpa mengubah konsep, data, opsi, atau jawaban benar. Kembalikan hanya teks soal. '+q);
+ let t=r?.text||r?.result||r?.question||r?.questions?.[0]?.question||r?.questions?.[0]?.soal;if(!t)throw new Error(r?.message||'Gemini tidak mengembalikan hasil.');
+ $('question').value=String(t).trim();$('question').dispatchEvent(new Event('input'));st.textContent='✓ Redaksi diperbarui.'}catch(e){st.textContent='✗ '+e.message}
+}
+async function aiExplain(){
+ const q=$('question').value.trim();if(!q)return alert('Isi soal dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang membuat pembahasan...';
+ try{const prompt='Buat pembahasan sistematis: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir. Soal: '+q+' Opsi: '+JSON.stringify(answerState.options||[])+' Kunci: '+JSON.stringify(answerState.keys||[]);
+ const r=await postAIAssistant('pembahasan',prompt);let t=r?.text||r?.result||r?.explanation||r?.pembahasan||r?.questions?.[0]?.explanation||r?.questions?.[0]?.pembahasan;
+ if(!t)throw new Error(r?.message||'Gemini tidak mengembalikan pembahasan.');$('explanation').value=String(t);$('explanation').dispatchEvent(new Event('input'));st.textContent='✓ Pembahasan dibuat.'}catch(e){st.textContent='✗ '+e.message}
+}
+async function aiVariation(){
+ const q=$('question').value.trim();if(!q)return alert('Isi soal dahulu.');const st=$('explanationAIStatus');st.textContent='✨ Gemini sedang membuat variasi...';
+ try{const r=await postAIAssistant('variasi soal','Buat satu variasi soal setara dengan angka/konteks berbeda. Soal asal: '+q);let t=r?.text||r?.result||r?.question||r?.questions?.[0]?.question||r?.questions?.[0]?.soal;
+ if(!t)throw new Error(r?.message||'Gemini tidak mengembalikan variasi.');$('question').value=String(t);editingId=null;$('question').dispatchEvent(new Event('input'));st.textContent='✓ Variasi dibuat.'}catch(e){st.textContent='✗ '+e.message}
+}
 function makePackage(){let ids=selectedIds();let b=bank(),limit=Number($('cbtPackageCount').value)||10,qs=ids.length?b.filter(x=>ids.includes(x.id)):b.slice(0,limit);if(!qs.length)return alert('Bank Soal kosong.');qs=qs.slice(0,limit);let p={name:$('cbtPackageName').value,time:Number($('packageTime').value)||60,pass:Number($('packagePass').value)||75,shuffle:$('shuffleQ').checked,showExplain:$('showExplain').checked,questions:qs};if(p.shuffle)p.questions.sort(()=>Math.random()-.5);localStorage.setItem(PACK,JSON.stringify(p));$('packageInfo').innerHTML=`✓ Paket <b>${esc(p.name)}</b> dibuat dengan ${qs.length} soal.`}
 function openCBT(){let p;try{p=JSON.parse(localStorage.getItem(PACK)||'null')}catch(e){}if(!p){let qs=bank().slice(0,10);if(!qs.length)return alert('Bank Soal masih kosong. Buat soal terlebih dahulu.');p={name:'Preview Bank Soal',time:60,pass:75,showExplain:true,questions:qs}}cbtIndex=0;cbtAnswers={};$('cbtTitle').textContent=p.name;$('cbtModal').classList.add('show');$('cbtModal').dataset.package=JSON.stringify(p);startTimer(p.time);renderCBT()}
 function currentPack(){return JSON.parse($('cbtModal').dataset.package)}
@@ -1023,7 +1044,7 @@ async function postGAS(action,data={}){
  }catch(e){}
  if(!adminKey&&!accessToken)throw new Error('Autentikasi Admin belum tersedia. Buka V13 dari Admin Member atau simpan ADMIN_KEY pada Koneksi.');
  const body={action,...data};if(adminKey)body.key=adminKey;if(accessToken)body.accessToken=accessToken;
- const res=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
+ const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),60000);let res;try{res=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body),signal:ctl.signal})}catch(e){if(e?.name==='AbortError')throw new Error('AI timeout setelah 60 detik. Coba lagi.');throw e}finally{clearTimeout(timer)};
  if(!res.ok)throw new Error('Apps Script HTTP '+res.status);
  let out;try{out=JSON.parse(await res.text())}catch(err){throw new Error('Respons Apps Script bukan JSON yang valid.')}
  if(out?.ok===false||out?.status==='error')throw new Error(out.error||out.message||'Apps Script menolak permintaan.');
