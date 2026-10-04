@@ -788,7 +788,7 @@ table{max-width:100%}
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn ghost" onclick="lihatStatusSuperAdmin()">← Admin Utama</button>
-        <button class="btn ghost" onclick="KFLogoutAdminMemberSafe()">Keluar Member</button>
+        <button class="btn ghost" onclick="KFLogoutAdminMemberSafe()">Keluar Admin</button>
       </div>
     </header>
     <div class="layout">
@@ -2610,7 +2610,7 @@ async function KFLogoutAdminMemberSafe(){
  if(!(await KFUI.confirm("Keluar dari Admin Member Area?","Konfirmasi Keluar")))return;
  try{if(window.KFSupabaseAdmin&&KFSupabaseAdmin.client)await KFSupabaseAdmin.client.auth.signOut({scope:"local"});else if(window.supabase&&window.KF_SUPABASE_CONFIG){const c=window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);await c.auth.signOut({scope:"local"})}}catch(e){console.warn(e)}
  try{Object.keys(localStorage).filter(k=>k.startsWith("sb-")&&k.endsWith("-auth-token")).forEach(k=>localStorage.removeItem(k));sessionStorage.clear()}catch(e){}
- window.location.replace("index.html?logged_out=1");
+ window.location.replace("admin.html?login=1");
 }
 if(location.hash&&/access_token|refresh_token|error_description/.test(location.hash))history.replaceState(null,document.title,location.pathname+location.search);
 async function renderDiscountRules(){const b=document.getElementById("discountRulesAdmin");if(!b)return;try{const q=await kfdb().from("member_discount_rules").select("*").order("min_packages");if(q.error)throw q.error;b.innerHTML=(q.data||[]).map(r=>`<div class="discount-rule-row"><div><b>${escMember(r.label||r.min_packages+" paket")}</b><p class="sub">${r.min_packages}${r.max_packages?"–"+r.max_packages:"+"} paket · Diskon ${Number(r.discount_percent)}% · ${r.active?"Aktif":"Nonaktif"}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editAturanDiskon('${r.id}')">Edit</button><button class="btn ghost small" onclick="toggleAturanDiskon('${r.id}',${!r.active})">${r.active?"Nonaktifkan":"Aktifkan"}</button><button class="btn danger small" onclick="hapusAturanDiskon('${r.id}')">Hapus</button></div></div>`).join("")||'<div class="sub">Belum ada aturan.</div>'}catch(e){b.innerHTML='<div class="sub">'+escMember(e.message)+'</div>'}}
