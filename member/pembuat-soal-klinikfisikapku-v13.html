@@ -316,7 +316,7 @@ window.kfSaveConnectionSafe=function(){
    if(status){status.className='notice bad';status.textContent='✗ URL harus berupa Web App Google Apps Script yang berakhir /exec.';}
    return false;
   }
-  localStorage.setItem(window.KF_V12_CONN_KEY,JSON.stringify({url:url,mode:mode}));var keyEl=document.getElementById('gasAdminKey'),key=(keyEl&&keyEl.value||'').trim();if(key)localStorage.setItem('kf_hasil_admin_key',key);
+  localStorage.setItem(window.KF_V12_CONN_KEY,JSON.stringify({url:url,mode:mode}));
   if(status){status.className='notice good';status.textContent='✓ Koneksi berhasil disimpan di browser ini.';}
   return false;
  }catch(err){
@@ -327,7 +327,7 @@ window.kfSaveConnectionSafe=function(){
 document.addEventListener('DOMContentLoaded',function(){
  var cfg=window.kfGetConnectionSafe(),u=document.getElementById('gasUrl'),m=document.getElementById('storageMode');
  if(u&&cfg.url)u.value=cfg.url;
- if(m&&cfg.mode)m.value=cfg.mode;var k=document.getElementById('gasAdminKey');if(k)k.value=localStorage.getItem('kf_hasil_admin_key')||'';
+ if(m&&cfg.mode)m.value=cfg.mode;
 });
 </script>
 <script>
@@ -459,7 +459,6 @@ window.kfV12Navigate=function(page){
 <div><label>URL Web App Google Apps Script</label><input id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
 <div><label>Mode Penyimpanan</label><select id="storageMode"><option value="local">Lokal saja (browser)</option><option value="online">Online + cadangan lokal</option></select></div>
 </div>
-<div style="margin-top:10px"><label>Kode Rahasia Admin (ADMIN_KEY)</label><input type="password" id="gasAdminKey" placeholder="Sama dengan Kode Rahasia Admin pada Admin lama"><div class="small">Disimpan hanya di browser ini untuk koneksi privat Apps Script/Gemini.</div></div>
 <div class="actions" style="margin-top:12px">
 <button class="btn primary" onclick="return kfSaveConnectionSafe()">Simpan Koneksi</button>
 <button class="btn" onclick="testConnection()">Tes Koneksi</button>
@@ -469,7 +468,7 @@ window.kfV12Navigate=function(page){
 </div>
 <div class="card">
 <h3>Gemini AI melalui Apps Script</h3>
-<div class="notice">V13 memakai koneksi Apps Script/Gemini yang sama dengan Admin lama. Kode Rahasia Admin digunakan bila sudah tersimpan; sesi Super Admin Supabase menjadi fallback. Simpan GEMINI_API_KEY di <b>Script Properties</b> agar kunci tidak terlihat di browser.</div>
+<div class="notice">V13 mengirim sesi Super Admin Supabase ke Apps Script untuk diverifikasi sebelum Gemini dipanggil. Simpan GEMINI_API_KEY dan GEMINI_MODEL di <b>Script Properties</b>; API key tidak disimpan di HTML/browser.</div>
 <div class="actions" style="margin-top:12px"><button class="btn primary" onclick="testAIConnection()">Tes Gemini AI</button></div>
 </div>
 <div class="card">
@@ -739,19 +738,30 @@ function startTimer(min){clearInterval(timerHandle);let s=min*60;function tick()
 function closeCBT(){clearInterval(timerHandle);$('cbtModal').classList.remove('show')}
 
 
-function getConnection(){try{const own=JSON.parse(localStorage.getItem(CONN)||'{"url":"","mode":"local"}'),adminUrl=(localStorage.getItem('kf_hasil_script_url')||'').trim();if(!own.url&&adminUrl)own.url=adminUrl;return own}catch(e){return {url:(localStorage.getItem('kf_hasil_script_url')||'').trim(),mode:'local'}}}
+function getConnection(){try{return JSON.parse(localStorage.getItem(CONN)||'{"url":"","mode":"local"}')}catch(e){return {url:'',mode:'local'}}}
 function saveConnection(){let c={url:($('gasUrl').value||'').trim(),mode:$('storageMode').value};localStorage.setItem(CONN,JSON.stringify(c));$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Konfigurasi tersimpan.'}
 async function postGAS(action,data={}){
- let c=getConnection();if(!c.url)throw new Error('URL Apps Script belum diisi. Simpan URL Apps Script pada Admin lama lalu kembali ke V13.');
- const adminKey=(localStorage.getItem('kf_hasil_admin_key')||'').trim();let accessToken='';
- try{const client=window.KFSupabaseAdmin?.client;if(client){const {data:s}=await client.auth.getSession();accessToken=s?.session?.access_token||''}}catch(e){}
- if(!adminKey&&!accessToken)throw new Error('Kode Rahasia Admin belum tersedia. Isi ADMIN_KEY pada menu Koneksi V13 lalu klik Simpan Koneksi.');
- const auth=adminKey?{key:adminKey}:{accessToken};
- const res=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...auth,...data})});
+ const cfg=getConnection();
+ if(!cfg.url)throw new Error('URL Apps Script belum diisi pada menu Koneksi.');
+ let client=window.KFSupabaseAdmin?.client||null;
+ if(!client&&window.supabase&&window.KF_SUPABASE_CONFIG&&window.KF_SUPABASE_CONFIG.isValid!==false){
+   client=window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);
+   window.KFSupabaseAdmin=window.KFSupabaseAdmin||{};
+   window.KFSupabaseAdmin.client=client;
+ }
+ if(!client)throw new Error('Client Supabase Admin tidak tersedia. Buka kembali V13 dari halaman Admin.');
+ const {data:sessionData,error:sessionError}=await client.auth.getSession();
+ if(sessionError)throw new Error('Gagal membaca sesi Super Admin: '+sessionError.message);
+ const session=sessionData?.session;
+ if(!session?.access_token)throw new Error('Sesi Super Admin Supabase tidak ditemukan. Login ulang melalui halaman Admin.');
+ const res=await fetch(cfg.url,{
+   method:'POST',
+   headers:{'Content-Type':'text/plain;charset=utf-8'},
+   body:JSON.stringify({action,accessToken:session.access_token,...data})
+ });
  if(!res.ok)throw new Error('Apps Script HTTP '+res.status);
- let out;try{out=JSON.parse(await res.text())}catch(e){throw new Error('Respons Apps Script bukan JSON yang valid.')}
- if(out&&(out.ok===false||out.status==='error'||out.status==='err'))throw new Error(out.error||out.message||'Apps Script menolak permintaan.');
- if(out?.status&&out.status!=='ok'&&out.ok!==true)throw new Error(out.message||'Server admin tidak merespons.');
+ let out;try{out=JSON.parse(await res.text())}catch(err){throw new Error('Respons Apps Script bukan JSON yang valid.')}
+ if(out?.ok===false)throw new Error(out.error||out.message||'Apps Script menolak permintaan.');
  return out;
 }
 async function testConnection(){saveConnection();$('connectionStatus').className='notice';$('connectionStatus').textContent='Menguji koneksi...';try{let r=await postGAS('health');$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Apps Script terhubung'+(r.message?' — '+r.message:'')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ '+e.message}}
