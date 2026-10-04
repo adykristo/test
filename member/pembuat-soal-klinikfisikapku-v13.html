@@ -1031,6 +1031,7 @@ function applyCrop(){
 
 const PACKAGE_BANK_KEY='kf_package_bank_v1', PACKAGE_DRAFT_KEY='kf_package_draft_v1';
 let packageDraft={name:'',count:10,current:0,questions:Array(10).fill(null)};
+let packageEditId=null;
 
 
 let practiceState={package:null,current:0,answers:[]};
@@ -1219,35 +1220,56 @@ function loadPackageDraftLocal(){try{let x=JSON.parse(localStorage.getItem(PACKA
 function startQuestionPackage(){let count=Math.max(1,Math.min(50,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
 function packageQuestionValid(q){if(!q||!(q.question||q.image))return false;if(['pg5','pg4','mcma'].includes(q.type))return (q.answers?.options||[]).filter(x=>String(x||'').trim()).length>=2&&(q.answers?.keys||[]).length>0;if(q.type==='kategori')return (q.answers?.statements||[]).some(x=>String(x.text||'').trim());if(q.type==='isian')return !!String(q.answers?.short||'').trim();return true}
 function saveCurrentToPackage(){
- // Tombol "Simpan Soal Ini" pada editor V13 harus menyimpan soal tunggal ke Bank Soal.
- // packageDraft tetap dipertahankan hanya sebagai kompatibilitas fitur paket lama.
  let q=collect(),issues=packageQuestionIssues(q);
- q.id=editingId||q.id||uid();
- q.updatedAt=new Date().toISOString();
- q.status=issues.length?'Draft':'Siap Pakai';
- let b=bank(),idx=b.findIndex(x=>x&&x.id===q.id);
- if(idx>=0)b[idx]=q;else b.unshift(q);
- try{setBank(b)}catch(err){
-   console.error('[V13 save bank]',err);
-   if($('draftStatus'))$('draftStatus').textContent='✗ Gagal menyimpan ke Bank Soal: '+err.message;
-   alert('Gagal menyimpan soal ke Bank Soal. '+err.message);
-   return false;
+ q.id=editingId||q.id||uid();q.updatedAt=new Date().toISOString();q.status=issues.length?'Draft':'Siap Pakai';
+
+ // Saat Buka/Edit paket: simpan perubahan ke nomor soal aktif di paket, bukan keluar ke Bank Soal.
+ if(packageEditId){
+   q.packageIndex=packageDraft.current+1;
+   packageDraft.questions[packageDraft.current]=q;
+   packageDraft.count=packageDraft.questions.length;
+   savePackageDraftLocal();
+   let arr=packageBank(),pi=arr.findIndex(x=>x.id===packageEditId);
+   if(pi>=0){
+     arr[pi].name=packageDraft.name||arr[pi].name;
+     arr[pi].count=packageDraft.questions.length;
+     arr[pi].questions=JSON.parse(JSON.stringify(packageDraft.questions));
+     arr[pi].updatedAt=new Date().toISOString();
+     localStorage.setItem(PACKAGE_BANK_KEY,JSON.stringify(arr));
+   }
+   if($('draftStatus'))$('draftStatus').textContent=issues.length
+     ?'⚠ Soal '+(packageDraft.current+1)+' tersimpan di paket sebagai Draft: '+issues.join(' • ')
+     :'✓ Soal '+(packageDraft.current+1)+' tersimpan di paket.';
+   renderPackageNavigator();renderPackageBank();
+   return issues.length===0;
  }
+
+ // Mode soal tunggal: simpan ke Bank Soal Privat.
+ let rows=bank(),idx=rows.findIndex(x=>x&&x.id===q.id);
+ if(idx>=0)rows[idx]=q;else rows.unshift(q);
+ try{setBank(rows)}catch(err){console.error('[V13 save bank]',err);alert('Gagal menyimpan soal ke Bank Soal. '+err.message);return false}
  editingId=q.id;
- // Simpan juga salinan draft editor agar isi tidak hilang saat reload.
  try{localStorage.setItem(DRAFT,JSON.stringify(q))}catch(e){}
- if($('draftStatus'))$('draftStatus').textContent=issues.length
-   ?'⚠ Soal tersimpan di Bank Soal sebagai Draft: '+issues.join(' • ')
-   :'✓ Soal tersimpan di Bank Soal dan siap digunakan.';
- try{renderBank()}catch(e){}
- try{updateCounts()}catch(e){}
- // Langsung buka Bank Soal supaya pengguna dapat memastikan hasil simpan.
- nav('bank');
- return issues.length===0;
+ if($('draftStatus'))$('draftStatus').textContent=issues.length?'⚠ Soal tersimpan sebagai Draft.':'✓ Soal tersimpan di Bank Soal.';
+ try{renderBank();updateCounts()}catch(e){}
+ nav('bank');return issues.length===0;
 }
-function renderPackageNavigator(){let n=packageDraft.questions.length||1,done=packageDraft.questions.filter(packageQuestionValid).length;$('packagePosition').textContent='Soal '+(packageDraft.current+1)+' dari '+n;$('packageDone').textContent='• '+done+' selesai';$('packageProgressBar').style.width=(done/n*100)+'%';$('questionNumberNav').innerHTML=packageDraft.questions.map((q,i)=>`<button class="${i===packageDraft.current?'current ':''}${packageQuestionValid(q)?'done':''}" onclick="goPackageQuestion(${i})">${i+1}${packageQuestionValid(q)?'✓':''}</button>`).join('')}
+function renderPackageNavigator(){
+ let n=packageDraft.questions.length||1,done=packageDraft.questions.filter(packageQuestionValid).length;
+ if($('packagePosition'))$('packagePosition').textContent='Soal '+(packageDraft.current+1)+' dari '+n;
+ if($('packageDone'))$('packageDone').textContent='• '+done+' selesai • klik nomor untuk membuka soal';
+ if($('packageProgressBar'))$('packageProgressBar').style.width=(done/n*100)+'%';
+ if($('questionNumberNav'))$('questionNumberNav').innerHTML=packageDraft.questions.map((q,i)=>`<button class="${i===packageDraft.current?'current ':''}${packageQuestionValid(q)?'done':''}" onclick="goPackageQuestion(${i})" title="Buka soal ${i+1}">${i+1}${packageQuestionValid(q)?'✓':''}</button>`).join('');
+}
 function editorHasContent(){return !!(($('question')?.value||'').trim()||($('explanation')?.value||'').trim()||imageData||($('qImageUrl')?.value||'').trim()||(answerState.options||[]).some(x=>String(x||'').trim())||String(answerState.short||'').trim()||String(answerState.essayKey||'').trim()||(answerState.statements||[]).some(x=>String(x?.text||'').trim()))}
-function goPackageQuestion(i){if(i<0||i>=packageDraft.questions.length)return;if(editorHasContent())saveCurrentToPackage();packageDraft.current=i;let q=packageDraft.questions[i];q?loadPackageQuestionToEditor(q):clearPackageEditor(false);renderPackageNavigator();savePackageDraftLocal()}
+function goPackageQuestion(i){
+ if(i<0||i>=packageDraft.questions.length)return;
+ if(packageEditId&&editorHasContent())saveCurrentToPackage();
+ packageDraft.current=i;editingId=null;
+ let q=packageDraft.questions[i];q?loadPackageQuestionToEditor(q):clearPackageEditor(false);
+ renderPackageNavigator();savePackageDraftLocal();
+ $('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function packagePrev(){if(packageDraft.current>0)goPackageQuestion(packageDraft.current-1)}
 function packageNext(){if(packageDraft.current<packageDraft.questions.length-1)goPackageQuestion(packageDraft.current+1)}
 function loadPackageQuestionToEditor(q){currentType=q.type||'pg5';if($('typeSelect'))$('typeSelect').value=currentType;['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','explanation','scoring'].forEach(id=>{if($(id)&&q[id]!==undefined)$(id).value=q[id]});imageData=q.image||'';imageRotation=q.imageRotation||0;answerState=JSON.parse(JSON.stringify(q.answers||{}));initAnswersForType(false);renderAnswerEditor();showImage();updatePreview();validate()}
@@ -1536,7 +1558,17 @@ function renderPackageBank(){
     <button class="btn sm danger" onclick="deleteSavedPackage('${p.id}')">Hapus</button>
    </div></div>`).join('');
 }
-function openSavedPackage(id){let p=packageBank().find(x=>x.id===id);if(!p)return;packageDraft={name:p.name,count:p.questions.length,current:0,questions:JSON.parse(JSON.stringify(p.questions))};$('packageName').value=p.name;$('packageCount').value=p.questions.length;savePackageDraftLocal();loadPackageQuestionToEditor(packageDraft.questions[0]);renderPackageNavigator();nav('buat')}
+function openSavedPackage(id){
+ let p=packageBank().find(x=>x.id===id);if(!p)return;
+ packageEditId=id;editingId=null;
+ packageDraft={name:p.name||'Paket Soal',count:p.questions.length,current:0,questions:JSON.parse(JSON.stringify(p.questions||[]))};
+ if(!packageDraft.questions.length)return alert('Paket belum memiliki soal.');
+ if($('packageName'))$('packageName').value=packageDraft.name;
+ if($('packageCount'))$('packageCount').value=packageDraft.questions.length;
+ const builder=document.querySelector('.package-builder');if(builder)builder.style.display='block';
+ savePackageDraftLocal();loadPackageQuestionToEditor(packageDraft.questions[0]);renderPackageNavigator();nav('buat');
+ if($('editorTitle'))$('editorTitle').textContent='Edit Paket — '+packageDraft.name+' ('+packageDraft.questions.length+' soal)';
+}
 function duplicateSavedPackage(id){let arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return;let c=JSON.parse(JSON.stringify(p));c.id='PKG-'+Date.now();c.name=p.name+' (Salinan)';c.published=false;delete c.publishedAt;c.createdAt=c.updatedAt=new Date().toISOString();arr.unshift(c);setPackageBank(arr)}
 function deleteSavedPackage(id){if(confirm('Hapus paket soal ini?'))setPackageBank(packageBank().filter(x=>x.id!==id))}
 
