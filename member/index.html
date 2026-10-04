@@ -1508,10 +1508,12 @@ iframe.pdfview{display:block;min-height:520px}
         const history=attempts.length?'<div class="history-list">'+attempts.map(a=>{
           const paket=pkgName(a),judul=String(a.topik||a.judul||a.nama||"Latihan / Tryout");
           const rawScore=a.skor!=null?a.skor:(a.score!=null?a.score:null);
-          const score=rawScore==null?"—":Math.round(Number(rawScore));
+          const numericScore=rawScore==null?null:Number(rawScore);
+          const score=numericScore===null||!Number.isFinite(numericScore)?"—":Math.round(numericScore);
           const dt=when(a),date=dt?new Date(dt):null;
           const dateText=date&&!Number.isNaN(date.getTime())?date.toLocaleString("id-ID"):"Waktu belum tersedia";
-          return `<div class="history-row"><span><b>${esc(judul)}</b>${paket?`<br><small>📦 ${esc(paket)}</small>`:""}<br><small>${esc(dateText)}</small></span><strong>${esc(String(score))}</strong></div>`;
+          const kind=String(a.kind||a.jenis||"").toLowerCase(),icon=kind==="tryout"?"🏆":"✍️";
+          return `<div class="history-row"><span><b>${icon} ${esc(judul)}</b>${paket?`<br><small>📦 ${esc(paket)}</small>`:""}<br><small>${esc(dateText)}</small></span><strong title="Nilai">${esc(String(score))}</strong></div>`;
         }).join("")+'</div>':'<p class="empty">Belum ada riwayat latihan/tryout.</p>';
         const certificates=certs.length?certs.map(x=>{
           const url=safeDownloadUrl(x.file_url);
