@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- V13 inline image editor: cursor-position images -->
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -387,34 +388,14 @@ window.kfV12Navigate=function(page){
 <label style="margin-top:10px">Tipe soal</label><select id="typeSelect" onchange="changeTypeSelect(this.value)"><option value="pg5">Pilihan Ganda — 5 opsi (A–E)</option><option value="pg4">Pilihan Ganda — 4 opsi (A–D)</option><option value="mcma">PG Kompleks / MCMA</option><option value="kategori">PG Kompleks Kategori</option><option value="isian">Isian Singkat</option><option value="esai">Esai</option></select>
 <label style="margin-top:10px">Pertanyaan <span class="small">(teks + rumus LaTeX + angka; boleh kosong jika hanya gambar)</span></label><div id="qFormulaBar"></div><textarea id="question" placeholder="Contoh: Sebuah benda bermassa $m=2\\,\\mathrm{kg}$ ditarik gaya $F=10\\,\\mathrm{N}$. Percepatannya..."></textarea><div id="questionMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div class="actions" style="margin-top:7px"><button class="btn sm" onclick="aiImprove()">✨ Rapikan soal ini dengan AI</button></div>
 <div class="notice" style="margin-top:10px;background:#fbf7ff;border:1px solid #eadcff">
- <b>📌 Petunjuk memasang & mengatur gambar</b>
+ <b>📌 Sisip Gambar di posisi yang diinginkan</b>
  <div class="small" style="margin-top:6px;line-height:1.65">
- <b>Gambar soal:</b> pilih file, tempel link, atau klik kolom Pertanyaan lalu tekan <b>Ctrl+V</b>. Gunakan Crop/Potong atau Putar bila perlu.<br>
- <b>Gambar opsi A–E:</b> pada opsi yang diinginkan pilih file/link, atau klik kolom <b>Link gambar A/B/C/D/E</b> lalu <b>Ctrl+V</b>. Setelah gambar muncul, pilih posisi <b>Kiri / Tengah / Kanan</b> dan ukuran <b>30% / 50% / 70% / 100%</b>.<br>
- <b>Gambar pembahasan:</b> klik kolom Pembahasan lalu <b>Ctrl+V</b>, atau gunakan Upload/Link. Pilih <b>Atas / Tengah / Bawah</b>, perataan, dan lebar gambar.<br>
- <b>Posisi khusus di tengah pembahasan:</b> pilih <b>Di tengah pembahasan</b>, lalu tulis <b>[[GAMBAR]]</b> tepat pada baris tempat gambar harus tampil.<br>
- Setelah selesai, klik <b>👁 Preview Soal</b> untuk memeriksa posisi gambar sebelum menyimpan.
+ Klik tepat pada posisi di teks Pertanyaan, Opsi, atau Pembahasan, lalu tekan <b>🖼 Sisip Gambar</b>. Pilih gambar, kemudian tentukan posisi Kiri/Tengah/Kanan dan ukuran. Gambar akan tampil tepat di lokasi kursor pada preview.
  </div>
 </div>
-<label style="margin-top:10px">Gambar soal <span class="small">(opsional: upload / link / tempel Ctrl+V)</span></label><div class="image-row"><input id="qImageFile" type="file" accept="image/*"><input id="qImageUrl" placeholder="Atau tempel link gambar"><button class="btn sm danger" onclick="clearImage()">Hapus</button></div><div class="small">Tip: tekan Ctrl+V untuk tempel screenshot langsung.</div><div id="qImagePreview"></div><div class="actions"><button class="btn sm" onclick="openCropper()">✂️ Crop/Potong</button><button class="btn sm" onclick="rotateImage()">↻ Putar</button></div>
 <div class="sep"></div><div id="answerCard"><label><b>Pilihan jawaban / kunci</b></label><div class="small">Setiap opsi boleh berisi teks, rumus, gambar, atau keduanya.</div><div id="answerEditor"></div></div>
 <div class="sep"></div><label><b>Pembahasan / pedoman jawaban esai</b> <span class="small">(opsional: teks + LaTeX + angka)</span></label><div id="exFormulaBar"></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea>
 <div id="explanationMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div>
-<label style="margin-top:10px">Gambar pembahasan <span class="small">(opsional: upload / link / tempel Ctrl+V)</span></label>
-<div class="image-row">
- <input id="explanationImageFile" type="file" accept="image/*">
- <input id="explanationImageUrl" placeholder="Atau tempel link gambar pembahasan">
- <button class="btn sm danger" type="button" onclick="clearExplanationImage()">Hapus</button>
-</div>
-<div class="small">Klik kolom Pembahasan lalu tekan Ctrl+V untuk menempel screenshot/gambar langsung.</div>
-<div id="explanationImagePreview"></div>
-<div class="row" style="margin-top:8px">
- <div><label>Posisi gambar pembahasan</label><select id="explanationImagePosition" onchange="changed()"><option value="top">Di atas pembahasan</option><option value="middle">Di tengah pembahasan</option><option value="bottom" selected>Di bawah pembahasan</option></select></div>
- <div><label>Perataan</label><select id="explanationImageAlign" onchange="changed()"><option value="left">Kiri</option><option value="center" selected>Tengah</option><option value="right">Kanan</option></select></div>
- <div><label>Lebar gambar</label><select id="explanationImageWidth" onchange="changed()"><option value="30">30%</option><option value="50" selected>50%</option><option value="70">70%</option><option value="100">100%</option></select></div>
-</div>
-<div class="small">Untuk posisi “tengah”, letakkan <b>[[GAMBAR]]</b> pada baris pembahasan tempat gambar ingin muncul.</div>
-
 <div style="margin-top:10px;max-width:360px">
 <label>Penilaian MCMA</label>
 <select id="scoring"><option value="exact">Exact — semua harus benar</option><option value="partial">Partial — skor sebagian</option></select>
@@ -655,14 +636,43 @@ function formulaBar(target){
  return `<div class="formula-bar"><span class="small"><b>Rumus:</b></span>${items.map(x=>`<button type="button" onclick="insertFormulaTo('${target}',${JSON.stringify(x[1])})">${x[0]}</button>`).join('')}<select onchange="if(this.value){insertFormulaTo('${target}',this.value);this.selectedIndex=0}"><option value="">⚛ Rumus fisika...</option><option value="F=k\\frac{q_1q_2}{r^2}">Hukum Coulomb</option><option value="V=IR">Hukum Ohm</option><option value="E=mc^2">E=mc²</option><option value="E_k=\\frac12mv^2">Energi kinetik</option><option value="p=mv">Momentum</option></select><button type="button" class="purple" onclick="readFormulaPhoto('${target}')">Σ Baca rumus foto</button><button type="button" onclick="insertImageMarker('${target}')">🖼 Sisip Gambar</button></div>`;
 }
 function insertFormulaTo(id,t){let el=$(id);if(!el)return;let p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+'$'+t+'$'+el.value.slice(p);el.dispatchEvent(new Event('input'));el.focus()}
-function insertImageMarker(id){let el=$(id);if(el){let p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+' [GAMBAR] '+el.value.slice(p);el.dispatchEvent(new Event('input'))}}
+function renderRichText(text=''){
+ let safe=esc(cleanAIMathText(text));
+ safe=safe.replace(/\[GAMBAR\|(left|center|right)\|(25|33|50|67|75|100)\]([\s\S]*?)\[\/GAMBAR\]/g,function(_,align,width,src){
+   src=String(src||'').trim();
+   if(!/^(data:image\/|https?:\/\/)/i.test(src))return '';
+   return '<div class="kf-inline-image-wrap '+align+'"><img src="'+esc(src)+'" style="width:'+width+'%"></div>';
+ });
+ return safe.replace(/\n/g,'<br>');
+}
+function insertImageMarker(id){
+ const el=$(id);if(!el)return;
+ const start=el.selectionStart??el.value.length,end=el.selectionEnd??start;
+ const input=document.createElement('input');input.type='file';input.accept='image/*';
+ input.onchange=function(){
+   const file=input.files&&input.files[0];if(!file)return;
+   const reader=new FileReader();
+   reader.onload=function(){
+     let align=(prompt('Posisi gambar: kiri, tengah, atau kanan','tengah')||'tengah').trim().toLowerCase();
+     align=align==='kiri'?'left':align==='kanan'?'right':'center';
+     let width=parseInt(prompt('Lebar gambar: 25, 33, 50, 67, 75, atau 100 (%)','50')||'50',10);
+     if(![25,33,50,67,75,100].includes(width))width=50;
+     const marker='\n[GAMBAR|'+align+'|'+width+']'+reader.result+'[/GAMBAR]\n';
+     el.value=el.value.slice(0,start)+marker+el.value.slice(end);
+     const p=start+marker.length;el.focus();el.setSelectionRange(p,p);
+     el.dispatchEvent(new Event('input'));changed();updatePreview();
+   };
+   reader.readAsDataURL(file);
+ };
+ input.click();
+}
 function readFormulaPhoto(target){const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async function(){const file=input.files&&input.files[0];if(!file)return;try{const image=await fileToBase64Payload(file),r=await postGAS('imageToLatex',{image});if(!r?.latex)throw new Error(r?.message||'Rumus tidak terbaca');const el=$(target);if(!el)throw new Error('Kolom tujuan tidak ditemukan');const p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+r.latex+el.value.slice(p);el.dispatchEvent(new Event('input'));el.focus()}catch(e){alert('Gagal membaca rumus: '+e.message)}};input.click()}
 function changeTypeSelect(v){currentType=v;initAnswersForType(true);renderAnswerEditor();changed()}
 function renderAnswerEditor(){
  let h='';
  if(['pg5','pg4','mcma'].includes(currentType)){
   let n=currentType==='pg4'?4:5;answerState.options=(answerState.options||[]).slice(0,n);while(answerState.options.length<n)answerState.options.push('');answerState.optionImages=answerState.optionImages||{};answerState.optionImageData=answerState.optionImageData||{};
-  answerState.options.forEach((o,i)=>h+=`<div class="ref-option"><div class="ref-option-grid"><div class="ref-letter">${'ABCDE'[i]}</div><div>${formulaBar('opt'+i)}<textarea id="opt${i}" style="min-height:72px" placeholder="Teks opsi ${'ABCDE'[i]} (boleh $LaTeX$)" oninput="answerState.options[${i}]=this.value;changed()">${esc(o)}</textarea><div id="optPrev${i}" class="math-preview">Pratinjau akan muncul di sini...</div><div class="image-row"><input type="file" accept="image/*" onchange="loadOptionImage(${i},this)"><input class="option-image-url" data-option-index="${i}" value="${esc(answerState.optionImages[i]||'')}" placeholder="Link gambar ${'ABCDE'[i]} • atau tempel gambar Ctrl+V" oninput="answerState.optionImages[${i}]=this.value;changed()"><button class="btn sm danger" onclick="clearOptionImage(${i})">Hapus</button></div><div>${(answerState.optionImageData[i]||answerState.optionImages[i])?`<img class="qimg" src="${esc(answerState.optionImageData[i]||answerState.optionImages[i])}"><div class="image-row" style="margin-top:5px"><select onchange="answerState.optionImageAlign=answerState.optionImageAlign||{};answerState.optionImageAlign[${i}]=this.value;changed()"><option value="left" ${(answerState.optionImageAlign?.[i]||'center')==='left'?'selected':''}>Kiri</option><option value="center" ${(answerState.optionImageAlign?.[i]||'center')==='center'?'selected':''}>Tengah</option><option value="right" ${answerState.optionImageAlign?.[i]==='right'?'selected':''}>Kanan</option></select><select onchange="answerState.optionImageWidth=answerState.optionImageWidth||{};answerState.optionImageWidth[${i}]=Number(this.value);changed()"><option value="30" ${answerState.optionImageWidth?.[i]==30?'selected':''}>30%</option><option value="50" ${!answerState.optionImageWidth?.[i]||answerState.optionImageWidth?.[i]==50?'selected':''}>50%</option><option value="70" ${answerState.optionImageWidth?.[i]==70?'selected':''}>70%</option><option value="100" ${answerState.optionImageWidth?.[i]==100?'selected':''}>100%</option></select></div>`:''}</div></div><button type="button" class="key-pick ${answerState.keys.includes(i)?'on':''}" onclick="toggleKey(${i})">◎<br>Kunci</button></div></div>`);
+  answerState.options.forEach((o,i)=>h+=`<div class="ref-option"><div class="ref-option-grid"><div class="ref-letter">${'ABCDE'[i]}</div><div>${formulaBar('opt'+i)}<textarea id="opt${i}" style="min-height:72px" placeholder="Teks opsi ${'ABCDE'[i]} (boleh $LaTeX$)" oninput="answerState.options[${i}]=this.value;changed()">${esc(o)}</textarea><div id="optPrev${i}" class="math-preview">Pratinjau akan muncul di sini...</div></div><button type="button" class="key-pick ${answerState.keys.includes(i)?'on':''}" onclick="toggleKey(${i})">◎<br>Kunci</button></div></div>`);
  } else if(currentType==='kategori'){h='<div class="notice">Tambahkan pernyataan lalu tentukan Benar/Salah.</div>';answerState.statements.forEach((x,i)=>h+=`<div class="statement"><textarea style="min-height:60px" oninput="answerState.statements[${i}].text=this.value;changed()">${esc(x.text)}</textarea><select onchange="answerState.statements[${i}].answer=this.value;changed()"><option ${x.answer==='Benar'?'selected':''}>Benar</option><option ${x.answer==='Salah'?'selected':''}>Salah</option></select><button class="btn sm danger" onclick="removeStatement(${i})">Hapus</button></div>`);h+='<button class="btn sm" onclick="addStatement()">+ Pernyataan</button>'}
  else if(currentType==='isian')h=`${formulaBar('shortAnswer')}<input id="shortAnswer" value="${esc(answerState.short||'')}" oninput="answerState.short=this.value;changed()" placeholder="Jawaban benar">`;
  else h=`${formulaBar('essayKey')}<textarea id="essayKey" oninput="answerState.essayKey=this.value;changed()" placeholder="Pedoman jawaban esai">${esc(answerState.essayKey||'')}</textarea>`;
@@ -683,10 +693,10 @@ function addStatement(){answerState.statements.push({text:'',answer:'Benar'});re
 function removeStatement(i){answerState.statements.splice(i,1);renderAnswerEditor();changed()}
 function insertLatex(t){let el=$('question'),p=el.selectionStart||el.value.length;el.value=el.value.slice(0,p)+'$'+t+'$'+el.value.slice(p);changed();el.focus()}
 function changed(){updateMathPreviews();validate();saveDraftDebounced()}
-function updateMathPreviews(){let pairs=[['question','questionMathPreview'],['explanation','explanationMathPreview']];(answerState.options||[]).forEach((x,i)=>pairs.push(['opt'+i,'optPrev'+i]));pairs.forEach(([a,b])=>{let el=$(a),pv=$(b);if(pv&&el)pv.innerHTML=el.value.trim()?esc(cleanAIMathText(el.value)).replace(/\n/g,'<br>'):'Pratinjau akan muncul di sini...'});if(window.MathJax?.typesetPromise)MathJax.typesetPromise(pairs.map(x=>$(x[1])).filter(Boolean)).catch(()=>{})}
+function updateMathPreviews(){let pairs=[['question','questionMathPreview'],['explanation','explanationMathPreview']];(answerState.options||[]).forEach((x,i)=>pairs.push(['opt'+i,'optPrev'+i]));pairs.forEach(([a,b])=>{let el=$(a),pv=$(b);if(pv&&el)pv.innerHTML=el.value.trim()?renderRichText(el.value):'Pratinjau akan muncul di sini...'});if(window.MathJax?.typesetPromise)MathJax.typesetPromise(pairs.map(x=>$(x[1])).filter(Boolean)).catch(()=>{})}
 let draftT;function saveDraftDebounced(){clearTimeout(draftT);draftT=setTimeout(()=>{localStorage.setItem(DRAFT,JSON.stringify(collect()));$('draftStatus').textContent='Draft otomatis tersimpan • '+new Date().toLocaleTimeString('id-ID')},400)}
 ['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','qImageUrl','explanation','scoring'].forEach(id=>{let el=$(id);if(el)el.addEventListener('input',changed)});
-$('qImageFile').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{imageData=r.result;imageRotation=0;showImage();changed()};r.readAsDataURL(f)});
+$('qImageFile')?.addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{imageData=r.result;imageRotation=0;showImage();changed()};r.readAsDataURL(f)});
 
 document.addEventListener('paste',e=>{
  const items=[...(e.clipboardData?.items||[])];
@@ -707,7 +717,7 @@ document.addEventListener('paste',e=>{
  };
  r.readAsDataURL(file);
 });
-function showImage(){let u=imageData||$('qImageUrl').value;$('qImagePreview').innerHTML=u?`<img class="qimg" src="${esc(u)}" style="transform:rotate(${imageRotation}deg)">`:''}
+function showImage(){let urlEl=$('qImageUrl'),pv=$('qImagePreview');if(!urlEl||!pv)return;let u=imageData||urlEl.value;pv.innerHTML=u?`<img class="qimg" src="${esc(u)}" style="transform:rotate(${imageRotation}deg)">`:''}
 function rotateImage(){imageRotation=(imageRotation+90)%360;showImage();changed()}
 function clearImage(){imageData='';$('qImageUrl').value='';imageRotation=0;showImage();changed()}
 function showExplanationImage(){
@@ -725,7 +735,7 @@ setTimeout(()=>{
 },0);
 
 function collect(){
- return {id:editingId||uid(),type:currentType,jenjang:$('jenjang').value,mapel:$('mapel').value,kelas:$('kelas').value,difficulty:$('difficulty').value,topik:$('topik').value,subtopik:$('subtopik').value,status:'Siap Pakai',tags:$('tags').value,question:$('question').value,image:imageData||$('qImageUrl').value,imageRotation,answers:(()=>{let a=JSON.parse(JSON.stringify(answerState));a.optionImages=a.optionImages||{};Object.keys(a.optionImageData||{}).forEach(k=>{if(a.optionImageData[k])a.optionImages[k]=a.optionImageData[k]});return a})(),explanation:$('explanation').value,explanationImage:explanationImageData||$('explanationImageUrl')?.value||'',explanationImagePosition:$('explanationImagePosition')?.value||'bottom',explanationImageAlign:$('explanationImageAlign')?.value||'center',explanationImageWidth:Number($('explanationImageWidth')?.value||50),score:1,scoring:$('scoring').value,source:'',updatedAt:new Date().toISOString()}
+ return {id:editingId||uid(),type:currentType,jenjang:$('jenjang').value,mapel:$('mapel').value,kelas:$('kelas').value,difficulty:$('difficulty').value,topik:$('topik').value,subtopik:$('subtopik').value,status:'Siap Pakai',tags:$('tags').value,question:$('question').value,image:imageData||$('qImageUrl')?.value||'',imageRotation,answers:(()=>{let a=JSON.parse(JSON.stringify(answerState));a.optionImages=a.optionImages||{};Object.keys(a.optionImageData||{}).forEach(k=>{if(a.optionImageData[k])a.optionImages[k]=a.optionImageData[k]});return a})(),explanation:$('explanation').value,explanationImage:explanationImageData||$('explanationImageUrl')?.value||'',explanationImagePosition:$('explanationImagePosition')?.value||'bottom',explanationImageAlign:$('explanationImageAlign')?.value||'center',explanationImageWidth:Number($('explanationImageWidth')?.value||50),score:1,scoring:$('scoring').value,source:'',updatedAt:new Date().toISOString()}
 }
 function validate(q=collect()){
  let errs=[];if(!q.question.trim())errs.push('Pertanyaan belum diisi');
@@ -735,11 +745,11 @@ function validate(q=collect()){
  let el=$('validation');if(el){el.className='notice '+(errs.length?'bad':'good');el.innerHTML=errs.length?'⚠️ '+errs.join(' • '):'✓ Soal siap disimpan.'}return errs
 }
 function saveQuestion(){return saveCurrentToPackage()}
-function updatePreview(){showImage();showExplanationImage();updateMathPreviews()}
+function updatePreview(){try{showImage()}catch(e){}try{showExplanationImage()}catch(e){}updateMathPreviews()}
 function questionHTML(q,interactive=true){
- let h=`<div class="tags"><span class="tag">${esc(typeName(q.type))}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.difficulty)}</span></div><h3 style="line-height:1.5">${q.question?esc(cleanAIMathText(q.question)).replace(/\n/g,'<br>'):'<span class="small">Pertanyaan akan tampil di sini…</span>'}</h3>`;
+ let h=`<div class="tags"><span class="tag">${esc(typeName(q.type))}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.difficulty)}</span></div><h3 style="line-height:1.5">${q.question?renderRichText(q.question):'<span class="small">Pertanyaan akan tampil di sini…</span>'}</h3>`;
  if(q.image)h+=`<img class="qimg" src="${esc(q.image)}" style="transform:rotate(${q.imageRotation||0}deg)">`;
- if(['pg5','pg4','mcma'].includes(q.type))q.answers.options.forEach((o,i)=>{let typ=q.type==='mcma'?'checkbox':'radio';h+=`<div class="pv-option"><label>${interactive?`<input type="${typ}" name="pvans" value="${i}">`:''}<b>${'ABCDE'[i]}.</b> <span>${esc(cleanAIMathText(o))}</span></label>${(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i])?positionedImageHTML(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i],'option',q.answers.optionImageAlign?.[i]||'center',q.answers.optionImageWidth?.[i]||50):''}</div>`});
+ if(['pg5','pg4','mcma'].includes(q.type))q.answers.options.forEach((o,i)=>{let typ=q.type==='mcma'?'checkbox':'radio';h+=`<div class="pv-option"><label>${interactive?`<input type="${typ}" name="pvans" value="${i}">`:''}<b>${'ABCDE'[i]}.</b> <span>${renderRichText(o)}</span></label>${(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i])?positionedImageHTML(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i],'option',q.answers.optionImageAlign?.[i]||'center',q.answers.optionImageWidth?.[i]||50):''}</div>`});
  else if(q.type==='kategori')q.answers.statements.forEach((s,i)=>h+=`<div class="pv-option"><b>${i+1}.</b> ${esc(cleanAIMathText(s.text))} ${interactive?`<select class="catans" data-i="${i}" style="margin-top:7px"><option value="">Pilih...</option><option>Benar</option><option>Salah</option></select>`:''}</div>`);
  else if(q.type==='isian')h+=interactive?'<input id="pvShort" placeholder="Ketik jawaban...">':'<div class="notice">Jawaban singkat</div>';
  else h+=interactive?'<textarea id="pvEssay" placeholder="Tuliskan jawaban esai..."></textarea>':'<div class="notice">Jawaban esai</div>';
@@ -751,7 +761,9 @@ function positionedImageHTML(src,pos,align,width){
  return `<div class="positioned-qimg" data-position="${esc(pos||'bottom')}" style="display:flex;justify-content:${map[align]||'center'};margin:10px 0"><img src="${esc(src)}" style="max-width:${w}%;width:auto;height:auto;border-radius:8px"></div>`;
 }
 function renderExplanationWithImage(q){
- let raw=cleanAIMathText(q.explanation||''),img=positionedImageHTML(q.explanationImage,q.explanationImagePosition,q.explanationImageAlign,q.explanationImageWidth);
+ let raw=cleanAIMathText(q.explanation||'');
+ if(/\[GAMBAR\|(?:left|center|right)\|(?:25|33|50|67|75|100)\]/.test(raw))return '<div class="sep"></div><b>Pembahasan:</b><br>'+renderRichText(raw);
+ let img=positionedImageHTML(q.explanationImage,q.explanationImagePosition,q.explanationImageAlign,q.explanationImageWidth);
  let body='';
  if(q.explanationImage&&((q.explanationImagePosition||'bottom')==='middle')){
    let marker='[[GAMBAR]]',parts=raw.split(marker);
