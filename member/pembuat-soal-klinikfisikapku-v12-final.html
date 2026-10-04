@@ -263,11 +263,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <script src="https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.umd.cjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js?v=20261003-v12"></script><script src="supabase-publisher-v15.js?v=20261003-v12"></script><style id="kf-ai-dual-provider">
-#page-ai .aihero .notice{border:1px solid rgba(255,255,255,.45)}
-#aiProvider{font-weight:800}
-.ai-review-note{margin-top:10px}
-</style></head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="supabase-config.js?v=20261003-v12"></script><script src="supabase-publisher-v15.js?v=20261003-v12"></script></head>
 <body><div id="kfV12AuthGate" style="position:fixed;inset:0;z-index:2147483647;background:#f7f1fb;display:grid;place-items:center;font-family:Arial,sans-serif"><div style="max-width:460px;margin:24px;padding:28px;border-radius:20px;background:white;box-shadow:0 18px 60px rgba(74,25,100,.18);text-align:center"><div style="font-size:34px">🔐</div><h2 style="margin:10px 0 6px;color:#381452">Memeriksa Akses Admin</h2><p id="kfV12AuthText" style="margin:0;color:#725f7c;line-height:1.5">Studio V12 hanya dapat digunakan oleh Super Admin yang aktif.</p></div></div>
 <style id="kfV12GateStyle">body > *:not(#kfV12AuthGate):not(#kfV12GateStyle):not(script){visibility:hidden!important}</style>
 <script>
@@ -329,7 +325,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <div id="validation" class="notice" style="margin-top:10px">Lengkapi soal untuk melihat validasi.</div><div class="actions" style="margin-top:10px"><button class="btn ok" onclick="saveCurrentToPackage()">✓ Simpan Soal Ini</button><button class="btn" onclick="previewCurrent()">👁 Preview Soal</button><button class="btn danger" onclick="clearPackageEditor()">Bersihkan Isian</button></div><div id="draftStatus" class="small" style="margin-top:8px">Draft otomatis aktif.</div>
 </div></section>
 <section id="page-ai" class="page">
-<div class="card aihero"><h2>✨ AI Generator Soal</h2><div class="sub">Buat draft dengan ChatGPT atau Gemini melalui Google Apps Script. Hasil AI wajib ditinjau sebelum masuk Bank Soal dan dipublikasikan ke Supabase.</div><div class="row" style="margin-top:12px"><div><label style="color:#fff">Mesin AI</label><select id="aiProvider"><option value="openai">ChatGPT (OpenAI)</option><option value="gemini" selected>Gemini</option></select></div><div><label style="color:#fff">Status alur</label><div class="notice" style="background:#ffffffdd;color:#522076">AI → Review → Bank V12 → Latihan/Tryout → Supabase</div></div></div>
+<div class="card aihero"><h2>✨ AI Generator Soal — Gemini</h2><div class="sub">Buat draft soal dengan Gemini melalui Google Apps Script. Hasil AI wajib ditinjau sebelum masuk Bank Soal dan dipublikasikan ke Supabase.</div><div class="notice ai-review-note" style="background:#ffffffdd;color:#522076">Gemini → Review/Edit → Bank V12 → Latihan/Tryout → Supabase</div>
 <div class="row"><div><label style="color:#fff">Jenjang</label><select id="aiJenjang"><option>SD</option><option>SMP</option><option selected>SMA</option></select></div><div><label style="color:#fff">Mapel</label><input id="aiMapel" value="Fisika"></div><div><label style="color:#fff">Topik</label><input id="aiTopik" value="Hukum Coulomb"></div><div><label style="color:#fff">Kesulitan</label><select id="aiDiff"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div></div>
 <div class="row" style="margin-top:10px"><div><label style="color:#fff">Jenis</label><select id="aiType"><option value="pg5">PG 5 opsi</option><option value="pg4">PG 4 opsi</option><option value="mcma">MCMA</option><option value="kategori">Kategori</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label style="color:#fff">Jumlah</label><input id="aiCount" type="number" min="1" max="50" value="5"><div class="small">Maksimal 50 soal. Jika lebih dari 10, AI diproses bertahap agar lebih stabil.</div></div><div><label style="color:#fff">Mode</label><select id="aiMode"><option value="topic">Dari Topik</option><option value="material">Dari Materi</option><option value="similar">Soal Serupa</option></select></div></div>
 <label style="color:#fff;margin-top:10px">Materi / Instruksi Tambahan</label><textarea id="aiMaterial" placeholder="Paste materi, kompetensi, atau instruksi khusus di sini..."></textarea>
@@ -559,9 +555,7 @@ function aiQuestion(i){
 let aiDrafts=[];
 async function generateAIBatch(batchCount){
  let n=Math.max(1,Math.min(10,Number(batchCount)||1)),c=getConnection();
- let provider=($("aiProvider")?.value||"gemini");
  let payload={
-   provider,
    jenjang:$('aiJenjang').value,
    topik:$('aiTopik').value,
    tipe:$('aiType').value,
@@ -571,8 +565,8 @@ async function generateAIBatch(batchCount){
  };
  if(!c.url)throw new Error('URL Apps Script belum diisi pada menu Koneksi.');
  $('aiResults').innerHTML='<div class="notice">✨ Gemini sedang membuat '+n+' soal...</div>';
- let r=await postGAS('generateAI',payload).catch(async e=>{ if(provider==='gemini') return await postGAS('generate',payload); throw e; });
- if(!r||!Array.isArray(r.questions))throw new Error('Format respons AI tidak sesuai.');
+ let r=await postGAS('generateAI',payload).catch(async()=>await postGAS('generate',payload));
+ if(!r||!Array.isArray(r.questions))throw new Error('Format respons Gemini tidak sesuai.');
  let batch=r.questions.map(normalizeAIQuestion);
  aiDrafts=batch;renderAI();
  return batch;
@@ -672,7 +666,7 @@ async function syncOnline(){
    $('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Sinkron selesai. '+merged.length+' soal tersedia.';
  }catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ Sinkron gagal: '+e.message}
 }
-async function testAIConnection(){try{let provider=($('aiProvider')?.value||'gemini');let r=await postGAS('assistant',{provider,jenis:'uji koneksi',text:'Balas hanya dengan kata OK'});$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ '+(provider==='openai'?'ChatGPT':'Gemini')+' merespons: '+(r.text||r.message||'OK')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ AI belum terhubung: '+e.message}}
+async function testAIConnection(){try{let r=await postGAS('assistant',{jenis:'uji koneksi',text:'Balas hanya dengan kata OK'});$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Gemini merespons: '+(r.text||r.message||'OK')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ Gemini belum terhubung: '+e.message}}
 function normalizeAIQuestion(q){
  let type=String(q.type||q.tipe||$('aiType').value).toLowerCase(),n=type==='pg4'?4:5;
  let options=Array.isArray(q.opsi)?q.opsi:(q.answers?.options||[]);
@@ -682,7 +676,7 @@ function normalizeAIQuestion(q){
  let answers=q.answers||{options:options.slice(0,n),keys,short:'',essayKey:'',statements:[]};
  if(type==='isian')answers={options:[],keys:[],short:String(Array.isArray(rawKey)?rawKey[0]??'':rawKey??''),essayKey:'',statements:[]};
  if(type==='esai')answers={options:[],keys:[],short:'',essayKey:String(Array.isArray(rawKey)?rawKey[0]??'':rawKey??''),statements:[]};
- return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:q.question||q.soal||'',image:q.image||'',imageRotation:0,answers,explanation:q.explanation||q.pembahasan||'',explanationImage:'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:(q.source||(($('aiProvider')?.value||'gemini')==='openai'?'ChatGPT AI':'Gemini AI')),aiProvider:($('aiProvider')?.value||'gemini'),reviewStatus:'draft',updatedAt:new Date().toISOString()}
+ return {id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:q.question||q.soal||'',image:q.image||'',imageRotation:0,answers,explanation:q.explanation||q.pembahasan||'',explanationImage:'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:(q.source||'Gemini AI'),aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()}
 }
 async function importDocx(file){
  if(!window.mammoth){$('importResult').innerHTML='<div class="notice bad">Library DOCX belum termuat. Pastikan internet aktif saat membuka halaman.</div>';return}
