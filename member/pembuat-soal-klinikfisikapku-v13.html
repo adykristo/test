@@ -1274,12 +1274,45 @@ let packageEditId=null;
 
 let practiceState={package:null,current:0,answers:[]};
 
+async function v13SubmissionDb(){
+ const db=window.KFMemberAuth?.client||window.KFSupabaseAdmin?.client;if(!db)throw new Error('Supabase belum siap.');
+ const s=await db.auth.getSession(),user=s?.data?.session?.user;if(!user)throw new Error('Peserta belum login.');
+ return {db,user};
+}
+function v13AnswerData(q,a){
+ if(['pg5','pg4'].includes(q.type))return {selected:Number.isInteger(a)?'ABCDE'[a]:null,index:Number.isInteger(a)?a:null};
+ if(q.type==='mcma')return {selected:Array.isArray(a)?a.map(i=>'ABCDE'[i]):[],indexes:Array.isArray(a)?a:[]};
+ if(q.type==='kategori')return {answers:Object.keys(a||{}).sort((x,y)=>Number(x)-Number(y)).map(k=>(a||{})[k]||'')};
+ if(q.type==='isian')return {text:String(a??'')};
+ return {text:String(a??'')};
+}
+async function saveObjectiveParticipantSubmission(q,a,grade,pkg,attemptId){
+ if(q.type==='esai')return null;
+ const {db,user}=await v13SubmissionDb();
+ const row={participant_id:user.id,package_id:String(pkg?.id||pkg?.kf_package_id||''),question_id:String(q.id||q.question_id||q.uid||''),question_type:String(q.type||''),answer_data:v13AnswerData(q,a),is_correct:grade?.correct===true,score:Number(grade?.score||0),max_score:Number(grade?.max||1),attempt_id:attemptId||null,answered_at:new Date().toISOString()};
+ const r=await db.from('question_submissions').upsert(row,{onConflict:'participant_id,package_id,question_id,attempt_id'}).select().single();if(r.error)throw r.error;return r.data;
+}
+async function saveAssessmentAttempt(pkg,answers,grades,status='submitted'){
+ const {db,user}=await v13SubmissionDb(),attemptId=practiceState.attemptId||crypto.randomUUID(),auto=grades.filter(g=>g.auto),earned=auto.reduce((s,g)=>s+Number(g.score||0),0),max=auto.reduce((s,g)=>s+Number(g.max||0),0);
+ practiceState.attemptId=attemptId;
+ const row={id:attemptId,participant_id:user.id,package_id:String(pkg?.id||pkg?.kf_package_id||''),package_name:String(pkg?.name||''),assessment_kind:String(pkg?.kind||'latihan'),status,total_questions:(pkg?.questions||[]).length,answered_questions:(pkg?.questions||[]).filter((q,i)=>practiceAnswered(i)).length,objective_score:max?Math.round(earned/max*10000)/100:null,started_at:practiceState.startedAt||new Date().toISOString(),submitted_at:status==='submitted'?new Date().toISOString():null,updated_at:new Date().toISOString()};
+ const r=await db.from('assessment_attempts').upsert(row,{onConflict:'id'}).select().single();if(r.error)throw r.error;return r.data;
+}
+async function persistAllPracticeAnswers(pkg,answers,grades){
+ await saveAssessmentAttempt(pkg,answers,grades,'in_progress');
+ const jobs=(pkg.questions||[]).map(async(q,i)=>{
+   if(!practiceAnswered(i))return null;
+   if(q.type==='esai')return saveEssayParticipantSubmission({question_id:String(q.id||q.question_id||q.uid||''),package_id:String(pkg.id||pkg.kf_package_id||''),answer_text:String(answers[i]??''),answer_file_url:''});
+   return saveObjectiveParticipantSubmission(q,answers[i],grades[i],pkg,practiceState.attemptId);
+ });
+ await Promise.all(jobs);return saveAssessmentAttempt(pkg,answers,grades,'submitted');
+}
 function startPractice(id){
  const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
  const qs=Array.isArray(p.questions)?p.questions.filter(q=>q&&String(q.question||'').trim()):[];
  if(!qs.length)return alert('Paket ini belum memiliki isi soal yang valid.');
  const safe=JSON.parse(JSON.stringify(p));safe.questions=qs;
- practiceState={package:safe,current:0,answers:qs.map(()=>null)};
+ practiceState={package:safe,current:0,answers:qs.map(()=>null),attemptId:crypto.randomUUID(),startedAt:new Date().toISOString()};
  nav('practice');$('practiceStart').style.display='none';$('practiceResult').style.display='none';$('practiceWork').style.display='block';
  $('practiceTitle').textContent=p.name;$('practiceMeta').textContent=qs.length+' soal';
  renderPractice();
@@ -1346,13 +1379,14 @@ function studentAnswerText(q,a){
  if(q.type==='kategori')return (q.answers?.statements||[]).map((x,i)=>(i+1)+'. '+((a||{})[i]||'-')).join('; ');
  return String(a||'Belum dijawab');
 }
-function finishPractice(){
+async function finishPractice(){
  const p=practiceState.package;if(!p)return;
  let unanswered=p.questions.map((q,i)=>practiceAnswered(i)?null:i+1).filter(Boolean);
  if(unanswered.length&&!confirm('Masih ada soal belum dijawab: '+unanswered.join(', ')+'. Tetap cek hasil?'))return;
  let grades=p.questions.map((q,i)=>gradePracticeQuestion(q,practiceState.answers[i])),auto=grades.filter(g=>g.auto),manual=grades.filter(g=>!g.auto).length;
  let earned=auto.reduce((a,g)=>a+g.score,0),max=auto.reduce((a,g)=>a+g.max,0),score=max?Math.round(earned/max*100):0;
  let correct=auto.filter(g=>g.correct===true).length,wrong=auto.length-correct;
+ try{await persistAllPracticeAnswers(p,practiceState.answers,grades)}catch(e){console.error('[V13 submissions]',e);alert('Hasil dihitung, tetapi penyimpanan jawaban ke Supabase gagal: '+(e?.message||e));return;}
  $('practiceWork').style.display='none';$('practiceResult').style.display='block';
  $('practiceResult').innerHTML=`<div class="card"><h2>📊 Hasil Latihan — ${esc(p.name)}</h2>
  <div class="result-summary"><div class="result-box"><b>${score}</b>Nilai Objektif</div><div class="result-box"><b>${correct}</b>Benar</div><div class="result-box"><b>${wrong}</b>Salah/Parsial</div><div class="result-box"><b>${manual}</b>Perlu Guru</div></div>
@@ -1369,7 +1403,7 @@ function practiceResultItem(q,i,a,g){
  <div class="result-answer"><b>Kunci:</b> ${renderMathText(answerKeyText(q))}</div>
  ${q.explanation?`<div class="result-answer"><b>Pembahasan:</b> ${renderMathText(q.explanation)}</div>`:''}</div>`;
 }
-function retryPractice(){let p=practiceState.package;practiceState={package:p,current:0,answers:p.questions.map(()=>null)};$('practiceResult').style.display='none';$('practiceWork').style.display='block';renderPractice()}
+function retryPractice(){let p=practiceState.package;practiceState={package:p,current:0,answers:p.questions.map(()=>null),attemptId:crypto.randomUUID(),startedAt:new Date().toISOString()};$('practiceResult').style.display='none';$('practiceWork').style.display='block';renderPractice()}
 
 function showExportMenu(id,format){$('exportPackageId').value=id;$('exportFormat').value=format;$('exportModal').classList.add('show')}
 function runPackageExport(){
