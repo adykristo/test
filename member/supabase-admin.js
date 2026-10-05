@@ -19,7 +19,22 @@
     client: supabase,
 
     ensureAdmin: async function () {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      // OAuth callback dapat kembali ke halaman beberapa saat sebelum sesi selesai
+      // dipulihkan dari URL/storage. Jangan langsung menampilkan gate login.
+      let session = null;
+      let sessionError = null;
+      for (let i = 0; i < 12; i++) {
+        const res = await supabase.auth.getSession();
+        session = res && res.data ? res.data.session : null;
+        sessionError = res ? res.error : null;
+        if (session || sessionError) break;
+        const oauthCallback = /access_token|refresh_token|code=|error_description/.test(
+          window.location.href
+        );
+        if (!oauthCallback && i >= 2) break;
+        await new Promise(function (resolve) { setTimeout(resolve, 250); });
+      }
+
       if (sessionError) {
         console.error("Gagal membaca sesi Admin:", sessionError);
         return false;
