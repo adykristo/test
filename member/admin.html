@@ -2080,10 +2080,11 @@ function renderPkgManagers(){
  [["latihan","latihanPackageManager"],["tryout","tryoutPackageManager"]].forEach(([kind,target])=>{
   let box=document.getElementById(target);if(!box)return;let a=pkgGet(kind);
   box.innerHTML=a.length?a.map(p=>`<div class="pkg-card">
-   <div class="head"><div><b>${h(p.name)}</b><div class="pkg-meta">${p.questions.length} soal · ${p.visible?"Dipublikasikan":"Draf"}${kind==="tryout"?` · ${Number(p.duration)||90} menit · Akses: ${h(p.subscription||"Semua Paket Aktif")}`:" · Akses: "+h(p.subscription||"Semua Paket Aktif")}</div></div></div>
+   <div class="head"><div><b>${h(p.name)}</b><div class="pkg-meta">${p.questions.length} soal · ${p.visible?"Dipublikasikan":"Draf"}${kind==="tryout"?` · ${Number(p.duration)||90} menit`:""} · <b>Tujuan: ${h(p.targetPackageName||"BELUM DIPILIH")}</b></div></div></div>
    <div class="pkg-actions">
     <button class="btn small" onclick="bukaPkgEditor('${kind}','${p.id}')">✎ Atur & Edit Soal</button>
     <button class="btn ghost small" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal V13</button>
+    <button class="btn ghost small" onclick="aturTujuanPaketLokal('${kind}','${p.id}')">👥 Atur Paket Peserta</button>
     <button class="btn ghost small" onclick="duplikatPkg('${kind}','${p.id}')">Duplikat</button>
     <button class="btn ghost small" onclick="eksporPaketWord('${kind}','${p.id}')">📄 Word</button>
     <button class="btn ghost small" onclick="eksporPaketPDF('${kind}','${p.id}')">📕 PDF</button>
@@ -2091,6 +2092,23 @@ function renderPkgManagers(){
     <button class="btn danger small" onclick="hapusPkg('${kind}','${p.id}')">Hapus</button>
    </div></div>`).join(""):'<div class="sub">Belum ada paket. Buat paket lalu ambil soal dari Bank V13.</div>';
  })
+}
+async function aturTujuanPaketLokal(kind,id){
+ const p=getPkg(kind,id);if(!p)return;
+ try{await loadPackageCore()}catch(e){return KFUI.toast("Daftar Paket Peserta gagal dimuat: "+(e?.message||e),"err",6000)}
+ const active=KF_PACKAGES_NEW.filter(x=>x.aktif);
+ if(!active.length)return KFUI.toast("Belum ada Paket Peserta aktif.","info",5000);
+ let dlg=document.getElementById("kfSingleTargetDialog");
+ if(!dlg){dlg=document.createElement("dialog");dlg.id="kfSingleTargetDialog";dlg.className="member-dialog";dlg.style.maxWidth="680px";document.body.appendChild(dlg)}
+ dlg.dataset.kind=kind;dlg.dataset.localId=id;
+ dlg.innerHTML='<div class="dialog-head"><div><b style="font-size:18px">Pilih 1 Paket Peserta</b><small style="display:block;opacity:.8">'+h(p.name)+' • '+p.questions.length+' soal</small></div><button type="button" onclick="this.closest(\'dialog\').close()">×</button></div><div class="dialog-body"><div style="display:grid;gap:8px;max-height:420px;overflow:auto">'+active.map(x=>'<label style="display:flex;gap:10px;align-items:flex-start;border:1px solid #eadcf7;border-radius:10px;padding:11px;cursor:pointer"><input type="radio" name="kfSingleTarget" value="'+h(x.id)+'" data-name="'+h(x.nama||x.kode||"Paket")+'" '+(String(p.targetPackageId||"")===String(x.id)?"checked":"")+'><span><b>'+h(x.nama||x.kode||"Paket")+'</b><small style="display:block;color:#777">'+h([x.jenjang,x.kode].filter(Boolean).join(" • "))+'</small></span></label>').join("")+'</div><div class="row-actions" style="justify-content:flex-end;margin-top:14px"><button class="btn ghost" onclick="document.getElementById(\'kfSingleTargetDialog\').close()">Batal</button><button class="btn" onclick="simpanTujuanPaketLokal()">💾 Simpan Tujuan</button></div></div>';
+ dlg.showModal();
+}
+function simpanTujuanPaketLokal(){
+ const dlg=document.getElementById("kfSingleTargetDialog"),r=dlg?.querySelector('input[name="kfSingleTarget"]:checked');
+ if(!r)return KFUI.toast("Pilih satu Paket Peserta terlebih dahulu.","info");
+ const p=getPkg(dlg.dataset.kind,dlg.dataset.localId);if(!p)return;
+ p.targetPackageId=r.value;p.targetPackageName=r.dataset.name||"Paket Peserta";p.visible=false;savePkgObj(dlg.dataset.kind,p);dlg.close();renderPkgManagers();KFUI.toast("Tujuan paket disimpan. Paket kembali menjadi Draf sampai dipublikasikan.","ok",4500);
 }
 
 
@@ -2182,13 +2200,17 @@ async function publikasiPkg(kind,id){
  // Paket yang berasal dari Bank Soal V13 harus selalu ditandai V13 sebelum publish.
  // ID lokal tetap dipertahankan agar sinkron ulang melakukan upsert paket yang sama, bukan membuat duplikat.
  p.sourceVersion=13;
- const ok=await KFUI.confirm('Publikasikan/sinkronkan "'+p.name+'" ('+p.questions.length+' soal) ke Supabase?','Publikasikan Paket');
+ if(!p.targetPackageId)return KFUI.toast("Pilih Paket Peserta tujuan terlebih dahulu melalui tombol 👥 Atur Paket Peserta.","err",6000);
+ const ok=await KFUI.confirm('PUBLIKASIKAN PAKET INI?\n\nSoal: '+p.name+'\nJenis: '+(kind==="tryout"?"Tryout":"Latihan")+'\nJumlah: '+p.questions.length+' soal\n\nTUJUAN PESERTA:\n'+p.targetPackageName+'\n\nHanya paket peserta tersebut yang akan diberi akses.','Konfirmasi Tujuan Paket');
  if(!ok)return;
  try{
-   await window.KFPackagePublisher.publish(p);
+   const finalPack=await window.KFPackagePublisher.publish(p);
+   const db=kfdb();
+   const del=await db.from("kf_package_access").delete().eq("kf_package_id",finalPack.id);if(del.error)throw del.error;
+   const ins=await db.from("kf_package_access").insert({kf_package_id:finalPack.id,member_package_id:p.targetPackageId});if(ins.error)throw ins.error;
    p.visible=true;savePkgObj(kind,p);
-   KFUI.toast("Paket final dan seluruh soal berhasil tersimpan di Supabase.","ok",4200);
-   await renderSupabasePackageStatus();
+   KFUI.toast("Berhasil. Paket hanya dikirim ke: "+p.targetPackageName,"ok",5000);
+   renderPkgManagers();await renderSupabasePackageStatus();await renderAccessManagers();
  }catch(e){KFUI.toast("Gagal publikasi Supabase: "+e.message,"err",6000)}
 }
 window.addEventListener("load",()=>{renderPkgManagers();let f=document.getElementById("v12Frame");if(f)f.addEventListener("load",()=>setTimeout(()=>bacaBankV12(),250));setTimeout(()=>{if(location.hash==='#latihan'){openPanel('latihan');renderPkgManagers()}else if(location.hash==='#tryout'){openPanel('tryout');renderPkgManagers()}},250)});
