@@ -1543,10 +1543,10 @@ function openPanel(id, b) {
         const m=MEMBER_CACHE.find(x=>String(x.id)===String(memberId)); if(!m)return;
         try{
           const own=await kfdb().rpc("kf_admin_member_packages",{p_user:memberId});if(own.error)throw own.error;
-          const cat=await kfdb().from("member_packages").select("id,nama,aktif,urutan").eq("aktif",true).order("urutan");if(cat.error)throw cat.error;
+          const cat=await kfdb().from("member_packages").select("id,nama,kode,jenjang,aktif,urutan").eq("aktif",true).order("urutan");if(cat.error)throw cat.error;
           const active=(own.data||[]).filter(x=>String(x.status||"").toLowerCase()==="active");
           const activeText=active.length?active.map((x,i)=>(i+1)+". "+x.package_name).join("\n"):"Belum ada paket aktif";
-          const mode=await KFUI.prompt("Paket aktif untuk "+(m.nama||"Member")+":\n\n"+activeText+"\n\nKetik 1 untuk membatalkan paket, atau 2 untuk menambahkan paket.","","Kelola Paket Peserta");
+          const mode=await KFUI.prompt("Paket aktif untuk "+(m.nama||"Member")+":\n\n"+activeText+"\n\n1 = Batalkan satu paket\n2 = Tambahkan satu paket\n3 = Aktifkan SEMUA Paket SD\n4 = Aktifkan SEMUA Paket SMP\n5 = Aktifkan SEMUA Paket SMA","","Kelola Paket Peserta");
           if(mode===null)return;
           if(mode.trim()==="1"){
             if(!active.length)return KFUI.toast("Tidak ada paket aktif yang dapat dibatalkan.","info");
@@ -1567,7 +1567,15 @@ function openPanel(id, b) {
             const note=await KFUI.prompt("Catatan Admin:","Paket pengganti setelah koreksi Admin","Catatan Admin");if(note===null)return;
             const r=await kfdb().rpc("kf_admin_grant_member_package",{p_user:memberId,p_package:p.id,p_note:note});if(r.error)throw r.error;
             KFUI.toast(p.nama+" berhasil diaktifkan.","ok");
-          }else return KFUI.toast("Pilih 1 atau 2.","err");
+          }else if(["3","4","5"].includes(mode.trim())){
+            const level=mode.trim()==="3"?"SD":mode.trim()==="4"?"SMP":"SMA";
+            const levelPkgs=(cat.data||[]).filter(x=>String(x.jenjang||"").toUpperCase()===level);
+            if(!levelPkgs.length)return KFUI.toast("Tidak ada paket "+level+" aktif.","err",5000);
+            if(!(await KFUI.confirm("Aktifkan SEMUA "+levelPkgs.length+" Paket "+level+" untuk "+m.nama+"?\n\nSetelah aktif, peserta dapat menerima Latihan/Tryout yang diarahkan ke Paket "+level+" 1–12.","Aktifkan Semua Paket "+level)))return;
+            const note=await KFUI.prompt("Catatan Admin:","Aktivasi semua Paket "+level,"Catatan Aktivasi");if(note===null)return;
+            const r=await kfdb().rpc("kf_admin_grant_level_packages",{p_user:memberId,p_jenjang:level,p_note:note});if(r.error)throw r.error;
+            KFUI.toast("Berhasil: "+(r.data?.packages_granted||levelPkgs.length)+" Paket "+level+" aktif untuk "+m.nama+".","ok",5500);
+          }else return KFUI.toast("Pilih 1, 2, 3, 4, atau 5.","err");
           await renderMemberAdmin();
         }catch(e){
           const msg=String(e&&e.message||e);
