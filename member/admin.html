@@ -2503,21 +2503,12 @@ async function aturAksesFinal(kfid,kind){
  const active=KF_PACKAGES_NEW.filter(p=>p.aktif);
  if(!active.length)return KFUI.toast("Belum ada Paket Peserta aktif.","info",5000);
  KF_ACCESS_EDITOR={kfid,kind};
- let selected=new Set();
- try{
-  const q=await kfdb().from("kf_package_access").select("member_package_id").eq("kf_package_id",kfid);
-  if(q.error)throw q.error;(q.data||[]).forEach(x=>selected.add(String(x.member_package_id)));
- }catch(e){console.warn("[KF akses]",e)}
+ let selected="";
+ try{const q=await kfdb().from("kf_package_access").select("member_package_id").eq("kf_package_id",kfid).limit(1);if(q.error)throw q.error;selected=String(q.data?.[0]?.member_package_id||"")}catch(e){console.warn("[KF akses]",e)}
  let dlg=document.getElementById("kfAccessDialog");
- if(!dlg){
-  dlg=document.createElement("dialog");dlg.id="kfAccessDialog";dlg.className="member-dialog";dlg.style.maxWidth="760px";
-  dlg.innerHTML='<div class="dialog-head"><div><b style="font-size:18px">Atur Paket Peserta</b><small id="kfAccessSub" style="display:block;opacity:.8"></small></div><button type="button" onclick="document.getElementById(\'kfAccessDialog\').close()">×</button></div><div class="dialog-body"><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><button class="btn small kf-level-btn" type="button" data-level="SD" onclick="kfAccessLevel(\'SD\',this)">SD</button><button class="btn ghost small kf-level-btn" type="button" data-level="SMP" onclick="kfAccessLevel(\'SMP\',this)">SMP</button><button class="btn ghost small kf-level-btn" type="button" data-level="SMA" onclick="kfAccessLevel(\'SMA\',this)">SMA</button><button class="btn ghost small kf-level-btn" type="button" data-level="ALL" onclick="kfAccessLevel(\'ALL\',this)">Semua Jenjang</button></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="btn ghost small" type="button" onclick="kfAccessCheck(true)">✓ Pilih Semua yang Tampil</button><button class="btn ghost small" type="button" onclick="kfAccessCheck(false)">Kosongkan yang Tampil</button><input id="kfAccessSearch" type="search" placeholder="Cari Paket 1, Paket 2..." oninput="kfAccessFilter()" style="min-width:220px;flex:1"></div><div id="kfAccessChoices" style="display:grid;grid-template-columns:repeat(3,minmax(150px,1fr));gap:8px;max-height:390px;overflow:auto;padding-right:4px"></div><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap"><b id="kfAccessCount">0 paket dipilih</b><div class="row-actions"><button class="btn ghost" type="button" onclick="document.getElementById(\'kfAccessDialog\').close()">Batal</button><button class="btn" type="button" onclick="kfAccessSave()">💾 Simpan Distribusi</button></div></div></div>';
-  document.body.appendChild(dlg);
- }
- document.getElementById("kfAccessSub").textContent=(kind==="tryout"?"Tryout Mingguan":"Soal Latihan")+" • centang paket yang boleh mengakses";
- const box=document.getElementById("kfAccessChoices");
- box.innerHTML=active.map(p=>{const level=String(p.jenjang||"").toUpperCase();return '<label class="kf-access-choice" data-level="'+escMember(level)+'" data-name="'+escMember((String(p.nama||"")+" "+String(p.kode||"")+" "+level).toLowerCase())+'" style="display:flex;gap:9px;align-items:flex-start;border:1px solid #eadcf7;border-radius:10px;padding:10px;background:#fff;cursor:pointer"><input class="kf-access-check" type="checkbox" value="'+escMember(p.id)+'" '+(selected.has(String(p.id))?'checked':'')+' onchange="kfAccessCount()"><span><b>'+escMember(p.nama||p.kode||"Paket")+'</b><small style="display:block;color:#777;margin-top:2px">'+escMember([level,p.kode].filter(Boolean).join(" • "))+'</small></span></label>'}).join("");
- document.getElementById("kfAccessSearch").value="";KF_ACCESS_EDITOR.level="SD";kfAccessApplyFilter();kfAccessCount();dlg.showModal();
+ if(!dlg){dlg=document.createElement("dialog");dlg.id="kfAccessDialog";dlg.className="member-dialog";dlg.style.maxWidth="700px";document.body.appendChild(dlg)}
+ dlg.innerHTML='<div class="dialog-head"><div><b style="font-size:18px">Atur 1 Paket Peserta</b><small style="display:block;opacity:.8">'+(kind==="tryout"?"Tryout Mingguan":"Soal Latihan")+' • satu paket soal hanya untuk satu paket peserta</small></div><button type="button" onclick="this.closest(\'dialog\').close()">×</button></div><div class="dialog-body"><div id="kfAccessChoices" style="display:grid;gap:8px;max-height:390px;overflow:auto">'+active.map(p=>'<label style="display:flex;gap:9px;align-items:flex-start;border:1px solid #eadcf7;border-radius:10px;padding:10px;background:#fff;cursor:pointer"><input class="kf-access-check" name="kfFinalSingleAccess" type="radio" value="'+escMember(p.id)+'" '+(selected===String(p.id)?"checked":"")+'><span><b>'+escMember(p.nama||p.kode||"Paket")+'</b><small style="display:block;color:#777;margin-top:2px">'+escMember([p.jenjang,p.kode].filter(Boolean).join(" • "))+'</small></span></label>').join("")+'</div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px"><button class="btn ghost" type="button" onclick="document.getElementById(\'kfAccessDialog\').close()">Batal</button><button class="btn" type="button" onclick="kfAccessSave()">💾 Simpan Tujuan</button></div></div>';
+ dlg.showModal();
 }
 function kfAccessCheck(on){document.querySelectorAll("#kfAccessChoices .kf-access-check").forEach(x=>{if(x.closest(".kf-access-choice").style.display!=="none")x.checked=on});kfAccessCount()}
 function kfAccessCount(){const n=document.querySelectorAll("#kfAccessChoices .kf-access-check:checked").length;const el=document.getElementById("kfAccessCount");if(el)el.textContent=n+" paket dipilih"}
@@ -2525,20 +2516,16 @@ function kfAccessLevel(level,btn){KF_ACCESS_EDITOR.level=level;document.querySel
 function kfAccessFilter(){kfAccessApplyFilter()}
 function kfAccessApplyFilter(){const q=(document.getElementById("kfAccessSearch")?.value||"").trim().toLowerCase(),level=KF_ACCESS_EDITOR.level||"SD";document.querySelectorAll("#kfAccessChoices .kf-access-choice").forEach(x=>{const okLevel=level==="ALL"||x.dataset.level===level,okSearch=!q||x.dataset.name.includes(q);x.style.display=okLevel&&okSearch?"flex":"none"})}
 async function kfAccessSave(){
- const ids=[...document.querySelectorAll("#kfAccessChoices .kf-access-check:checked")].map(x=>x.value);
- if(!ids.length){
-   const ok=await KFUI.confirm("Tidak ada paket peserta yang dipilih.\n\nJika dilanjutkan, seluruh akses paket peserta untuk Latihan/Tryout ini akan dihapus.","Hapus Seluruh Distribusi");
-   if(!ok)return;
- }
- const btn=document.querySelector("#kfAccessDialog .dialog-body .row-actions .btn:not(.ghost)");if(btn){btn.disabled=true;btn.textContent="Menyimpan…"}
+ const chosen=document.querySelector('#kfAccessDialog input[name="kfFinalSingleAccess"]:checked');
+ if(!chosen)return KFUI.toast("Pilih satu Paket Peserta terlebih dahulu.","info");
+ const id=chosen.value;
+ const btn=document.querySelector("#kfAccessDialog .dialog-body .btn:not(.ghost)");if(btn){btn.disabled=true;btn.textContent="Menyimpan…"}
  try{
-  const db=kfdb();const del=await db.from("kf_package_access").delete().eq("kf_package_id",KF_ACCESS_EDITOR.kfid);if(del.error)throw del.error;
-  if(ids.length){const ins=await db.from("kf_package_access").insert(ids.map(member_package_id=>({kf_package_id:KF_ACCESS_EDITOR.kfid,member_package_id})));if(ins.error)throw ins.error}
-  document.getElementById("kfAccessDialog").close();
-  KFUI.toast(ids.length?"Distribusi tersimpan untuk "+ids.length+" paket peserta.":"Seluruh distribusi paket peserta telah dikosongkan.","ok",5000);
-  await renderAccessManagers();
- }catch(e){KFUI.toast("Gagal menyimpan distribusi: "+(e?.message||e),"err",6000)}
- finally{if(btn){btn.disabled=false;btn.textContent="💾 Simpan Distribusi"}}
+  const db=kfdb(),del=await db.from("kf_package_access").delete().eq("kf_package_id",KF_ACCESS_EDITOR.kfid);if(del.error)throw del.error;
+  const ins=await db.from("kf_package_access").insert({kf_package_id:KF_ACCESS_EDITOR.kfid,member_package_id:id});if(ins.error)throw ins.error;
+  document.getElementById("kfAccessDialog").close();KFUI.toast("Tujuan paket peserta berhasil disimpan.","ok",4500);await renderAccessManagers();
+ }catch(e){KFUI.toast("Gagal menyimpan tujuan: "+(e?.message||e),"err",6000)}
+ finally{if(btn){btn.disabled=false;btn.textContent="💾 Simpan Tujuan"}}
 }
 
 /* V12 Focus */
