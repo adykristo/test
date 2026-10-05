@@ -2127,28 +2127,46 @@ async function kfBuildRenderedExport(kind,id,withKey){const p=getPkg(kind,id);if
 async function eksporPaketPDF(kind,id){let built;try{const withKey=await kfPilihModeEkspor();built=await kfBuildRenderedExport(kind,id,withKey);const w=window.open("","_blank");if(!w)throw new Error("Popup diblokir browser. Izinkan popup untuk membuat PDF.");const clone=built.host.cloneNode(true);clone.style.cssText="";w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+kfExportEsc(built.p.name)+'</title><style>'+KF_EXPORT_CSS+'</style></head><body>'+clone.innerHTML.replace(/^<style>[\s\S]*?<\/style>/,"")+'<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>');w.document.close();KFUI.toast("Tampilan cetak dibuka. Pilih Save as PDF.","ok",5000)}catch(e){KFUI.toast("PDF gagal dibuat: "+(e.message||e),"err",6000)}finally{if(built?.host)built.host.remove()}}
 async function eksporPaketWord(kind,id){let built;try{const withKey=await kfPilihModeEkspor();built=await kfBuildRenderedExport(kind,id,withKey);const clone=built.host.cloneNode(true);clone.style.cssText="";const html='<!doctype html><html><head><meta charset="utf-8"><style>'+KF_EXPORT_CSS+'</style></head><body>'+clone.innerHTML.replace(/^<style>[\s\S]*?<\/style>/,"")+'</body></html>',blob=new Blob(["\ufeff",html],{type:"application/msword"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=kfExportSafeName(built.p.name)+(withKey?" - Kunci Pembahasan":" - Soal")+".doc";a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);KFUI.toast("Word dibuat dari tampilan soal yang sudah dirender.","ok")}catch(e){KFUI.toast("Word gagal dibuat: "+(e.message||e),"err",6000)}finally{if(built?.host)built.host.remove()}}
 
-function bukaPkgEditor(kind,id){
+async function bukaPkgEditor(kind,id){
  let p=getPkg(kind,id);if(!p)return;PKG_EDIT={kind,id};
+ try{await loadPackageCore()}catch(e){console.warn("Paket peserta belum dapat dimuat:",e)}
  document.getElementById("pkgEditorTitle").textContent=(kind==="tryout"?"Paket Tryout · ":"Paket Latihan · ")+p.name;
+ const currentLevel=(p.targetLevel||packageLevel(KF_PACKAGES_NEW.find(x=>String(x.id)===String(p.targetPackageId))||{})||"").toUpperCase();
  document.getElementById("pkgEditorBody").innerHTML=`<div class="pkg-editor-grid">
   <div class="wide"><label>Nama paket</label><input id="peName" value="${h(p.name)}"></div>
-  <div><label>Akses peserta berlangganan</label><input id="peSub" value="${h(p.subscription||"Semua Paket Aktif")}" placeholder="Semua Paket Aktif atau nama paket; beberapa paket pisahkan dengan |"><div class="sub">Contoh: Paket 1 Bulan | Paket 3 Bulan</div></div>
+  <div><label>Jenjang tujuan</label><select id="peTargetLevel" onchange="isiPaketUtamaTujuan()"><option value="">— Pilih Jenjang —</option><option value="SD" ${currentLevel==="SD"?"selected":""}>SD</option><option value="SMP" ${currentLevel==="SMP"?"selected":""}>SMP</option><option value="SMA" ${currentLevel==="SMA"?"selected":""}>SMA</option></select><div class="sub">Pilih jenjang peserta terlebih dahulu.</div></div>
+  <div><label>Paket Utama tujuan</label><select id="peTargetPackage"><option value="">— Pilih Paket 1–12 —</option></select><div class="sub">Hanya peserta pada satu paket ini yang akan menerima soal.</div></div>
   ${kind==="tryout"?`<div><label>Durasi (menit)</label><input id="peDuration" type="number" min="1" value="${Number(p.duration)||90}"></div>
   <div><label>Mulai</label><input id="peStart" type="datetime-local" value="${h(p.start||"")}"></div>
   <div><label>Selesai</label><input id="peEnd" type="datetime-local" value="${h(p.end||"")}"></div>
   <div><label>Maksimal percobaan</label><input id="peAttempts" type="number" min="1" value="${Number(p.attempts)||1}"></div>`:""}
+  <div class="wide"><div class="notice" style="display:block;background:#fbf7ff;border-color:#e4cef7">🔒 <b>Distribusi aman:</b> 1 paket soal → 1 jenjang → 1 Paket Utama.</div></div>
   <div class="wide pkg-actions"><button class="btn" onclick="simpanMetaPkg()">Simpan Pengaturan</button><button class="btn ghost" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal dari V13</button></div>
  </div>
  <hr style="border:0;border-top:1px solid #eee2f7;margin:18px 0">
  <h3>Soal dalam paket (${p.questions.length})</h3>
  <div>${p.questions.length?p.questions.map((q,i)=>`<div class="pkg-question"><div class="pkg-no">${i+1}</div><div class="qtext"><b>${h((q.question||"").slice(0,140)||"Soal tanpa teks")}</b><div class="sub">${h(q.type||"")} · ${h(q.topik||"")}</div></div><div class="pkg-actions"><button class="btn ghost small" onclick="editQuestionPkg(${i})">Edit</button><button class="btn ghost small" onclick="moveQuestionPkg(${i},-1)">↑</button><button class="btn ghost small" onclick="moveQuestionPkg(${i},1)">↓</button><button class="btn danger small" onclick="removeQuestionPkg(${i})">Hapus</button></div></div>`).join(""):'<div class="sub">Belum ada soal.</div>'}</div>`;
  document.getElementById("pkgEditorModal").classList.add("show");
+ isiPaketUtamaTujuan(p.targetPackageId||"");
+}
+function isiPaketUtamaTujuan(selectedId=""){
+ const level=(document.getElementById("peTargetLevel")?.value||"").toUpperCase(),sel=document.getElementById("peTargetPackage");if(!sel)return;
+ const list=KF_PACKAGES_NEW.filter(x=>x.aktif&&packageLevel(x)===level).sort((a,b)=>(Number(a.urutan)||999)-(Number(b.urutan)||999)||String(a.nama||"").localeCompare(String(b.nama||"")));
+ sel.innerHTML='<option value="">— Pilih Paket 1–12 —</option>'+list.map((x,i)=>'<option value="'+h(x.id)+'" '+(String(selectedId)===String(x.id)?"selected":"")+'>'+h(x.nama||("Paket "+(i+1)))+'</option>').join("");
+ if(level&&!list.length)sel.innerHTML='<option value="">Belum ada paket aktif untuk '+h(level)+'</option>';
 }
 function tutupPkgEditor(){document.getElementById("pkgEditorModal").classList.remove("show");PKG_EDIT={kind:"",id:""}}
 function simpanMetaPkg(){
- let p=getPkg(PKG_EDIT.kind,PKG_EDIT.id);if(!p)return;p.name=document.getElementById("peName").value.trim()||p.name;p.subscription=document.getElementById("peSub").value.trim()||"Semua Paket Aktif";
+ let p=getPkg(PKG_EDIT.kind,PKG_EDIT.id);if(!p)return;
+ const level=(document.getElementById("peTargetLevel")?.value||"").toUpperCase(),sel=document.getElementById("peTargetPackage"),pid=sel?.value||"";
+ if(!level)return KFUI.toast("Pilih Jenjang tujuan: SD, SMP, atau SMA.","err",5000);
+ if(!pid)return KFUI.toast("Pilih satu Paket Utama tujuan.","err",5000);
+ const target=KF_PACKAGES_NEW.find(x=>String(x.id)===String(pid));
+ if(!target||packageLevel(target)!==level)return KFUI.toast("Paket tujuan tidak sesuai dengan jenjang yang dipilih.","err",5500);
+ p.name=document.getElementById("peName").value.trim()||p.name;
+ p.targetLevel=level;p.targetPackageId=String(target.id);p.targetPackageName=level+" — "+(target.nama||target.kode||"Paket");p.subscription=p.targetPackageName;p.visible=false;
  if(PKG_EDIT.kind==="tryout"){p.duration=Number(document.getElementById("peDuration").value)||90;p.start=document.getElementById("peStart").value;p.end=document.getElementById("peEnd").value;p.attempts=Number(document.getElementById("peAttempts").value)||1}
- savePkgObj(PKG_EDIT.kind,p);bukaPkgEditor(PKG_EDIT.kind,p.id);
+ savePkgObj(PKG_EDIT.kind,p);renderPkgManagers();KFUI.toast("Tujuan disimpan: "+p.targetPackageName+". Paket kembali menjadi Draf sampai dipublikasikan.","ok",5000);bukaPkgEditor(PKG_EDIT.kind,p.id);
 }
 function removeQuestionPkg(i){let p=getPkg(PKG_EDIT.kind,PKG_EDIT.id);p.questions.splice(i,1);savePkgObj(PKG_EDIT.kind,p);bukaPkgEditor(PKG_EDIT.kind,p.id)}
 function moveQuestionPkg(i,d){let p=getPkg(PKG_EDIT.kind,PKG_EDIT.id),j=i+d;if(j<0||j>=p.questions.length)return;[p.questions[i],p.questions[j]]=[p.questions[j],p.questions[i]];savePkgObj(PKG_EDIT.kind,p);bukaPkgEditor(PKG_EDIT.kind,p.id)}
