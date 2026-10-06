@@ -1529,10 +1529,12 @@ async function finishPractice(){
  let grades=p.questions.map((q,i)=>gradePracticeQuestion(q,practiceState.answers[i])),auto=grades.filter(g=>g.auto),manual=grades.filter(g=>!g.auto).length;
  let earned=auto.reduce((a,g)=>a+g.score,0),max=auto.reduce((a,g)=>a+g.max,0),score=max?Math.round(earned/max*100):0;
  let correct=auto.filter(g=>g.correct===true).length,wrong=auto.length-correct;
- try{await persistAllPracticeAnswers(p,practiceState.answers,grades)}catch(e){console.error('[V13 submissions]',e);alert('Hasil dihitung, tetapi penyimpanan jawaban ke Supabase gagal: '+(e?.message||e));return;}
+ let syncWarning='';
+ try{await persistAllPracticeAnswers(p,practiceState.answers,grades)}catch(e){console.error('[V13 submissions]',e);syncWarning='⚠ Nilai sudah dihitung di perangkat ini, tetapi belum berhasil disinkronkan ke Supabase: '+(e?.message||e);}
  $('practiceWork').style.display='none';$('practiceResult').style.display='block';
  $('practiceResult').innerHTML=`<div class="card"><h2>📊 Hasil Latihan — ${esc(p.name)}</h2>
  <div class="result-summary"><div class="result-box"><b>${score}</b>Nilai Objektif</div><div class="result-box"><b>${correct}</b>Benar</div><div class="result-box"><b>${wrong}</b>Salah/Parsial</div><div class="result-box"><b>${manual}</b>Perlu Guru</div></div>
+ ${syncWarning?'<div class="notice bad">'+esc(syncWarning)+'</div>':''}
  ${manual?'<div class="notice">Nilai di atas dihitung dari soal yang dapat dikoreksi otomatis. Jawaban esai perlu diperiksa guru.</div>':''}
  <div class="actions"><button class="btn" onclick="retryPractice()">↻ Kerjakan Ulang</button><button class="btn primary" onclick="nav('bank')">Kembali ke Bank Soal</button></div></div>`+
  p.questions.map((q,i)=>practiceResultItem(q,i,practiceState.answers[i],grades[i])).join('');
@@ -1591,7 +1593,11 @@ async function exportPackageDOCX(id,mode){
     let oi=await docxImageParagraph(img);if(oi)children.push(oi);
    }
   }else if(q.type==='kategori'){
-   (q.answers?.statements||[]).forEach((x,i)=>children.push(new d.Paragraph({text:`   ${i+1}) ${stripLatexForExport(x.text)}`,spacing:{after:60}})));
+   for(let i=0;i<(q.answers?.statements||[]).length;i++){
+    let x=q.answers.statements[i],img=q.answers?.statementImageData?.[i]||q.answers?.statementImages?.[i]||x.image||'';
+    children.push(new d.Paragraph({text:`   ${i+1}) ${stripLatexForExport(x.text)}`,spacing:{after:60}}));
+    let si=await docxImageParagraph(img);if(si)children.push(si);
+   }
   }
   if(mode==='answers'||mode==='full')children.push(new d.Paragraph({children:[new d.TextRun({text:'Kunci: ',bold:true}),new d.TextRun(answerKeyText(q))],spacing:{before:100,after:80}}));
   if(mode==='full'&&q.explanation)children.push(new d.Paragraph({children:[new d.TextRun({text:'Pembahasan: ',bold:true}),new d.TextRun(stripLatexForExport(q.explanation))],spacing:{after:180}}));
