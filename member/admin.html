@@ -2807,7 +2807,7 @@ function previewKontenAdmin(id){
  const x=KONTEN_CACHE.find(v=>v.id===id);if(!x)return alert("Data konten tidak ditemukan.");
  const d=x.data||{};let media="";
  if(x.jenis==="pdf"){
-   const u=d.pdf_url||d.url||d.file_url||d.pdf||"";
+   const u=x.pdfUrl||x.pdf_url||x.file_url||x.url||d.pdfUrl||d.pdf_url||d.url||d.file_url||d.pdf||"";
    media=u?`<iframe src="${safeText(u)}" title="Preview PDF"></iframe>`:`<div class="empty">File PDF belum tersedia.</div>`;
  }else if(x.jenis==="video"){
    const u=d.video_url||d.url||d.youtube_url||d.link||"";
