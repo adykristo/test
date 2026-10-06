@@ -604,6 +604,16 @@ button:hover,.btn:hover{transform:translateY(-1px)}
 button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(204,50,199,.18)!important;outline-offset:2px}
 .empty,.empty-state{border:1px dashed #dec9ef!important;border-radius:14px!important;background:#fcf9ff!important}
 @media(max-width:720px){.wrap,.container{padding-left:14px!important;padding-right:14px!important}.btn,button{min-height:38px}}
+
+      .cert-print-sheet{display:none}
+      @media print{
+        body *{visibility:hidden!important}
+        .cert-print-sheet,.cert-print-sheet *{visibility:visible!important}
+        .cert-print-sheet{display:block!important;position:absolute;inset:0;width:100%;min-height:100vh;background:#fff;padding:18mm;box-sizing:border-box}
+        .cert-paper{min-height:170mm;border:3px solid #6e2ca5;border-radius:18px;padding:14mm;text-align:center;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center}
+        .cert-brand{font-size:18px;font-weight:800;color:#6e2ca5;letter-spacing:.5px}.cert-title{font-size:34px;margin:12px 0 4px;color:#43196b}.cert-name{font-size:30px;font-weight:800;margin:18px 0;color:#20142a}.cert-package{font-size:22px;font-weight:800;color:#8b2fb1}.cert-meta{margin-top:22px;font-size:13px}.cert-sign{margin:38px auto 0;width:280px;border-top:1px solid #333;padding-top:8px;font-weight:800}
+        @page{size:A4 landscape;margin:0}
+      }
 </style>
   
 <style id="kf-member-v6">
@@ -1635,7 +1645,7 @@ iframe.pdfview{display:block;min-height:520px}
           const nomor=cert?.certificate_number||s.certificate_number||"";
           const tanggal=cert?.issued_at||s.issued_at;
           const tgl=tanggal?new Date(tanggal).toLocaleDateString("id-ID"):"";
-          return `<div class="history-row"><span><b>🏅 ${esc(s.package_name||cert?.package_name||"Sertifikat Paket")}</b><br><small>✍️ Latihan lulus: ${latihanLulus}/${latihanTotal} &nbsp;•&nbsp; 🏆 Tryout lulus: ${tryoutLulus}/${tryoutTotal}</small>${terbit?`<br><small>✅ Sertifikat terbit${tgl?" · "+esc(tgl):""}${nomor?" · No. "+esc(nomor):""}</small>`:`<br><small>🔒 Belum memenuhi syarat: semua nilai terbaik harus &gt;70.</small>`}</span><strong>${terbit?"LULUS":"BELUM"}</strong></div>`;
+          return `<div class="history-row"><span><b>🏅 ${esc(s.package_name||cert?.package_name||"Sertifikat Paket")}</b><br><small>✍️ Latihan lulus: ${latihanLulus}/${latihanTotal} &nbsp;•&nbsp; 🏆 Tryout lulus: ${tryoutLulus}/${tryoutTotal}</small>${terbit?`<br><small>✅ Sertifikat terbit${tgl?" · "+esc(tgl):""}${nomor?" · No. "+esc(nomor):""}</small>`:`<br><small>🔒 Belum memenuhi syarat: semua nilai terbaik harus &gt;70.</small>`}</span>${terbit?`<button class="btn btn-main" type="button" onclick="cetakSertifikatPaket(\'${esc(String(s.member_package_id||""))}\')">🖨️ Cetak / Simpan PDF</button>`:"<strong>BELUM</strong>"}</div>`;
         }).join("")+'</div>':'<p class="empty">Belum ada paket yang dapat diperiksa untuk sertifikat.</p>';
         box.innerHTML=`<h2 style="margin-top:0">📊 Riwayat Belajar</h2>
           <p style="color:#725c82;margin-top:-4px">Hasil belajar akun Anda yang tersimpan di Supabase.</p>
@@ -1648,6 +1658,19 @@ iframe.pdfview{display:block;min-height:520px}
           <div data-history-tab="tryout" style="display:none">${list(tryout,"tryout","Belum ada riwayat Tryout.")}</div>
           <div data-history-tab="sertifikat" style="display:none">${certificates}</div>`;
         box.style.display="block";
+      }
+      function cetakSertifikatPaket(memberPackageId){
+        const cert=(dataBelajarAktif.certificates||[]).find(x=>String(x.member_package_id||"")===String(memberPackageId||""));
+        if(!cert){KFMemberUI.toast("Sertifikat belum diterbitkan.","err",5000);return;}
+        const profile=profilAktif||{};
+        const nama=String(profile.nama||profile.name||profile.full_name||"Peserta KlinikFisikapku");
+        const paket=String(cert.package_name||"Paket Pelatihan");
+        const nomor=String(cert.certificate_number||"");
+        const tanggal=cert.issued_at?new Date(cert.issued_at).toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"}):"";
+        let sheet=document.getElementById("kfCertificatePrint");
+        if(!sheet){sheet=document.createElement("section");sheet.id="kfCertificatePrint";sheet.className="cert-print-sheet";document.body.appendChild(sheet);}
+        sheet.innerHTML=`<div class="cert-paper"><div class="cert-brand">KLINIKFISIKAPKU</div><div class="cert-title">SERTIFIKAT KELULUSAN</div><p>Diberikan kepada</p><div class="cert-name">${esc(nama)}</div><p>atas keberhasilan menyelesaikan persyaratan kelulusan</p><div class="cert-package">${esc(paket)}</div><p>Seluruh Latihan Interaktif dan Tryout pada paket telah memenuhi nilai kelulusan &gt;70.</p><div class="cert-meta">Nomor Sertifikat: <b>${esc(nomor)}</b>${tanggal?` &nbsp; • &nbsp; Diterbitkan: ${esc(tanggal)}`:""}</div><div class="cert-sign">Ady Kristo Naibaho<br><small>Direktur KlinikFisikapku</small></div></div>`;
+        window.print();
       }
       function bukaTabRiwayat(nama,btn){
         const box=document.getElementById("riwayatPanel"); if(!box)return;
