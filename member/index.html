@@ -1697,7 +1697,7 @@ iframe.pdfview{display:block;min-height:520px}
                 const titles={pdf:"Modul Belajar",soal:"Latihan Soal",video:"Video Pembahasan",tryout:"Tryout"};
         const titleEl=document.getElementById("filterTitle"),countEl=document.getElementById("filterCount");
         if(titleEl)titleEl.textContent=titles[filterAktif]||"Materi Belajar";
-        if(countEl)countEl.textContent=filterAktif==="tryout"?"Tryout":filterAktif==="soal"?"Latihan":items.length+" materi";
+        if(countEl){countEl.textContent=filterAktif==="tryout"?"Tryout":filterAktif==="soal"?"":items.length+" materi";countEl.style.display=filterAktif==="soal"?"none":"";}
         document.getElementById("list").innerHTML = items
           .map((x) => {
             const terkunci = !bolehBuka(x),
