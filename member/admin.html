@@ -2183,7 +2183,7 @@ function renderPkgManagers(){
     });
   }
   box.innerHTML=a.length?a.map(p=>`<div class="pkg-card">
-   <div class="head"><div><b>${h(p.name)}</b><div class="pkg-meta">${p.questions.length} soal · ${p.visible?"Dipublikasikan":"Draf"}${kind==="tryout"?` · ${Number(p.duration)||90} menit`:""} · <b>Tujuan: ${h(p.targetPackageName||"BELUM DIPILIH")}</b>${p.targetTopicName?` · 🗂 ${h(p.targetTopicName)}`:""}</div></div></div>
+   <div class="head"><div><b>${h(p.name)}</b><div class="pkg-meta">${p.questions.length} soal · ${p.visible?"Dipublikasikan":"Draf"}${kind==="tryout"?` · ${Number(p.duration)||90} menit`:""} · <b>Tujuan: ${h(p.targetPackageName||"BELUM DIPILIH")}</b>${p.targetTopicName?` · 🗂 ${h(p.targetTopicName)}`:""}${p.targetSubtopicName?` → ${h(p.targetSubtopicName)}`:""}</div></div></div>
    <div class="pkg-actions">
     <button class="btn small" onclick="bukaPkgEditor('${kind}','${p.id}')">✎ Atur & Edit Soal</button>
     <button class="btn ghost small" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal V14</button>
