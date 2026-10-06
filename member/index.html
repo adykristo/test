@@ -609,10 +609,35 @@ button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible
       @media print{
         body *{visibility:hidden!important}
         .cert-print-sheet,.cert-print-sheet *{visibility:visible!important}
-        .cert-print-sheet{display:block!important;position:absolute;inset:0;width:100%;height:100vh;background:#f7f2fb;padding:8mm;box-sizing:border-box}
-        .cert-paper{position:relative;height:194mm;border:2px solid #71309c;background:#fff;box-sizing:border-box;padding:10mm 16mm;text-align:center;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif}
-        .cert-paper:before,.cert-paper:after{content:"";position:absolute;width:150mm;height:150mm;border-radius:50%;background:linear-gradient(135deg,rgba(111,39,189,.12),rgba(236,61,156,.10));z-index:0}.cert-paper:before{left:-90mm;top:-95mm}.cert-paper:after{right:-95mm;bottom:-100mm}
-        .cert-inner{position:relative;z-index:1;width:100%}.cert-brand{font-size:18px;font-weight:900;color:#69249b;letter-spacing:2px}.cert-title{font-size:31px;line-height:1;margin:9px 0 2px;color:#42175f;font-weight:900;letter-spacing:.8px}.cert-subtitle{font-size:16px;color:#d8338c;font-weight:900;letter-spacing:3px;margin-bottom:14px}.cert-given{font-size:13px;color:#695b73}.cert-name{font-size:34px;font-weight:900;margin:8px 0 4px;color:#20132b;text-transform:uppercase}.cert-number{font-size:12px;color:#695b73;margin-bottom:12px}.cert-text{font-size:14px;line-height:1.55;color:#43374b;margin:3px 0}.cert-package{font-size:23px;font-weight:900;color:#7625a4;margin:7px 0}.cert-badge{display:inline-block;margin:8px 0 3px;padding:7px 16px;border-radius:999px;background:#f7e9fb;color:#6c238e;font-size:13px;font-weight:900}.cert-quote{font-size:12px;font-style:italic;color:#76657f;margin:9px auto 0;max-width:720px}.cert-footer{display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:30px;margin-top:18px;font-size:12px}.cert-date{text-align:left}.cert-sign{text-align:center;justify-self:end;width:260px}.cert-sign-line{border-top:1px solid #4c4052;margin-top:34px;padding-top:6px;font-weight:900}.cert-auto{margin-top:10px;font-size:9px;color:#8b7d91;letter-spacing:.4px}
+        .cert-print-sheet{display:block!important;position:absolute;inset:0;width:297mm;height:210mm;background:#fff;padding:0;box-sizing:border-box}
+        .cert-paper{position:relative;width:297mm;height:210mm;background:#fffaff;box-sizing:border-box;overflow:hidden;text-align:center;font-family:Arial,Helvetica,sans-serif}
+        .cert-paper:before,.cert-paper:after{content:"";position:absolute;border-radius:50%;z-index:0}
+        .cert-paper:before{width:112mm;height:112mm;left:-55mm;top:-62mm;background:#ffe6f5;box-shadow:250mm 175mm 0 12mm #ffe6f5}
+        .cert-paper:after{width:100mm;height:100mm;right:-48mm;top:-58mm;background:#ebe1ff;box-shadow:-255mm 177mm 0 10mm #ebe1ff}
+        .cert-frame-gold{position:absolute;inset:7mm;border:1.6mm solid #d4af37;border-radius:3mm;z-index:1}
+        .cert-frame-purple{position:absolute;inset:10mm;border:.7mm solid #7b2ff7;border-radius:2mm;z-index:1}
+        .cert-inner{position:absolute;z-index:2;inset:14mm 18mm 10mm;display:flex;flex-direction:column;align-items:center}
+        .cert-brand{font-size:18px;font-weight:900;color:#3d1a63;letter-spacing:2.4px;margin-top:2mm}
+        .cert-brand-sub{font-size:9px;color:#8b7599;letter-spacing:1.2px;margin-top:1mm}
+        .cert-title{font-family:Georgia,"Times New Roman",serif;font-size:34px;line-height:1;margin:7mm 0 1.5mm;color:#3d1a63;font-weight:700;letter-spacing:2px}
+        .cert-title-rule{width:52mm;height:.7mm;background:#d4af37;margin:2mm auto 4mm}
+        .cert-given{font-size:12px;color:#74667e}
+        .cert-name{font-family:Georgia,"Times New Roman",serif;font-size:31px;font-weight:700;margin:3mm 0 1.5mm;color:#5b2390;text-transform:uppercase;letter-spacing:.7px}
+        .cert-name-rule{width:108mm;border-bottom:.35mm solid #d4af37;margin-bottom:3mm}
+        .cert-text{font-size:11px;line-height:1.55;color:#4f4357;max-width:205mm}
+        .cert-package{font-size:20px;font-weight:900;color:#7b2ff7;margin:2.5mm 0 2mm}
+        .cert-badge{display:inline-block;padding:2mm 6mm;border-radius:99px;background:#f4eaff;color:#69249b;border:.3mm solid #dfc8f5;font-size:10px;font-weight:900}
+        .cert-number{font-size:9.5px;color:#786a81;margin-top:2.5mm}
+        .cert-footer{width:100%;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;margin-top:auto;padding:0 12mm 1mm;box-sizing:border-box;font-size:10px;color:#57495f}
+        .cert-date{text-align:left;line-height:1.5}
+        .cert-seal{justify-self:center;position:relative;width:18mm;height:18mm;border:.5mm solid #d4af37;border-radius:50%;display:grid;place-items:center}
+        .cert-seal:before{content:"";width:13mm;height:13mm;border-radius:50%;background:#7b2ff7;box-shadow:inset 0 0 0 3mm #ffd9ec}
+        .cert-seal:after{content:"";position:absolute;width:3.5mm;height:3.5mm;border-radius:50%;background:#d4af37}
+        .cert-sign{text-align:center;justify-self:end;width:65mm}
+        .cert-sign-space{height:12mm}
+        .cert-sign-line{border-top:.3mm solid #4c4052;padding-top:1.5mm;font-weight:900;color:#3d1a63}
+        .cert-sign-line small{font-weight:400;color:#75677d}
+        .cert-auto{font-size:7.5px;color:#9a8fa0;letter-spacing:.3px;margin-top:1.5mm}
         @page{size:A4 landscape;margin:0}
       }
 </style>
@@ -1679,7 +1704,28 @@ iframe.pdfview{display:block;min-height:520px}
         const tanggal=cert.issued_at?new Date(cert.issued_at).toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"}):"";
         let sheet=document.getElementById("kfCertificatePrint");
         if(!sheet){sheet=document.createElement("section");sheet.id="kfCertificatePrint";sheet.className="cert-print-sheet";document.body.appendChild(sheet);}
-        sheet.innerHTML=`<div class="cert-paper"><div class="cert-inner"><div class="cert-brand">KLINIKFISIKAPKU</div><div class="cert-title">SERTIFIKAT KELULUSAN</div><div class="cert-subtitle">PROGRAM PELATIHAN</div><div class="cert-given">Dengan bangga diberikan kepada</div><div class="cert-name">${esc(nama)}</div><div class="cert-number">No. Sertifikat: <b>${esc(nomor)}</b></div><div class="cert-text">atas keberhasilan dan dedikasi dalam menyelesaikan seluruh persyaratan pelatihan</div><div class="cert-package">${esc(paket)}</div><div class="cert-badge">✓ SELURUH LATIHAN INTERAKTIF &amp; TRYOUT LULUS &gt;70</div><div class="cert-quote">“Terima kasih atas ketekunan dan semangat belajar dalam menyelesaikan program KlinikFisikapku.”</div><div class="cert-footer"><div class="cert-date">${tanggal?`Diterbitkan<br><b>${esc(tanggal)}</b>`:""}</div><div class="cert-sign"><div class="cert-sign-line">Ady Kristo Naibaho<br><small>Direktur KlinikFisikapku</small></div></div></div><div class="cert-auto">Dokumen digenerate otomatis oleh sistem KlinikFisikapku</div></div></div>`;
+        sheet.innerHTML=`<div class="cert-paper">
+          <div class="cert-frame-gold"></div><div class="cert-frame-purple"></div>
+          <div class="cert-inner">
+            <div class="cert-brand">KLINIKFISIKAPKU</div>
+            <div class="cert-brand-sub">PROGRAM PELATIHAN OLIMPIADE FISIKA</div>
+            <div class="cert-title">SERTIFIKAT</div>
+            <div class="cert-title-rule"></div>
+            <div class="cert-given">Diberikan dengan bangga kepada</div>
+            <div class="cert-name">${esc(nama)}</div>
+            <div class="cert-name-rule"></div>
+            <div class="cert-text">atas keberhasilan dan dedikasi dalam menyelesaikan seluruh persyaratan program pelatihan</div>
+            <div class="cert-package">${esc(paket)}</div>
+            <div class="cert-badge">✓ SELURUH LATIHAN INTERAKTIF &amp; TRYOUT LULUS DENGAN NILAI &gt; 70</div>
+            <div class="cert-number">Nomor Sertifikat: <b>${esc(nomor)}</b></div>
+            <div class="cert-footer">
+              <div class="cert-date">${tanggal?`Diterbitkan<br><b>${esc(tanggal)}</b>`:""}</div>
+              <div class="cert-seal" aria-hidden="true"></div>
+              <div class="cert-sign"><div class="cert-sign-space"></div><div class="cert-sign-line">Ady Kristo Naibaho<br><small>Direktur KlinikFisikapku</small></div></div>
+            </div>
+            <div class="cert-auto">Dokumen digenerate otomatis oleh sistem KlinikFisikapku</div>
+          </div>
+        </div>`;
         window.print();
       }
       function bukaTabRiwayat(nama,btn){
