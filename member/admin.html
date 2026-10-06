@@ -822,7 +822,7 @@ table{max-width:100%}
       <label style="display:flex;justify-content:space-between;align-items:center;font-weight:bold;font-size:12px;margin:12px 0 5px;color:#512066">Email Google</label>
       <input id="kfAdminEmail" type="email" autocomplete="username" placeholder="nama@gmail.com" style="width:100%;padding:11px;border:1px solid #dfc8ef;border-radius:9px;font-size:14px;font-family:inherit;box-sizing:border-box;background:#fff">
       <div style="position:relative">
-        <label style="display:flex;justify-content:space-between;align-items:center;font-weight:bold;font-size:12px;margin:12px 0 5px;color:#512066"><span>Password</span><a href="index.html#reset" style="color:#6e34e8;text-decoration:none;font-weight:700">Lupa password?</a></label>
+        <label style="display:flex;justify-content:space-between;align-items:center;font-weight:bold;font-size:12px;margin:12px 0 5px;color:#512066"><span>Password</span><a href="#" onclick="event.preventDefault();KFAdminForgotPassword();" style="color:#6e34e8;text-decoration:none;font-weight:700">Lupa password?</a></label>
         <input id="kfAdminPassword" type="password" autocomplete="current-password" placeholder="Masukkan password" onkeydown="if(event.key==='Enter')KFAdminPasswordLoginDirect()" style="width:100%;padding:11px 46px 11px 11px;border:1px solid #dfc8ef;border-radius:9px;font-size:14px;font-family:inherit;box-sizing:border-box;background:#fff">
         <button type="button" onclick="const x=document.getElementById('kfAdminPassword');x.type=x.type==='password'?'text':'password'" aria-label="Tampilkan password" style="position:absolute;right:8px;bottom:7px;width:34px;border:0;background:transparent;color:#57307e;cursor:pointer;font-size:16px">◉</button>
       </div>
@@ -1264,6 +1264,16 @@ table{max-width:100%}
     <script src="supabase-publisher-v15.js?v=20261005-final3"></script>
     <script src="gas-workspace-bridge-v15.js?v=20261005-final3"></script>
     <script>
+      async function KFAdminForgotPassword(){
+        const email=(document.getElementById("kfAdminEmail")?.value||"").trim().toLowerCase();
+        const msg=document.getElementById("kfAdminLoginMessage");
+        if(!email){if(msg)msg.textContent="Masukkan email Admin terlebih dahulu.";return;}
+        const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+"/member/index.html"});
+        if(error){if(msg)msg.textContent="Gagal mengirim kode pemulihan: "+error.message;return;}
+        try{sessionStorage.setItem("kfRecoveryEmail",email);}catch(_){}
+        window.location.href="index.html?recovery=1";
+      }
+
       async function KFAdminPasswordLoginDirect(btn){
         btn=btn||document.getElementById("kfAdminPasswordBtn");
         const email=(document.getElementById("kfAdminEmail")?.value||"").trim();
