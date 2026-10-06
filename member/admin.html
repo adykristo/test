@@ -1150,8 +1150,8 @@ table{max-width:100%}
           <!-- Bridge V13: iframe tersembunyi dipertahankan untuk kompatibilitas fungsi lama; data Bank V13 dibaca dari localStorage origin yang sama. -->
           <iframe id="v12Frame" src="pembuat-soal-terpadu-uji.html" title="V14 Bridge" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0" aria-hidden="true" tabindex="-1"></iframe>
           <div class="card">
-            <div class="head"><div><h2>Kirim dari Bank V13</h2><p class="sub" style="margin:4px 0 0">Pilih seluruh paket atau pilih soal tertentu, kemudian kirim sebagai draf Paket Latihan/Tryout.</p></div><button class="btn ghost small" onclick="bacaBankV12()">↻ Segarkan Bank V13</button><button class="btn ghost small" onclick="KFGASWorkspace.push().then(r=>KFUI.toast('Workspace V13 tersimpan di Google Sheets: '+r.count+' paket','ok')).catch(e=>KFUI.toast(e.message,'err',5000))">☁ Simpan Workspace ke Google</button><button class="btn ghost small" onclick="KFGASWorkspace.pull().then(()=>{bacaBankV12();KFUI.toast('Workspace berhasil dipanggil dari Google Sheets','ok')}).catch(e=>KFUI.toast(e.message,'err',5000))">☁ Panggil dari Google</button><button class="btn ghost small" onclick="const u=prompt('URL Web App Google Apps Script (/exec):',localStorage.getItem('kf_v12_gas_url')||'');if(u){KFGASWorkspace.setUrl(u.trim());alert('✓ URL Google Apps Script tersimpan di browser Admin.')}">⚙ Atur Google Script</button></div>
-            <div id="v12BankBridge" class="manage-list"><div class="sub">Muat Bank V13 untuk mulai.</div></div>
+            <div class="head"><div><h2>Kirim dari Bank V14</h2><p class="sub" style="margin:4px 0 0">Pilih seluruh paket atau pilih soal tertentu, kemudian kirim sebagai draf Paket Latihan/Tryout.</p></div><button class="btn ghost small" onclick="bacaBankV12()">↻ Segarkan Bank V14</button><button class="btn ghost small" onclick="KFGASWorkspace.push().then(r=>KFUI.toast('Workspace V14 tersimpan di Google Sheets: '+r.count+' paket','ok')).catch(e=>KFUI.toast(e.message,'err',5000))">☁ Simpan Workspace ke Google</button><button class="btn ghost small" onclick="KFGASWorkspace.pull().then(()=>{bacaBankV12();KFUI.toast('Workspace berhasil dipanggil dari Google Sheets','ok')}).catch(e=>KFUI.toast(e.message,'err',5000))">☁ Panggil dari Google</button><button class="btn ghost small" onclick="const u=prompt('URL Web App Google Apps Script (/exec):',localStorage.getItem('kf_v12_gas_url')||'');if(u){KFGASWorkspace.setUrl(u.trim());alert('✓ URL Google Apps Script tersimpan di browser Admin.')}">⚙ Atur Google Script</button></div>
+            <div id="v12BankBridge" class="manage-list"><div class="sub">Muat Bank V14 untuk mulai.</div></div>
           </div>
         </section>
 </main>
@@ -2058,7 +2058,7 @@ function pkgGet(k){try{return JSON.parse(localStorage.getItem(pkgKey(k))||"[]")}
 function pkgSet(k,v){localStorage.setItem(pkgKey(k),JSON.stringify(v));renderPkgManagers()}
 function uidPkg(){return "MP-"+Date.now()+"-"+Math.random().toString(36).slice(2,7)}
 function cloneObj(x){return JSON.parse(JSON.stringify(x))}
-function v12win(){let f=document.getElementById("v12Frame");if(!f||!f.contentWindow)throw Error("Studio V13 belum dimuat.");return f.contentWindow}
+function v12win(){let f=document.getElementById("v12Frame");if(!f||!f.contentWindow)throw Error("Studio V14 belum dimuat.");return f.contentWindow}
 function v12bank(){
  try{
    const direct=JSON.parse(localStorage.getItem(KF_V12_BANK)||"[]");
@@ -2098,7 +2098,7 @@ function renderPkgManagers(){
     <button class="btn ghost small" onclick="eksporPaketPDF('${kind}','${p.id}')">📕 PDF</button>
     <button class="btn ${p.visible?"ghost":""} small" onclick="publikasiPkg('${kind}','${p.id}')">${p.visible?"↻ Sinkron Ulang":"✓ Publikasikan"}</button>
     <button class="btn danger small" onclick="hapusPkg('${kind}','${p.id}')">Hapus</button>
-   </div></div>`).join(""):'<div class="sub">Belum ada paket. Buat paket lalu ambil soal dari Bank V13.</div>';
+   </div></div>`).join(""):'<div class="sub">Belum ada paket. Buat paket lalu ambil soal dari Bank V14.</div>';
  })
 }
 async function aturTujuanPaketLokal(kind,id){
@@ -2191,15 +2191,15 @@ function bukaPilihV12(kind,id){
 }
 function bacaBankV12(targetKind="",targetId=""){
  let box=document.getElementById("v12BankBridge");if(!box)return;
- try{let bank=v12bank();box.innerHTML=bank.length?bank.map((p,pi)=>`<div class="v12-bank-card"><b>${h(p.name||"Paket V13")}</b><div class="sub">${(p.questions||[]).length} soal</div>
+ try{let bank=v12bank();box.innerHTML=bank.length?bank.map((p,pi)=>`<div class="v12-bank-card"><b>${h(p.name||"Paket V14")}</b><div class="sub">${(p.questions||[]).length} soal</div>
   <div class="pkg-actions" style="margin-top:8px"><button class="btn small" onclick="kirimPaketV12('${p.id}','latihan','${targetKind==="latihan"?targetId:""}')">→ Paket Latihan</button><button class="btn small" onclick="kirimPaketV12('${p.id}','tryout','${targetKind==="tryout"?targetId:""}')">→ Paket Tryout</button></div>
   <details><summary style="cursor:pointer;margin-top:10px;font-weight:800">Pilih soal tertentu</summary><div class="v12-select-list">${(p.questions||[]).map((q,qi)=>`<label class="v12-select-row"><input type="checkbox" class="v12pick-${pi}" value="${qi}"><span><b>${qi+1}.</b> ${h((q.question||"").slice(0,150))}</span></label>`).join("")}</div><div class="pkg-actions"><button class="btn ghost small" onclick="kirimPilihanV12(${pi},'latihan','${targetKind==="latihan"?targetId:""}')">Kirim pilihan → Latihan</button><button class="btn ghost small" onclick="kirimPilihanV12(${pi},'tryout','${targetKind==="tryout"?targetId:""}')">Kirim pilihan → Tryout</button></div></details>
- </div>`).join(""):'<div class="sub">Bank Paket V13 masih kosong.</div>'}catch(e){box.innerHTML='<div class="notice" style="display:block">Bank V13 belum dapat dibaca. Pastikan Pembuat Soal V13 berada pada domain yang sama.<br>'+h(e.message)+'</div>'}
+ </div>`).join(""):'<div class="sub">Bank Paket V14 masih kosong.</div>'}catch(e){box.innerHTML='<div class="notice" style="display:block">Bank V14 belum dapat dibaca. Pastikan Pembuat Soal V14 berada pada domain yang sama.<br>'+h(e.message)+'</div>'}
 }
 async function addV12Questions(kind,targetId,srcPack,questions){
  let a=pkgGet(kind),p=targetId?a.find(x=>x.id===targetId):null;
  if(!p){
-   const name=await KFUI.prompt(kind==="tryout"?"Nama Paket Tryout:":"Nama Paket Latihan:",srcPack.name||"Paket V13",kind==="tryout"?"Buat Paket Tryout":"Buat Paket Latihan");
+   const name=await KFUI.prompt(kind==="tryout"?"Nama Paket Tryout:":"Nama Paket Latihan:",srcPack.name||"Paket V14",kind==="tryout"?"Buat Paket Tryout":"Buat Paket Latihan");
    if(name===null)return;
    p=newPkg(kind,name.trim()||srcPack.name);a.unshift(p);
  }
@@ -2223,9 +2223,9 @@ function v12ToMember(q,p,kind,no){
 async function publikasiPkg(kind,id){
  let p=getPkg(kind,id);if(!p||!p.questions.length)return KFUI.toast("Paket belum memiliki soal.","err");
  if(!window.KFPackagePublisher)return KFUI.toast("Mesin Supabase belum termuat. Muat ulang halaman lalu coba lagi.","err",5000);
- // Paket yang berasal dari Bank Soal V13 harus selalu ditandai V13 sebelum publish.
+ // Paket yang berasal dari Bank Soal V14 harus selalu ditandai V14 sebelum publish.
  // ID lokal tetap dipertahankan agar sinkron ulang melakukan upsert paket yang sama, bukan membuat duplikat.
- p.sourceVersion=13;
+ p.sourceVersion=14;
  if(!p.targetPackageId)return KFUI.toast("Pilih Paket Peserta tujuan terlebih dahulu melalui tombol 👥 Atur Paket Peserta.","err",6000);
  const ok=await KFUI.confirm('PUBLIKASIKAN PAKET INI?\n\nSoal: '+p.name+'\nJenis: '+(kind==="tryout"?"Tryout":"Latihan")+'\nJumlah: '+p.questions.length+' soal\n\nTUJUAN PESERTA:\n'+p.targetPackageName+'\n\nHanya paket peserta tersebut yang akan diberi akses.','Konfirmasi Tujuan Paket');
  if(!ok)return;
