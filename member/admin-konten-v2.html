@@ -85,8 +85,7 @@ function updateModeInfo(){
   video:"<b>🎥 Video Pembahasan</b><br><span>Input URL YouTube/video → pilih jenjang → paket → topik.</span>",
   tryout:"<b>🏆 Tryout Mingguan</b><br><span>Tryout interaktif mengambil set soal dari <b>Bank Soal V14</b>, lalu dipetakan ke paket. Aktivasi peserta tetap mengikuti akses paket.</span>"
  };$("modeInfo").innerHTML=info[kind]||"";
- const em=$("exerciseModes");em.classList.toggle("hidden",kind!=="soal"||requestedExercise==="pdf");
- if(kind==="soal"&&requestedExercise==="pdf")exerciseMode="pdf";
+ const em=$("exerciseModes");em.classList.toggle("hidden",kind!=="soal"||exerciseMode==="pdf");
  em.querySelectorAll("[data-exmode]").forEach(b=>b.classList.toggle("primary",b.dataset.exmode===exerciseMode));
  $("add").textContent=kind==="pdf"?"+ Tambah Modul PDF":kind==="video"?"+ Tambah Video":kind==="soal"?(exerciseMode==="pdf"?"+ Tambah Latihan PDF":"+ Tambah Latihan Interaktif"):"+ Tambah Tryout";
 }
