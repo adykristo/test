@@ -81,11 +81,12 @@ function kindName(k){return k==="pdf"?"Modul PDF":k==="video"?"Video Pembahasan"
 function updateModeInfo(){
  const info={
   pdf:"<b>📘 Modul & Topik</b><br><span>Input modul PDF manual → pilih jenjang SD/SMP/SMA → paket → topik. Setiap paket dapat memiliki modulnya sendiri.</span>",
-  soal:"<b>✍️ Soal Latihan</b><br><span>Dua sumber: <b>PDF manual</b> atau <b>Latihan Interaktif dari Bank Soal V14</b>. Keduanya dipetakan ke paket.</span>",
+  soal:"<b>✍️ Soal Latihan PDF</b><br><span>Kelola latihan dalam <b>format PDF</b> dan petakan ke paket peserta.</span>",
   video:"<b>🎥 Video Pembahasan</b><br><span>Input URL YouTube/video → pilih jenjang → paket → topik.</span>",
   tryout:"<b>🏆 Tryout Mingguan</b><br><span>Tryout interaktif mengambil set soal dari <b>Bank Soal V14</b>, lalu dipetakan ke paket. Aktivasi peserta tetap mengikuti akses paket.</span>"
  };$("modeInfo").innerHTML=info[kind]||"";
- const em=$("exerciseModes");em.classList.toggle("hidden",kind!=="soal");
+ const em=$("exerciseModes");em.classList.toggle("hidden",kind!=="soal"||requestedExercise==="pdf");
+ if(kind==="soal"&&requestedExercise==="pdf")exerciseMode="pdf";
  em.querySelectorAll("[data-exmode]").forEach(b=>b.classList.toggle("primary",b.dataset.exmode===exerciseMode));
  $("add").textContent=kind==="pdf"?"+ Tambah Modul PDF":kind==="video"?"+ Tambah Video":kind==="soal"?(exerciseMode==="pdf"?"+ Tambah Latihan PDF":"+ Tambah Latihan Interaktif"):"+ Tambah Tryout";
 }
