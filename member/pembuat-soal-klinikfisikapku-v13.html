@@ -944,7 +944,7 @@ function renderExplanationWithImage(q){if(q&&q.inlineImages)Object.assign(v13Inl
  }
  return `<div class="sep"></div><div class="kf-explanation"><div class="kf-explanation-title">Pembahasan</div><div class="kf-explanation-body">${body}</div></div>`;
 }
-function previewCurrent(){let q=collect();kfPreviewQuestion=q;$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button id="kfPreviewCheckBtn" class="btn primary" type="button">Periksa Jawaban</button></div><div id="pvResult"></div>`;$('kfPreviewCheckBtn').onclick=()=>checkPreview(kfPreviewQuestion);$('previewModal').classList.add('show');typesetMath('studentPreview')}
+function previewCurrent(){let q=collect();kfPreviewQuestion=q;$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button id="kfPreviewCheckBtn" class="btn primary" type="button">Periksa Jawaban</button></div><div class="pvResult"></div>`;$('kfPreviewCheckBtn').onclick=()=>checkPreview(kfPreviewQuestion);$('previewModal').classList.add('show');typesetMath('studentPreview')}
 function checkPreview(q){let ok=false,detail='';if(['pg5','pg4','mcma'].includes(q.type)){let chosen=[...document.querySelectorAll('#studentPreview input[name=pvans]:checked')].map(x=>Number(x.value)).sort();let keys=[...q.answers.keys].sort();ok=JSON.stringify(chosen)===JSON.stringify(keys);if(q.type==='mcma'&&q.scoring==='partial'){let hit=chosen.filter(x=>keys.includes(x)).length,wrong=chosen.filter(x=>!keys.includes(x)).length;let pct=Math.max(0,(hit-wrong)/keys.length);detail=` Skor parsial: ${Math.round(pct*100)}%.`}}else if(q.type==='kategori'){ok=[...document.querySelectorAll('#studentPreview .catans')].every(x=>x.value===q.answers.statements[Number(x.dataset.i)].answer)}else if(q.type==='isian')ok=($('pvShort').value||'').trim().toLowerCase()===(q.answers.short||'').trim().toLowerCase();else{detail='Esai memerlukan penilaian guru.'}
  let feedback=q.type==='esai'?'Preview Esai: jawaban tidak disimpan dari halaman admin.':'✓ Jawaban benar.';if(q.type!=='esai'&&!ok)feedback='✗ Jawaban salah.';
  let explanation=ok?renderExplanationWithImage(q):'';
@@ -978,7 +978,7 @@ function previewBank(id){
      Object.keys(d.answers.optionImageData||{}).forEach(k=>{if(d.answers.optionImageData[k])q.answers.optionImages[k]=d.answers.optionImageData[k]});
    }
  }catch(e){}
- $('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button id="kfBankPreviewCheck" class="btn primary" type="button">Periksa Jawaban</button></div><div id="pvResult"></div>`;
+ $('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button id="kfBankPreviewCheck" class="btn primary" type="button">Periksa Jawaban</button></div><div class="pvResult"></div>`;
  kfPreviewQuestion=q;
  $('kfBankPreviewCheck').onclick=()=>checkPreview(kfPreviewQuestion);
  $('previewModal').classList.add('show');typesetMath('studentPreview');
@@ -1638,6 +1638,16 @@ function health(){
  return {ok:!failed.length,checks,failed};
 }
 window.KF_V13_HEALTH=health;
+window.KF_V13_SELFTEST=function(){
+ const required=['question','typeSelect','studentPreview','previewModal','bankList'];
+ const missing=required.filter(id=>!document.getElementById(id));
+ const funcs=['collect','renderBank','previewBank','previewCurrent','saveCurrentToPackage','aiImprove','aiExplain','v12ProcessPaste','postAIAssistant'];
+ const missingFns=funcs.filter(n=>typeof window[n]!=='function');
+ const duplicateIds=[...document.querySelectorAll('[id]')].map(x=>x.id).filter((id,i,a)=>id&&a.indexOf(id)!==i);
+ const result={ok:!missing.length&&!missingFns.length&&!duplicateIds.length,missing,missingFns,duplicateIds:[...new Set(duplicateIds)]};
+ console.table(result);return result;
+};
+
 function syncBankAssetFromDraft(){
  try{
   if(typeof window.bank!=='function'||typeof window.setBank!=='function')return;
