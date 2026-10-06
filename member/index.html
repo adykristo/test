@@ -1703,7 +1703,8 @@ iframe.pdfview{display:block;min-height:520px}
             const terkunci = !bolehBuka(x),
               selesai = selesaiItem(x) || statusTopik(x.topik),
               tryout = false;
-            return `<div class="mcard ${terkunci ? "locked" : ""}" onclick="${terkunci ? "alert('Selesaikan seluruh latihan topik sebelumnya terlebih dahulu.')" : "bukaDetail(" + dataMateri.indexOf(x) + ")"}">
+            const klikKartu=normalJenis(x)==="video" ? "" : (terkunci ? "alert('Selesaikan seluruh latihan topik sebelumnya terlebih dahulu.')" : "bukaDetail(" + dataMateri.indexOf(x) + ")");
+            return `<div class="mcard ${terkunci ? "locked" : ""}"${klikKartu ? ` onclick="${klikKartu}"` : ""}>
       <div class="ic">${ICON[normalJenis(x)] || "📁"}</div>
       <div>
         <div class="topik">${esc(x.topik || "")}</div>
