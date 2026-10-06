@@ -789,7 +789,32 @@ table{max-width:100%}
 #tryout .card:has(#tryoutList){display:none!important}
 </style>
 </head>
-  <body><div id="kfAdminLoginGate" style="display:none;position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#f8efff,#fff0f8);align-items:center;justify-content:center;padding:20px"><div style="width:min(440px,100%);background:#fff;border:1px solid #ead8f4;border-radius:22px;padding:30px;box-shadow:0 24px 70px #4b17642b;text-align:center"><div style="font-size:38px">🔐</div><h2 style="margin:10px 0 6px;color:#512066">Admin KlinikFisikapku</h2><p style="color:#765f82;line-height:1.55">Masuk menggunakan akun Google Super Admin yang terdaftar.</p><button type="button" class="btn" style="width:100%;min-height:46px;margin-top:12px" onclick="KFAdminGoogleLoginDirect(this)">Masuk dengan Google</button><a href="index.html" style="display:block;margin-top:16px;color:#7b2cab">← Kembali ke Member</a></div></div>
+  <body><div id="kfAdminLoginGate" style="display:none;position:fixed;inset:0;z-index:99999;background:#f7f6fc;align-items:stretch;justify-content:center">
+  <div style="width:100%;min-height:100vh;display:flex;flex-direction:column">
+    <div style="height:54px;background:linear-gradient(90deg,#4b176f,#8b24d6,#ec3d9b);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 max(22px,calc((100vw - 950px)/2));font-size:14px">
+      <b>KlinikFisikapku · Admin Area</b><a href="index.html" style="color:#fff;text-decoration:none;border:1px solid #ffffff66;border-radius:8px;padding:7px 15px">Member</a>
+    </div>
+    <div style="flex:1;display:flex;justify-content:center;background:linear-gradient(110deg,#f6f4ff 0%,#f7fbff 52%,#f2ffff 100%)">
+      <div style="width:min(720px,100%);padding:30px 18px 70px;text-align:center">
+        <h1 style="margin:0 0 18px;color:#201039;font-size:28px">Halo, Admin KlinikFisikapku 👋</h1>
+        <div style="width:min(390px,100%);margin:auto;background:#fff;border:1px solid #e8ddf2;border-radius:18px;padding:25px 20px;box-shadow:0 20px 48px #34134c1f;text-align:left">
+          <h2 style="text-align:center;margin:0 0 6px;color:#251037">Masuk Admin</h2>
+          <p style="text-align:center;color:#766783;font-size:12px;margin:0 0 18px">Gunakan akun Super Admin yang terdaftar.</p>
+          <label style="font-size:12px;font-weight:800;color:#38184f">Email</label>
+          <input id="kfAdminEmail" type="email" autocomplete="username" placeholder="email@gmail.com" style="width:100%;box-sizing:border-box;margin:6px 0 12px;padding:11px;border:1px solid #ddc7ef;border-radius:8px;background:#f8fbff">
+          <label style="font-size:12px;font-weight:800;color:#38184f">Password</label>
+          <input id="kfAdminPassword" type="password" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')KFAdminPasswordLoginDirect()" style="width:100%;box-sizing:border-box;margin:6px 0 13px;padding:11px;border:1px solid #ddc7ef;border-radius:8px">
+          <button id="kfAdminPasswordBtn" type="button" class="btn" style="width:100%;min-height:42px;background:linear-gradient(90deg,#8d22e4,#ec3d9b);border:0;color:#fff" onclick="KFAdminPasswordLoginDirect(this)">Masuk</button>
+          <div style="display:flex;align-items:center;gap:10px;color:#a08cae;font-size:11px;margin:16px 0"><span style="height:1px;background:#eadff0;flex:1"></span>atau<span style="height:1px;background:#eadff0;flex:1"></span></div>
+          <button type="button" class="btn ghost" style="width:100%;min-height:42px;background:#fff;color:#4b176f;border:1px solid #d9c4e8" onclick="KFAdminGoogleLoginDirect(this)">G&nbsp;&nbsp; Masuk lewat Google</button>
+          <div id="kfAdminLoginMessage" style="min-height:18px;margin-top:10px;color:#b42318;font-size:12px;text-align:center"></div>
+          <a href="index.html" style="display:block;text-align:center;margin-top:8px;color:#7b2cab;font-size:12px">← Kembali ke Member</a>
+        </div>
+      </div>
+    </div>
+    <div style="height:58px;background:#42196b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px">KlinikFisikapku · Admin Area · 2026</div>
+  </div>
+</div>
     <header class="top">
       <div class="brand">
         <b>KlinikFisikapku</b><small>Admin Member Area</small>
@@ -1220,6 +1245,23 @@ table{max-width:100%}
     <script src="supabase-publisher-v15.js?v=20261005-final3"></script>
     <script src="gas-workspace-bridge-v15.js?v=20261005-final3"></script>
     <script>
+      async function KFAdminPasswordLoginDirect(btn){
+        btn=btn||document.getElementById("kfAdminPasswordBtn");
+        const email=(document.getElementById("kfAdminEmail")?.value||"").trim();
+        const password=document.getElementById("kfAdminPassword")?.value||"";
+        const msg=document.getElementById("kfAdminLoginMessage");
+        if(msg)msg.textContent="";
+        if(!email||!password){if(msg)msg.textContent="Masukkan email dan password Admin.";return}
+        const old=btn?btn.textContent:"";
+        try{
+          if(btn){btn.disabled=true;btn.textContent="Memeriksa akun...";}
+          const client=(window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client)?window.KFSupabaseAdmin.client:window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);
+          const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;
+          const q=await client.from("member_admins").select("role,active").eq("user_id",data.user.id).maybeSingle();
+          if(q.error||!q.data||q.data.role!=="super_admin"||q.data.active!==true){await client.auth.signOut({scope:"local"});throw new Error("Akun ini bukan Super Admin aktif.");}
+          location.replace(location.pathname);
+        }catch(e){if(msg)msg.textContent=e?.message||String(e);if(btn){btn.disabled=false;btn.textContent=old||"Masuk";}}
+      }
       async function KFAdminGoogleLoginDirect(btn){
         const old=btn?btn.textContent:"";
         try{
