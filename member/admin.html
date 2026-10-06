@@ -2171,7 +2171,7 @@ function renderPkgManagers(){
     });
   }
   box.innerHTML=a.length?a.map(p=>`<div class="pkg-card">
-   <div class="head"><div><b>${h(p.name)}</b><div class="pkg-meta">${p.questions.length} soal · ${p.visible?"Dipublikasikan":"Draf"}${kind==="tryout"?` · ${Number(p.duration)||90} menit`:""} · <b>Tujuan: ${h(p.targetPackageName||"BELUM DIPILIH")}</b></div></div></div>
+   <div class="head"><div><b>${h(p.name)}</b><div class="pkg-meta">${p.questions.length} soal · ${p.visible?"Dipublikasikan":"Draf"}${kind==="tryout"?` · ${Number(p.duration)||90} menit`:""} · <b>Tujuan: ${h(p.targetPackageName||"BELUM DIPILIH")}</b>${p.targetTopicName?` · 🗂 ${h(p.targetTopicName)}`:""}</div></div></div>
    <div class="pkg-actions">
     <button class="btn small" onclick="bukaPkgEditor('${kind}','${p.id}')">✎ Atur & Edit Soal</button>
     <button class="btn ghost small" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal V14</button>
@@ -2192,14 +2192,22 @@ async function aturTujuanPaketLokal(kind,id){
  let dlg=document.getElementById("kfSingleTargetDialog");
  if(!dlg){dlg=document.createElement("dialog");dlg.id="kfSingleTargetDialog";dlg.className="member-dialog";dlg.style.maxWidth="680px";document.body.appendChild(dlg)}
  dlg.dataset.kind=kind;dlg.dataset.localId=id;
- dlg.innerHTML='<div class="dialog-head"><div><b style="font-size:18px">Pilih 1 Paket Peserta</b><small style="display:block;opacity:.8">'+h(p.name)+' • '+p.questions.length+' soal</small></div><button type="button" onclick="this.closest(\'dialog\').close()">×</button></div><div class="dialog-body"><div style="display:grid;gap:8px;max-height:420px;overflow:auto">'+active.map(x=>'<label style="display:flex;gap:10px;align-items:flex-start;border:1px solid #eadcf7;border-radius:10px;padding:11px;cursor:pointer"><input type="radio" name="kfSingleTarget" value="'+h(x.id)+'" data-name="'+h(x.nama||x.kode||"Paket")+'" '+(String(p.targetPackageId||"")===String(x.id)?"checked":"")+'><span><b>'+h(x.nama||x.kode||"Paket")+'</b><small style="display:block;color:#777">'+h([x.jenjang,x.kode].filter(Boolean).join(" • "))+'</small></span></label>').join("")+'</div><div class="row-actions" style="justify-content:flex-end;margin-top:14px"><button class="btn ghost" onclick="document.getElementById(\'kfSingleTargetDialog\').close()">Batal</button><button class="btn" onclick="simpanTujuanPaketLokal()">💾 Simpan Tujuan</button></div></div>';
+ const topicRows=KF_TOPICS_NEW.filter(t=>t.visible);
+ dlg.innerHTML='<div class="dialog-head"><div><b style="font-size:18px">Pilih Paket & Topik Peserta</b><small style="display:block;opacity:.8">'+h(p.name)+' • '+p.questions.length+' soal</small></div><button type="button" onclick="this.closest(\'dialog\').close()">×</button></div><div class="dialog-body"><div style="display:grid;gap:8px;max-height:330px;overflow:auto">'+active.map(x=>'<label style="display:flex;gap:10px;align-items:flex-start;border:1px solid #eadcf7;border-radius:10px;padding:11px;cursor:pointer"><input type="radio" name="kfSingleTarget" value="'+h(x.id)+'" data-name="'+h(x.nama||x.kode||"Paket")+'" onchange="kfFillTargetTopics(this.value)" '+(String(p.targetPackageId||"")===String(x.id)?"checked":"")+'><span><b>'+h(x.nama||x.kode||"Paket")+'</b><small style="display:block;color:#777">'+h([x.jenjang,x.kode].filter(Boolean).join(" • "))+'</small></span></label>').join("")+'</div><div style="margin-top:14px"><label style="font-weight:800;display:block;margin-bottom:6px">Topik Paket</label><select id="kfSingleTargetTopic" style="width:100%;padding:10px;border:1px solid #dec8f4;border-radius:9px"><option value="">Tanpa topik</option></select><small style="display:block;color:#777;margin-top:5px">Topik diambil dari Kelola Topik Paket dan mengikuti paket peserta yang dipilih.</small></div><div class="row-actions" style="justify-content:flex-end;margin-top:14px"><button class="btn ghost" onclick="document.getElementById(\'kfSingleTargetDialog\').close()">Batal</button><button class="btn" onclick="simpanTujuanPaketLokal()">💾 Simpan Tujuan</button></div></div>';
+ kfFillTargetTopics(p.targetPackageId||"",p.targetTopicId||"");
  dlg.showModal();
+}
+function kfFillTargetTopics(packageId,selected){
+ const el=document.getElementById("kfSingleTargetTopic");if(!el)return;
+ const rows=KF_TOPICS_NEW.filter(t=>String(t.package_id)===String(packageId)&&t.visible).sort((a,b)=>(Number(a.urutan)||0)-(Number(b.urutan)||0));
+ el.innerHTML='<option value="">Tanpa topik</option>'+rows.map(t=>'<option value="'+h(t.id)+'">'+h(t.judul)+'</option>').join("");
+ if(selected&&rows.some(t=>String(t.id)===String(selected)))el.value=String(selected);
 }
 function simpanTujuanPaketLokal(){
  const dlg=document.getElementById("kfSingleTargetDialog"),r=dlg?.querySelector('input[name="kfSingleTarget"]:checked');
  if(!r)return KFUI.toast("Pilih satu Paket Peserta terlebih dahulu.","info");
  const p=getPkg(dlg.dataset.kind,dlg.dataset.localId);if(!p)return;
- p.targetPackageId=r.value;p.targetPackageName=r.dataset.name||"Paket Peserta";p.visible=false;savePkgObj(dlg.dataset.kind,p);dlg.close();renderPkgManagers();KFUI.toast("Tujuan paket disimpan. Paket kembali menjadi Draf sampai dipublikasikan.","ok",4500);
+ p.targetPackageId=r.value;p.targetPackageName=r.dataset.name||"Paket Peserta";const ts=document.getElementById("kfSingleTargetTopic"),tid=ts?.value||"";p.targetTopicId=tid;p.targetTopicName=tid?(KF_TOPICS_NEW.find(t=>String(t.id)===String(tid))?.judul||""):"";p.visible=false;savePkgObj(dlg.dataset.kind,p);dlg.close();renderPkgManagers();KFUI.toast("Tujuan paket disimpan. Paket kembali menjadi Draf sampai dipublikasikan.","ok",4500);
 }
 
 
