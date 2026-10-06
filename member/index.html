@@ -1606,7 +1606,16 @@ iframe.pdfview{display:block;min-height:520px}
       async function toggleRiwayat(){
         const box=document.getElementById("riwayatPanel"), tampil=box.style.display==="none";
         if(!tampil){box.style.display="none";return;}
-        const attempts=(dataBelajarAktif.attempts||[]).slice();
+        // Riwayat Member hanya menampilkan assessment yang masih aktif/visible.
+        // Data attempt lama tetap aman di Supabase sebagai arsip.
+        const activeAssessmentIds=new Set((window.KF_SERVER_PACKAGES||[])
+          .filter(p=>p&&p.visible!==false)
+          .map(p=>String(p.id||p.package_id||""))
+          .filter(Boolean));
+        const attempts=(dataBelajarAktif.attempts||[]).filter(a=>{
+          const pid=String(a.package_id||a.paket_id||"");
+          return !pid || activeAssessmentIds.size===0 || activeAssessmentIds.has(pid);
+        }).slice();
         let certStatus=[],certs=[];
         try{
           if(window.KFPackageDB&&typeof KFPackageDB.issueEligibleCertificates==="function"){
