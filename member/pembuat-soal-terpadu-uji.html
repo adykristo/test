@@ -1749,22 +1749,7 @@ setTimeout(()=>{health();syncBankAssetFromDraft()},700);
  setTimeout(()=>{try{window.KF_V13_RUN_DIAGNOSTIC()}catch(e){console.warn('[KF V13 diagnostic]',e)}},1100);
 })();
 </script>
-<script id="kf-safe-bridge">
-(function(){
- function E(id){return document.getElementById(id)}
- function status(t,bad){var s=E('kfSafeStatus');if(s){s.textContent=t;s.style.color=bad?'#b42318':''}}
- function ready(){
-  var box=E('kfSafeInput');if(!box)return;
-  status('✓ Sistem satu kolom aktif.');
-  var bs=document.querySelectorAll('.kf-one-safe button');
-  bs.forEach(function(b){var z=(b.textContent||'').trim();
-   if(z.indexOf('Manual')>=0)b.onclick=function(){var q=E('question');if(!q)return status('Editor V13 belum ditemukan.',true);q.value=(box.innerText||'').trim();q.dispatchEvent(new Event('input',{bubbles:true}));status('✓ Teks masuk ke Editor.');var ed=E('v12EditorCard');if(ed)ed.scrollIntoView({behavior:'smooth',block:'start'});};
-   if(z.indexOf('AI Susun')>=0)b.onclick=async function(){var dst=E('v12PasteMaterial');if(!dst)return status('Area Tempel V13 belum ditemukan.',true);dst.innerHTML=box.innerHTML;dst.dispatchEvent(new Event('input',{bubbles:true}));if(typeof v12ProcessPaste!=='function')return status('Mesin AI V13 belum termuat.',true);status('⏳ AI sedang memproses...');try{await v12ProcessPaste();status('✓ AI selesai. Periksa Editor.')}catch(err){console.error(err);status('⚠ '+(err.message||err),true)}};
-  });
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
-})();
-</script></body></html>`);w.document.close();
+</body></html>`);w.document.close();
 }
 
 function packageBank(){try{let rows=JSON.parse(localStorage.getItem(PACKAGE_BANK_KEY)||'[]');return (Array.isArray(rows)?rows:[]).filter(Boolean).map(p=>{p.questions=(Array.isArray(p.questions)?p.questions:[]).filter(Boolean).map(q=>window.KFQuestionSchema?.normalize?window.KFQuestionSchema.normalize(q):q);p.count=p.questions.length;return p})}catch(e){console.warn('[V13 packageBank]',e);return []}}
