@@ -1746,7 +1746,7 @@ function syncBankAssetFromDraft(){
 }
 setTimeout(()=>{health();syncBankAssetFromDraft()},700);
 })();
-</script>
+<\/script>
 
 <script id="kf-data-integrity-v13">
 /* KF DATA INTEGRITY V13 2026-10-06 */
@@ -1765,7 +1765,7 @@ setTimeout(()=>{health();syncBankAssetFromDraft()},700);
  window.KF_V13_RUN_DIAGNOSTIC=function(){const h=window.KF_V13_HEALTH?.()||{};const s=window.KF_V13_SELFTEST?.()||{};let b=[];try{b=typeof bank==='function'?bank():[]}catch(e){}const invalid=b.map((q,i)=>({i,id:q?.id,errors:window.KFQuestionSchema.validate(q)})).filter(x=>x.errors.length);const result={ok:!!h.ok&&!!s.ok&&!invalid.length,totalBank:b.length,invalid,health:h,selftest:s};console.info('[KF V13 diagnostic]',result);return result;};
  setTimeout(()=>{try{window.KF_V13_RUN_DIAGNOSTIC()}catch(e){console.warn('[KF V13 diagnostic]',e)}},1100);
 })();
-</script>
+<\/script>
 </body></html>`);w.document.close();
 }
 
