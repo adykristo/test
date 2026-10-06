@@ -317,30 +317,7 @@ body{background:var(--v12-bg)!important}
 #v13UnifiedHub,#v12MovedImport,#v12MovedAI,.v12-step-head,.v12-paste-box{display:none!important}
 .v12-pro-nav a[href*="v12MovedAI"],.v12-pro-nav a[href*="v12MovedImport"],.v12-pro-nav a[href*="v12PasteMaterial"]{display:none!important}
 #page-buat>.v12-section-label{display:none!important}
-</style><style id="kf-ui-polish-20261006">
-#kfUnifiedStudio{display:grid;gap:14px}
-#kfUnifiedStudio>.kf-us-card{border:1px solid #e6d9fb;border-radius:18px;background:#fff;box-shadow:0 5px 18px rgba(72,38,120,.055);padding:18px}
-#kfUnifiedStudio>.kf-us-card:first-child{padding:18px 20px;background:linear-gradient(135deg,#fff 0%,#fcf9ff 100%)}
-.kf-us-meta{gap:10px}.kf-us-meta>div label{font-weight:800;color:#24104f;margin-bottom:6px}
-.kf-us-meta select,.kf-us-meta input{min-height:48px;border-radius:12px}
-.kf-us-work{min-height:165px!important;border-radius:14px!important;padding:16px!important}
-.kf-us-tools{gap:8px!important;margin-top:10px!important}.kf-us-tools>.btn{min-height:40px;border-radius:11px;font-weight:800}
-.kf-us-status{border-radius:10px!important;margin-top:8px!important}
-.kf-ai-toolbar-card{padding:18px!important}
-.kf-ai-toolbar-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
-.kf-ai-toolbar-head>b,.kf-ai-toolbar-head>div>b{font-size:15px;color:#20104b}
-.kf-difficulty-quick{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.kf-difficulty-quick span{font-size:12px;font-weight:800;color:#62547c}
-.kf-difficulty-quick .btn{border:0!important;box-shadow:none!important}.kf-easy{background:#e9f9ef!important;color:#13743b!important}.kf-medium{background:#fff6d9!important;color:#986900!important}.kf-hard{background:#ffeded!important;color:#bd2432!important}
-.kf-ai-groups{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.kf-ai-group{display:flex;flex-direction:column;gap:7px;padding:12px;border-radius:14px;min-width:0}
-.kf-ai-group>b{font-size:12px;margin-bottom:2px}.kf-ai-group .btn{width:100%;min-height:38px;text-align:left;justify-content:flex-start;border:1px solid rgba(93,62,150,.08)!important;background:rgba(255,255,255,.82)!important;box-shadow:none!important;font-size:12px;padding:8px 10px}
-.kf-ai-create{background:#fff1f8}.kf-ai-create>b{color:#b01865}.kf-ai-visual{background:#f0f6ff}.kf-ai-visual>b{color:#3151ad}.kf-ai-check{background:#effaf4}.kf-ai-check>b{color:#147844}.kf-ai-manage{background:#fff8e9}.kf-ai-manage>b{color:#a66a00}.kf-ai-other{background:#f5f0ff}.kf-ai-other>b{color:#6330b5}
-.kf-save-strip{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px;padding:13px 14px;border:1px solid #eee4fb;border-radius:14px;background:#fcfaff}.kf-save-actions{display:flex;gap:8px}.kf-save-actions .btn{min-width:165px}
-@media(max-width:1150px){.kf-ai-groups{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:760px){.kf-ai-toolbar-head,.kf-save-strip{flex-direction:column;align-items:stretch}.kf-ai-groups{grid-template-columns:1fr 1fr}.kf-save-actions{display:grid;grid-template-columns:1fr}.kf-save-actions .btn{min-width:0}.kf-us-work{min-height:130px!important}}
-@media(max-width:480px){.kf-ai-groups{grid-template-columns:1fr}}
-</style>
-</head>
+</style></head>
 <body><div id="kfV12AuthGate" style="position:fixed;inset:0;z-index:2147483647;background:#f7f1fb;display:grid;place-items:center;font-family:Arial,sans-serif"><div style="max-width:460px;margin:24px;padding:28px;border-radius:20px;background:white;box-shadow:0 18px 60px rgba(74,25,100,.18);text-align:center"><div style="font-size:34px">🔐</div><h2 style="margin:10px 0 6px;color:#381452">Memeriksa Akses Admin</h2><p id="kfV12AuthText" style="margin:0;color:#725f7c;line-height:1.5">Question Studio V13 hanya dapat digunakan oleh Super Admin yang aktif.</p></div></div>
 <style id="kfV12GateStyle">body > *:not(#kfV12AuthGate):not(#kfV12GateStyle):not(script){visibility:hidden!important}</style>
 <script>
@@ -444,16 +421,7 @@ window.kfV12Navigate=function(page){
 <div id="kfUWork" class="kf-us-work" contenteditable="true" data-placeholder="Ketik manual, paste teks, Ctrl+V screenshot/foto, drag & drop gambar, atau ketik instruksi AI di sini..." style="margin-top:10px"></div>
 <div class="kf-us-tools"><button class="btn primary" onclick="KFUnified.manual()">✏️ Susun ke Editor</button><button class="btn pink" onclick="KFUnified.aiVision()">✨ AI Susun Soal + Gambar</button><label class="btn">📎 Word/PDF<input type="file" id="kfUDoc" accept=".docx,.pdf,application/pdf" hidden onchange="KFUnified.doc(this)"></label><label class="btn">🖼 Gambar/Foto<input type="file" accept="image/*" hidden onchange="KFUnified.image(this)"></label><button class="btn" onclick="KFUnified.clear()">🧹 Bersihkan</button></div>
 <div class="kf-us-tools kf-us-formula" id="kfUFormula"><b style="width:100%">Toolbar Rumus Fisika — klik untuk masuk ke posisi kursor</b></div><div id="kfUStatus" class="kf-us-status">✓ Sistem V13 siap.</div></div>
-<div class="kf-us-card kf-ai-toolbar-card">
-<div class="kf-ai-toolbar-head"><div><b>② AI TOOLBAR FISIKA</b><div class="small">Gunakan sesuai kebutuhan. Tidak semua alat perlu dipakai untuk setiap soal.</div></div><div class="kf-difficulty-quick"><span>Pilih Cepat:</span><button class="btn sm kf-easy" onclick="KFUnified.changeDifficulty('Mudah')">🟢 Mudah</button><button class="btn sm kf-medium" onclick="KFUnified.changeDifficulty('Sedang')">🟡 Sedang</button><button class="btn sm kf-hard" onclick="KFUnified.changeDifficulty('Sulit')">🔴 Sulit</button></div></div>
-<div class="kf-ai-groups">
-<section class="kf-ai-group kf-ai-create"><b>✨ Pembuatan & Perapihan</b><button class="btn" onclick="KFUnified.improve()">✨ Rapikan Soal</button><button class="btn" onclick="KFUnified.explain()">💡 Buat Pembahasan</button><button class="btn" onclick="KFUnified.variation()">🔁 Variasi Soal</button><button class="btn" onclick="KFUnified.tidy()">🧠 Rapikan Pembahasan</button></section>
-<section class="kf-ai-group kf-ai-visual"><b>📐 Gambar & Rumus</b><button class="btn" onclick="KFUnified.formulaPhoto()">📷 Gambar → LaTeX</button><button class="btn" onclick="KFUnified.openFormulaBuilder()">∑ Editor Rumus</button><button class="btn" onclick="KFUnified.openGraphBuilder()">📈 Grafik Fisika</button><button class="btn" onclick="KFUnified.openDiagramBuilder()">🧩 Diagram Fisika</button><button class="btn" onclick="KFUnified.cleanImageAI()">✨ Bersihkan Gambar AI</button></section>
-<section class="kf-ai-group kf-ai-check"><b>🔍 Validasi & Pemeriksaan</b><button class="btn" onclick="KFUnified.validate()">🔍 Validasi Fisika</button><button class="btn" onclick="KFUnified.physicsCheck()">🧠 Periksa Fisika AI</button><button class="btn" onclick="KFUnified.findDuplicates()">🧬 Cek Duplikat</button><button class="btn" onclick="KFUnified.aiReviewAll()">🤖 AI Review Massal</button></section>
-<section class="kf-ai-group kf-ai-manage"><b>🗂️ Pengelolaan Soal</b><button class="btn" onclick="KFUnified.batchMeta()">🗂️ Batch Metadata</button><button class="btn" onclick="KFUnified.convertType()">🔄 Konversi Jenis Soal</button><button class="btn" onclick="KFUnified.saveVersion()">🕘 Simpan Versi</button><button class="btn" onclick="KFUnified.versionHistory()">📚 Riwayat Versi</button></section>
-<section class="kf-ai-group kf-ai-other"><b>⚙️ Lainnya</b><button class="btn" onclick="KFUnified.undoEdit()">↩ Undo</button><button class="btn" onclick="KFUnified.redoEdit()">↪ Redo</button><button class="btn" onclick="KFUnified.reviewAll()">📋 Review Semua</button><button class="btn" onclick="previewCurrent()">👁 Preview</button></section>
-</div>
-<div class="kf-save-strip"><div><b>💾 SIMPAN</b><div class="small">Simpan soal aktif atau seluruh soal yang sedang dikerjakan.</div></div><div class="kf-save-actions"><button class="btn primary" onclick="saveCurrentToPackage()">💾 Simpan Soal Ini</button><button class="btn pink" onclick="KFUnified.saveAll()">💾💾 Simpan Semua Soal</button></div></div>
+<div class="kf-us-card"><b>② AI TOOLBAR FISIKA</b><div class="kf-us-ai"><button class="btn" onclick="KFUnified.improve()">✨ Rapikan Soal</button><button class="btn" onclick="KFUnified.explain()">💡 Buat Pembahasan</button><button class="btn" onclick="KFUnified.variation()">🔁 Variasi Soal</button><button class="btn" onclick="KFUnified.tidy()">🧠 Rapikan Pembahasan</button><button class="btn" onclick="KFUnified.formulaPhoto()">📷 Gambar → LaTeX</button><button class="btn" onclick="KFUnified.validate()">🔍 Validasi Fisika</button><button class="btn" onclick="KFUnified.physicsCheck()">🧠 Periksa Fisika AI</button><button class="btn" onclick="KFUnified.changeDifficulty('Mudah')">🎚️ Mudah</button><button class="btn" onclick="KFUnified.changeDifficulty('Sulit')">🎚️ Sulit</button><button class="btn" onclick="KFUnified.undoEdit()">↩ Undo</button><button class="btn" onclick="KFUnified.redoEdit()">↪ Redo</button><button class="btn" onclick="KFUnified.reviewAll()">📋 Review Semua</button><button class="btn" onclick="KFUnified.findDuplicates()">🧬 Cek Duplikat</button><button class="btn" onclick="KFUnified.batchMeta()">🗂️ Batch Metadata</button><button class="btn" onclick="KFUnified.aiReviewAll()">🤖 AI Review Massal</button><button class="btn" onclick="KFUnified.openFormulaBuilder()">∑ Editor Rumus</button><button class="btn" onclick="KFUnified.openGraphBuilder()">📈 Grafik Fisika</button><button class="btn" onclick="KFUnified.openDiagramBuilder()">🧩 Diagram Fisika</button><button class="btn" onclick="KFUnified.convertType()">🔄 Konversi Jenis Soal</button><button class="btn" onclick="KFUnified.cleanImageAI()">✨ Bersihkan Gambar AI</button><button class="btn" onclick="KFUnified.saveVersion()">🕘 Simpan Versi</button><button class="btn" onclick="KFUnified.versionHistory()">📚 Riwayat Versi</button><button class="btn" onclick="previewCurrent()">👁 Preview</button><button class="btn primary" onclick="saveCurrentToPackage()">💾 Simpan Soal Ini</button><button class="btn pink" onclick="KFUnified.saveAll()">💾💾 Simpan Semua Soal</button></div><div class="small" style="margin-top:8px">Editor V13 lengkap berada tepat di bawah: pertanyaan, opsi/pernyataan, kunci, gambar, pembahasan, MCMA, kategori, isian dan esai.</div></div>
 </div><div class="kf-us-card" style="margin-top:4px"><b>③ EDITOR SOAL</b><div class="small">Hasil Manual, Word/PDF, AI, screenshot, gambar dan rumus semuanya masuk ke editor yang sama.</div></div><div class="card" id="v12EditorCard">
 <div class="editor-head"><div><h2 id="editorTitle">Pembuat Soal</h2><div class="sub">Fokus membuat, mengedit, memeriksa kunci, rumus, gambar, dan pembahasan. Nama paket, tujuan Latihan/Tryout, jadwal, durasi, dan akses peserta diatur setelah soal dipilih dari Bank Soal.</div></div></div>
 <div class="package-builder" id="multiQuestionBuilder">
@@ -1753,53 +1721,6 @@ function exportPackagePDF(id,mode){
  <style>@page{size:A4;margin:16mm}body{font-family:Arial,sans-serif;color:#111;font-size:12pt;line-height:1.45}h1{text-align:center;font-size:18pt;margin:0 0 4px}.meta{text-align:center;margin-bottom:22px;color:#555}.print-q{page-break-inside:avoid;margin:0 0 20px}.qtext{margin-bottom:8px}.print-opt{margin:5px 0 5px 22px}.print-img{display:block;max-width:520px;max-height:330px;margin:8px 0}.small-img{max-width:300px;max-height:180px}.key{margin-top:8px;padding:6px;background:#f1f1f1}.explain{margin-top:6px;padding:8px;border-left:3px solid #777;background:#fafafa}.answer-line{margin:12px 0}.essay-lines{height:100px;border-bottom:1px solid #aaa;background:repeating-linear-gradient(to bottom,transparent 0,transparent 23px,#ddd 24px)}.toolbar{position:fixed;right:15px;top:15px}@media print{.toolbar{display:none}}</style></head><body>
  <button class="toolbar" onclick="window.print()">🖨 Simpan sebagai PDF</button><h1>${esc(p.name)}</h1><div class="meta">${p.questions.length} soal</div>${body}
  <scr${'ipt'}>window.onload=()=>setTimeout(()=>window.print(),1000)<\${""}\/scr${""}ipt>
-
-
-<script id="v13-ai-editor-hardening-20261006">
-(function(){
- const oldNormalize=window.normalizeAIQuestion;
- window.normalizeAIQuestion=function(raw){
-  raw=raw&&typeof raw==='object'?raw:{};
-  const out=oldNormalize(raw);out.answers=out.answers||{};
-  const rawOpts=raw.opsi||raw.options||raw.pilihan||raw.choices||raw.answers?.options||[];
-  const imgs=Object.assign({},raw.optionImages||raw.option_images||raw.gambarOpsi||raw.gambar_opsi||{},raw.answers?.optionImages||raw.answers?.option_images||{});
-  if(Array.isArray(rawOpts))rawOpts.forEach((o,i)=>{if(o&&typeof o==='object'){const src=o.image||o.imageUrl||o.image_url||o.gambar||o.gambar_url||'';if(src)imgs[i]=src}});
-  if(Array.isArray(raw.option_images))raw.option_images.forEach((x,i)=>{if(x)imgs[i]=x});
-  if(Array.isArray(raw.gambar_opsi))raw.gambar_opsi.forEach((x,i)=>{if(x)imgs[i]=x});
-  if(Object.keys(imgs).length)out.answers.optionImages=Object.assign({},out.answers.optionImages||{},imgs);
-  if(out.type==='kategori'){
-   const norm=v=>{if(v===true||v===1)return'Benar';if(v===false||v===0)return'Salah';const x=String(v??'').trim().toLowerCase();if(['benar','true','b','ya','yes','1'].includes(x))return'Benar';if(['salah','false','s','tidak','no','0'].includes(x))return'Salah';return''};
-   (out.answers.statements||[]).forEach(st=>st.answer=norm(st.answer));
-  }
-  if(out.type==='esai')out.answers.essayKey=cleanAIMathText(raw.pedoman||raw.pedomanJawaban||raw.rubrik||raw.rubric||raw.kunci||raw.jawaban||raw.essayKey||raw.answers?.essayKey||out.answers.essayKey||'');
-  return out;
- };
- const oldRender=window.renderAnswerEditor;
- window.renderAnswerEditor=function(){
-  oldRender();
-  if(currentType==='esai'){
-   answerState.essayKey=answerState.essayKey||'';const host=document.getElementById('answerEditor');
-   if(host&&!document.getElementById('essayKey')){
-    host.insertAdjacentHTML('beforeend','<div class="ref-option" style="margin-top:10px"><label><b>Kunci / Pedoman Penilaian Esai</b></label><div class="small">Acuan koreksi admin; tidak ditampilkan sebagai jawaban kepada peserta.</div>'+formulaBar('essayKey')+'<textarea id="essayKey" style="min-height:120px" placeholder="Jawaban ideal, poin penting, atau rubrik penilaian..."></textarea><div id="essayKeyPreview" class="math-preview"></div></div>');
-    const el=document.getElementById('essayKey');el.value=answerState.essayKey;el.addEventListener('input',function(){answerState.essayKey=this.value;const pv=document.getElementById('essayKeyPreview');if(pv){pv.innerHTML=formatTeksDenganLatex(this.value||'');typesetMath(pv)}changed()});
-    const pv=document.getElementById('essayKeyPreview');if(pv){pv.innerHTML=formatTeksDenganLatex(answerState.essayKey||'');typesetMath(pv)}
-   }
-  }
- };
- const oldIssues=window.packageQuestionIssues;
- window.packageQuestionIssues=function(q){
-  const a=oldIssues(q);
-  if(q?.type==='kategori'&&(q.answers?.statements||[]).some(x=>!['Benar','Salah'].includes(String(x.answer||''))))a.push('Setiap pernyataan kategori wajib memiliki kunci Benar atau Salah');
-  if(q?.type==='esai'&&!String(q.answers?.essayKey||'').trim())a.push('Kunci/pedoman penilaian Esai belum diisi');
-  return [...new Set(a)];
- };
- function sync(){const v=document.getElementById('difficulty')?.value||'Sedang';document.querySelectorAll('[data-v13-difficulty]').forEach(b=>b.classList.toggle('primary',b.dataset.v13Difficulty===v))}
- window.v13SetDifficulty=function(v){const e=document.getElementById('difficulty');if(!e)return;e.value=v;sync();changed()};
- document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{
-  const t=document.getElementById('typeSelect');if(t&&!document.getElementById('v13DifficultyQuick')){const b=document.createElement('div');b.id='v13DifficultyQuick';b.style.margin='10px 0';b.innerHTML='<label>Tingkat Kesulitan</label><div class="actions"><button type="button" class="btn sm" data-v13-difficulty="Mudah" onclick="v13SetDifficulty(\'Mudah\')">🟢 Mudah</button><button type="button" class="btn sm" data-v13-difficulty="Sedang" onclick="v13SetDifficulty(\'Sedang\')">🟡 Sedang</button><button type="button" class="btn sm" data-v13-difficulty="Sulit" onclick="v13SetDifficulty(\'Sulit\')">🔴 Sulit</button></div>';t.parentNode.insertBefore(b,t.nextSibling);sync()}
- },250));
-})();
-</script>
 
 </body></html>`);w.document.close();
 }
