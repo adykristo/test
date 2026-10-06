@@ -1704,7 +1704,8 @@ iframe.pdfview{display:block;min-height:520px}
               selesai = selesaiItem(x) || statusTopik(x.topik),
               tryout = false;
             const isPdfCard=normalJenis(x)==="soal" && (String(x.source_type||"").toLowerCase()==="pdf" || !!String(x.pdfUrl||x.pdf_url||x.file_url||"").trim());
-            const klikKartu=(normalJenis(x)==="video" || isPdfCard) ? "" : (terkunci ? "alert('Selesaikan seluruh latihan topik sebelumnya terlebih dahulu.')" : "bukaDetail(" + dataMateri.indexOf(x) + ")");
+            const isModulCard=normalJenis(x)==="pdf";
+            const klikKartu=(normalJenis(x)==="video" || isPdfCard || isModulCard) ? "" : (terkunci ? "alert('Selesaikan seluruh latihan topik sebelumnya terlebih dahulu.')" : "bukaDetail(" + dataMateri.indexOf(x) + ")");
             return `<div class="mcard ${terkunci ? "locked" : ""}"${klikKartu ? ` onclick="${klikKartu}"` : ""}>
       <div class="ic">${ICON[normalJenis(x)] || "📁"}</div>
       <div>
@@ -1717,6 +1718,7 @@ iframe.pdfview{display:block;min-height:520px}
         ${selesai ? '<span class="tag" style="margin-left:5px">✓ Latihan selesai</span>' : ""}
         ${normalJenis(x)==="soal" ? '<div style="margin-top:10px"><button class="btn btn-main" type="button" onclick="event.stopPropagation();bukaDetail('+dataMateri.indexOf(x)+')">📖 Buka / Baca PDF</button></div>' : ""}
         ${normalJenis(x)==="video" ? '<div style="margin-top:10px"><button class="btn btn-main" type="button" onclick="event.stopPropagation();bukaDetail('+dataMateri.indexOf(x)+')">▶ Buka / Putar Video</button></div>' : ""}
+        ${isModulCard ? '<div style="margin-top:10px"><button class="btn btn-main" type="button" onclick="event.stopPropagation();bukaDetail('+dataMateri.indexOf(x)+')">📖 Buka / Baca Modul</button></div>' : ""}
       </div>
       <button class="bookmark-btn ${bookmarked(x.id)?"active":""}" type="button" onclick="toggleBookmark(event,'${esc(String(x.id||"").replace(/[^0-9a-f-]/gi,""))}')" aria-label="Simpan materi">${bookmarked(x.id)?"★":"☆"}</button>
     </div>`;
