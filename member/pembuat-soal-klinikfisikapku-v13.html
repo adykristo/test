@@ -651,11 +651,13 @@ let answerState={options:['','','','',''],keys:[0],short:'',essayKey:'',statemen
 function bank(){try{const rows=JSON.parse(localStorage.getItem(KEY)||'[]');return (Array.isArray(rows)?rows:[]).map(q=>{if(!q)return q;q.question=cleanAIMathText(q.question||'');q.explanation=cleanAIMathText(q.explanation||'');if(q.answers){if(Array.isArray(q.answers.options))q.answers.options=q.answers.options.map(cleanAIMathText);if(Array.isArray(q.answers.statements))q.answers.statements=q.answers.statements.map(x=>Object.assign({},x,{text:cleanAIMathText(x.text||'')}));if(typeof q.answers.short==='string')q.answers.short=cleanAIMathText(q.answers.short);if(typeof q.answers.essayKey==='string')q.answers.essayKey=cleanAIMathText(q.answers.essayKey);}return q})}catch(e){return[]}}
 function compactQuestionForBank(q){
  const x=JSON.parse(JSON.stringify(q||{}));
- // legacy/base64 image payloads can exhaust localStorage; inline image registry is not duplicated into Bank.
- if(x.inlineImages)delete x.inlineImages;
- if(x.image&&/^data:image\//i.test(x.image))x.image='';
- if(x.explanationImage&&/^data:image\//i.test(x.explanationImage))x.explanationImage='';
- if(x.answers){delete x.answers.optionImageData;delete x.answers.optionImages;}
+ // V13: gambar upload wajib ikut tersimpan agar Bank Soal dan Preview dapat menampilkannya.
+ // Hindari duplikasi: optionImageData digabung ke optionImages, lalu field sementara dibuang.
+ if(x.answers){
+   x.answers.optionImages=x.answers.optionImages||{};
+   Object.keys(x.answers.optionImageData||{}).forEach(k=>{if(x.answers.optionImageData[k])x.answers.optionImages[k]=x.answers.optionImageData[k]});
+   delete x.answers.optionImageData;
+ }
  return x;
 }
 function setBank(v){
@@ -663,10 +665,9 @@ function setBank(v){
  try{localStorage.setItem(KEY,raw)}
  catch(e){
    if(e?.name==='QuotaExceededError'||/quota/i.test(e?.message||'')){
-     // one-time cleanup of oversized legacy draft/package caches, never delete the Bank itself
      try{localStorage.removeItem(DRAFT)}catch(_){}
-     try{localStorage.removeItem('kf_v13_inline_images')}catch(_){}
-     localStorage.setItem(KEY,raw);
+     // Jangan hapus gambar soal. Beri pesan jelas agar data visual tidak hilang diam-diam.
+     throw new Error('Penyimpanan browser penuh. Gambar tidak dihapus. Hapus draft/soal lama yang tidak dipakai atau gunakan link gambar lalu simpan kembali.');
    }else throw e;
  }
  updateCounts();
