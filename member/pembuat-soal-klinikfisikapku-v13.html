@@ -665,7 +665,7 @@ function setBank(v){
  try{localStorage.setItem(KEY,raw)}
  catch(e){
    if(e?.name==='QuotaExceededError'||/quota/i.test(e?.message||'')){
-     try{localStorage.removeItem(DRAFT)}catch(_){}
+     // Jangan hapus draft atau gambar otomatis ketika quota penuh.
      // Jangan hapus gambar soal. Beri pesan jelas agar data visual tidak hilang diam-diam.
      throw new Error('Penyimpanan browser penuh. Gambar tidak dihapus. Hapus draft/soal lama yang tidak dipakai atau gunakan link gambar lalu simpan kembali.');
    }else throw e;
@@ -2139,7 +2139,7 @@ function openSavedPackage(id){
  savePackageDraftLocal();loadPackageQuestionToEditor(packageDraft.questions[0]);renderPackageNavigator();nav('buat');
  if($('editorTitle'))$('editorTitle').textContent='Edit Paket — '+packageDraft.name+' ('+packageDraft.questions.length+' soal)';
 }
-function duplicateSavedPackage(id){let arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return;let c=JSON.parse(JSON.stringify(p));c.id='PKG-'+Date.now();c.name=p.name+' (Salinan)';c.published=false;delete c.publishedAt;c.createdAt=c.updatedAt=new Date().toISOString();arr.unshift(c);setPackageBank(arr)}
+function duplicateSavedPackage(id){let arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return;let c=JSON.parse(JSON.stringify(p)),stamp=Date.now();c.id='PKG-'+stamp;c.name=p.name+' (Salinan)';c.published=false;c.stage='';delete c.publishedAt;c.questions=(c.questions||[]).map((q,i)=>Object.assign({},q,{id:'Q'+stamp.toString(36)+'d'+i.toString(36),updatedAt:new Date().toISOString()}));c.count=c.questions.length;c.createdAt=c.updatedAt=new Date().toISOString();arr.unshift(c);setPackageBank(arr);renderPackageBank()}
 function deleteSavedPackage(id){if(confirm('Hapus paket soal ini?'))setPackageBank(packageBank().filter(x=>x.id!==id))}
 
 $('qFormulaBar').innerHTML=formulaBar('question');$('exFormulaBar').innerHTML=formulaBar('explanation');
