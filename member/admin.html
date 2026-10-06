@@ -2216,7 +2216,31 @@ function getPkg(kind,id){return pkgGet(kind).find(x=>x.id===id)}
 function savePkgObj(kind,p){
  let a=pkgGet(kind),i=a.findIndex(x=>x.id===p.id);p.updatedAt=new Date().toISOString();if(i>=0)a[i]=p;else a.unshift(p);pkgSet(kind,a);
 }
-async function hapusPkg(kind,id){let p=getPkg(kind,id);if(!p)return;const ok=await KFUI.confirm('Hapus paket "'+p.name+'"?\n\nPaket draf lokal ini akan dihapus.','Hapus Paket');if(!ok)return;pkgSet(kind,pkgGet(kind).filter(x=>x.id!==id));KFUI.toast('Paket berhasil dihapus.','ok')}
+async function hapusPkg(kind,id){
+ let p=getPkg(kind,id);if(!p)return;
+ const ok=await KFUI.confirm('Hapus paket "'+p.name+'"?\n\nJika paket pernah dipublikasikan, publikasi Supabase juga akan dinonaktifkan. Riwayat pengerjaan peserta tetap disimpan.','Hapus Paket');
+ if(!ok)return;
+ try{
+   if(window.KFPackagePublisher){
+     const rows=await KFPackagePublisher.adminList();
+     const candidates=(rows||[]).filter(x=>{
+       if(String(x.kind||"").toLowerCase()!==String(kind||"").toLowerCase())return false;
+       const ext=String(x.external_id||"");
+       const sameId=ext===String(p.id||"")||ext===("V14-"+kind+"-"+String(p.id||""));
+       const sameName=String(x.name||"").trim()===String(p.name||"").trim();
+       return sameId||sameName;
+     });
+     for(const x of candidates){
+       if(x.visible!==false&&x.external_id)await KFPackagePublisher.unpublish(x.external_id);
+     }
+   }
+   pkgSet(kind,pkgGet(kind).filter(x=>x.id!==id));
+   try{await renderSupabasePackageStatus()}catch(_){}
+   KFUI.toast('Paket dihapus dari Admin dan publikasi Member dinonaktifkan. Riwayat peserta tetap aman.','ok',5000);
+ }catch(e){
+   KFUI.toast('Paket belum dihapus karena sinkronisasi Supabase gagal: '+(e?.message||e),'err',6500);
+ }
+}
 function duplikatPkg(kind,id){let p=cloneObj(getPkg(kind,id));if(!p)return;p.id=uidPkg();p.name+=" (Salinan)";p.visible=false;p.createdAt=new Date().toISOString();savePkgObj(kind,p);KFUI.toast('Salinan paket berhasil dibuat.','ok')}
 
 function renderPkgManagers(){
