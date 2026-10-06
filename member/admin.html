@@ -2759,12 +2759,25 @@ async function kfPerbaikiPaketPeserta(memberId){await kelolaPaketMember(memberId
 async function kfLihatSebagaiPeserta(memberId){
  const m=MEMBER_CACHE.find(x=>String(x.id)===String(memberId));if(!m)return KFUI.toast("Peserta tidak ditemukan.","err");
  try{
-  await loadPackageCore();const db=kfdb(),q=await db.rpc("kf_admin_member_packages",{p_user:memberId});if(q.error)throw q.error;
-  const active=(q.data||[]).filter(x=>String(x.status||"").toLowerCase()==="active"),ids=active.map(x=>String(x.package_id));
+  await loadPackageCore();
+  const db=kfdb(),ownq=await db.rpc("kf_admin_member_packages",{p_user:memberId});if(ownq.error)throw ownq.error;
+  const active=(ownq.data||[]).filter(x=>String(x.status||"").toLowerCase()==="active"),ids=active.map(x=>String(x.package_id));
   let maps=[];if(ids.length){const mq=await db.from("member_content_packages").select("content_id,package_id").in("package_id",ids);if(!mq.error)maps=mq.data||[]}
-  const counts={};maps.forEach(x=>counts[String(x.package_id)]=(counts[String(x.package_id)]||0)+1);
-  const lines=active.map((x,i)=>(i+1)+". "+x.package_name+" — "+(counts[String(x.package_id)]||0)+" konten Modul/PDF/Video");
-  const msg="MODE PREVIEW READ-ONLY\n\nPeserta: "+(m.nama||"Member")+"\nJenjang: "+String(m.jenjang||"-").toUpperCase()+"\nStatus: "+(STATUS_LABEL[statusEfektifMember(m)]||statusEfektifMember(m))+"\n\nPAKET YANG SEHARUSNYA TERLIHAT:\n"+(lines.join("\n")||"Belum ada paket aktif")+"\n\nLatihan Interaktif dan Tryout tetap difilter server berdasarkan paket peserta saat login.";
+  if(!KONTEN_CACHE.length){try{const cr=await adminApi("adminListKonten",{});KONTEN_CACHE=cr.data||[]}catch(e){}}
+  const contentById=new Map(KONTEN_CACHE.map(x=>[String(x.id),x]));
+  let finals=[],access=[];try{if(window.KFPackagePublisher)finals=await KFPackagePublisher.adminList();const aq=await db.from("kf_package_access").select("kf_package_id,member_package_id");if(!aq.error)access=aq.data||[]}catch(e){console.warn("Preview paket interaktif:",e)}
+  const finalById=new Map(finals.map(x=>[String(x.id),x]));
+  const sections=active.map((p,i)=>{
+    const pid=String(p.package_id),linked=maps.filter(x=>String(x.package_id)===pid).map(x=>contentById.get(String(x.content_id))).filter(Boolean);
+    const modules=linked.filter(x=>["pdf","modul","module","materi"].includes(String(x.jenis||"").toLowerCase())&&String(x.tujuan||"").toLowerCase()!=="latihan");
+    const pdfs=linked.filter(x=>String(x.tujuan||"").toLowerCase()==="latihan"||["latihan","exercise"].includes(String(x.jenis||"").toLowerCase()));
+    const videos=linked.filter(x=>["video","youtube","yt"].includes(String(x.jenis||"").toLowerCase()));
+    const fp=access.filter(a=>String(a.member_package_id)===pid).map(a=>finalById.get(String(a.kf_package_id))).filter(Boolean).filter(x=>x.visible!==false);
+    const latihan=fp.filter(x=>String(x.kind||"").toLowerCase()==="latihan"),tryout=fp.filter(x=>String(x.kind||"").toLowerCase()==="tryout");
+    const names=a=>a.length?a.map(x=>x.judul||x.name||"Tanpa judul").join(", "):"—";
+    return (i+1)+". "+p.package_name+"\n   📘 Modul: "+names(modules)+"\n   📄 Latihan PDF: "+names(pdfs)+"\n   ▶ Video: "+names(videos)+"\n   ✍ Latihan Interaktif: "+names(latihan)+"\n   ★ Tryout: "+names(tryout);
+  });
+  const msg="MODE PREVIEW READ-ONLY\n\nPeserta: "+(m.nama||"Member")+"\nJenjang: "+String(m.jenjang||"-").toUpperCase()+"\nStatus: "+(STATUS_LABEL[statusEfektifMember(m)]||statusEfektifMember(m))+"\n\nSEMUA KONTEN BERDASARKAN PAKET PESERTA:\n\n"+(sections.join("\n\n")||"Belum ada paket aktif")+"\n\n— = belum ada konten yang dipetakan/dipublikasikan untuk jenis tersebut.";
   await KFUI.confirm(msg,"👁 Tampilan Peserta V14");
  }catch(e){KFUI.toast("Preview peserta gagal: "+e.message,"err",6000)}
 }
