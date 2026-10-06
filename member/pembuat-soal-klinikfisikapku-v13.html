@@ -1430,7 +1430,7 @@ async function saveObjectiveParticipantSubmission(q,a,grade,pkg,attemptId){
  const row={participant_id:user.id,package_id:String(pkg?.id||pkg?.kf_package_id||''),question_id:String(q.id||q.question_id||q.uid||''),question_type:String(q.type||''),answer_data:v13AnswerData(q,a),is_correct:grade?.correct===true,score:Number(grade?.score||0),max_score:Number(grade?.max||1),attempt_id:attemptId||null,answered_at:new Date().toISOString()};
  const r=await db.from('question_submissions').upsert(row,{onConflict:'participant_id,package_id,question_id,attempt_id'}).select().single();if(r.error)throw r.error;return r.data;
 }
-async function saveAssessmentAttempt(pkg,answers,grades,status='submitted'){
+async async function saveAssessmentAttempt(pkg,answers,grades,status='submitted'){
  const {db,user}=await v13SubmissionDb(),attemptId=practiceState.attemptId||crypto.randomUUID(),auto=grades.filter(g=>g.auto),earned=auto.reduce((s,g)=>s+Number(g.score||0),0),max=auto.reduce((s,g)=>s+Number(g.max||0),0);
  practiceState.attemptId=attemptId;
  const row={id:attemptId,participant_id:user.id,package_id:String(pkg?.id||pkg?.kf_package_id||''),package_name:String(pkg?.name||''),assessment_kind:String(pkg?.kind||'latihan'),status,total_questions:(pkg?.questions||[]).length,answered_questions:(pkg?.questions||[]).filter((q,i)=>practiceAnswered(i)).length,objective_score:max?Math.round(earned/max*10000)/100:null,started_at:practiceState.startedAt||new Date().toISOString(),submitted_at:status==='submitted'?new Date().toISOString():null,updated_at:new Date().toISOString()};
@@ -1688,14 +1688,14 @@ setTimeout(()=>{health();syncBankAssetFromDraft()},700);
 </body></html>`);w.document.close();
 }
 
-function packageBank(){try{return JSON.parse(localStorage.getItem(PACKAGE_BANK_KEY)||'[]')}catch(e){return []}}
-function setPackageBank(v){localStorage.setItem(PACKAGE_BANK_KEY,JSON.stringify(v));renderPackageBank()}
+function packageBank(){try{let rows=JSON.parse(localStorage.getItem(PACKAGE_BANK_KEY)||'[]');return (Array.isArray(rows)?rows:[]).filter(Boolean).map(p=>{p.questions=(Array.isArray(p.questions)?p.questions:[]).filter(Boolean).map(q=>window.KFQuestionSchema?.normalize?window.KFQuestionSchema.normalize(q):q);p.count=p.questions.length;return p})}catch(e){console.warn('[V13 packageBank]',e);return []}}
+function setPackageBank(v){try{let rows=(Array.isArray(v)?v:[]).filter(Boolean).map(p=>{let x=JSON.parse(JSON.stringify(p));x.questions=(Array.isArray(x.questions)?x.questions:[]).filter(Boolean).map(q=>window.KFQuestionSchema?.normalize?window.KFQuestionSchema.normalize(q):q);x.count=x.questions.length;return x});localStorage.setItem(PACKAGE_BANK_KEY,JSON.stringify(rows));renderPackageBank();return true}catch(e){console.error('[V13 setPackageBank]',e);alert('Gagal menyimpan Paket. '+(e?.message||e));return false}}
 function savePackageDraftLocal(){
- localStorage.setItem(PACKAGE_DRAFT_KEY,JSON.stringify(packageDraft));
+ try{localStorage.setItem(PACKAGE_DRAFT_KEY,JSON.stringify(packageDraft))}catch(e){console.error('[V13 package draft]',e);let el=$('packageAutosaveStatus');if(el)el.textContent='⚠ Draft gagal disimpan: '+(e?.message||e);return false}
  let el=$('packageAutosaveStatus');
- if(el){let now=new Date();el.textContent='✓ Draft tersimpan otomatis '+now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+ if(el){let now=new Date();el.textContent='✓ Draft tersimpan otomatis '+now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}return true
 }
-function loadPackageDraftLocal(){try{let x=JSON.parse(localStorage.getItem(PACKAGE_DRAFT_KEY)||'null');if(x&&Array.isArray(x.questions)){packageDraft=x;$('packageName').value=x.name||'';$('packageCount').value=x.questions.length}}catch(e){}}
+function loadPackageDraftLocal(){try{let x=JSON.parse(localStorage.getItem(PACKAGE_DRAFT_KEY)||'null');if(x&&Array.isArray(x.questions)){x.questions=x.questions.map(q=>q&&window.KFQuestionSchema?.normalize?window.KFQuestionSchema.normalize(q):q);x.count=x.questions.length;packageDraft=x;if($('packageName'))$('packageName').value=x.name||'';if($('packageCount'))$('packageCount').value=x.questions.length}}catch(e){console.warn('[V13 load package draft]',e)}}
 function startQuestionPackage(){let count=Math.max(1,Math.min(200,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(![5,10,20].includes(count)&&!confirm('Jumlah paket '+count+' soal.\n\nRekomendasi KlinikFisikapku adalah 5, 10, atau 20 soal. Tetap lanjutkan?'))return;if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
 function loadQuestionsToWorkspace(qs,name){
  qs=(Array.isArray(qs)?qs:[]).filter(Boolean).map(q=>v13NormalizeQuestionObject(JSON.parse(JSON.stringify(q))));
