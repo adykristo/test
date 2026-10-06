@@ -1673,15 +1673,18 @@ iframe.pdfview{display:block;min-height:520px}
         const q = (document.getElementById("cari").value || "").toLowerCase();
         const isTryoutView=filterAktif==="tryout";
         const items = isTryoutView ? [] : dataMateri.filter(
-          (x) =>
-            x.visible !== false &&
-            normalJenis(x) !== "tryout" &&
-            normalJenis(x) !== "soal" &&
-            tujuanItem(x) !== "tryout" &&
-            (!hanyaBookmark || bookmarked(x.id)) &&
-            normalJenis(x) === filterAktif &&
-            ((x.judul || "").toLowerCase().includes(q) ||
-              (x.topik || "").toLowerCase().includes(q)),
+          (x) => {
+            const jenis=normalJenis(x);
+            const isLatihanPdf=jenis==="soal" && String(x.source_type||"").toLowerCase()==="pdf" && tujuanItem(x)!=="tryout";
+            return x.visible !== false &&
+              jenis !== "tryout" &&
+              (jenis !== "soal" || isLatihanPdf) &&
+              tujuanItem(x) !== "tryout" &&
+              (!hanyaBookmark || bookmarked(x.id)) &&
+              (jenis === filterAktif || (filterAktif==="soal" && isLatihanPdf)) &&
+              ((x.judul || "").toLowerCase().includes(q) ||
+                (x.topik || "").toLowerCase().includes(q));
+          },
         );
         const catalog=window.KF_PACKAGE_CATALOG||[];
         const packageOrder=new Map(catalog.map((p,i)=>[String(p.id||""),Number(p.urutan||i+1)]));
