@@ -453,7 +453,7 @@ window.kfV12Navigate=function(page){
 </div>
 <div class="sep"></div><div id="answerCard"><label><b id="answerSectionTitle">Pilihan jawaban / kunci</b></label><div class="small">Setiap opsi boleh berisi teks, rumus, gambar, atau keduanya.</div><div id="answerEditor"></div></div>
 <div id="explanationSection"><div class="sep"></div><label><b>Pembahasan</b> <span class="small">(opsional: teks + LaTeX + gambar)</span></label><div id="exFormulaBar"></div><textarea id="explanation" placeholder="Contoh: $a=F/m=10/2=5\\,\\mathrm{m/s^2}$."></textarea>
-<div id="explanationMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div class="editor-image-row" style="display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:7px"><input type="file" id="explanationImageFile" accept="image/*" onchange="loadExplanationImage(this)"><input id="explanationImageUrl" placeholder="Atau tempel link gambar pembahasan" oninput="explanationImage=this.value;showExplanationImage();changed()"></div><div id="explanationImagePreview" class="math-preview">Pratinjau gambar pembahasan akan muncul di sini...</div>
+<div id="explanationMathPreview" class="math-preview">Pratinjau akan muncul di sini...</div><div class="editor-image-row" style="display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:7px"><input type="file" id="explanationImageFile" accept="image/*" onchange="loadExplanationImage(this)"><input id="explanationImageUrl" placeholder="Atau tempel link gambar pembahasan" oninput="explanationImage=this.value;showExplanationImage();changed()"></div><div id="explanationImagePreview" class="math-preview">Pratinjau gambar pembahasan akan muncul di sini...</div><div id="explanationImageDeleteActions" class="actions" style="margin-top:7px;display:none"><button class="btn danger" type="button" onclick="clearExplanationImage()">🗑 Hapus Gambar Pembahasan</button></div>
 <div id="scoringSection" style="margin-top:10px;max-width:360px">
 <label>Penilaian MCMA</label>
 <select id="scoring"><option value="exact">Exact — semua harus benar</option><option value="partial">Partial — skor sebagian</option></select>
@@ -886,6 +886,7 @@ function clearImage(){imageData='';$('qImageUrl').value='';imageRotation=0;showI
 function showExplanationImage(){
  let u=explanationImageData||$('explanationImageUrl')?.value||'';
  if($('explanationImagePreview'))$('explanationImagePreview').innerHTML=u?`<img class="qimg" src="${esc(u)}">`:'';
+ let a=$('explanationImageDeleteActions');if(a)a.style.display=u?'flex':'none';
 }
 function clearExplanationImage(){
  explanationImageData='';if($('explanationImageUrl'))$('explanationImageUrl').value='';
