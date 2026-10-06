@@ -1058,7 +1058,7 @@ table{max-width:100%}
           <h1>Soal Latihan</h1>
           <p class="sub">Kelola paket latihan interaktif V14 untuk peserta berlangganan. Soal dari Bank Soal V14 masuk ke sini, lalu pilih Paket Peserta tujuan dan publikasikan ke Member Area.</p>
           <div class="card">
-            <div class="head"><div><h2>Paket Latihan</h2><p class="sub" style="margin:4px 0 0">Pilih jenis latihan: PDF manual atau latihan interaktif dari Bank Soal V14.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" style="background:linear-gradient(135deg,#6d28d9,#8b2bd9);color:#fff;border-color:transparent;box-shadow:0 7px 16px rgba(109,40,217,.18)" onclick="openLatihanPdfDirect(this)">📄 + Latihan PDF</button><button class="btn" onclick="buatPaketKelola('latihan')">⚡ + Latihan Interaktif</button></div></div>
+            <div class="head"><div><h2>Paket Latihan</h2><p class="sub" style="margin:4px 0 0">Pilih jenis latihan: PDF manual atau latihan interaktif dari Bank Soal V14.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" style="background:linear-gradient(135deg,#6d28d9,#8b2bd9);color:#fff;border-color:transparent;box-shadow:0 7px 16px rgba(109,40,217,.18)" onclick="openLatihanPdfDirect(this)">📄 + Latihan PDF</button><button class="btn" onclick="openLatihanInteraktif(this)">⚡ + Latihan Interaktif</button></div></div>
             <div id="latihanPackageManager" class="manage-list"></div><div class="distribution-box" style="margin-top:14px"><b>Distribusi Paket Final</b><p class="sub">Setelah paket latihan dipublikasikan ke Supabase, atur paket peserta yang boleh mengaksesnya.</p><div id="latihanAccessManager" class="manage-list"></div></div><div class="card" style="margin-top:14px"><div class="head"><h3>Paket Final di Supabase</h3><button class="btn ghost small" onclick="renderSupabasePackageStatus()">↻ Panggil dari Supabase</button></div><div id="latihanPackageManagerSupabase" class="manage-list"><div class="sub">Klik muat untuk melihat data final.</div></div></div>
           </div>
           <div class="card">
@@ -1201,7 +1201,17 @@ table{max-width:100%}
         }
       });
 
-      function openLatihanPdfDirect(b){
+      function openLatihanInteraktif(b){
+  document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("show",x.id==="latihan"));
+  document.querySelectorAll("aside button").forEach(x=>x.classList.remove("active"));
+  const panel=document.getElementById("latihan");if(!panel)return;
+  const title=panel.querySelector("h1");if(title)title.textContent="Latihan Interaktif V14";
+  const sub=panel.querySelector(":scope > .sub");if(sub)sub.textContent="Kelola paket latihan interaktif dari Bank Soal V14, atur soal dan Paket Peserta tujuan, lalu publikasikan ke Member Area.";
+  const head=panel.querySelector(".card .head");
+  if(head)head.innerHTML='<div><h2>Paket Latihan Interaktif</h2><p class="sub" style="margin:4px 0 0">Setiap paket memiliki pengelolaan soal, distribusi, ekspor, dan publikasi lengkap.</p></div><button class="btn" onclick="buatPaketKelola(\'latihan\')">⚡ + Paket Latihan Interaktif</button>';
+  try{renderPkgManagers()}catch(e){console.warn("[Latihan Interaktif V14]",e)}
+}
+function openLatihanPdfDirect(b){
   document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("show",x.id==="konten-v2"));
   document.querySelectorAll("aside button").forEach(x=>x.classList.remove("active"));
   const h=document.getElementById("kontenV2Heading");if(h)h.textContent="Latihan PDF";
