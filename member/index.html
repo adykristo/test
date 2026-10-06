@@ -764,6 +764,27 @@ iframe.pdfview{display:block;min-height:520px}
 }
 </style>
 
+<style id="kf-cross-device-20261007">
+/* Responsif lintas perangkat; hanya layout/pembuka PDF, tidak mengubah engine belajar. */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,iframe{max-width:100%}
+.pdf-actions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
+.pdf-actions .btn{display:inline-flex;align-items:center;justify-content:center}
+.mobile-pdf-help{padding:24px;text-align:center;line-height:1.55}
+@media (max-width:720px){
+  iframe.pdfview{height:58dvh!important;min-height:360px!important}
+  .pdf-actions{display:grid!important;grid-template-columns:1fr!important}
+  .pdf-actions .btn{width:100%!important;min-height:46px}
+  .mcard{min-width:0}
+  .mcard>div:nth-child(2){min-width:0;flex:1}
+  .mcard .judul,.mcard .topik,.package-badge{overflow-wrap:anywhere}
+  .card-meta-row{align-items:flex-start}
+  .kf-pkg-card{min-width:0}
+}
+@media (min-width:721px) and (max-width:1024px){
+  iframe.pdfview{height:65dvh!important;min-height:480px!important}
+}
+</style>
 <style id="kf-brand-clean">
 .brand{display:flex;align-items:center;gap:6px!important}
 .brand-main{font-weight:900;letter-spacing:-.1px}
@@ -1905,21 +1926,34 @@ iframe.pdfview{display:block;min-height:520px}
 
         if (x.jenis === "pdf") {
           html += `<p style="color:#5b4374">Modul dalam format PDF — bisa dibaca langsung di sini atau diunduh.</p>`;
-          const pdfUrl=safePdfUrl(privatePdfUrl||x.pdfUrl);
+          const pdfUrl=safePdfUrl(privatePdfUrl||x.pdfUrl||x.pdf_url||x.file_url||x.url||"");
           if (pdfUrl) {
             const pdfBlobOrUrl = pdfDisplayUrl(pdfUrl);
             const isBlob = String(pdfBlobOrUrl).startsWith("blob:");
-            const sumberPdf = isBlob
-              ? pdfBlobOrUrl
-              : `https://docs.google.com/viewer?url=${encodeURIComponent(pdfBlobOrUrl)}&embedded=true`;
+            const isSupabaseStorage=/\/storage\/v1\/object\//i.test(String(pdfBlobOrUrl));
+            let sumberPdf="";
+            let directPdfUrl=pdfBlobOrUrl;
+            if(isSupabaseStorage&&!isBlob){
+              try{
+                const pdfRes=await fetch(pdfBlobOrUrl,{credentials:"omit"});
+                if(!pdfRes.ok)throw new Error("HTTP "+pdfRes.status);
+                const pdfBlob=await pdfRes.blob();
+                if(kfPdfBlobUrl)URL.revokeObjectURL(kfPdfBlobUrl);
+                kfPdfBlobUrl=URL.createObjectURL(new Blob([pdfBlob],{type:"application/pdf"}));
+                sumberPdf=kfPdfBlobUrl;
+                directPdfUrl=kfPdfBlobUrl;
+              }catch(err){console.warn("Modul PDF Supabase tidak dapat dibuat Blob:",err);}
+            }else{
+              sumberPdf=isBlob?pdfBlobOrUrl:`https://docs.google.com/viewer?url=${encodeURIComponent(pdfBlobOrUrl)}&embedded=true`;
+            }
             if (!pdfBlobOrUrl) {
               html += `<div class="empty">PDF tidak dapat dibaca. Silakan unggah ulang PDF dari halaman admin.</div>`;
             } else {
               const namaPdf = String(x.judul || "modul").replace(/[\\/:*?"<>|]+/g, "-") + ".pdf";
-              html += `<iframe class="pdfview" title="Modul PDF" src="${esc(sumberPdf)}"></iframe>
-        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-          <a class="btn btn-main" style="text-decoration:none" href="${esc(pdfBlobOrUrl)}" ${isBlob ? `download="${esc(namaPdf)}"` : `target="_blank" rel="noopener noreferrer"`}>⬇ Unduh PDF</a>
-          <a class="btn btn-ghost" style="text-decoration:none" href="${esc(pdfBlobOrUrl)}" target="_blank" rel="noopener noreferrer">Buka di Tab Baru</a>
+              html += (sumberPdf?`<iframe class="pdfview" title="Modul PDF" src="${esc(sumberPdf)}"></iframe>`:`<div class="empty mobile-pdf-help"><b>📄 Modul PDF siap dibuka</b><br>Gunakan tombol di bawah jika pratinjau PDF tidak didukung perangkat Anda.</div>`)
+        + `<div class="pdf-actions">
+          <a class="btn btn-main" style="text-decoration:none" href="${esc(directPdfUrl)}" ${isBlob ? `download="${esc(namaPdf)}"` : `target="_blank" rel="noopener noreferrer"`}>⬇ Unduh PDF</a>
+          <a class="btn btn-ghost" style="text-decoration:none" href="${esc(directPdfUrl)}" target="_blank" rel="noopener noreferrer">📄 Buka PDF</a>
         </div>`;
             }
           } else {
