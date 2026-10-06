@@ -889,7 +889,15 @@ async function saveEssayParticipantSubmission(payload){
  const session=await db.auth.getSession();const user=session?.data?.session?.user;
  if(!user)throw new Error('Peserta belum login.');
  const row={participant_id:user.id,question_id:String(payload.question_id||''),package_id:String(payload.package_id||''),answer_text:String(payload.answer_text||''),answer_file_url:String(payload.answer_file_url||''),submitted_at:new Date().toISOString()};
- const r=await db.from('essay_submissions').upsert(row,{onConflict:'participant_id,package_id,question_id'}).select().single();
+ if(payload.attempt_id)row.attempt_id=String(payload.attempt_id);
+ let conflict=payload.attempt_id?'participant_id,package_id,question_id,attempt_id':'participant_id,package_id,question_id';
+ const r=await db.from('essay_submissions').upsert(row,{onConflict:conflict}).select().single();
+ if(r.error&&payload.attempt_id){
+   // Kompatibilitas database lama yang belum memiliki kolom/unique key attempt_id.
+   delete row.attempt_id;
+   const fallback=await db.from('essay_submissions').upsert(row,{onConflict:'participant_id,package_id,question_id'}).select().single();
+   if(fallback.error)throw fallback.error;return fallback.data;
+ }
  if(r.error)throw r.error;return r.data;
 }
 function saveQuestion(){return saveCurrentToPackage()}
@@ -1442,13 +1450,20 @@ async function persistAllPracticeAnswers(pkg,answers,grades){
  await saveAssessmentAttempt(pkg,answers,grades,'in_progress');
  const jobs=(pkg.questions||[]).map(async(q,i)=>{
    if(!practiceAnswered(i))return null;
-   if(q.type==='esai')return saveEssayParticipantSubmission({question_id:String(q.id||q.question_id||q.uid||''),package_id:String(pkg.id||pkg.kf_package_id||''),answer_text:String(answers[i]??''),answer_file_url:''});
+   if(q.type==='esai')return saveEssayParticipantSubmission({question_id:String(q.id||q.question_id||q.uid||''),package_id:String(pkg.id||pkg.kf_package_id||''),attempt_id:practiceState.attemptId||'',answer_text:String(answers[i]??''),answer_file_url:''});
    return saveObjectiveParticipantSubmission(q,answers[i],grades[i],pkg,practiceState.attemptId);
  });
  await Promise.all(jobs);return saveAssessmentAttempt(pkg,answers,grades,'submitted');
 }
-function startPractice(id){
+async function startPractice(id){
  const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ if(p.published&&Number(p.attempts)>0){
+  try{
+   const {db,user}=await v13SubmissionDb();
+   const q=await db.from('assessment_attempts').select('id').eq('participant_id',user.id).eq('package_id',String(p.id||p.kf_package_id||'')).eq('status','submitted');
+   if(!q.error&&(q.data||[]).length>=Number(p.attempts))return alert('Batas pengerjaan paket ini sudah tercapai ('+Number(p.attempts)+' kali).');
+  }catch(e){console.warn('[V13 attempt check]',e)}
+ }
  const raw=Array.isArray(p.questions)?p.questions.filter(Boolean):[];
  const invalid=raw.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
  if(invalid.length)return alert('Paket belum dapat dikerjakan. Perbaiki soal: '+invalid.map(x=>(x.i+1)+' ('+x.issues.join(', ')+')').join('; '));
