@@ -1411,7 +1411,7 @@ async function v13SaveEssayGrade(id,i){
   if(r.error)throw r.error;alert('Nilai Esai berhasil disimpan.');await v13LoadEssayGrading();
  }catch(e){alert('Gagal menyimpan nilai Esai: '+(e?.message||e))}
 }
-async function v13SubmissionDb(){
+async async function v13SubmissionDb(){
  const db=window.KFMemberAuth?.client||window.KFSupabaseAdmin?.client;if(!db)throw new Error('Supabase belum siap.');
  const s=await db.auth.getSession(),user=s?.data?.session?.user;if(!user)throw new Error('Peserta belum login.');
  return {db,user};
@@ -1423,7 +1423,7 @@ function v13AnswerData(q,a){
  if(q.type==='isian')return {text:String(a??'')};
  return {text:String(a??'')};
 }
-async async function saveObjectiveParticipantSubmission(q,a,grade,pkg,attemptId){
+async function saveObjectiveParticipantSubmission(q,a,grade,pkg,attemptId){
  if(q.type==='esai')return null;
  const {db,user}=await v13SubmissionDb();
  const row={participant_id:user.id,package_id:String(pkg?.id||pkg?.kf_package_id||''),question_id:String(q.id||q.question_id||q.uid||''),question_type:String(q.type||''),answer_data:v13AnswerData(q,a),is_correct:grade?.correct===true,score:Number(grade?.score||0),max_score:Number(grade?.max||1),attempt_id:attemptId||null,answered_at:new Date().toISOString()};
@@ -1435,7 +1435,7 @@ async function saveAssessmentAttempt(pkg,answers,grades,status='submitted'){
  const row={id:attemptId,participant_id:user.id,package_id:String(pkg?.id||pkg?.kf_package_id||''),package_name:String(pkg?.name||''),assessment_kind:String(pkg?.kind||'latihan'),status,total_questions:(pkg?.questions||[]).length,answered_questions:(pkg?.questions||[]).filter((q,i)=>practiceAnswered(i)).length,objective_score:max?Math.round(earned/max*10000)/100:null,started_at:practiceState.startedAt||new Date().toISOString(),submitted_at:status==='submitted'?new Date().toISOString():null,updated_at:new Date().toISOString()};
  const r=await db.from('assessment_attempts').upsert(row,{onConflict:'id'}).select().single();if(r.error)throw r.error;return r.data;
 }
-async async function persistAllPracticeAnswers(pkg,answers,grades){
+async function persistAllPracticeAnswers(pkg,answers,grades){
  await saveAssessmentAttempt(pkg,answers,grades,'in_progress');
  const jobs=(pkg.questions||[]).map(async(q,i)=>{
    if(!practiceAnswered(i))return null;
@@ -2073,7 +2073,8 @@ async function v13ConfirmDistribution(){
   const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;
   if(!db)throw new Error('Supabase Admin belum siap untuk distribusi paket.');
   const del=await db.from('kf_package_access').delete().eq('kf_package_id',finalPack.id);if(del.error)throw del.error;
-  const ins=await db.from('kf_package_access').insert(memberPackageIds.map(member_package_id=>({kf_package_id:finalPack.id,member_package_id})));if(ins.error)throw ins.error;
+  const accessRows=memberPackageIds.map(member_package_id=>({kf_package_id:finalPack.id,member_package_id}));
+  if(accessRows.length){const ins=await db.from('kf_package_access').insert(accessRows);if(ins.error)throw ins.error;}
   const now=new Date().toISOString();
   setPackageBank(packageBank().map(x=>x.id===p.id?Object.assign({},x,pub,{published:true,stage:'',publishedAt:now,updatedAt:now}):x));
   v13CloseDistribution();renderPackageBank();v13RenderDistributionQueues();v13RenderPublished();
