@@ -859,6 +859,8 @@ iframe.pdfview{display:block;min-height:520px}
           <div class="field"><label for="user">Email Google</label><input id="user" type="email" autocomplete="email" required placeholder="nama@gmail.com" /></div>
           <div class="field auth-password"><label for="pass">Password <a class="forgot-link" onclick="kirimResetPassword()">Lupa password?</a></label><input id="pass" type="password" autocomplete="current-password" required placeholder="Masukkan password" /><button class="toggle-pass" type="button" onclick="togglePassword('pass',this)" aria-label="Tampilkan password">◉</button></div>
           <button class="btn btn-main" style="margin-top:16px;width:100%">Masuk</button>
+          <div style="display:flex;align-items:center;gap:10px;color:#a08cae;font-size:11px;margin:16px 0"><span style="height:1px;background:#eadff0;flex:1"></span>atau<span style="height:1px;background:#eadff0;flex:1"></span></div>
+          <button class="btn btn-ghost" type="button" style="width:100%;background:#fff" onclick="KFMemberGoogleLoginDirect(this)">G&nbsp;&nbsp; Masuk lewat Google</button>
           <div id="loginNotice" class="auth-notice" role="status"></div>
           <p class="auth-foot">Belum punya akun? <a class="auth-switch" onclick="buka('daftar')">Daftar sekarang</a></p>
         </form>
@@ -2115,6 +2117,22 @@ renderList=function(){_renderListV15();setTimeout(kfLoadServerPackages,0)};
 window.KFMemberUI=window.KFMemberUI||{};
 KFMemberUI.toast=function(message,type="info",timeout=3400){let s=document.getElementById("kfmToastStack");if(!s){s=document.createElement("div");s.id="kfmToastStack";s.className="kfm-toast-stack";document.body.appendChild(s)}const t=document.createElement("div");t.className="kfm-toast "+type;t.textContent=String(message||"");s.appendChild(t);setTimeout(()=>t.remove(),timeout)};
 KFMemberUI.confirm=function(message,title="Konfirmasi"){return new Promise(resolve=>{const b=document.createElement("div");b.className="kfm-backdrop";b.innerHTML='<div class="kfm-dialog" role="dialog" aria-modal="true"><div class="kfm-head"><b></b></div><div class="kfm-body"></div><div class="kfm-actions"><button class="btn btn-ghost" data-no>Kembali</button><button class="btn btn-main" data-yes>Ya, Lanjutkan</button></div></div>';b.querySelector(".kfm-head b").textContent=title;b.querySelector(".kfm-body").textContent=message;const done=v=>{b.remove();resolve(v)};b.querySelector("[data-no]").onclick=()=>done(false);b.querySelector("[data-yes]").onclick=()=>done(true);b.onclick=e=>{if(e.target===b)done(false)};document.body.appendChild(b);b.querySelector("[data-yes]").focus()})};
+</script>
+<script>
+async function KFMemberGoogleLoginDirect(btn){
+ const old=btn?btn.textContent:"";
+ try{
+  if(btn){btn.disabled=true;btn.textContent="Menghubungkan ke Google...";}
+  if(!window.supabase||!window.KF_SUPABASE_CONFIG)throw new Error("Supabase belum termuat. Muat ulang halaman.");
+  const client=(window.KFSupabaseAuth&&window.KFSupabaseAuth.client)?window.KFSupabaseAuth.client:window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);
+  const redirectTo=window.location.origin+window.location.pathname;
+  const {error}=await client.auth.signInWithOAuth({provider:"google",options:{redirectTo}});
+  if(error)throw error;
+ }catch(e){
+  const n=document.getElementById("loginNotice");if(n)n.textContent="Login Google gagal: "+(e?.message||e);
+  if(btn){btn.disabled=false;btn.textContent=old||"G  Masuk lewat Google";}
+ }
+}
 </script>
 </body>
 </html>
