@@ -1457,16 +1457,17 @@ async function persistAllPracticeAnswers(pkg,answers,grades){
 }
 async function startPractice(id){
  const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
- if(p.published&&Number(p.attempts)>0){
+ const isTryout=String(p.kind||p.stage||'').toLowerCase()==='tryout';
+ if(isTryout&&p.published&&Number(p.attempts)>0){
   try{
    const {db,user}=await v13SubmissionDb();
    const q=await db.from('assessment_attempts').select('id').eq('participant_id',user.id).eq('package_id',String(p.id||p.kf_package_id||'')).eq('status','submitted');
-   if(!q.error&&(q.data||[]).length>=Number(p.attempts))return alert('Batas pengerjaan paket ini sudah tercapai ('+Number(p.attempts)+' kali).');
+   if(!q.error&&(q.data||[]).length>=Number(p.attempts))return alert('Batas pengerjaan Tryout ini sudah tercapai ('+Number(p.attempts)+' kali).');
   }catch(e){console.warn('[V13 attempt check]',e)}
  }
  const now=Date.now(),startAt=p.start?new Date(p.start).getTime():null,endAt=p.end?new Date(p.end).getTime():null;
- if(Number.isFinite(startAt)&&now<startAt)return alert('Paket ini belum dapat dikerjakan. Mulai: '+new Date(startAt).toLocaleString('id-ID'));
- if(Number.isFinite(endAt)&&now>endAt)return alert('Waktu pengerjaan paket ini sudah berakhir: '+new Date(endAt).toLocaleString('id-ID'));
+ if(isTryout&&Number.isFinite(startAt)&&now<startAt)return alert('Tryout ini belum dapat dikerjakan. Mulai: '+new Date(startAt).toLocaleString('id-ID'));
+ if(isTryout&&Number.isFinite(endAt)&&now>endAt)return alert('Waktu Tryout ini sudah berakhir: '+new Date(endAt).toLocaleString('id-ID'));
  const raw=Array.isArray(p.questions)?p.questions.filter(Boolean):[];
  const invalid=raw.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
  if(invalid.length)return alert('Paket belum dapat dikerjakan. Perbaiki soal: '+invalid.map(x=>(x.i+1)+' ('+x.issues.join(', ')+')').join('; '));
@@ -1474,7 +1475,7 @@ async function startPractice(id){
  if(!qs.length)return alert('Paket ini belum memiliki isi soal yang valid.');
  const safe=JSON.parse(JSON.stringify(p));safe.questions=qs;
  if(practiceState.timerId)clearInterval(practiceState.timerId);
- const startedAt=new Date().toISOString(),durationMin=Math.max(0,Number(safe.duration)||0),durationDeadline=durationMin?Date.now()+durationMin*60000:null,hardEnd=safe.end?new Date(safe.end).getTime():null;
+ const startedAt=new Date().toISOString(),durationMin=isTryout?Math.max(0,Number(safe.duration)||0):0,durationDeadline=durationMin?Date.now()+durationMin*60000:null,hardEnd=isTryout&&safe.end?new Date(safe.end).getTime():null;
  let deadline=durationDeadline;if(Number.isFinite(hardEnd))deadline=deadline?Math.min(deadline,hardEnd):hardEnd;
  practiceState={package:safe,current:0,answers:qs.map(()=>null),attemptId:crypto.randomUUID(),startedAt,timerId:null,deadline:Number.isFinite(deadline)?deadline:null,finishing:false};
  nav('practice');$('practiceStart').style.display='none';$('practiceResult').style.display='none';$('practiceWork').style.display='block';
