@@ -173,8 +173,14 @@
         const jenis=clean(x&&x.jenis).toLowerCase();
         const tujuan=clean(x&&x.tujuan).toLowerCase();
         // Mesin latihan/tryout interaktif hanya melalui engine V15.
-        return !["soal","quiz","question","qset","tryout"].includes(jenis)
-          && tujuan!=="tryout";
+        // PENGECUALIAN: Latihan PDF adalah konten belajar biasa, bukan engine soal interaktif,
+        // sehingga tetap harus tampil jika RPC server sudah mengizinkan paket peserta.
+        const sourceType=clean(x&&x.source_type).toLowerCase();
+        const isLatihanPdf=jenis==="soal" && sourceType==="pdf" && tujuan!=="tryout";
+        return isLatihanPdf || (
+          !["soal","quiz","question","qset","tryout"].includes(jenis)
+          && tujuan!=="tryout"
+        );
       });
       const filtered=wanted
         ? list.filter(x=>clean(x&&x.jenjang).toLowerCase()===wanted)
