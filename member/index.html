@@ -1411,7 +1411,13 @@ iframe.pdfview{display:block;min-height:520px}
         renderRingkasan();
         renderList();
         renderProgressPerPaket();
-        try{await kfLoadServerPackages()}catch(e){console.warn("Sinkron paket V14 Member:",e)}
+        try{
+          await kfLoadServerPackages();
+          // Daftar Latihan/Tryout V14 baru tersedia setelah RPC selesai.
+          // Render ulang hanya statistik progress agar assessment aktif ikut dihitung.
+          renderRingkasan();
+          renderProgressPerPaket();
+        }catch(e){console.warn("Sinkron paket V14 Member:",e)}
       }
 
       async function keluar() {
@@ -1489,12 +1495,22 @@ iframe.pdfview{display:block;min-height:520px}
       }
       function toggleBookmarkFilter(btn){ hanyaBookmark=!hanyaBookmark; btn.classList.toggle("btn-main",hanyaBookmark); renderList(); }
       function renderRingkasan(){
+        // Progress dashboard = seluruh aktivitas aktif yang tersedia untuk member:
+        // konten belajar (Modul/Video/Latihan PDF) + Latihan Interaktif/Tryout V14.
+        // Hanya membaca status yang sudah tersimpan; engine pengerjaan/scoring tidak diubah.
         const bahan=dataMateri.filter(x=>x.visible!==false&&x.jenis!=="tryout");
-        const selesai=bahan.filter(selesaiItem).length;
-        const persen=bahan.length?Math.round(selesai/bahan.length*100):0;
+        const selesaiKonten=bahan.filter(selesaiItem).length;
+        const serverAktif=(window.KF_SERVER_PACKAGES||[]).filter(x=>x&&x.visible!==false);
+        const attemptIds=new Set((dataBelajarAktif.attempts||[])
+          .map(a=>String(a.package_id||a.paket_id||""))
+          .filter(Boolean));
+        const selesaiInteraktif=serverAktif.filter(x=>attemptIds.has(String(x.id||x.package_id||""))).length;
+        const totalAktivitas=bahan.length+serverAktif.length;
+        const selesai=selesaiKonten+selesaiInteraktif;
+        const persen=totalAktivitas?Math.round(selesai/totalAktivitas*100):0;
         document.getElementById("statProgress").textContent=persen+"%";
         document.getElementById("progressFill").style.width=persen+"%";
-        document.getElementById("statSelesai").textContent=selesai+" / "+bahan.length;
+        document.getElementById("statSelesai").textContent=selesai+" / "+totalAktivitas;
         const owned=window.KF_OWNED_PACKAGES||[];
         document.getElementById("statHari").textContent=String(owned.length);
         const expiring=owned.map(p=>({nama:p.nama||"Paket",date:p.expiresAt?new Date(p.expiresAt):null}))
