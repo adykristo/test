@@ -1357,6 +1357,24 @@ iframe.pdfview{display:block;min-height:520px}
                 const v15Results=await window.KFPackageDB.results();
                 dataBelajarAktif.attempts=Array.isArray(v15Results)?v15Results:[];
               }
+              // V13 assessment_attempts adalah sumber nilai baru. Gabungkan tanpa menghapus hasil V15 lama.
+              try{
+                const db=window.KFMemberAuth.client,s=await db.auth.getSession(),uid=s?.data?.session?.user?.id;
+                if(uid){
+                  const ar=await db.from('assessment_attempts').select('*').eq('participant_id',uid).eq('status','submitted').order('submitted_at',{ascending:false});
+                  if(!ar.error){
+                    const modern=(ar.data||[]).map(a=>Object.assign({},a,{
+                      skor:a.final_score!=null?a.final_score:a.objective_score,
+                      score:a.final_score!=null?a.final_score:a.objective_score,
+                      kind:a.assessment_kind||'latihan',
+                      jenis:a.assessment_kind||'latihan',
+                      nama:a.package_name||'Latihan / Tryout'
+                    }));
+                    const merged=[...modern,...(dataBelajarAktif.attempts||[])],seen=new Set();
+                    dataBelajarAktif.attempts=merged.filter(a=>{const k=String(a.id||a.attempt_id||'')+'|'+String(a.package_id||'')+'|'+String(a.submitted_at||a.selesai_at||'');if(seen.has(k))return false;seen.add(k);return true});
+                  }
+                }
+              }catch(e){console.warn('[Member assessment_attempts]',e)}
             } catch (sinkronError) {
               dataBelajarAktif={progress:[],bookmarks:[],attempts:[],orders:[],certificates:[]};
               console.warn("Data belajar Supabase belum dapat dimuat:", sinkronError);
@@ -1471,8 +1489,9 @@ iframe.pdfview{display:block;min-height:520px}
             return "<b>"+esc(x.nama)+"</b> "+(h?"berakhir dalam "+h+" hari.":"telah mencapai tanggal berakhir.");
           }).join("<br>");
         }else notice.style.display="none";
-        const last=(dataBelajarAktif.attempts||[])[0];
-        document.getElementById("statSkor").textContent=last?Math.round(Number(last.skor||0))+"":"—";
+        const scored=(dataBelajarAktif.attempts||[]).filter(a=>Number.isFinite(Number(a.final_score!=null?a.final_score:(a.skor!=null?a.skor:a.score))));
+        const last=scored[0],lastScore=last?Number(last.final_score!=null?last.final_score:(last.skor!=null?last.skor:last.score)):null;
+        document.getElementById("statSkor").textContent=lastScore!=null?Math.round(lastScore)+"":"—";
         renderPaketSayaDashboard();
       }
       function renderPaketSayaDashboard(){
@@ -1574,7 +1593,7 @@ iframe.pdfview{display:block;min-height:520px}
         const when=a=>a.selesai_at||a.submitted_at||a.created_at||a.updated_at||null;
         const history=attempts.length?'<div class="history-list">'+attempts.map(a=>{
           const paket=pkgName(a),judul=String(a.topik||a.judul||a.nama||"Latihan / Tryout");
-          const rawScore=a.skor!=null?a.skor:(a.score!=null?a.score:null);
+          const rawScore=a.final_score!=null?a.final_score:(a.skor!=null?a.skor:(a.score!=null?a.score:(a.objective_score!=null?a.objective_score:null)));
           const numericScore=rawScore==null?null:Number(rawScore);
           const score=numericScore===null||!Number.isFinite(numericScore)?"—":Math.round(numericScore);
           const dt=when(a),date=dt?new Date(dt):null;
