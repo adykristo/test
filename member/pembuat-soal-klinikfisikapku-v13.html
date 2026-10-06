@@ -1268,8 +1268,8 @@ async function postGAS(action,data={}){
  if(out?.ok===false||out?.status==='error')throw new Error(out.error||out.message||'Apps Script menolak permintaan.');
  return out;
 }
-async function testConnection(){saveConnection();$('connectionStatus').className='notice';$('connectionStatus').textContent='Menguji koneksi...';try{let r=await postGAS('health');$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Apps Script terhubung'+(r.message?' — '+r.message:'')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ '+e.message}}
-async function syncOnline(){
+async async function testConnection(){saveConnection();$('connectionStatus').className='notice';$('connectionStatus').textContent='Menguji koneksi...';try{let r=await postGAS('health');$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Apps Script terhubung'+(r.message?' — '+r.message:'')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ '+e.message}}
+async async function syncOnline(){
  const status=$('connectionStatus');
  if(status){status.className='notice';status.textContent='Menyinkronkan paket ke Supabase...'}
  try{
@@ -1664,6 +1664,25 @@ function syncBankAssetFromDraft(){
  }catch(e){console.warn('[KF V13 asset sync]',e)}
 }
 setTimeout(()=>{health();syncBankAssetFromDraft()},700);
+})();
+</script>
+
+<script id="kf-data-integrity-v13">
+/* KF DATA INTEGRITY V13 2026-10-06 */
+(function(){
+ const clone=x=>JSON.parse(JSON.stringify(x));
+ window.KFQuestionSchema={
+  normalize(q){
+   q=clone(q||{});q.id=String(q.id||('Q'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)));q.type=q.type||'pg5';q.question=String(q.question||'');q.explanation=String(q.explanation||'');q.image=String(q.image||'');q.explanationImage=String(q.explanationImage||'');q.answers=q.answers&&typeof q.answers==='object'?q.answers:{};q.answers.options=Array.isArray(q.answers.options)?q.answers.options:[];q.answers.keys=Array.isArray(q.answers.keys)?q.answers.keys:[];q.answers.optionImages=q.answers.optionImages&&typeof q.answers.optionImages==='object'?q.answers.optionImages:{};q.answers.statements=Array.isArray(q.answers.statements)?q.answers.statements:[];q.answers.short=String(q.answers.short||'');q.answers.essayKey=String(q.answers.essayKey||'');return q;
+  },
+  validate(q){q=this.normalize(q);const e=[];if(!q.question.trim()&&!q.image)e.push('Pertanyaan/gambar kosong');if(['pg4','pg5','mcma'].includes(q.type)){if(q.answers.options.length<(q.type==='pg4'?4:5))e.push('Jumlah opsi kurang');if(!q.answers.keys.length)e.push('Kunci belum ada')}if(q.type==='isian'&&!q.answers.short.trim())e.push('Kunci isian kosong');return e;}
+ };
+ window.KFQuestionAssets={
+  has(q){q=window.KFQuestionSchema.normalize(q);return !!(q.image||q.explanationImage||Object.values(q.answers.optionImages||{}).some(Boolean)||Object.keys(q.inlineImages||{}).length)},
+  merge(target,source){let a=window.KFQuestionSchema.normalize(target),b=window.KFQuestionSchema.normalize(source);if(b.image)a.image=b.image;if(b.explanationImage)a.explanationImage=b.explanationImage;a.inlineImages=Object.assign({},a.inlineImages||{},b.inlineImages||{});a.answers.optionImages=Object.assign({},a.answers.optionImages||{},b.answers.optionImages||{});return a;}
+ };
+ window.KF_V13_RUN_DIAGNOSTIC=function(){const h=window.KF_V13_HEALTH?.()||{};const s=window.KF_V13_SELFTEST?.()||{};let b=[];try{b=typeof bank==='function'?bank():[]}catch(e){}const invalid=b.map((q,i)=>({i,id:q?.id,errors:window.KFQuestionSchema.validate(q)})).filter(x=>x.errors.length);const result={ok:!!h.ok&&!!s.ok&&!invalid.length,totalBank:b.length,invalid,health:h,selftest:s};console.info('[KF V13 diagnostic]',result);return result;};
+ setTimeout(()=>{try{window.KF_V13_RUN_DIAGNOSTIC()}catch(e){console.warn('[KF V13 diagnostic]',e)}},1100);
 })();
 </script>
 </body></html>`);w.document.close();
