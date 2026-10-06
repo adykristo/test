@@ -1675,7 +1675,7 @@ iframe.pdfview{display:block;min-height:520px}
         const items = isTryoutView ? [] : dataMateri.filter(
           (x) => {
             const jenis=normalJenis(x);
-            const isLatihanPdf=jenis==="soal" && String(x.source_type||"").toLowerCase()==="pdf" && tujuanItem(x)!=="tryout";
+            const isLatihanPdf=jenis==="soal" && (String(x.source_type||"").toLowerCase()==="pdf" || !!String(x.pdfUrl||x.pdf_url||x.file_url||"").trim()) && tujuanItem(x)!=="tryout";
             return x.visible !== false &&
               jenis !== "tryout" &&
               (jenis !== "soal" || isLatihanPdf) &&
@@ -1781,7 +1781,7 @@ iframe.pdfview{display:block;min-height:520px}
           } else {
             html += `<div class="empty">Link PDF belum diisi admin.</div>`;
           }
-        } else if (x.jenis === "soal" && String(x.source_type||"").toLowerCase() === "pdf") {
+        } else if (x.jenis === "soal" && (String(x.source_type||"").toLowerCase() === "pdf" || !!String(x.pdfUrl||x.pdf_url||x.file_url||"").trim())) {
           // Latihan PDF harus membuka file PDF, bukan mesin soal interaktif.
           const pdfUrl=safePdfUrl(privatePdfUrl||x.pdfUrl||x.pdf_url||x.file_url||x.url||"");
           html += `<p style="color:#5b4374">Latihan dalam format PDF — baca langsung atau buka file pada tab baru.</p>`;
