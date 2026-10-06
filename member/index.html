@@ -1593,11 +1593,19 @@ iframe.pdfview{display:block;min-height:520px}
         if(btn&&target) btn.textContent="▶ Lanjut: "+String(target.judul||target.topik||"Materi");
         bukaDetail(idx);
       }
-      function toggleRiwayat(){
+      async function toggleRiwayat(){
         const box=document.getElementById("riwayatPanel"), tampil=box.style.display==="none";
         if(!tampil){box.style.display="none";return;}
         const attempts=(dataBelajarAktif.attempts||[]).slice();
-        const certs=dataBelajarAktif.certificates||[];
+        let certStatus=[],certs=[];
+        try{
+          if(window.KFPackageDB&&typeof KFPackageDB.issueEligibleCertificates==="function"){
+            await KFPackageDB.issueEligibleCertificates();
+            certStatus=await KFPackageDB.certificateStatus()||[];
+            certs=await KFPackageDB.certificates()||[];
+            dataBelajarAktif.certificates=certs;
+          }
+        }catch(err){console.warn("Sertifikat V1:",err);}
         const pkgName=a=>{
           const direct=String(a.package_name||a.paket_name||a.paket_tryout||a.package||"").trim();
           if(direct)return direct;
@@ -1618,10 +1626,17 @@ iframe.pdfview{display:block;min-height:520px}
         const latihan=attempts.filter(a=>kindOf(a)==="latihan");
         const tryout=attempts.filter(a=>kindOf(a)==="tryout");
         const list=(arr,kind,empty)=>arr.length?'<div class="history-list">'+arr.map(a=>rowHtml(a,kind)).join("")+'</div>':`<p class="empty">${empty}</p>`;
-        const certificates=certs.length?'<div class="history-list">'+certs.map(x=>{
-          const url=safeDownloadUrl(x.file_url);
-          return `<div class="history-row"><span><b>🏅 ${esc(x.judul||"Sertifikat")}</b>${x.nomor?`<br><small>No. ${esc(x.nomor)}</small>`:""}</span>${url?`<a class="btn btn-ghost" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Unduh</a>`:""}</div>`;
-        }).join("")+'</div>':'<p class="empty">Sertifikat akan tampil setelah diterbitkan.</p>';
+        const certByPackage=new Map(certs.map(x=>[String(x.member_package_id||""),x]));
+        const certificates=certStatus.length?'<div class="history-list">'+certStatus.map(s=>{
+          const cert=certByPackage.get(String(s.member_package_id||""));
+          const latihanTotal=Number(s.latihan_total||0),latihanLulus=Number(s.latihan_lulus||0);
+          const tryoutTotal=Number(s.tryout_total||0),tryoutLulus=Number(s.tryout_lulus||0);
+          const terbit=!!cert||!!s.certificate_id;
+          const nomor=cert?.certificate_number||s.certificate_number||"";
+          const tanggal=cert?.issued_at||s.issued_at;
+          const tgl=tanggal?new Date(tanggal).toLocaleDateString("id-ID"):"";
+          return `<div class="history-row"><span><b>🏅 ${esc(s.package_name||cert?.package_name||"Sertifikat Paket")}</b><br><small>✍️ Latihan lulus: ${latihanLulus}/${latihanTotal} &nbsp;•&nbsp; 🏆 Tryout lulus: ${tryoutLulus}/${tryoutTotal}</small>${terbit?`<br><small>✅ Sertifikat terbit${tgl?" · "+esc(tgl):""}${nomor?" · No. "+esc(nomor):""}</small>`:`<br><small>🔒 Belum memenuhi syarat: semua nilai terbaik harus &gt;70.</small>`}</span><strong>${terbit?"LULUS":"BELUM"}</strong></div>`;
+        }).join("")+'</div>':'<p class="empty">Belum ada paket yang dapat diperiksa untuk sertifikat.</p>';
         box.innerHTML=`<h2 style="margin-top:0">📊 Riwayat Belajar</h2>
           <p style="color:#725c82;margin-top:-4px">Hasil belajar akun Anda yang tersimpan di Supabase.</p>
           <div class="history-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0">
