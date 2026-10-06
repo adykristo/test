@@ -955,13 +955,32 @@ function resetEditor(){if(!confirm('Bersihkan editor?'))return;editingId=null;cu
 function restoreDraft(){let d=localStorage.getItem(DRAFT);if(!d)return alert('Tidak ada draft.');loadQuestion(JSON.parse(d));alert('Draft dipulihkan.')}
 function clearDraft(){localStorage.removeItem(DRAFT);$('draftStatus').textContent='Draft lokal dihapus.'}
 
-function loadQuestion(q){editingId=q.id||null;currentType=q.type||'pg5';['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','explanation','scoring'].forEach(id=>{if(q[id]!==undefined&&$(id))$(id).value=q[id]});answerState=q.answers||answerState;imageData=q.image||'';imageRotation=q.imageRotation||0;$('qImageUrl').value='';if($('typeSelect'))$('typeSelect').value=currentType;$('editorTitle').textContent=editingId?'Edit Soal':'Buat Soal Baru';renderAnswerEditor();showImage();updatePreview();validate();nav('buat')}
+function loadQuestion(q){editingId=q.id||null;currentType=q.type||'pg5';['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','explanation','scoring'].forEach(id=>{if(q[id]!==undefined&&$(id))$(id).value=q[id]});answerState=q.answers||answerState;imageData=q.image||'';explanationImageData=q.explanationImage||'';imageRotation=q.imageRotation||0;if($('qImageUrl'))$('qImageUrl').value='';if($('explanationImageUrl'))$('explanationImageUrl').value='';if($('typeSelect'))$('typeSelect').value=currentType;$('editorTitle').textContent=editingId?'Edit Soal':'Buat Soal Baru';renderAnswerEditor();showImage();showExplanationImage();updatePreview();validate();nav('buat')}
 function editQ(id){let q=bank().find(x=>x.id===id);if(q)loadQuestion(q)}
 function dupQ(id){let q=bank().find(x=>x.id===id);if(!q)return;q=JSON.parse(JSON.stringify(q));q.id=uid();q.status='Draft';q.question+=' (variasi)';let b=bank();b.unshift(q);setBank(b);renderBank()}
 function delQ(id){if(!confirm('Hapus soal ini?'))return;setBank(bank().filter(x=>x.id!==id));renderBank()}
 function renderBank(){let b=bank(),s=($('bankSearch')?.value||'').toLowerCase(),t=$('bankType')?.value||'',l=$('bankLevel')?.value||'',d=$('bankDiff')?.value||'';let f=b.filter(q=>(!s||JSON.stringify(q).toLowerCase().includes(s))&&(!t||q.type===t)&&(!l||q.jenjang===l)&&(!d||q.difficulty===d));$('bankList').innerHTML=f.length?f.map(q=>{let imgs='';if(q.image)imgs+='<div class="bank-question-image"><img src="'+esc(q.image)+'" alt="Gambar soal" style="transform:rotate('+(q.imageRotation||0)+'deg)"></div>';let optImgs=[];Object.keys(q.answers?.optionImages||{}).forEach(k=>{let src=q.answers.optionImages[k];if(src)optImgs.push('<div class="bank-option-image"><b>'+('ABCDE'[Number(k)]||'')+'.</b><img src="'+esc(src)+'" alt="Gambar opsi '+('ABCDE'[Number(k)]||'')+'"></div>')});if(optImgs.length)imgs+='<div class="bank-option-images">'+optImgs.join('')+'</div>';if(q.explanationImage)imgs+='<details class="bank-explanation-image"><summary>🖼 Gambar pembahasan</summary><img src="'+esc(q.explanationImage)+'" alt="Gambar pembahasan"></details>';return `<div class="bankitem"><div style="display:flex;gap:10px;align-items:flex-start"><input class="bankSelect" type="checkbox" value="${q.id}" style="width:auto;margin-top:5px"><div style="flex:1;min-width:0"><div class="tags"><span class="tag">${typeName(q.type)}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.mapel)}</span><span class="tag">${esc(q.difficulty)}</span><span class="tag">${esc(q.status)}</span></div><h3 class="bank-question-text">${renderRichText(q.question||'(Tanpa pertanyaan)')}</h3>${imgs}<div class="small">${esc(q.topik)} ${q.tags?'• '+esc(q.tags):''}</div><div class="actions" style="margin-top:10px"><button class="btn sm primary" onclick="editQ('${q.id}')">Edit</button><button class="btn sm" onclick="dupQ('${q.id}')">Duplikat</button><button class="btn sm" onclick="previewBank('${q.id}')">Preview</button><button class="btn sm danger" onclick="delQ('${q.id}')">Hapus</button></div></div></div></div>`}).join(''):'<div class="empty">Bank Soal masih kosong.</div>';updateCounts();typesetMath('bankList')}
 function updateCounts(){let b=bank();if($('bankCountTop'))$('bankCountTop').textContent=b.length;if($('statTotal')){$('statTotal').textContent=b.length;$('statReady').textContent=b.filter(x=>x.status==='Siap Pakai').length;$('statDraft').textContent=b.filter(x=>x.status==='Draft').length;$('statTypes').textContent=new Set(b.map(x=>x.type)).size}}
-function previewBank(id){let q=bank().find(x=>x.id===id);if(!q)return;$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button class="btn primary" onclick='checkPreview(${JSON.stringify(q).replace(/'/g,"&#39;")})'>Periksa Jawaban</button></div><div id="pvResult"></div>`;$('previewModal').classList.add('show');typesetMath('studentPreview')}
+function previewBank(id){
+ let q=bank().find(x=>x.id===id);if(!q)return;
+ // Data lama mungkin belum memiliki gambar di Bank karena versi sebelumnya membuang base64.
+ // Jika soal yang sama masih ada di draft editor, pulihkan gambar secara otomatis untuk preview.
+ try{
+   const d=JSON.parse(localStorage.getItem(DRAFT)||'null');
+   if(d&&String(d.id)===String(q.id)){
+     if(!q.image&&d.image)q.image=d.image;
+     if(!q.explanationImage&&d.explanationImage)q.explanationImage=d.explanationImage;
+     q.answers=q.answers||{};d.answers=d.answers||{};
+     q.answers.optionImages=q.answers.optionImages||{};
+     Object.keys(d.answers.optionImages||{}).forEach(k=>{if(!q.answers.optionImages[k])q.answers.optionImages[k]=d.answers.optionImages[k]});
+     Object.keys(d.answers.optionImageData||{}).forEach(k=>{if(!q.answers.optionImages[k])q.answers.optionImages[k]=d.answers.optionImageData[k]});
+   }
+ }catch(e){}
+ $('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button id="kfBankPreviewCheck" class="btn primary" type="button">Periksa Jawaban</button></div><div id="pvResult"></div>`;
+ kfPreviewQuestion=q;
+ $('kfBankPreviewCheck').onclick=()=>checkPreview(kfPreviewQuestion);
+ $('previewModal').classList.add('show');typesetMath('studentPreview');
+}
 function selectedIds(){return [...document.querySelectorAll('.bankSelect:checked')].map(x=>x.value)}
 function selectAllVisible(){document.querySelectorAll('.bankSelect').forEach(x=>x.checked=true)}
 function deleteSelected(){let ids=selectedIds();if(!ids.length)return alert('Pilih soal dahulu.');if(confirm('Hapus '+ids.length+' soal?')){setBank(bank().filter(x=>!ids.includes(x.id)));renderBank()}}
