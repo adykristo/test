@@ -1969,15 +1969,15 @@ function v13SendPackageToAdmin(id,kind){
  if(invalid.length)return alert('Paket belum dapat dijadikan '+(kind==='tryout'?'Tryout':'Latihan')+'. Perbaiki: '+invalid.map(x=>'Soal '+(x.i+1)+' ('+x.issues.join(', ')+')').join('; '));
  const key=kind==='tryout'?'kf_member_tryout_packages_v13':'kf_member_training_packages_v13';
  let rows=[];try{rows=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(rows))rows=[]}catch(e){rows=[]}
- const bridgeId='V13-'+kind+'-'+String(p.id);
- let target=rows.find(x=>String(x.sourceV13Package||'')===String(p.id));
+ const bridgeId='V14-'+kind+'-'+String(p.id);
+ let target=rows.find(x=>String(x.sourceV14Package||x.sourceV13Package||'')===String(p.id));
  const now=new Date().toISOString();
  if(!target){
    target={id:bridgeId,kind:kind,name:(p.name&&!/^Paket Soal/i.test(p.name))?p.name:(kind==='tryout'?'Tryout dari Bank Soal':'Latihan dari Bank Soal'),questions:[],visible:false,duration:kind==='tryout'?90:0,start:'',end:'',subscription:'Semua Paket Aktif',attempts:1,createdAt:now};
    rows.unshift(target);
  }
  target.questions=JSON.parse(JSON.stringify(p.questions));
- target.sourceV13Package=p.id;target.source='Bank Soal V13';target.visible=false;target.updatedAt=now;
+ target.sourceV14Package=p.id;target.sourceV13Package=p.id;target.sourceVersion=14;target.source='Bank Soal V14';target.visible=false;target.updatedAt=now;
  try{localStorage.setItem(key,JSON.stringify(rows))}catch(e){return alert('Gagal mengirim ke Admin: '+e.message)}
  p.adminStage=kind;p.adminSentAt=now;p.updatedAt=now;setPackageBank(arr);renderPackageBank();
  const label=kind==='tryout'?'Tryout Mingguan':'Soal Latihan';
