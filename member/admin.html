@@ -977,27 +977,28 @@ table{max-width:100%}
 <div id="discountRulesAdmin" class="manage-list"><div class="sub">Memuat aturan diskon…</div></div></div>
 
   <div class="card">
-    <div class="head"><div><h2>🗂 Struktur Materi Paket</h2><p class="sub" style="margin:4px 0 0">Paket cukup bernama PAKET 1, PAKET 2, dan seterusnya. Setiap paket dapat memiliki banyak Topik, dan setiap Topik dapat memiliki banyak Subtopik.</p></div></div>
-    <div class="form">
-      <div><label>1. Pilih jenjang</label><select id="topicLevelFilter" onchange="fillPackageSelectors()"><option value="SEMUA">Semua jenjang</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option></select></div>
-      <div><label>2. Pilih paket</label><select id="topicPackageSelect" onchange="renderTopikPaket()"></select></div>
-      <div><label>3. Nama topik</label><input id="topicTitleInput" placeholder="Contoh: Momentum & Impuls"></div>
-      <div class="wide"><label>Deskripsi topik</label><input id="topicDescInput" placeholder="Ringkasan materi yang akan dilihat peserta"></div>
-      <div><label>Urutan tampil</label><input id="topicOrderInput" type="number" min="0" value="1"></div>
-      <div style="display:flex;align-items:end"><button class="btn" type="button" onclick="tambahTopikPaket()">+ Simpan Topik Paket</button></div>
+    <div class="head"><div><h2>🗂 Struktur Materi Paket</h2><p class="sub" style="margin:4px 0 0">Pilih paket, lalu kelola Topik dan Subtopik. Tetap memakai tabel Supabase yang sudah dibuat.</p></div></div>
+    <div class="form" style="grid-template-columns:180px 1fr">
+      <div><label>Jenjang</label><select id="topicLevelFilter" onchange="fillPackageSelectors()"><option value="SEMUA">Semua jenjang</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option></select></div>
+      <div><label>Paket</label><select id="topicPackageSelect" onchange="renderTopikPaket()"></select></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-top:12px">
+      <div style="flex:1;min-width:230px"><label>Tambah Topik</label><input id="topicTitleInput" placeholder="Contoh: Kinematika"></div>
+      <input id="topicDescInput" type="hidden" value="">
+      <input id="topicOrderInput" type="hidden" value="0">
+      <button class="btn" type="button" onclick="tambahTopikPaket()">+ Topik</button>
     </div>
     <div id="topicPackageList" class="manage-list" style="margin-top:14px"></div>
-    <div id="subtopicEditor" class="card" style="margin-top:14px;background:#fcf9ff">
-      <div class="head"><div><h3 style="margin:0">Subtopik</h3><p class="sub" style="margin:4px 0 0">Pilih Topik di daftar di atas, lalu tambahkan Subtopik.</p></div></div>
+    <div id="subtopicEditor" style="margin-top:14px;padding:14px;border:1px solid #eadcf8;border-radius:14px;background:#fcf9ff">
       <input type="hidden" id="subtopicTopicId">
-      <div id="subtopicTopicLabel" class="sub" style="margin-bottom:10px">Belum ada Topik yang dipilih.</div>
-      <div class="form">
-        <div><label>Nama Subtopik</label><input id="subtopicTitleInput" placeholder="Contoh: Gerak Parabola"></div>
-        <div class="wide"><label>Deskripsi</label><input id="subtopicDescInput" placeholder="Opsional"></div>
-        <div><label>Urutan tampil</label><input id="subtopicOrderInput" type="number" min="0" value="1"></div>
-        <div style="display:flex;align-items:end"><button class="btn" type="button" onclick="tambahSubtopikPaket()">+ Simpan Subtopik</button></div>
+      <div id="subtopicTopicLabel" class="sub" style="margin-bottom:8px">Klik <b>Subtopik</b> pada salah satu Topik.</div>
+      <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
+        <div style="flex:1;min-width:230px"><label>Tambah Subtopik</label><input id="subtopicTitleInput" placeholder="Contoh: Gerak Parabola"></div>
+        <input id="subtopicDescInput" type="hidden" value="">
+        <input id="subtopicOrderInput" type="hidden" value="0">
+        <button class="btn" type="button" onclick="tambahSubtopikPaket()">+ Subtopik</button>
       </div>
-      <div id="subtopicPackageList" class="manage-list" style="margin-top:12px"></div>
+      <div id="subtopicPackageList" class="manage-list" style="margin-top:10px"></div>
     </div>
   </div>
 </section>
@@ -2527,7 +2528,7 @@ async function renderTopikPaket(){
    box.innerHTML='<div class="admin-inline-warning"><b>Data paket tetap berhasil dimuat.</b><br>Fitur topik belum dapat dibaca oleh hak akses database yang sekarang. Halaman Admin lainnya tetap dapat digunakan.</div>';
    return;
  }
- const rows=KF_TOPICS_NEW.filter(t=>t.package_id===pid);box.innerHTML=rows.length?rows.map(t=>`<div class="manage-item"><div><b>${escMember(t.judul)}</b><p>${escMember(t.deskripsi||"Tanpa deskripsi")} · Urutan ${t.urutan} · ${t.visible?"Tampil":"Disembunyikan"}</p></div><div class="row-actions"><button class="btn ghost small" onclick="pilihTopikSubtopik('${t.id}')">Kelola Subtopik</button><button class="btn ghost small" onclick="editTopikPaket('${t.id}')">Edit</button><button class="btn ghost small" onclick="toggleTopikPaket('${t.id}',${!t.visible})">${t.visible?"Sembunyikan":"Tampilkan"}</button><button class="btn danger small" onclick="hapusTopikPaket('${t.id}')">Hapus</button></div></div>`).join(""):'<div class="sub">Belum ada topik pada paket ini.</div>';
+ const rows=KF_TOPICS_NEW.filter(t=>t.package_id===pid);box.innerHTML=rows.length?rows.map(t=>`<div class="manage-item"><div><b>${escMember(t.judul)}</b><p>${escMember(t.deskripsi||"Tanpa deskripsi")} · Urutan ${t.urutan} · ${t.visible?"Tampil":"Disembunyikan"}</p></div><div class="row-actions"><button class="btn ghost small" onclick="pilihTopikSubtopik('${t.id}')">Subtopik</button><button class="btn ghost small" onclick="editTopikPaket('${t.id}')">Edit</button><button class="btn ghost small" onclick="toggleTopikPaket('${t.id}',${!t.visible})">${t.visible?"Sembunyikan":"Tampilkan"}</button><button class="btn danger small" onclick="hapusTopikPaket('${t.id}')">Hapus</button></div></div>`).join(""):'<div class="sub">Belum ada topik pada paket ini.</div>';
 }
 function pilihTopikSubtopik(topicId){
  const t=KF_TOPICS_NEW.find(x=>String(x.id)===String(topicId));if(!t)return;
@@ -2545,7 +2546,7 @@ function renderSubtopikPaket(){
 async function tambahSubtopikPaket(){
  const tid=document.getElementById("subtopicTopicId").value,title=document.getElementById("subtopicTitleInput").value.trim(),t=KF_TOPICS_NEW.find(x=>String(x.id)===String(tid));
  if(!t||!title)return alert("Pilih Topik dan isi nama Subtopik.");
- const item={package_id:t.package_id,topic_id:t.id,judul:title,deskripsi:document.getElementById("subtopicDescInput").value.trim(),urutan:Number(document.getElementById("subtopicOrderInput").value)||0,visible:true};
+ const item={package_id:t.package_id,topic_id:t.id,judul:title,deskripsi:document.getElementById("subtopicDescInput").value.trim(),urutan:(Math.max(0,...KF_SUBTOPICS_NEW.filter(x=>String(x.topic_id)===String(t.id)).map(x=>Number(x.urutan)||0))+1),visible:true};
  const {error}=await kfdb().from("member_package_subtopics").insert(item);if(error)return alert("Gagal menambah subtopik: "+error.message);
  document.getElementById("subtopicTitleInput").value="";document.getElementById("subtopicDescInput").value="";await loadPackageCore();pilihTopikSubtopik(tid);
 }
@@ -2554,7 +2555,7 @@ async function toggleSubtopikPaket(id,v){const x=KF_SUBTOPICS_NEW.find(q=>q.id==
 async function hapusSubtopikPaket(id){const x=KF_SUBTOPICS_NEW.find(q=>q.id===id);if(!confirm("Hapus subtopik ini? Konten tidak ikut terhapus; hubungan subtopiknya akan dilepas."))return;const {error}=await kfdb().from("member_package_subtopics").delete().eq("id",id);if(error)return alert(error.message);await loadPackageCore();if(x)pilihTopikSubtopik(x.topic_id)}
 async function tambahTopikPaket(){
  const pid=document.getElementById("topicPackageSelect").value,title=document.getElementById("topicTitleInput").value.trim();if(!pid||!title)return alert("Pilih paket dan isi nama topik.");
- const item={package_id:pid,judul:title,deskripsi:document.getElementById("topicDescInput").value.trim(),urutan:Number(document.getElementById("topicOrderInput").value)||0,visible:true};
+ const item={package_id:pid,judul:title,deskripsi:document.getElementById("topicDescInput").value.trim(),urutan:(Math.max(0,...KF_TOPICS_NEW.filter(x=>String(x.package_id)===String(pid)).map(x=>Number(x.urutan)||0))+1),visible:true};
  const {error}=await kfdb().from("member_package_topics").insert(item);if(error)return alert("Gagal menambah topik: "+error.message);document.getElementById("topicTitleInput").value="";document.getElementById("topicDescInput").value="";await renderPaketBaru();
 }
 async function editTopikPaket(id){const t=KF_TOPICS_NEW.find(x=>x.id===id);if(!t)return;const j=prompt("Nama topik:",t.judul);if(j===null)return;const d=prompt("Deskripsi:",t.deskripsi||"");if(d===null)return;const u=prompt("Urutan:",t.urutan);if(u===null)return;const {error}=await kfdb().from("member_package_topics").update({judul:j.trim(),deskripsi:d.trim(),urutan:Number(u)||0}).eq("id",id);if(error)return alert(error.message);await renderPaketBaru()}
