@@ -2304,7 +2304,33 @@ window.KFUnified=(function(){
  const E=id=>document.getElementById(id), W=()=>E('kfUWork'); function st(t,b){let e=E('kfUStatus');if(e){e.textContent=t;e.style.color=b?'#b42318':''}}
  function setType(v){if(E('typeSelect')){E('typeSelect').value=v;if(typeof changeTypeSelect==='function')changeTypeSelect(v)}}
  function manual(){let q=E('question'),w=W();if(!q||!w)return st('Editor V13 tidak ditemukan.',1);q.value=(w.innerText||'').trim();q.dispatchEvent(new Event('input',{bubbles:true}));let im=w.querySelector('img');if(im&&E('qImageUrl')){E('qImageUrl').value=im.src;E('qImageUrl').dispatchEvent(new Event('input',{bubbles:true}))}st('✓ Bahan masuk ke Editor V13.');E('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'})}
- async function aiVision(){let d=E('v12PasteMaterial'),w=W();if(!d||typeof v12ProcessPaste!=='function')return st('Mesin Gemini Vision V13 belum tersedia.',1);d.innerHTML=w.innerHTML;d.dispatchEvent(new Event('input',{bubbles:true}));st('⏳ Gemini Vision memproses teks, rumus dan gambar...');try{await v12ProcessPaste();st('✓ AI selesai. Periksa hasil di Editor.');E('v12EditorCard')?.scrollIntoView({behavior:'smooth'})}catch(e){console.error(e);st('⚠ '+(e.message||e),1)}}
+ async function aiVision(){
+  let d=E('v12PasteMaterial'),w=W();if(!d)return st('Mesin V13 belum tersedia.',1);
+  const hasImage=!!w.querySelector('img'), text=(w.innerText||'').trim();
+  if(!text&&!hasImage)return st('Masukkan instruksi, teks soal, atau gambar terlebih dahulu.',1);
+  try{
+    if(!hasImage){
+      if(typeof generateAI!=='function')return st('Mesin Generator Gemini V13 belum tersedia.',1);
+      const m=text.match(/(?:buat(?:kan)?\\s*)?(\\d{1,2})\\s*soal/i), count=Math.max(1,Math.min(50,m?Number(m[1]):1));
+      if(E('aiCount'))E('aiCount').value=count;
+      if(E('aiMaterial'))E('aiMaterial').value=text;
+      if(E('aiJenjang'))E('aiJenjang').value=E('kfULevel')?.value||'SMA';
+      if(E('aiTopik'))E('aiTopik').value=E('kfUTopic')?.value||text;
+      if(E('aiDiff'))E('aiDiff').value=E('kfUDiff')?.value||'Sedang';
+      if(E('aiType'))E('aiType').value=E('kfUType')?.value||'pg5';
+      st('⏳ Gemini membuat '+count+' soal dari instruksi...');
+      await generateAI();
+      st('✓ '+count+' soal diproses Gemini. Periksa hasil di Editor.');
+    }else{
+      if(typeof v12ProcessPaste!=='function')return st('Mesin Gemini Vision V13 belum tersedia.',1);
+      d.innerHTML=w.innerHTML;d.dispatchEvent(new Event('input',{bubbles:true}));
+      st('⏳ Gemini Vision membaca teks, rumus dan gambar...');
+      await v12ProcessPaste();
+      st('✓ Gemini Vision selesai. Periksa hasil di Editor.');
+    }
+    E('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){console.error('[Unified AI]',e);st('⚠ '+(e.message||e),1)}
+}
  async function doc(x){let f=x.files?.[0],t=E('wordSoalFileV13');if(!f)return;if(!t||typeof prosesWordKeV13!=='function')return st('Import Word/PDF V13 belum tersedia.',1);try{let dt=new DataTransfer();dt.items.add(f);t.files=dt.files;st('⏳ Memproses '+f.name+'...');await prosesWordKeV13(true);st('✓ Word/PDF selesai → Editor.')}catch(e){st('⚠ '+(e.message||e),1)}x.value=''}
  function image(x){let f=x.files?.[0];if(!f)return;let r=new FileReader();r.onload=()=>{let im=document.createElement('img');im.src=r.result;im.style.maxWidth='340px';im.style.display='block';im.style.margin='8px 0';W().appendChild(im);st('✓ Gambar siap. Klik AI Susun atau Susun ke Editor.')};r.readAsDataURL(f);x.value=''}
  function insert(v){let e=W();e.focus();let n=document.createTextNode('$'+v+'$'),s=getSelection();if(s&&s.rangeCount&&e.contains(s.anchorNode)){let r=s.getRangeAt(0);r.deleteContents();r.insertNode(n);r.setStartAfter(n);r.collapse(true);s.removeAllRanges();s.addRange(r)}else e.appendChild(n)}
