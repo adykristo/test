@@ -1423,7 +1423,7 @@ function v13AnswerData(q,a){
  if(q.type==='isian')return {text:String(a??'')};
  return {text:String(a??'')};
 }
-async function saveObjectiveParticipantSubmission(q,a,grade,pkg,attemptId){
+async async function saveObjectiveParticipantSubmission(q,a,grade,pkg,attemptId){
  if(q.type==='esai')return null;
  const {db,user}=await v13SubmissionDb();
  const row={participant_id:user.id,package_id:String(pkg?.id||pkg?.kf_package_id||''),question_id:String(q.id||q.question_id||q.uid||''),question_type:String(q.type||''),answer_data:v13AnswerData(q,a),is_correct:grade?.correct===true,score:Number(grade?.score||0),max_score:Number(grade?.max||1),attempt_id:attemptId||null,answered_at:new Date().toISOString()};
@@ -1435,7 +1435,7 @@ async function saveAssessmentAttempt(pkg,answers,grades,status='submitted'){
  const row={id:attemptId,participant_id:user.id,package_id:String(pkg?.id||pkg?.kf_package_id||''),package_name:String(pkg?.name||''),assessment_kind:String(pkg?.kind||'latihan'),status,total_questions:(pkg?.questions||[]).length,answered_questions:(pkg?.questions||[]).filter((q,i)=>practiceAnswered(i)).length,objective_score:max?Math.round(earned/max*10000)/100:null,started_at:practiceState.startedAt||new Date().toISOString(),submitted_at:status==='submitted'?new Date().toISOString():null,updated_at:new Date().toISOString()};
  const r=await db.from('assessment_attempts').upsert(row,{onConflict:'id'}).select().single();if(r.error)throw r.error;return r.data;
 }
-async function persistAllPracticeAnswers(pkg,answers,grades){
+async async function persistAllPracticeAnswers(pkg,answers,grades){
  await saveAssessmentAttempt(pkg,answers,grades,'in_progress');
  const jobs=(pkg.questions||[]).map(async(q,i)=>{
    if(!practiceAnswered(i))return null;
@@ -1446,7 +1446,10 @@ async function persistAllPracticeAnswers(pkg,answers,grades){
 }
 function startPractice(id){
  const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
- const qs=Array.isArray(p.questions)?p.questions.filter(q=>q&&String(q.question||'').trim()):[];
+ const raw=Array.isArray(p.questions)?p.questions.filter(Boolean):[];
+ const invalid=raw.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
+ if(invalid.length)return alert('Paket belum dapat dikerjakan. Perbaiki soal: '+invalid.map(x=>(x.i+1)+' ('+x.issues.join(', ')+')').join('; '));
+ const qs=raw.map(q=>window.KFQuestionSchema?.normalize?window.KFQuestionSchema.normalize(q):q);
  if(!qs.length)return alert('Paket ini belum memiliki isi soal yang valid.');
  const safe=JSON.parse(JSON.stringify(p));safe.questions=qs;
  practiceState={package:safe,current:0,answers:qs.map(()=>null),attemptId:crypto.randomUUID(),startedAt:new Date().toISOString()};
@@ -1459,7 +1462,7 @@ function practiceAnswered(i){
  const a=practiceState.answers[i],q=practiceState.package?.questions[i];if(!q)return false;
  if(['pg5','pg4'].includes(q.type))return Number.isInteger(a);
  if(q.type==='mcma')return Array.isArray(a)&&a.length>0;
- if(q.type==='kategori')return a&&Object.keys(a).length>0;
+ if(q.type==='kategori'){let st=q.answers?.statements||[];return !!a&&st.length>0&&st.every((_,k)=>a[k]==='Benar'||a[k]==='Salah');}
  return typeof a==='string'&&a.trim()!=='';
 }
 function renderPractice(){
