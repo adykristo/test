@@ -2765,7 +2765,7 @@ async function kfLihatSebagaiPeserta(memberId){
   const counts={};maps.forEach(x=>counts[String(x.package_id)]=(counts[String(x.package_id)]||0)+1);
   const lines=active.map((x,i)=>(i+1)+". "+x.package_name+" — "+(counts[String(x.package_id)]||0)+" konten Modul/PDF/Video");
   const msg="MODE PREVIEW READ-ONLY\n\nPeserta: "+(m.nama||"Member")+"\nJenjang: "+String(m.jenjang||"-").toUpperCase()+"\nStatus: "+(STATUS_LABEL[statusEfektifMember(m)]||statusEfektifMember(m))+"\n\nPAKET YANG SEHARUSNYA TERLIHAT:\n"+(lines.join("\n")||"Belum ada paket aktif")+"\n\nLatihan Interaktif dan Tryout tetap difilter server berdasarkan paket peserta saat login.";
-  await KFUI.alert(msg,"👁 Tampilan Peserta V14");
+  await KFUI.confirm(msg,"👁 Tampilan Peserta V14");
  }catch(e){KFUI.toast("Preview peserta gagal: "+e.message,"err",6000)}
 }
 
