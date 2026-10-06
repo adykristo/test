@@ -179,12 +179,12 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]")
 document.querySelectorAll("[data-exmode]").forEach(b=>b.onclick=()=>{exerciseMode=b.dataset.exmode;updateModeInfo();render()});
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));b.classList.add("on");kind=b.dataset.kind;updateModeInfo();render()});$("level").onchange=()=>{fillPackages();render()};$("pkg").onchange=render;$("search").oninput=render;$("add").onclick=()=>openEdit(null);$("saveEdit").onclick=saveEdit;$("savePkg").onclick=savePkg;$("eLevel").onchange=()=>fillEditPackages("");$("eSourceType").onchange=()=>{fillBankSets($("eBankSet").value,kind);syncSourceFields()};$("eFile").onchange=()=>{const f=$("eFile").files[0];$("uploadState").textContent=f?"Dipilih: "+f.name:""};
 (async()=>{try{
- const qs=new URLSearchParams(location.search),embed=qs.get("embed")==="1",locked=qs.get("locked")==="1",requested=qs.get("kind"),requestedExercise=qs.get("exercise");
+ const qs=new URLSearchParams(location.search),embed=qs.get("embed")==="1",locked=qs.get("locked")==="1",requested=qs.get("kind"),requestedExercise=qs.get("exercise"),autoAdd=qs.get("autoadd")==="1";
  if(requestedExercise==="pdf"||requestedExercise==="interactive")exerciseMode=requestedExercise;
  if(embed){document.querySelector(".top").style.display="none";document.body.style.background="#fff"}
  if(["pdf","soal","video","tryout"].includes(requested)){kind=requested;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.kind===kind))}
  if(locked){const tabs=document.querySelector(".tabs");if(tabs)tabs.style.display="none";document.body.classList.add("locked-mode")}
  updateModeInfo()
- const ok=await KFSupabaseAdmin.ensureAdmin();if(!ok)return;DB=KFSupabaseAdmin.client;$("status").remove();$("app").classList.remove("hidden");await load()
+ const ok=await KFSupabaseAdmin.ensureAdmin();if(!ok)return;DB=KFSupabaseAdmin.client;$("status").remove();$("app").classList.remove("hidden");await load();if(autoAdd&&kind==="soal"&&exerciseMode==="pdf")openEdit(null)
 }catch(e){$("status").textContent="Gagal membuka Admin Konten V2: "+e.message}})();
 </script></body></html>
