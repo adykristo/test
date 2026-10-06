@@ -1214,7 +1214,7 @@ table{max-width:100%}
   const title=panel.querySelector("h1");if(title)title.textContent="Latihan Interaktif V14";
   const sub=panel.querySelector(":scope > .sub");if(sub)sub.textContent="Kelola paket latihan interaktif dari Bank Soal V14, atur soal dan Paket Peserta tujuan, lalu publikasikan ke Member Area.";
   const head=panel.querySelector(".card .head");
-  if(head)head.innerHTML='<div><h2>Paket Latihan Interaktif</h2><p class="sub" style="margin:4px 0 0">Setiap paket memiliki pengelolaan soal, distribusi, ekspor, dan publikasi lengkap.</p></div><button class="btn" onclick="buatPaketKelola(\'latihan\')">⚡ + Paket Latihan Interaktif</button>';
+  if(head)head.innerHTML='<div style="width:100%"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><h2>Paket Latihan Interaktif</h2><p class="sub" style="margin:4px 0 0">Setiap paket memiliki pengelolaan soal, distribusi, ekspor, dan publikasi lengkap.</p></div><button class="btn" onclick="buatPaketKelola(\'latihan\')">⚡ + Paket Latihan Interaktif</button></div><div style="display:grid;grid-template-columns:140px 280px minmax(220px,1fr);gap:8px;margin-top:14px"><select id="latihanFilterJenjang" onchange="renderPkgManagers()"><option value="">Semua jenjang</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option></select><select id="latihanFilterPaket" onchange="renderPkgManagers()"><option value="">Semua paket</option></select><input id="latihanFilterSearch" type="search" placeholder="Cari judul atau topik..." oninput="renderPkgManagers()"></div></div>';
   try{renderPkgManagers()}catch(e){console.warn("[Latihan Interaktif V14]",e)}
 }
 function openLatihanPdfDirect(b){
@@ -2112,6 +2112,23 @@ function duplikatPkg(kind,id){let p=cloneObj(getPkg(kind,id));if(!p)return;p.id=
 function renderPkgManagers(){
  [["latihan","latihanPackageManager"],["tryout","tryoutPackageManager"]].forEach(([kind,target])=>{
   let box=document.getElementById(target);if(!box)return;let a=pkgGet(kind);
+  if(kind==="latihan"){
+    const fj=document.getElementById("latihanFilterJenjang"),fp=document.getElementById("latihanFilterPaket"),fs=document.getElementById("latihanFilterSearch");
+    if(fj||fp||fs){
+      const all=a.slice();
+      if(fp){
+        const cur=fp.value,names=[...new Set(all.map(p=>p.targetPackageName).filter(Boolean))].sort();
+        fp.innerHTML='<option value="">Semua paket</option>'+names.map(n=>'<option value="'+h(n)+'">'+h(n)+'</option>').join("");
+        fp.value=names.includes(cur)?cur:"";
+      }
+      const j=(fj?.value||"").toUpperCase(),pn=fp?.value||"",q=(fs?.value||"").trim().toLowerCase();
+      a=a.filter(p=>{
+        const hay=[p.name,p.topic,p.topik,p.targetPackageName].filter(Boolean).join(" ").toLowerCase();
+        const level=String(p.jenjang||p.level||p.stage||"").toUpperCase();
+        return (!j||level===j||hay.includes(j.toLowerCase()))&&(!pn||p.targetPackageName===pn)&&(!q||hay.includes(q));
+      });
+    }
+  }
   if(kind==="tryout"){
     const fj=document.getElementById("tryoutFilterJenjang"),fp=document.getElementById("tryoutFilterPaket"),fs=document.getElementById("tryoutFilterSearch");
     const all=a.slice();
