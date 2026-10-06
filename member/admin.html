@@ -1245,7 +1245,7 @@ function openLatihanPdfDirect(b){
   document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("show",x.id==="konten-v2"));
   document.querySelectorAll("aside button").forEach(x=>x.classList.remove("active"));
   const h=document.getElementById("kontenV2Heading");if(h)h.textContent="Latihan PDF";
-  const back=document.getElementById("kontenV2BackInteractive");if(back)back.style.display="";
+  const back=document.getElementById("kontenV2BackInteractive");if(back)back.style.display="none";
   const fr=document.getElementById("kontenV2Frame");
   const src="admin-konten-v2.html?embed=1&locked=1&kind=soal&exercise=pdf&v=20261006-modulelayout";
   if(fr)fr.src=src;
