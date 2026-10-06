@@ -1791,9 +1791,10 @@ iframe.pdfview{display:block;min-height:520px}
             const pdfBlobOrUrl=pdfDisplayUrl(pdfUrl);
             const isBlob=String(pdfBlobOrUrl).startsWith("blob:");
             const isPrivateSigned=String(pdfBlobOrUrl).includes("/storage/v1/object/sign/learning-files-private/");
-            // Signed/private PDF Supabase tidak selalu mengizinkan ditanam di iframe (X-Frame/CSP).
-            // Untuk latihan PDF private, hindari iframe yang menghasilkan "This content is blocked".
-            const canEmbed=isBlob||!isPrivateSigned;
+            // URL Supabase (signed/public) dapat menolak iframe atau Google Viewer.
+            // Jangan embed URL storage Supabase; gunakan tombol buka/unduh agar browser membuka PDF langsung.
+            const isSupabaseStorage=/\/storage\/v1\/object\//i.test(String(pdfBlobOrUrl));
+            const canEmbed=isBlob||(!isPrivateSigned&&!isSupabaseStorage);
             const sumberPdf=canEmbed?(isBlob?pdfBlobOrUrl:`https://docs.google.com/viewer?url=${encodeURIComponent(pdfBlobOrUrl)}&embedded=true`):"";
             const namaPdf=String(x.judul||"latihan").replace(/[\\/:*?"<>|]+/g,"-")+".pdf";
             html += (sumberPdf
