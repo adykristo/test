@@ -932,7 +932,7 @@ iframe.pdfview{display:block;min-height:520px}
         </div>
         <div class="dashboard-actions">
           <button id="lanjutBtn" class="btn btn-main" type="button" onclick="lanjutBelajar()">▶ Lanjut Belajar</button>
-          <button class="btn btn-ghost" type="button" onclick="toggleRiwayat()">📈 Riwayat &amp; Sertifikat</button>
+          <button class="btn btn-ghost" type="button" onclick="toggleRiwayat()">📊 Riwayat Belajar</button>
           <button class="btn btn-ghost" type="button" onclick="toggleBookmarkFilter(this)">★ Materi tersimpan</button>
         </div>
         <details id="packageProgressDetails" class="compact-account-panel" style="display:none">
@@ -1606,24 +1606,41 @@ iframe.pdfview{display:block;min-height:520px}
           return p&&p.nama?p.nama:"";
         };
         const when=a=>a.selesai_at||a.submitted_at||a.created_at||a.updated_at||null;
-        const history=attempts.length?'<div class="history-list">'+attempts.map(a=>{
-          const paket=pkgName(a),judul=String(a.topik||a.judul||a.nama||"Latihan / Tryout");
+        const kindOf=a=>String(a.assessment_kind||a.kind||a.jenis||"latihan").toLowerCase()==="tryout"?"tryout":"latihan";
+        const rowHtml=(a,kind)=>{
+          const paket=pkgName(a),judul=String(a.topik||a.judul||a.nama||(kind==="tryout"?"Tryout":"Latihan"));
           const rawScore=a.final_score!=null?a.final_score:(a.skor!=null?a.skor:(a.score!=null?a.score:(a.objective_score!=null?a.objective_score:null)));
-          const numericScore=rawScore==null?null:Number(rawScore);
-          const score=numericScore===null||!Number.isFinite(numericScore)?"—":Math.round(numericScore);
+          const n=rawScore==null?null:Number(rawScore),score=n===null||!Number.isFinite(n)?"—":Math.round(n);
           const dt=when(a),date=dt?new Date(dt):null;
           const dateText=date&&!Number.isNaN(date.getTime())?date.toLocaleString("id-ID"):"Waktu belum tersedia";
-          const kind=String(a.kind||a.jenis||"").toLowerCase(),icon=kind==="tryout"?"🏆":"✍️";
-          return `<div class="history-row"><span><b>${icon} ${esc(judul)}</b>${paket?`<br><small>📦 ${esc(paket)}</small>`:""}<br><small>${esc(dateText)}</small></span><strong title="Nilai">${esc(String(score))}</strong></div>`;
-        }).join("")+'</div>':'<p class="empty">Belum ada riwayat latihan/tryout.</p>';
-        const certificates=certs.length?certs.map(x=>{
+          return `<div class="history-row"><span><b>${kind==="tryout"?"🏆":"✍️"} ${esc(judul)}</b>${paket?`<br><small>📦 ${esc(paket)}</small>`:""}<br><small>${esc(dateText)}</small></span><strong title="Nilai">${esc(String(score))}</strong></div>`;
+        };
+        const latihan=attempts.filter(a=>kindOf(a)==="latihan");
+        const tryout=attempts.filter(a=>kindOf(a)==="tryout");
+        const list=(arr,kind,empty)=>arr.length?'<div class="history-list">'+arr.map(a=>rowHtml(a,kind)).join("")+'</div>':`<p class="empty">${empty}</p>`;
+        const certificates=certs.length?'<div class="history-list">'+certs.map(x=>{
           const url=safeDownloadUrl(x.file_url);
-          return `<p>🏅 <b>${esc(x.judul||"Sertifikat")}</b> · ${esc(x.nomor||"")}${url?` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Unduh</a>`:""}</p>`;
-        }).join(""):'<p class="empty">Sertifikat akan tampil setelah diterbitkan.</p>';
-        box.innerHTML='<h2 style="margin-top:0">📊 Riwayat Latihan & Tryout</h2><p style="color:#725c82;margin-top:-4px">Riwayat ini berasal dari data belajar akun Anda di Supabase.</p>'+history+'<h3>Sertifikat</h3>'+certificates;
+          return `<div class="history-row"><span><b>🏅 ${esc(x.judul||"Sertifikat")}</b>${x.nomor?`<br><small>No. ${esc(x.nomor)}</small>`:""}</span>${url?`<a class="btn btn-ghost" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Unduh</a>`:""}</div>`;
+        }).join("")+'</div>':'<p class="empty">Sertifikat akan tampil setelah diterbitkan.</p>';
+        box.innerHTML=`<h2 style="margin-top:0">📊 Riwayat Belajar</h2>
+          <p style="color:#725c82;margin-top:-4px">Hasil belajar akun Anda yang tersimpan di Supabase.</p>
+          <div class="history-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0">
+            <button class="btn btn-main" type="button" onclick="bukaTabRiwayat('latihan',this)">✍️ Latihan <b>(${latihan.length})</b></button>
+            <button class="btn btn-ghost" type="button" onclick="bukaTabRiwayat('tryout',this)">🏆 Tryout <b>(${tryout.length})</b></button>
+            <button class="btn btn-ghost" type="button" onclick="bukaTabRiwayat('sertifikat',this)">🏅 Sertifikat <b>(${certs.length})</b></button>
+          </div>
+          <div data-history-tab="latihan">${list(latihan,"latihan","Belum ada riwayat Latihan.")}</div>
+          <div data-history-tab="tryout" style="display:none">${list(tryout,"tryout","Belum ada riwayat Tryout.")}</div>
+          <div data-history-tab="sertifikat" style="display:none">${certificates}</div>`;
         box.style.display="block";
       }
-      function tujuanItem(x) {
+      function bukaTabRiwayat(nama,btn){
+        const box=document.getElementById("riwayatPanel"); if(!box)return;
+        box.querySelectorAll("[data-history-tab]").forEach(el=>el.style.display=el.getAttribute("data-history-tab")===nama?"block":"none");
+        box.querySelectorAll(".history-tabs .btn").forEach(el=>{el.classList.remove("btn-main");el.classList.add("btn-ghost");});
+        if(btn){btn.classList.remove("btn-ghost");btn.classList.add("btn-main");}
+      }
+            function tujuanItem(x) {
         return x.tujuan || "latihan";
       }
       function adaTryout(topik) {
