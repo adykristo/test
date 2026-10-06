@@ -302,13 +302,7 @@ body{background:var(--v12-bg)!important}
 .bank-question-text{line-height:1.55;margin:11px 0 8px}.bank-question-image{margin:10px 0 12px;padding:10px;border:1px solid #eee5fa;border-radius:12px;background:#fcfaff;text-align:center;overflow:hidden}.bank-question-image img{display:block;max-width:min(420px,100%);max-height:260px;width:auto;height:auto;object-fit:contain;margin:auto;border-radius:9px}.bank-option-images{display:flex;flex-wrap:wrap;gap:9px;margin:9px 0 12px}.bank-option-image{display:flex;align-items:center;gap:7px;padding:7px 9px;border:1px solid #ece8f5;border-radius:10px;background:#fff}.bank-option-image img{max-width:130px;max-height:90px;object-fit:contain;border-radius:7px}.bank-explanation-image{margin:9px 0 12px}.bank-explanation-image summary{cursor:pointer;font-size:12px;font-weight:800;color:#6547d9}.bank-explanation-image img{display:block;max-width:min(360px,100%);max-height:220px;object-fit:contain;margin-top:8px;border-radius:9px}
 @media(max-width:560px){.bank-question-image img{max-height:210px}.bank-option-images{display:grid;grid-template-columns:1fr 1fr}.bank-option-image{min-width:0}.bank-option-image img{max-width:100%;max-height:80px}}
 </style>
-<style id="kf-clean-one-style">
-.kf-clean-one{background:#fff;border:1px solid #decaff;border-radius:18px;padding:18px;margin:0 0 18px;box-shadow:0 8px 24px rgba(95,66,228,.08)}
-.kf-clean-input{min-height:230px;border:1.5px solid #d9c4ee;border-radius:12px;padding:13px;overflow:auto;background:#fff}
-.kf-clean-input:empty:before{content:attr(data-placeholder);color:#9295a5;white-space:pre-line}
-.kf-clean-actions,.kf-clean-formula{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.kf-clean-formula button{border:1px solid #ddcdf8;background:#faf7ff;border-radius:8px;padding:7px 9px;cursor:pointer}
-.kf-clean-preview img{max-width:300px;max-height:220px}
-</style></head>
+<style id="kf-one-safe-style">.kf-one-safe{background:#fff;border:2px solid #ddc8ff;border-radius:18px;padding:18px;margin:0 0 18px}.kf-one-safe-input{min-height:210px;border:1.5px solid #d9c4ee;border-radius:12px;padding:13px;overflow:auto}.kf-one-safe-input:empty:before{content:attr(data-placeholder);color:#9295a5}.kf-one-safe-tools{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}</style></head>
 <body><div id="kfV12AuthGate" style="position:fixed;inset:0;z-index:2147483647;background:#f7f1fb;display:grid;place-items:center;font-family:Arial,sans-serif"><div style="max-width:460px;margin:24px;padding:28px;border-radius:20px;background:white;box-shadow:0 18px 60px rgba(74,25,100,.18);text-align:center"><div style="font-size:34px">🔐</div><h2 style="margin:10px 0 6px;color:#381452">Memeriksa Akses Admin</h2><p id="kfV12AuthText" style="margin:0;color:#725f7c;line-height:1.5">Question Studio V13 hanya dapat digunakan oleh Super Admin yang aktif.</p></div></div>
 <style id="kfV12GateStyle">body > *:not(#kfV12AuthGate):not(#kfV12GateStyle):not(script){visibility:hidden!important}</style>
 <script>
@@ -406,21 +400,7 @@ window.kfV12Navigate=function(page){
 </header>
 
 <main class="wrap">
-<section id="page-buat" class="page active editor-compact"><div class="kf-clean-one" id="kfCleanOne">
-<h2>⚛️ Pembuat Soal Fisika — Satu Kolom <span class="tag">UJI BERSIH</span></h2>
-<div class="sub">Ketik, paste teks, Ctrl+V gambar/screenshot, upload gambar, atau upload Word/PDF. Hasil masuk ke Editor V13 yang sama.</div>
-<div id="kfCleanInput" class="kf-clean-input" contenteditable="true" data-placeholder="Ketik soal atau instruksi AI di sini…&#10;Contoh: Buat 5 soal Hukum Coulomb tingkat sulit.&#10;Atau Ctrl+V screenshot soal fisika."></div>
-<div id="kfCleanStatus" class="notice" style="margin-top:10px">Siap menerima teks, rumus, gambar, dan file.</div>
-<div class="kf-clean-actions">
-<button class="btn primary" type="button" onclick="KFOne.manual()">✏️ Manual → Editor</button>
-<button class="btn pink" type="button" onclick="KFOne.ai()">✨ AI Susun Soal + Gambar</button>
-<label class="btn" style="cursor:pointer">📎 Word/PDF<input type="file" id="kfCleanDoc" accept=".docx,.pdf,application/pdf" hidden onchange="KFOne.doc(this)"></label>
-<label class="btn" style="cursor:pointer">🖼 Gambar/Foto<input type="file" accept="image/*" hidden onchange="KFOne.image(this)"></label>
-<button class="btn" type="button" onclick="KFOne.clear()">🧹 Bersihkan</button>
-</div>
-<div class="kf-clean-formula"><b style="width:100%">Rumus cepat</b>
-<button type="button" onclick="KFOne.insert('^2')">x²</button><button type="button" onclick="KFOne.insert('_1')">x₁</button><button type="button" onclick="KFOne.insert('\\sqrt{}')">√</button><button type="button" onclick="KFOne.insert('\\frac{}{}')">a/b</button><button type="button" onclick="KFOne.insert('\\sum')">Σ</button><button type="button" onclick="KFOne.insert('\\int')">∫</button><button type="button" onclick="KFOne.insert('\\Delta')">Δ</button><button type="button" onclick="KFOne.insert('\\theta')">θ</button><button type="button" onclick="KFOne.insert('\\lambda')">λ</button><button type="button" onclick="KFOne.insert('\\omega')">ω</button><button type="button" onclick="KFOne.insert('\\vec{F}')">F⃗</button>
-</div></div><div class="card" id="v12EditorCard">
+<section id="page-buat" class="page active editor-compact"><div class="kf-one-safe"><h2>🧪 Pembuat Soal Fisika — Satu Kolom</h2><div class="sub">Versi uji aman. Ketik/tempel teks atau Ctrl+V gambar, lalu kirim ke Editor atau AI.</div><div id="kfSafeInput" class="kf-one-safe-input" contenteditable="true" data-placeholder="Ketik soal atau Ctrl+V screenshot di sini…"></div><div id="kfSafeStatus" class="notice" style="margin-top:9px">Siap.</div><div class="kf-one-safe-tools"><button class="btn primary" type="button" onclick="KFSafe.manual()">✏️ Manual → Editor</button><button class="btn pink" type="button" onclick="KFSafe.ai()">✨ AI Susun</button><label class="btn" style="cursor:pointer">📎 Word/PDF<input type="file" accept=".docx,.pdf,application/pdf" hidden onchange="KFSafe.doc(this)"></label><label class="btn" style="cursor:pointer">🖼 Gambar<input type="file" accept="image/*" hidden onchange="KFSafe.image(this)"></label></div></div><div class="card" id="v12EditorCard">
 <div class="editor-head"><div><h2 id="editorTitle">Pembuat Soal</h2><div class="sub">Fokus membuat, mengedit, memeriksa kunci, rumus, gambar, dan pembahasan. Nama paket, tujuan Latihan/Tryout, jadwal, durasi, dan akses peserta diatur setelah soal dipilih dari Bank Soal.</div></div></div>
 <div class="package-builder" id="multiQuestionBuilder">
 <div class="package-grid"><div><label>Nama kumpulan soal</label><input id="packageName" placeholder="Contoh: Latihan Hukum Coulomb"></div><div><label>Jumlah editor awal</label><input id="packageCount" type="number" min="1" max="200" value="10"><div class="small">Bisa ditambah lagi kapan saja.</div></div><button class="btn primary" type="button" onclick="startQuestionPackage()">Mulai Editor Banyak Soal</button></div>
@@ -1769,21 +1749,606 @@ setTimeout(()=>{health();syncBankAssetFromDraft()},700);
  setTimeout(()=>{try{window.KF_V13_RUN_DIAGNOSTIC()}catch(e){console.warn('[KF V13 diagnostic]',e)}},1100);
 })();
 </script>
-<script id="kf-clean-one-js">
-window.KFOne=(function(){
- const by=id=>document.getElementById(id), input=()=>by('kfCleanInput');
- function status(t,bad){const e=by('kfCleanStatus');if(e){e.textContent=t;e.className='notice '+(bad?'bad':'')}}
- function editor(){return by('question')}
- function pasteBox(){return by('v12PasteMaterial')}
- function copyToPaste(){const a=input(),b=pasteBox();if(!a||!b)return false;b.innerHTML=a.innerHTML;b.dispatchEvent(new Event('input',{bubbles:true}));return true}
- function firstImage(){return input()?.querySelector('img')?.src||''}
- function manual(){const q=editor(),src=input();if(!q||!src){status('Editor V13 belum siap.',true);return}q.value=(src.innerText||'').trim();q.dispatchEvent(new Event('input',{bubbles:true}));const im=firstImage();if(im){try{window.imageData=im;if(typeof window.renderImagePreview==='function')window.renderImagePreview();else if(typeof window.showImage==='function')window.showImage()}catch(e){console.warn(e)}}status('✓ Isi dipindahkan ke Editor V13. Periksa jenis soal, opsi, kunci dan pembahasan.');by('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'})}
- async function ai(){const src=input();if(!src||(!(src.innerText||'').trim()&&!src.querySelector('img'))){alert('Masukkan teks atau gambar terlebih dahulu.');return}if(!copyToPaste()){status('Mesin Tempel + Gambar V13 belum tersedia.',true);return}if(typeof window.v12ProcessPaste!=='function'){status('Fungsi AI V13 belum termuat.',true);return}status('⏳ Gemini Vision sedang membaca teks, rumus dan gambar…');try{await window.v12ProcessPaste();status('✓ AI selesai. Periksa hasil pada Editor V13.');by('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){console.error(e);status('⚠ AI gagal: '+(e?.message||e),true)}}
- function image(el){const f=el.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=document.createElement('img');im.src=r.result;im.style.maxWidth='320px';im.style.display='block';im.style.margin='8px 0';input().appendChild(im);status('✓ Gambar siap. Klik AI Susun Soal + Gambar atau Manual → Editor.')};r.readAsDataURL(f);el.value=''}
- async function doc(el){const f=el.files?.[0];if(!f)return;const target=by('wordSoalFileV13');if(!target||typeof window.prosesWordKeV13!=='function'){status('Mesin Word/PDF V13 belum siap.',true);return}try{const dt=new DataTransfer();dt.items.add(f);target.files=dt.files;status('⏳ Memproses '+f.name+'…');await window.prosesWordKeV13(true);status('✓ Word/PDF selesai diproses. Periksa Editor V13.');by('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){console.error(e);status('⚠ Import gagal: '+(e?.message||e),true)}finally{el.value=''}}
- function insert(v){const e=input();if(!e)return;e.focus();const n=document.createTextNode('</html>+v+'</html>),s=getSelection();if(s&&s.rangeCount&&e.contains(s.anchorNode)){const r=s.getRangeAt(0);r.deleteContents();r.insertNode(n);r.setStartAfter(n);r.collapse(true);s.removeAllRanges();s.addRange(r)}else e.appendChild(n)}
- function clear(){if(input())input().innerHTML='';status('Siap menerima teks, rumus, gambar, dan file.')}
- document.addEventListener('DOMContentLoaded',()=>{const e=input();if(!e)return;e.addEventListener('paste',ev=>{const it=Array.from(ev.clipboardData?.items||[]).find(x=>x.type?.startsWith('image/'));if(!it)return;ev.preventDefault();const f=it.getAsFile(),r=new FileReader();r.onload=()=>{const im=document.createElement('img');im.src=r.result;im.style.maxWidth='320px';im.style.display='block';im.style.margin='8px 0';const s=getSelection();if(s&&s.rangeCount&&e.contains(s.anchorNode)){const rg=s.getRangeAt(0);rg.insertNode(im);rg.setStartAfter(im);rg.collapse(true);s.removeAllRanges();s.addRange(rg)}else e.appendChild(im);status('✓ Screenshot berhasil ditempel. Klik AI Susun Soal + Gambar.')};r.readAsDataURL(f)})});
- return {manual,ai,image,doc,insert,clear};
+</body></html>`);w.document.close();
+}
+
+function packageBank(){try{let rows=JSON.parse(localStorage.getItem(PACKAGE_BANK_KEY)||'[]');return (Array.isArray(rows)?rows:[]).filter(Boolean).map(p=>{p.questions=(Array.isArray(p.questions)?p.questions:[]).filter(Boolean).map(q=>window.KFQuestionSchema?.normalize?window.KFQuestionSchema.normalize(q):q);p.count=p.questions.length;return p})}catch(e){console.warn('[V13 packageBank]',e);return []}}
+function setPackageBank(v){try{let rows=(Array.isArray(v)?v:[]).filter(Boolean).map(p=>{let x=JSON.parse(JSON.stringify(p));x.questions=(Array.isArray(x.questions)?x.questions:[]).filter(Boolean).map(q=>window.KFQuestionSchema?.normalize?window.KFQuestionSchema.normalize(q):q);x.count=x.questions.length;return x});localStorage.setItem(PACKAGE_BANK_KEY,JSON.stringify(rows));renderPackageBank();return true}catch(e){console.error('[V13 setPackageBank]',e);alert('Gagal menyimpan Paket. '+(e?.message||e));return false}}
+function savePackageDraftLocal(){
+ try{localStorage.setItem(PACKAGE_DRAFT_KEY,JSON.stringify(packageDraft))}catch(e){console.error('[V13 package draft]',e);let el=$('packageAutosaveStatus');if(el)el.textContent='⚠ Draft gagal disimpan: '+(e?.message||e);return false}
+ let el=$('packageAutosaveStatus');
+ if(el){let now=new Date();el.textContent='✓ Draft tersimpan otomatis '+now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}return true
+}
+function loadPackageDraftLocal(){try{let x=JSON.parse(localStorage.getItem(PACKAGE_DRAFT_KEY)||'null');if(x&&Array.isArray(x.questions)){x.questions=x.questions.map(q=>q&&window.KFQuestionSchema?.normalize?window.KFQuestionSchema.normalize(q):q);x.count=x.questions.length;packageDraft=x;if($('packageName'))$('packageName').value=x.name||'';if($('packageCount'))$('packageCount').value=x.questions.length}}catch(e){console.warn('[V13 load package draft]',e)}}
+function startQuestionPackage(){let count=Math.max(1,Math.min(200,Number($('packageCount').value)||1)),name=($('packageName').value||'').trim()||'Paket Soal';if(![5,10,20].includes(count)&&!confirm('Jumlah paket '+count+' soal.\n\nRekomendasi KlinikFisikapku adalah 5, 10, atau 20 soal. Tetap lanjutkan?'))return;if(packageDraft.questions.some(Boolean)&&!confirm('Ganti draft paket yang sedang dikerjakan?'))return;packageDraft={name,count,current:0,questions:Array(count).fill(null)};$('packageName').value=name;$('packageCount').value=count;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator()}
+function loadQuestionsToWorkspace(qs,name){
+ qs=(Array.isArray(qs)?qs:[]).filter(Boolean).map(q=>v13NormalizeQuestionObject(JSON.parse(JSON.stringify(q))));
+ if(!qs.length)return;
+ packageEditId=null;
+ packageDraft={name:name||'Draft Soal',count:qs.length,current:0,questions:qs};
+ if($('packageName'))$('packageName').value=packageDraft.name;
+ if($('packageCount'))$('packageCount').value=packageDraft.count;
+ savePackageDraftLocal();loadPackageQuestionToEditor(qs[0]);renderPackageNavigator();
+}
+function addManualQuestion(){
+ if(editorHasContent())saveCurrentToPackage();
+ packageDraft.questions.push(null);packageDraft.count=packageDraft.questions.length;packageDraft.current=packageDraft.questions.length-1;
+ if($('packageCount'))$('packageCount').value=packageDraft.count;
+ editingId=null;clearPackageEditor(false);savePackageDraftLocal();renderPackageNavigator();
+ $('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function sendWorkspaceToBank(){
+ if(editorHasContent())saveCurrentToPackage();
+ const valid=packageDraft.questions.filter(packageQuestionValid);
+ if(!valid.length)return alert('Belum ada soal lengkap untuk dikirim ke Bank Soal.');
+ const incomplete=packageDraft.questions.length-valid.length;
+ if(incomplete&&!confirm(valid.length+' soal lengkap akan dikirim ke Bank Soal. '+incomplete+' soal belum lengkap tidak dikirim. Lanjutkan?'))return;
+ let rows=bank(),ids=new Set(rows.map(x=>x.id));
+ valid.forEach(q=>{let x=compactQuestionForBank(q);x.id=x.id||uid();x.status='Siap Pakai';x.updatedAt=new Date().toISOString();let idx=rows.findIndex(r=>r.id===x.id);if(idx>=0)rows[idx]=x;else rows.unshift(x);ids.add(x.id)});
+ try{setBank(rows)}catch(e){return alert('Gagal mengirim ke Bank Soal: '+e.message)}
+ alert('✓ '+valid.length+' soal berhasil dikirim ke Bank Soal.');
+ renderBank();nav('bank');
+}
+function packageQuestionValid(q){return packageQuestionIssues(q).length===0}
+function saveCurrentToPackage(){
+ let q=collect(),issues=packageQuestionIssues(q);
+ q.id=editingId||q.id||uid();q.updatedAt=new Date().toISOString();q.status=issues.length?'Draft':'Siap Pakai';
+ // Pastikan draft memakai ID final yang sama dengan Bank Soal agar gambar dapat dipulihkan konsisten.
+ try{localStorage.setItem(DRAFT,JSON.stringify(q))}catch(e){}
+
+ // Saat Buka/Edit paket: simpan perubahan ke nomor soal aktif di paket, bukan keluar ke Bank Soal.
+ if(packageEditId){
+   q.packageIndex=packageDraft.current+1;
+   packageDraft.questions[packageDraft.current]=q;
+   packageDraft.count=packageDraft.questions.length;
+   savePackageDraftLocal();
+   let arr=packageBank(),pi=arr.findIndex(x=>x.id===packageEditId);
+   if(pi>=0){
+     arr[pi].name=packageDraft.name||arr[pi].name;
+     arr[pi].count=packageDraft.questions.length;
+     arr[pi].questions=JSON.parse(JSON.stringify(packageDraft.questions));
+     arr[pi].updatedAt=new Date().toISOString();
+     try{setPackageBank(arr)}catch(e){alert('Perubahan soal tersimpan di draft, tetapi paket belum dapat diperbarui: '+(e?.message||e));return}
+   }
+   if($('draftStatus'))$('draftStatus').textContent=issues.length
+     ?'⚠ Soal '+(packageDraft.current+1)+' tersimpan di paket sebagai Draft: '+issues.join(' • ')
+     :'✓ Soal '+(packageDraft.current+1)+' tersimpan di paket.';
+   renderPackageNavigator();renderPackageBank();
+   return issues.length===0;
+ }
+
+ // Mode soal tunggal: simpan ke Bank Soal Privat.
+ let rows=bank(),idx=rows.findIndex(x=>x&&x.id===q.id);
+ if(idx>=0)rows[idx]=q;else rows.unshift(q);
+ try{setBank(rows)}catch(err){console.error('[V13 save bank]',err);alert('Gagal menyimpan soal ke Bank Soal. '+err.message);return false}
+ editingId=q.id;
+ try{localStorage.setItem(DRAFT,JSON.stringify(q))}catch(e){}
+ if($('draftStatus'))$('draftStatus').textContent=issues.length?'⚠ Soal tersimpan sebagai Draft.':'✓ Soal tersimpan di Bank Soal.';
+ try{renderBank();updateCounts()}catch(e){}
+ if(aiEditorQueue&&aiEditorQueue.length){
+   let savedIndex=aiEditorIndex;
+   if(savedIndex<aiEditorQueue.length-1){
+     alert('Soal '+(savedIndex+1)+' berhasil disimpan ke Bank Soal. Selanjutnya membuka soal '+(savedIndex+2)+' dari '+aiEditorQueue.length+'.');
+     loadAIQueueToEditor(savedIndex+1);
+   }else{
+     if($('draftStatus'))$('draftStatus').textContent='✓ Semua '+aiEditorQueue.length+' soal AI telah diperiksa. Soal terakhir tersimpan di Bank Soal.';
+     nav('bank');
+   }
+ }else nav('bank');
+ return issues.length===0;
+}
+function renderPackageNavigator(){
+ let n=packageDraft.questions.length||1,done=packageDraft.questions.filter(packageQuestionValid).length;
+ if($('packagePosition'))$('packagePosition').textContent='Soal '+(packageDraft.current+1)+' dari '+n;
+ if($('packageDone'))$('packageDone').textContent='• '+done+' selesai • klik nomor untuk membuka soal';
+ if($('packageProgressBar'))$('packageProgressBar').style.width=(done/n*100)+'%';
+ if($('questionNumberNav'))$('questionNumberNav').innerHTML=packageDraft.questions.map((q,i)=>`<button class="${i===packageDraft.current?'current ':''}${packageQuestionValid(q)?'done':''}" onclick="goPackageQuestion(${i})" title="Buka soal ${i+1}">${i+1}${packageQuestionValid(q)?'✓':''}</button>`).join('');
+}
+function editorHasContent(){return !!(($('question')?.value||'').trim()||($('explanation')?.value||'').trim()||imageData||($('qImageUrl')?.value||'').trim()||(answerState.options||[]).some(x=>String(x||'').trim())||String(answerState.short||'').trim()||String(answerState.essayKey||'').trim()||(answerState.statements||[]).some(x=>String(x?.text||'').trim()))}
+function goPackageQuestion(i){
+ if(i<0||i>=packageDraft.questions.length)return;
+ if(packageEditId&&editorHasContent())saveCurrentToPackage();
+ packageDraft.current=i;editingId=null;
+ let q=packageDraft.questions[i];q?loadPackageQuestionToEditor(q):clearPackageEditor(false);
+ renderPackageNavigator();savePackageDraftLocal();
+ $('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function packagePrev(){if(packageDraft.current>0)goPackageQuestion(packageDraft.current-1)}
+function packageNext(){if(packageDraft.current<packageDraft.questions.length-1)goPackageQuestion(packageDraft.current+1)}
+function loadPackageQuestionToEditor(q){q=(window.KFQuestionSchema?.normalize?window.KFQuestionSchema.normalize(q):q)||{};currentType=q.type||'pg5';editingId=q.id||null;if(q.inlineImages)Object.assign(v13InlineImages,q.inlineImages);if($('typeSelect'))$('typeSelect').value=currentType;['jenjang','mapel','kelas','difficulty','topik','subtopik','tags','question','explanation','scoring'].forEach(id=>{if($(id)&&q[id]!==undefined)$(id).value=q[id]});imageData=q.image||'';explanationImageData=q.explanationImage||'';imageRotation=q.imageRotation||0;answerState=JSON.parse(JSON.stringify(q.answers||{}));initAnswersForType(false);renderAnswerEditor();showImage();if($('qImageUrl'))$('qImageUrl').value=/^https?:/i.test(q.image||'')?q.image:'';if($('explanationImageUrl'))$('explanationImageUrl').value=/^https?:/i.test(q.explanationImage||'')?q.explanationImage:'';if($('explanationImagePosition'))$('explanationImagePosition').value=q.explanationImagePosition||'bottom';if($('explanationImageAlign'))$('explanationImageAlign').value=q.explanationImageAlign||'center';if($('explanationImageWidth'))$('explanationImageWidth').value=String(q.explanationImageWidth||50);showExplanationImage();updatePreview();validate()}
+function clearPackageEditor(render=true){currentType='pg5';if($('typeSelect'))$('typeSelect').value='pg5';['kelas','topik','subtopik','tags','question','qImageUrl','explanation'].forEach(id=>{if($(id))$(id).value=''});imageData='';explanationImageData='';imageRotation=0;answerState={};if($('explanationImageUrl'))$('explanationImageUrl').value='';if($('explanationImageFile'))$('explanationImageFile').value='';if($('explanationImagePosition'))$('explanationImagePosition').value='bottom';if($('explanationImageAlign'))$('explanationImageAlign').value='center';if($('explanationImageWidth'))$('explanationImageWidth').value='50';initAnswersForType(true);renderAnswerEditor();showImage();showExplanationImage();updatePreview();validate();if(render)renderPackageNavigator()}
+
+function packageQuestionIssues(q){
+ let issues=[];
+ if(!q){return ['Soal belum dibuat'];}
+ if(!String(q.question||'').trim()&&!q.image)issues.push('Pertanyaan belum diisi');
+ if(['pg5','pg4','mcma'].includes(q.type)){
+   let required=q.type==='pg5'?5:q.type==='pg4'?4:5;
+   let opts=(q.answers?.options||[]).filter(x=>String(x||'').trim());
+   if(opts.length<required)issues.push('Pilihan jawaban belum lengkap');
+   if(!(q.answers?.keys||[]).length)issues.push('Kunci jawaban belum dipilih');
+ }
+ if(q.type==='kategori'){
+   let st=q.answers?.statements||[];
+   if(!st.length)issues.push('Pernyataan kategori belum dibuat');
+   if(st.some(x=>!String(x.text||'').trim()||!x.answer))issues.push('Pernyataan/kategori jawaban belum lengkap');
+ }
+ if(q.type==='isian'&&!String(q.answers?.short||'').trim())issues.push('Kunci isian belum diisi');
+ return issues;
+}
+function reviewPackage(){
+ if(editorHasContent())saveCurrentToPackage();
+ let total=packageDraft.questions.length,details=packageDraft.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)}));
+ let bad=details.filter(x=>x.issues.length),ok=total-bad.length;
+ $('reviewPackageSummary').textContent=total+' soal • '+ok+' lengkap • '+bad.length+' perlu diperbaiki';
+ $('reviewPackageNumbers').innerHTML=details.map(x=>`<button class="${x.issues.length?'':'done'}" onclick="closeModal('reviewPackageModal');goPackageQuestion(${x.i})" title="${esc(x.issues.join(', ')||'Lengkap')}">${x.i+1}${x.issues.length?'⚠':'✓'}</button>`).join('');
+ $('reviewPackageIssues').innerHTML=bad.length
+  ? '<div class="notice"><b>Perlu diperbaiki:</b></div>'+bad.map(x=>`<div class="result-item wrong"><b>Soal ${x.i+1}</b><div class="small">${x.issues.map(esc).join(' • ')}</div><button class="btn sm" style="margin-top:7px" onclick="closeModal('reviewPackageModal');goPackageQuestion(${x.i})">Perbaiki Soal</button></div>`).join('')
+  : '<div class="notice" style="border-color:#86d7a2;background:#ecfdf3!important"><b>✓ Semua soal sudah lengkap dan siap disimpan ke Bank Soal.</b></div>';
+ $('reviewSaveBtn').disabled=bad.length>0;
+ $('reviewSaveBtn').title=bad.length?'Lengkapi soal yang ditandai sebelum menyimpan paket.':'Simpan paket ke Bank Soal';
+ $('reviewPackageModal').classList.add('show');
+}
+
+async 
+function v12ClearPaste(){const el=$('v12PasteMaterial');if(el)el.innerHTML='';v12UpdatePasteSummary()}
+function v12UpdatePasteSummary(){const el=$('v12PasteMaterial'),out=$('v12PasteSummary');if(!el||!out)return;const t=(el.innerText||'').trim().length,n=el.querySelectorAll('img').length;out.textContent=(t||n)?t.toLocaleString('id-ID')+' karakter · '+n+' gambar terdeteksi':'Belum ada isi ditempel.'}
+function v12PasteAssets(){
+ const el=$('v12PasteMaterial');if(!el)return {text:'',images:[]};
+ const images=[...el.querySelectorAll('img')].map((im,i)=>{
+   const src=im.src||'',m=src.match(/^data:(image\/(?:png|jpeg|jpg|webp));base64,(.*)$/s);
+   return m?{id:'KF_IMG_'+i,mimeType:m[1]==='image/jpg'?'image/jpeg':m[1],data:m[2],src}:null;
+ }).filter(Boolean);
+ return {text:(el.innerText||'').trim(),images};
+}
+function v12GeminiPasteQuestion(item,sourceImage,flags){
+ let rawType=String(item?.type||item?.tipe||item?.question_type||'').toLowerCase().replace(/[\s_/-]+/g,'');
+ let rawOpts=item?.options??item?.pilihan??item?.opsi??{};
+ if(Array.isArray(rawOpts))rawOpts=rawOpts.reduce((o,v,i)=>(o[String.fromCharCode(65+i)]=(v&&typeof v==='object'?(v.text||v.value||''):v)||'',o),{});
+ const optArr=['A','B','C','D','E'].map(h=>rawOpts?.[h]??rawOpts?.[h.toLowerCase()]??'').filter(v=>String(v).trim()).map(cleanAIMathText);
+ let type=rawType.includes('mcma')?'mcma':rawType.includes('kategori')?'kategori':rawType.includes('isian')?'isian':rawType.includes('esai')||rawType.includes('essay')?'esai':rawType.includes('pg4')?'pg4':rawType.includes('pg5')?'pg5':(optArr.length===4?'pg4':optArr.length>=5?'pg5':'pg5');
+ let ans=item?.answer??item?.jawaban_benar??item?.correct_answer??item?.kunci??'';
+ let keys=(Array.isArray(item?.correct_indexes)?item.correct_indexes:(String(ans).match(/[A-E]/gi)||[])).map(x=>typeof x==='number'?x:'ABCDE'.indexOf(String(x).toUpperCase())).filter(x=>x>=0);
+ let answers={options:optArr,keys,short:'',essayKey:'',statements:[]};
+ if(type==='isian')answers={options:[],keys:[],short:cleanAIMathText(item?.short_answer||item?.kunci_isian||ans||''),essayKey:'',statements:[]};
+ if(type==='esai')answers={options:[],keys:[],short:'',essayKey:cleanAIMathText(ans||''),statements:[]};
+ if(type==='kategori')answers.statements=(item?.statements||[]).map(x=>({text:cleanAIMathText(x?.text||x?.statement||''),image:'',answer:x?.answer||x?.key||'Benar'}));
+ return v13NormalizeQuestionObject({id:uid(),type,jenjang:flags.level,mapel:'Fisika',kelas:'',difficulty:'Sedang',topik:item?.topik||'Import Gambar',subtopik:'',status:'Draft',tags:'AI Tempel Gambar',question:cleanAIMathText(item?.question||item?.pertanyaan||item?.prompt||item?.text||''),image:sourceImage||'',imageRotation:0,answers,explanation:cleanAIMathText(item?.explanation||item?.pembahasan||item?.solution||item?.pedoman||''),explanationImage:'',score:1,scoring:'exact',source:'Gemini Vision',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()});
+}
+async function v12ProcessPaste(){
+ const data=v12PasteAssets(),st=$('v12PasteStatus'),btn=$('v12ProcessPasteBtn');if(!data.text&&!data.images.length)return alert('Tempel teks atau gambar soal terlebih dahulu.');
+ const oldBtn=btn?.innerHTML||'✨ AI Susun Soal & Gambar';if(btn){btn.disabled=true;btn.innerHTML='⏳ Gemini sedang membaca...'}
+ const flags={translate:!!$('v12Translate')?.checked,relevant:!!$('v12RelevantImage')?.checked,solution:!!$('v12MakeKey')?.checked,validate:!!$('v12Validate')?.checked,variant:!!$('v12Variation')?.checked,level:$('v12PasteLevel')?.value||'SMA'};
+ try{
+  if(st)st.textContent='✨ Gemini Vision membaca soal, bahasa, diagram, opsi, kunci dan pembahasan…';
+  // Penting: action analisisWordTryout menerima gambar sebagai {id,mimeType,data}, sama seperti admin lama.
+  const markerText=(data.text?data.text+'\n':'')+data.images.map(x=>'[['+x.id+']]').join('\n');
+  const prompt=[
+   'TUGAS VISION: baca seluruh isi gambar/tempelan secara teliti dan susun soal ASLI ke struktur editor. JANGAN membuat soal baru dan jangan mengganti konteks/topik.',
+   flags.translate?'Jika teks soal, opsi, atau pembahasan berbahasa Inggris/asing, TERJEMAHKAN ke Bahasa Indonesia yang alami dan akurat. Angka, simbol, satuan, variabel, rumus, dan makna fisika wajib dipertahankan.':'Pertahankan bahasa asli.',
+   'Bedakan bagian SOAL, PILIHAN JAWABAN, DIAGRAM/GAMBAR, KUNCI, dan PEMBAHASAN/SOLUTION yang benar-benar tampak pada sumber.',
+   'Transkripsikan narasi pertanyaan ke field question. Jangan masukkan teks pembahasan/solution ke question.',
+   'Jika sumber sudah memiliki opsi A-E/A-D, masukkan masing-masing ke options sesuai urutan dan jangan mengubah nilainya.',
+   flags.solution?'Jika soal belum mempunyai opsi, buat PG5 A-E yang masuk akal dari soal ASLI. Jika kunci belum ada, selesaikan soal dan isi correct_answer/answer.':'Jangan membuat opsi atau kunci yang tidak ada.',
+   flags.solution?'Jika sumber mempunyai pembahasan/solution, TRANSKRIP dan rapikan pembahasan tersebut ke field explanation. Jika tidak ada pembahasan, buat pembahasan sistematis berdasarkan soal ASLI: Diketahui, Ditanya, Konsep/Persamaan, Penyelesaian, Jawaban akhir.':'Jika pembahasan terlihat, masukkan ke explanation.',
+   'Jika ada gambar/diagram yang merupakan bagian penting dari soal, set question_image_refs ke id gambar tersebut. Jika gambar hanya berisi pembahasan/ornamen dan tidak diperlukan untuk pertanyaan, jangan jadikan gambar soal.',
+   'Jika satu screenshot memuat soal DAN pembahasan, tetap hasilkan SATU objek soal: question dari bagian soal, options dari pilihan, answer dari kunci/hasil, explanation dari bagian pembahasan.',
+   'Semua rumus wajib LaTeX MathJax valid dalam $...$ (inline) atau $...$ (baris sendiri). Jangan keluarkan perintah LaTeX mentah di luar delimiter. Jangan gunakan markdown **, heading #, atau code fence.',
+   flags.validate?'Periksa ulang angka, satuan, perhitungan, kecocokan opsi dengan kunci, dan konsistensi jawaban akhir.':'',
+   'Validasi bahwa question, options, correct_answer, explanation dan gambar semuanya milik soal yang SAMA. Jangan memakai isi dari riwayat atau contoh lain.',
+   'Kembalikan tepat 1 soal kecuali sumber jelas berisi beberapa nomor soal terpisah.'
+  ].filter(Boolean).join('\n');
+  const numbered=(data.text.match(/(?:^|\n)\s*(?:\[?(?:ESAI|PGK[^\]]*)\]?\s*)?\d+[.)]\s+/gi)||[]).length;
+  const estimated=Math.max(1,Math.min(50,numbered||(data.images.length>1?data.images.length:1)));
+  const payload={documentText:markerText,text:markerText,images:data.images.map(({id,mimeType,data})=>({id,mimeType,data})),prompt:prompt+'\nJika sumber berisi beberapa soal bernomor, kembalikan SEMUA soal tersebut sebagai array questions, maksimal '+estimated+' soal.',instruksi:prompt,jenjang:flags.level,jumlah:estimated,tipe:'auto'};
+  let r=await postGAS('analisisWordTryout',payload);
+  const raw=Array.isArray(r?.questions)?r.questions:(Array.isArray(r?.data?.questions)?r.data.questions:[]);
+  if(!raw.length)throw new Error(r?.message||'Gemini Vision tidak mengembalikan soal.');
+  const qs=raw.map((item,i)=>{
+    let refs=Array.isArray(item?.question_image_refs)?item.question_image_refs:[];
+    let chosen=refs.length?data.images.find(x=>refs.includes(x.id)):null;
+    // Hanya pasang gambar ke soal bila Gemini menandainya relevan; jangan otomatis memakai screenshot penuh.
+    let q=v12GeminiPasteQuestion(item,(flags.relevant?(chosen?.src||''):(chosen?.src||data.images[0]?.src||'')),flags);
+    let exRefs=Array.isArray(item?.explanation_image_refs)?item.explanation_image_refs:[];
+    let exImg=data.images.find(x=>exRefs.includes(x.id));
+    if(exImg)q.explanationImage=exImg.src;
+    return q;
+  }).filter(q=>q.question);
+  if(!qs.length)throw new Error('Teks soal pada gambar belum berhasil dibaca.');
+  loadQuestionsToWorkspace(qs,'Draft Tempel Gambar');
+  if(st)st.textContent='✓ Selesai. Soal sudah dibaca'+(flags.translate?' / diterjemahkan bila perlu':'')+', diagram relevan dipilih, opsi & kunci disusun, dan pembahasan ditempatkan di kolom Pembahasan.';
+  $('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'});
+ }catch(e){console.error('[AI Susun Soal & Gambar]',e);if(st)st.textContent='✗ '+(e?.message||e);alert('AI Susun Soal & Gambar gagal: '+(e?.message||e))}
+ finally{if(btn){btn.disabled=false;btn.innerHTML=oldBtn}}
+}
+document.addEventListener('paste',function(ev){
+ const box=$('v12PasteMaterial');if(!box||!box.contains(ev.target))return;
+ const items=[...(ev.clipboardData?.items||[])],imgs=items.filter(x=>String(x.type||'').startsWith('image/'));
+ if(!imgs.length){setTimeout(v12UpdatePasteSummary,0);return}
+ ev.preventDefault();
+ const text=ev.clipboardData?.getData('text/plain')||'';if(text)document.execCommand('insertText',false,text);
+ imgs.forEach(item=>{const file=item.getAsFile();if(!file)return;const rd=new FileReader();rd.onload=()=>{const im=document.createElement('img');im.src=rd.result;im.style.maxWidth='260px';im.style.maxHeight='190px';im.style.display='inline-block';im.style.margin='6px';im.style.borderRadius='8px';box.appendChild(im);v12UpdatePasteSummary()};rd.readAsDataURL(file)});
+});
+document.addEventListener('input',function(ev){if(ev.target?.id==='v12PasteMaterial')v12UpdatePasteSummary()});setTimeout(v12UpdatePasteSummary,0);
+function v12PublicationMeta(){return{name:'Paket Soal',kind:'latihan',duration:60,attempts:1,start:null,end:null,subscription:'Semua Paket Aktif',sourceVersion:13}}
+window.v13MemberPackages=window.v13MemberPackages||[];
+async function v13LoadMemberPackages(){
+ try{
+  const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;if(!db)throw new Error('Supabase Admin belum siap.');
+  const {data,error}=await db.from('member_packages').select('id,kode,nama,jenjang,aktif,urutan').neq('nama','_PAYMENT_CONFIG_').order('urutan').order('nama');
+  if(error)throw error;window.v13MemberPackages=(data||[]).filter(x=>!['_PAYMENT_CONFIG_','__PENGATURAN_PEMBAYARAN__'].includes(x.nama));
+  v13RenderMemberPackages();
+ }catch(e){const box=$('v13DistPackageChecks');if(box)box.innerHTML='<div class="v13-package-empty">Paket peserta gagal dimuat: '+esc(e?.message||e)+'</div>'}
+}
+function v13SelectedMemberPackages(){return [...document.querySelectorAll('#v13DistPackageChecks input:checked')].map(x=>x.value)}
+function v13RenderMemberPackages(selected){
+ const box=$('v13DistPackageChecks');if(!box)return;const level=String($('v13DistLevel')?.value||'').toUpperCase();
+ const rows=window.v13MemberPackages.filter(p=>!level||String(p.jenjang||'').toUpperCase()===level);
+ const chosen=new Set(selected||v13SelectedMemberPackages());
+ box.innerHTML=rows.length?rows.map(p=>'<label class="v13-package-choice '+(p.aktif?'':'off')+'"><input type="checkbox" value="'+esc(p.id)+'" '+(chosen.has(String(p.id))?'checked ':'')+(p.aktif?'':'disabled ')+'><span><b>'+esc(p.nama||p.kode||'Paket')+'</b><small>'+esc((p.jenjang||'')+(p.kode?' • '+p.kode:'')+(p.aktif?'':' • Nonaktif'))+'</small></span></label>').join(''):'<div class="v13-package-empty">Belum ada paket '+esc(level)+' yang aktif/tersedia di Admin.</div>';
+}
+let v13DistributionState={id:null,kind:'latihan'};
+function v13SendPackageToAdmin(id,kind){
+ const arr=packageBank(),p=arr.find(x=>String(x.id)===String(id));
+ if(!p)return alert('Paket soal tidak ditemukan.');
+ if(!Array.isArray(p.questions)||!p.questions.length)return alert('Paket ini belum memiliki soal.');
+ const invalid=p.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
+ if(invalid.length)return alert('Paket belum dapat dijadikan '+(kind==='tryout'?'Tryout':'Latihan')+'. Perbaiki: '+invalid.map(x=>'Soal '+(x.i+1)+' ('+x.issues.join(', ')+')').join('; '));
+ const key=kind==='tryout'?'kf_member_tryout_packages_v13':'kf_member_training_packages_v13';
+ let rows=[];try{rows=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(rows))rows=[]}catch(e){rows=[]}
+ const bridgeId='V13-'+kind+'-'+String(p.id);
+ let target=rows.find(x=>String(x.sourceV13Package||'')===String(p.id));
+ const now=new Date().toISOString();
+ if(!target){
+   target={id:bridgeId,kind:kind,name:(p.name&&!/^Paket Soal/i.test(p.name))?p.name:(kind==='tryout'?'Tryout dari Bank Soal':'Latihan dari Bank Soal'),questions:[],visible:false,duration:kind==='tryout'?90:0,start:'',end:'',subscription:'Semua Paket Aktif',attempts:1,createdAt:now};
+   rows.unshift(target);
+ }
+ target.questions=JSON.parse(JSON.stringify(p.questions));
+ target.sourceV13Package=p.id;target.source='Bank Soal V13';target.visible=false;target.updatedAt=now;
+ try{localStorage.setItem(key,JSON.stringify(rows))}catch(e){return alert('Gagal mengirim ke Admin: '+e.message)}
+ p.adminStage=kind;p.adminSentAt=now;p.updatedAt=now;setPackageBank(arr);renderPackageBank();
+ const label=kind==='tryout'?'Tryout Mingguan':'Soal Latihan';
+ if(confirm('✓ '+p.questions.length+' soal sudah dikirim ke halaman '+label+' di Admin.\n\nBuka halaman Admin sekarang?')){
+   location.href='admin.html#'+(kind==='tryout'?'tryout':'latihan');
+ }
+}
+function v13MovePackageToQueue(id,kind){
+ const arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return alert('Draft soal tidak ditemukan.');
+ const invalid=(p.questions||[]).map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
+ if(!p.questions?.length)return alert('Draft ini belum memiliki soal.');
+ if(invalid.length)return alert('Draft belum siap dikirim. Perbaiki: '+invalid.map(x=>'Soal '+(x.i+1)+' ('+x.issues.join(', ')+')').join('; '));
+ p.stage=kind;p.kind=kind;p.updatedAt=new Date().toISOString();setPackageBank(arr);
+ renderPackageBank();v13RenderDistributionQueues();nav('paket');
+ setTimeout(()=>document.getElementById(kind==='tryout'?'v13TryoutQueue':'v13LatihanQueue')?.scrollIntoView({behavior:'smooth',block:'center'}),100);
+}
+function v13PreviewQueuedPackage(id){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Draft soal tidak ditemukan.');
+ const qs=Array.isArray(p.questions)?p.questions.filter(Boolean):[];
+ if(!qs.length)return alert('Draft ini belum memiliki soal.');
+ $('studentPreview').innerHTML='<div class="notice"><b>'+qs.length+' soal dalam draft '+(p.stage==='tryout'?'Tryout':'Latihan')+'</b></div>'+
+ qs.map((q,i)=>'<div class="bankitem" style="margin-top:10px"><div class="small"><b>Soal '+(i+1)+'</b> • '+esc(typeName(q.type||'pg5'))+'</div>'+questionHTML(q,false)+'</div>').join('');
+ $('previewModal').classList.add('show');typesetMath('studentPreview');
+}
+function v13RemoveFromQueue(id){
+ const arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return;p.stage='';p.updatedAt=new Date().toISOString();setPackageBank(arr);v13RenderDistributionQueues();renderPackageBank();
+}
+async function v13RenderPublished(){
+ const box=$('v13PublishedPackages');if(!box)return;
+ try{
+  if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');
+  const raw=await window.KFPackagePublisher.adminList();const rows=(Array.isArray(raw)?raw:[]).filter(x=>x&&(x.kind==='latihan'||x.kind==='tryout'));
+  const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;
+  let access=[];if(db&&rows.length){const ids=rows.map(x=>x.id);const q=await db.from('kf_package_access').select('kf_package_id,member_package_id').in('kf_package_id',ids);if(!q.error)access=q.data||[]}
+  if(!window.v13MemberPackages.length)await v13LoadMemberPackages();
+  const packs=Array.isArray(window.v13MemberPackages)?window.v13MemberPackages:[];const nameById=new Map(packs.map(x=>[String(x.id),x.nama]));
+  box.innerHTML=rows.length?rows.map(x=>{
+   const ids=access.filter(a=>String(a.kf_package_id)===String(x.id)).map(a=>String(a.member_package_id));
+   const names=ids.map(id=>nameById.get(id)||id);
+   const rel=x.kf_questions;
+   const count=Array.isArray(rel)?Number(rel[0]?.count||0):Number(rel?.count||0);
+   return '<div class="bank-item"><div><b>'+(x.kind==='tryout'?'🏆 ':'▶ ')+esc(x.name||'Tanpa nama')+'</b><div class="small">'+esc((x.jenjang||'')+(x.kelas?' • Kelas '+x.kelas:'')+' • '+count+' soal')+'</div><div class="small">Akses: '+esc(names.length?names.join(', '):(x.subscription||'Belum diatur'))+'</div></div><div class="actions"><span class="tag">'+(x.visible?'✓ Tampil ke Peserta':'Disembunyikan')+'</span></div></div>';
+  }).join(''):'<div class="empty">Belum ada Latihan/Tryout final di Supabase.</div>';
+ }catch(e){box.innerHTML='<div class="notice bad">Gagal memuat paket final: '+esc(e?.message||e)+'</div>'}
+}
+async function v13LoadExistingParticipantContent(){
+ const box=$('v13ExistingParticipantContent');if(!box)return;
+ box.innerHTML='<div class="empty">Memuat data V12/V13 dari Admin/Supabase…</div>';
+ try{
+  const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;if(!db)throw new Error('Supabase Admin belum siap.');
+  // V13 tidak memindahkan/menggandakan data V12. Semua sumber lama dibaca dan digabung.
+  const tables=['member_secure_content','member_content','contents'];
+  let legacy=[],errors=[];
+  for(const table of tables){
+   try{
+    const r=await db.from(table).select('*');
+    if(!r.error)legacy.push(...(r.data||[]).map(x=>Object.assign({_kfSourceTable:table},x)));
+    else errors.push(table+': '+(r.error.message||r.error));
+   }catch(e){errors.push(table+': '+(e?.message||e))}
+  }
+  // Ambil nama paket yang sama dengan halaman peserta.
+  let pkgNames=new Map(),contentPackages=new Map();
+  try{
+   const p=await db.from('member_packages').select('id,nama,kode,jenjang').neq('nama','_PAYMENT_CONFIG_');
+   if(!p.error)(p.data||[]).forEach(x=>pkgNames.set(String(x.id),x.nama||x.kode||'Paket'));
+   const m=await db.from('member_content_packages').select('content_id,package_id');
+   if(!m.error)(m.data||[]).forEach(x=>{
+    const k=String(x.content_id),a=contentPackages.get(k)||[];a.push(String(x.package_id));contentPackages.set(k,a);
+   });
+  }catch(e){console.warn('[V13] Pemetaan paket lama:',e)}
+  let finals=[];try{if(window.KFPackagePublisher){const r=await window.KFPackagePublisher.adminList();finals=Array.isArray(r)?r:[]}}catch(e){console.warn(e)}
+  const kind=x=>String(x.jenis||x.kind||x.type||x.content_type||'').toLowerCase();
+  const accepted=new Set(['pdf','modul','module','video','soal','latihan','practice','tryout']);
+  const legacyRows=legacy.filter(x=>accepted.has(kind(x))).map(x=>{
+    const mapped=(contentPackages.get(String(x.id))||[]).map(id=>pkgNames.get(id)).filter(Boolean);
+    return {id:x.id,kind:kind(x),name:x.judul||x.title||x.name||'Tanpa judul',level:x.jenjang||x.level||'',pkg:mapped.join(', ')||x.package_name||x.paket||x.subscription||'',source:x._kfSourceTable==='member_content'?'Data V12/V13 Peserta':'Data lama'};
+  });
+  const all=[
+   ...legacyRows,
+   ...finals.filter(x=>x&&['latihan','tryout'].includes(String(x.kind||'').toLowerCase())).map(x=>({id:x.id,kind:String(x.kind).toLowerCase(),name:x.name||'Tanpa nama',level:x.jenjang||'',pkg:x.subscription||'',source:'Bank Soal V13'}))
+  ];
+  const seen=new Set(),rows=all.filter(x=>{const k=String(x.id)+'|'+x.kind;if(seen.has(k))return false;seen.add(k);return true});
+  const label=k=>({pdf:'📘 Modul',modul:'📘 Modul',module:'📘 Modul',video:'🎥 Video',soal:'✎ Latihan',latihan:'✎ Latihan',practice:'✎ Latihan',tryout:'🏆 Tryout'}[k]||k);
+  box.innerHTML=rows.length?rows.map(x=>'<div class="bank-item"><div><b>'+label(x.kind)+' · '+esc(x.name)+'</b><div class="small">'+esc([x.level,x.pkg,x.source].filter(Boolean).join(' • '))+'</div></div><span class="tag">Terbaca V13</span></div>').join(''):'<div class="notice">Belum ada konten peserta yang dapat dibaca.'+(errors.length?' '+esc(errors.join(' | ')):'')+'</div>';
+ }catch(e){box.innerHTML='<div class="notice bad">Gagal membaca konten peserta: '+esc(e?.message||e)+'</div>'}
+}
+function v13RenderDistributionQueues(){
+ const arr=packageBank();
+ function draw(kind,elId){
+  const el=$(elId);if(!el)return;const seen=new Set();const rows=arr.filter(p=>p.stage===kind&&!p.published).filter(p=>{const k=p.id||JSON.stringify((p.questions||[]).map(q=>q.id));if(seen.has(k))return false;seen.add(k);return true});
+  if(!rows.length){el.innerHTML='<div class="empty">Belum ada soal yang dikirim ke '+(kind==='tryout'?'Tryout':'Latihan')+'.</div>';return}
+  el.innerHTML=rows.map(p=>`<div class="bank-item" style="display:block;cursor:pointer" onclick="v13OpenDistribution('${p.id}','${kind}')"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><b>${p.questions?.length||0} soal terpilih</b><div class="small">Belum dikirim ke peserta • atur paket dan akses terlebih dahulu</div></div><div class="actions"><button class="btn sm ${kind==='tryout'?'pink':'primary'}" onclick="event.stopPropagation();v13OpenDistribution('${p.id}','${kind}')">⚙ Atur & Kirim ke Peserta</button><button class="btn sm" onclick="event.stopPropagation();v13PreviewQueuedPackage('${p.id}')">👁 Lihat Soal</button><button class="btn sm danger" onclick="event.stopPropagation();v13RemoveFromQueue('${p.id}')">Kembalikan ke Bank</button></div></div><div style="margin-top:12px;border-top:1px solid #eee;padding-top:10px">${(p.questions||[]).map((q,i)=>'<div class="small" style="padding:5px 0"><b>Soal '+(i+1)+'.</b> '+esc(String(q.question||'').replace(/\\s+/g,' ').slice(0,180))+(String(q.question||'').length>180?'…':'')+'</div>').join('')}</div></div>`).join('');
+ }
+ draw('latihan','v13LatihanQueue');draw('tryout','v13TryoutQueue');
+}
+function v13OpenDistribution(id,kind){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ v13DistributionState={id,kind:kind||'latihan'};
+ $('v13DistHeading').textContent=kind==='tryout'?'🏆 Atur & Publish Tryout':'▶ Atur & Publish Latihan';
+ $('v13DistPublish').textContent=kind==='tryout'?'🏆 Kirim Tryout ke Peserta':'▶ Kirim Latihan ke Peserta';
+ $('v13DistName').value=(p.name&& !/^Paket Soal/i.test(p.name))?p.name:'';
+ $('v13DistTopic').value=p.topic||p.questions?.[0]?.topik||'';
+ $('v13DistLevel').value=p.level||p.questions?.[0]?.jenjang||'SMA';
+ $('v13DistClass').value=p.className||p.questions?.[0]?.kelas||'';
+ $('v13DistPackageNo').value=Math.max(1,Number(p.packageNo||p.package_number||1));
+ $('v13DistDuration').value=p.duration||60;$('v13DistAttempts').value=p.attempts||1;$('v13DistPass').value=p.pass||75;
+ $('v13DistStart').value=p.start||'';$('v13DistEnd').value=p.end||'';
+ $('v13DistShuffle').checked=p.shuffle!==false;$('v13DistExplain').checked=p.showExplain!==false;
+ $('v13DistributionModal').classList.add('show');
+ v13LoadMemberPackages().then(()=>v13RenderMemberPackages(p.memberPackageIds||[]));
+}
+function v13CloseDistribution(){$('v13DistributionModal')?.classList.remove('show')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('v13DistributionModal')?.classList.contains('show'))v13CloseDistribution()});
+document.addEventListener('click',e=>{const m=$('v13DistributionModal');if(m&&e.target===m)v13CloseDistribution()});
+async function v13ConfirmDistribution(){
+ const p=packageBank().find(x=>x.id===v13DistributionState.id);if(!p)return alert('Paket tidak ditemukan.');
+ const name=$('v13DistName').value.trim(),topic=$('v13DistTopic').value.trim();
+ if(!name)return alert('Nama/Judul Paket wajib diisi.');if(!topic)return alert('Topik/Materi wajib diisi.');
+ const packageNo=Math.max(1,Number($('v13DistPackageNo').value)||0);if(!packageNo)return alert('Paket ke- wajib diisi.');
+ const memberPackageIds=v13SelectedMemberPackages();if(!memberPackageIds.length)return alert('Pilih minimal 1 Paket Peserta.');
+ const selectedNames=window.v13MemberPackages.filter(x=>memberPackageIds.includes(String(x.id))).map(x=>x.nama);
+ const pub=Object.assign({},p,{
+   name,topic,level:$('v13DistLevel').value,className:$('v13DistClass').value.trim(),packageNo,package_number:packageNo,
+   kind:v13DistributionState.kind,duration:Math.max(0,Number($('v13DistDuration').value)||0),
+   attempts:Math.max(1,Number($('v13DistAttempts').value)||1),pass:Math.max(0,Math.min(100,Number($('v13DistPass').value)||0)),
+   start:$('v13DistStart').value||null,end:$('v13DistEnd').value||null,
+   subscription:selectedNames.join(', '),memberPackageIds:memberPackageIds,
+   shuffle:$('v13DistShuffle').checked,showExplain:$('v13DistExplain').checked,sourceVersion:13
+ });
+ try{
+  if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');
+  const finalPack=await window.KFPackagePublisher.publish(pub);
+  const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;
+  if(!db)throw new Error('Supabase Admin belum siap untuk distribusi paket.');
+  const accessRows=memberPackageIds.map(member_package_id=>({kf_package_id:finalPack.id,member_package_id}));
+  // Jangan hapus akses lama sebelum akses baru berhasil ditulis. Ini mencegah paket kehilangan seluruh akses jika insert gagal.
+  if(accessRows.length){
+   const ins=await db.from('kf_package_access').upsert(accessRows,{onConflict:'kf_package_id,member_package_id'});if(ins.error)throw ins.error;
+   const oldAccess=await db.from('kf_package_access').select('member_package_id').eq('kf_package_id',finalPack.id);if(oldAccess.error)throw oldAccess.error;
+   const obsolete=(oldAccess.data||[]).map(x=>String(x.member_package_id)).filter(id=>!memberPackageIds.includes(id));
+   if(obsolete.length){const del=await db.from('kf_package_access').delete().eq('kf_package_id',finalPack.id).in('member_package_id',obsolete);if(del.error)throw del.error;}
+  }
+  const now=new Date().toISOString();
+  setPackageBank(packageBank().map(x=>x.id===p.id?Object.assign({},x,pub,{published:true,stage:'',publishedAt:now,updatedAt:now}):x));
+  v13CloseDistribution();renderPackageBank();v13RenderDistributionQueues();v13RenderPublished();
+  alert('✓ '+name+' berhasil diterbitkan sebagai '+(pub.kind==='tryout'?'Tryout':'Latihan Interaktif')+'.\n\nAkses: '+selectedNames.join(', '));
+ }catch(e){console.error('[V13 publish]',e);alert('Gagal publish ke Supabase: '+(e?.message||e))}
+}
+async function v12PublishPackageAs(id,kind){v13OpenDistribution(id,kind)}
+async function savePackageToBank(fromReview=false){
+ if(editorHasContent())saveCurrentToPackage();
+ let bad=packageDraft.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
+ if(bad.length){reviewPackage();return}
+ if(!fromReview){reviewPackage();return}
+ const total=packageDraft.questions.length;
+ if(![5,10,20].includes(total)&&!confirm('Paket ini berisi '+total+' soal.\n\nJumlah standar yang disarankan: 5, 10, atau 20 soal. Simpan sebagai jumlah bebas?'))return;
+ let arr=packageBank(),now=new Date().toISOString(),pack={
+   id:'PKG-'+Date.now(),
+   ...v12PublicationMeta(),
+   name:($('v12PackageTitle')?.value||$('packageName').value||packageDraft.name||'Paket Soal').trim(),
+   count:packageDraft.questions.length,
+   questions:JSON.parse(JSON.stringify(packageDraft.questions)),
+   createdAt:now,updatedAt:now
+ };
+ arr.unshift(pack);setPackageBank(arr);localStorage.removeItem(PACKAGE_DRAFT_KEY);
+ pack.published=false;
+ setPackageBank(packageBank().map(x=>x.id===pack.id?pack:x));
+ alert('Paket "'+pack.name+'" ('+pack.count+' soal) berhasil disimpan sebagai DRAFT di Bank Soal.\n\nGunakan tombol ▶ Latihan atau 🏆 Tryout saat paket sudah siap dipublikasikan ke Supabase.');
+}
+async function publishSavedPackage(id){
+ const p=packageBank().find(x=>x.id===id);if(!p)return alert('Paket tidak ditemukan.');
+ try{
+   if(!window.KFPackagePublisher)throw new Error('Penghubung Supabase V15 belum tersedia.');
+   await window.KFPackagePublisher.publish(p);
+   p.published=true;p.publishedAt=new Date().toISOString();p.updatedAt=p.publishedAt;
+   setPackageBank(packageBank().map(x=>x.id===id?p:x));
+   alert('✓ Paket berhasil dipublikasikan ke Supabase V15.');
+ }catch(e){console.error('[V12 publish]',e);alert('Gagal publish ke Supabase: '+(e?.message||e));}
+}
+function renderPackageBank(){
+ let el=$('packageBankList');if(!el)return;let arr=packageBank();
+ if($('packageBankStats'))$('packageBankStats').textContent=arr.length+' Paket • '+arr.reduce((n,p)=>n+(p.questions?.length||0),0)+' Soal';
+ if(!arr.length){el.innerHTML='<div class="notice">Belum ada paket soal.</div>';return}
+ el.innerHTML=arr.map(p=>`<div class="bank-item">
+   <div><b>📦 ${p.published?esc(p.name):'Draft • '+p.questions.length+' soal'}</b><div class="small">${p.questions.length} soal • ${p.published?'☁️ TERBIT • '+(p.kind==='tryout'?'Tryout':'Latihan'):'📝 Belum diberi nama paket • pilih Latihan/Tryout untuk mengatur'}</div></div>
+   <div class="actions">
+    <button class="btn sm ok" onclick="startPractice('${p.id}')">▶ Kerjakan</button>
+    <button class="btn sm primary" onclick="v13SendPackageToAdmin('${p.id}','latihan')">▶ Jadikan Paket Latihan</button><button class="btn sm pink" onclick="v13SendPackageToAdmin('${p.id}','tryout')">🏆 Jadikan Paket Tryout</button>
+    <button class="btn sm" onclick="openSavedPackage('${p.id}')">Buka/Edit</button>
+    <button class="btn sm" onclick="showExportMenu('${p.id}','docx')">⬇ DOCX</button>
+    <button class="btn sm" onclick="showExportMenu('${p.id}','pdf')">⬇ PDF</button>
+    <button class="btn sm" onclick="duplicateSavedPackage('${p.id}')">Duplikat</button>
+    <button class="btn sm danger" onclick="deleteSavedPackage('${p.id}')">Hapus</button>
+   </div></div>`).join('');
+}
+function openSavedPackage(id){
+ let p=packageBank().find(x=>x.id===id);if(!p)return;
+ packageEditId=id;editingId=null;
+ packageDraft={name:p.name||'Paket Soal',count:p.questions.length,current:0,questions:JSON.parse(JSON.stringify(p.questions||[]))};
+ if(!packageDraft.questions.length)return alert('Paket belum memiliki soal.');
+ if($('packageName'))$('packageName').value=packageDraft.name;
+ if($('packageCount'))$('packageCount').value=packageDraft.questions.length;
+ const builder=document.querySelector('.package-builder');if(builder)builder.style.display='block';
+ savePackageDraftLocal();loadPackageQuestionToEditor(packageDraft.questions[0]);renderPackageNavigator();nav('buat');
+ if($('editorTitle'))$('editorTitle').textContent='Edit Paket — '+packageDraft.name+' ('+packageDraft.questions.length+' soal)';
+}
+function duplicateSavedPackage(id){let arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return;let c=JSON.parse(JSON.stringify(p)),stamp=Date.now();c.id='PKG-'+stamp;c.name=p.name+' (Salinan)';c.published=false;c.stage='';delete c.publishedAt;c.questions=(c.questions||[]).map((q,i)=>Object.assign({},q,{id:'Q'+stamp.toString(36)+'d'+i.toString(36),updatedAt:new Date().toISOString()}));c.count=c.questions.length;c.createdAt=c.updatedAt=new Date().toISOString();arr.unshift(c);setPackageBank(arr);renderPackageBank()}
+function deleteSavedPackage(id){if(confirm('Hapus paket soal ini?'))setPackageBank(packageBank().filter(x=>x.id!==id))}
+
+$('qFormulaBar').innerHTML=formulaBar('question');$('exFormulaBar').innerHTML=formulaBar('explanation');
+loadPackageDraftLocal();initAnswersForType(true);renderAnswerEditor();updatePreview();validate();updateCounts();renderPackageNavigator();renderPackageBank();setTimeout(()=>{try{v13RenderDistributionQueues();v13RenderPublished();v13LoadExistingParticipantContent()}catch(e){console.error('[V13 init distribusi]',e)}},50);
+</script>
+<script>
+function kembaliKeAdminV12(){if(window.opener&&!window.opener.closed){window.opener.focus();return}location.href="admin.html"}
+async function keluarAdminV12(){
+ if(!confirm("Keluar dari Admin Member Area?"))return;
+ try{
+  if(window.supabase&&window.KF_SUPABASE_CONFIG){const c=window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);await c.auth.signOut({scope:"local"})}
+  Object.keys(localStorage).filter(k=>k.startsWith("sb-")&&k.endsWith("-auth-token")).forEach(k=>localStorage.removeItem(k));
+ }catch(e){}
+ if(window.opener&&!window.opener.closed)try{window.opener.location.replace("index.html?logged_out=1")}catch(e){}
+ location.replace("index.html?logged_out=1");
+}
+</script><script id="v12-pro-hash-nav">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+  if(location.hash){var el=document.querySelector(location.hash);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+ },500);
+});
+</script><script id="v13-unified-hub">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+  var host=document.getElementById('v12IsiSoal'); if(!host||document.getElementById('v13UnifiedHub'))return;
+  var box=document.createElement('div'); box.className='card'; box.id='v13UnifiedHub';
+  box.innerHTML='<h2>🧩 Satu Sistem Pembuat Soal V13</h2><div class="sub">Manual • Gemini AI • Word/DOCX • PDF/Crop • Tempel • Gambar/Rumus • Bank Soal → satu editor → Latihan/Tryout → Supabase.</div><div class="actions" style="margin-top:12px;flex-wrap:wrap"><button class="btn primary" data-go="manual">✍️ Manual</button><button class="btn pink" data-go="ai">✨ Gemini AI</button><button class="btn" data-go="word">📄 Word / DOCX</button><button class="btn" data-go="paste">📋 Tempel Soal</button><button class="btn" data-go="pdf">📕 PDF / Crop</button><button class="btn" data-go="formula">🧮 Rumus / Gambar</button><button class="btn" data-go="bank">📚 Bank Soal</button></div><div id="v13PdfPanel" style="display:none;margin-top:14px;padding:14px;border:1px dashed #cba9e8;border-radius:14px"><b>📕 Mesin PDF V13</b><div class="sub">Pilih PDF untuk memeriksa bahwa mesin PDF aktif. Fitur crop penuh akan memakai alur editor yang sama.</div><div class="notice">PDF Crop Studio akan dimuat di panel ini.</div></div>';
+  host.insertBefore(box,host.firstChild);
+  box.addEventListener('click',function(e){var b=e.target.closest('[data-go]');if(!b)return;var g=b.dataset.go;if(g==='manual')document.getElementById('v12EditorCard')?.scrollIntoView({behavior:'smooth'});if(g==='ai')document.getElementById('v12MovedAI')?.scrollIntoView({behavior:'smooth'});if(g==='word')document.getElementById('v12MovedImport')?.scrollIntoView({behavior:'smooth'});if(g==='paste')document.querySelector('.v12-paste-box')?.scrollIntoView({behavior:'smooth'});if(g==='pdf'){document.getElementById('v13PdfPanel').style.display='block';document.getElementById('v13PdfPanel').scrollIntoView({behavior:'smooth'})}if(g==='formula')document.getElementById('v12EditorCard')?.scrollIntoView({behavior:'smooth'});if(g==='bank'&&window.kfV12Navigate)kfV12Navigate('bank')});
+  
+ },350);
+});
+</script><style id="v13-pdf-crop-style">
+#v13PdfCanvasWrap{position:relative;display:inline-block;line-height:0}#v13PdfCanvas{display:block}#v13PdfSelection{position:absolute;display:none;border:2px solid #7b2ff7;background:rgba(123,47,247,.13);pointer-events:none}.v13-pdf-scroll{overflow:auto;max-height:650px;margin-top:10px;padding:10px;background:#ece8f0;border-radius:12px}
+</style>
+<script id="v13-pdf-crop-engine">
+(function(){
+ let pdf=null,pageno=1,selection=null,drag=false,start=null;
+ function msg(t){var e=document.getElementById('v13PdfMsg');if(e)e.textContent=t}
+ function pt(ev){var cv=document.getElementById('v13PdfCanvas'),r=cv.getBoundingClientRect();return{x:(ev.clientX-r.left)*cv.width/r.width,y:(ev.clientY-r.top)*cv.height/r.height}}
+ function box(){var b=document.getElementById('v13PdfSelection'),cv=document.getElementById('v13PdfCanvas');if(!b||!cv||!selection){if(b)b.style.display='none';return}var r=cv.getBoundingClientRect(),sx=r.width/cv.width,sy=r.height/cv.height,x=Math.min(selection.x0,selection.x1),y=Math.min(selection.y0,selection.y1);b.style.display='block';b.style.left=(x*sx)+'px';b.style.top=(y*sy)+'px';b.style.width=(Math.abs(selection.x1-selection.x0)*sx)+'px';b.style.height=(Math.abs(selection.y1-selection.y0)*sy)+'px'}
+ async function render(){if(!pdf)return;var p=await pdf.getPage(pageno),vp=p.getViewport({scale:1.5}),cv=document.getElementById('v13PdfCanvas');cv.width=vp.width;cv.height=vp.height;await p.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;selection=null;box();document.getElementById('v13PdfPage').textContent=pageno+' / '+pdf.numPages}
+ window.v13PdfLoadCrop=async function(){var file=document.getElementById('v13PdfFile').files[0];if(!file){msg('Pilih PDF terlebih dahulu.');return}try{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;pageno=1;document.getElementById('v13PdfCropWorkspace').style.display='block';await render();msg('✓ PDF siap. Seret kotak pada area soal atau opsi yang ingin diambil.')}catch(e){msg('Gagal membuka PDF: '+e.message)}};
+ window.v13PdfMove=async function(d){if(!pdf)return;pageno=Math.max(1,Math.min(pdf.numPages,pageno+d));await render()};
+ window.v13PdfCropQuestion=function(){if(!selection){msg('Kotakkan area soal terlebih dahulu.');return}var cv=document.getElementById('v13PdfCanvas'),x=Math.round(Math.min(selection.x0,selection.x1)),y=Math.round(Math.min(selection.y0,selection.y1)),w=Math.round(Math.abs(selection.x1-selection.x0)),h=Math.round(Math.abs(selection.y1-selection.y0));if(w<10||h<10){msg('Area crop terlalu kecil.');return}var out=document.createElement('canvas');out.width=w;out.height=h;out.getContext('2d').drawImage(cv,x,y,w,h,0,0,w,h);var data=out.toDataURL('image/png');try{clearEditor();var t=document.getElementById('v13PdfCropType').value;document.getElementById('typeSelect').value=t;changeType();document.getElementById('question').value='Perhatikan gambar berikut.';var target=prompt('Masukkan tujuan crop: SOAL atau A/B/C/D/E','SOAL')||'SOAL';target=target.trim().toUpperCase();if(target==='SOAL'){var iu=document.getElementById('qImageUrl');if(iu)iu.value=data;imageData=data;showImage()}else{var oi='ABCDE'.indexOf(target);if(oi<0)return msg('Tujuan crop tidak valid.');answerState.optionImageData=answerState.optionImageData||{};answerState.optionImageData[oi]=data;renderAnswerEditor()}updatePreview();changed();msg('✓ Crop masuk ke '+(target==='SOAL'?'gambar pertanyaan':'opsi '+target)+'.');document.getElementById('v12EditorCard').scrollIntoView({behavior:'smooth'})}catch(e){msg('Crop selesai tetapi editor menolak: '+e.message)}};
+ document.addEventListener('DOMContentLoaded',function(){setTimeout(function(){var old=document.getElementById('v13PdfPanel');if(!old)return;old.innerHTML='<b>📕 PDF Crop Studio</b><div class="sub">Sama seperti konsep Admin Tryout: buka PDF, pindah halaman, blok area soal, lalu masukkan hasilnya ke editor terpadu.</div><div class="row two" style="margin-top:10px"><div><label>PDF</label><input type="file" id="v13PdfFile" accept="application/pdf"></div><div><label>Tipe soal</label><select id="v13PdfCropType"><option value="pg5">PG 5 opsi</option><option value="pg4">PG 4 opsi</option><option value="isian">Isian singkat</option><option value="esai">Esai</option></select></div></div><div class="actions"><button type="button" class="btn primary" onclick="v13PdfLoadCrop()">📂 Muat PDF</button><button type="button" class="btn" onclick="v13PdfMove(-1)">◀</button><span class="tag" id="v13PdfPage">0 / 0</span><button type="button" class="btn" onclick="v13PdfMove(1)">▶</button><button type="button" class="btn pink" onclick="v13PdfCropQuestion()">✂ Jadikan Soal</button></div><div id="v13PdfMsg" class="notice" style="margin-top:8px">Siap.</div><div id="v13PdfCropWorkspace" class="v13-pdf-scroll" style="display:none"><div id="v13PdfCanvasWrap"><canvas id="v13PdfCanvas"></canvas><div id="v13PdfSelection"></div></div></div>';var cv=document.getElementById('v13PdfCanvas');cv.addEventListener('pointerdown',function(e){drag=true;start=pt(e);selection={x0:start.x,y0:start.y,x1:start.x,y1:start.y};box();cv.setPointerCapture(e.pointerId)});cv.addEventListener('pointermove',function(e){if(!drag)return;var p=pt(e);selection.x1=p.x;selection.y1=p.y;box()});cv.addEventListener('pointerup',function(){drag=false})},600)});
 })();
+</script><style id="v13-pro-bank-style">
+.v13-bankbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.v13-bankbar .btn{min-height:38px}.v13-bank-status{font-size:11px;color:#74667e}
+</style>
+<script id="v13-production-tools">
+(function(){
+ function $v(id){return document.getElementById(id)}
+ function selectedBank(){return Array.from(document.querySelectorAll('.bankSelect:checked')).map(x=>x.value)}
+ function updateSelectedCount(){var e=$v('v13SelectedCount');if(e)e.textContent=selectedBank().length+' soal dipilih'}
+ window.v13SelectAllBank=function(on){document.querySelectorAll('.bankSelect').forEach(x=>x.checked=on);updateSelectedCount()}
+ document.addEventListener('change',function(e){if(e.target&&e.target.classList.contains('bankSelect'))updateSelectedCount()})
+ window.v13CreateOnePackage=function(){
+  var ids=selectedBank();if(!ids.length)return alert('Centang soal yang ingin dijadikan satu paket.');
+  var src=bank().filter(q=>ids.includes(q.id));if(!src.length)return alert('Soal terpilih tidak ditemukan.');
+  if(src.length>50)return alert('Maksimal 50 soal dalam satu paket.');
+  var name='Paket Soal Draft '+new Date().toLocaleString('id-ID');
+  var now=new Date().toISOString(),p={
+   id:'PKG-'+Date.now(),name:name,count:src.length,current:0,
+   questions:src.map(function(q){var x=JSON.parse(JSON.stringify(q));x.source=x.source||'Bank Soal';return x}),
+   published:false,createdAt:now,updatedAt:now,sourceVersion:13
+  };
+  var arr=packageBank();arr.unshift(p);setPackageBank(arr);
+  v13SelectAllBank(false);renderPackageBank();
+  var info=document.getElementById('packageInfo');if(info)info.innerHTML='✓ Paket <b>'+esc(name)+'</b> dibuat dengan <b>'+src.length+' soal</b>. Buka Bank Soal bagian Paket lalu pilih <b>Latihan</b> atau <b>Tryout</b>.';
+  alert('✓ '+src.length+' soal berhasil dikelompokkan menjadi 1 draft.\n\nNama paket, topik, durasi, jadwal, dan akses peserta diatur saat memilih Latihan atau Tryout.');
+  nav('bank');setTimeout(function(){document.getElementById('packageBankList')?.scrollIntoView({behavior:'smooth',block:'start'})},100);
+ };
+ window.v13SendSelectedToPackage=function(){
+  var ids=selectedBank();if(!ids.length)return alert('Pilih soal di Bank Soal terlebih dahulu.');
+  var src=bank().filter(q=>ids.includes(q.id));if(!src.length)return;
+  if(editorHasContent())saveCurrentToPackage();
+  src.forEach(function(q){var copy=JSON.parse(JSON.stringify(q));copy.id=uid();copy.source='Bank Soal';packageDraft.questions.push(copy)});
+  if(packageDraft.questions.length>1&&!editorHasContent()&&!packageQuestionValid(packageDraft.questions[0]))packageDraft.questions.shift();
+  packageDraft.current=Math.max(0,packageDraft.questions.length-src.length);
+  savePackageDraftLocal();loadPackageQuestionToEditor(packageDraft.questions[packageDraft.current]);renderPackageNavigator();nav('buat');
+  alert(src.length+' soal berhasil dimasukkan ke paket aktif.');
+ };
+ window.v13ExportBankJson=function(){
+  var ids=selectedBank(),rows=ids.length?bank().filter(q=>ids.includes(q.id)):bank();
+  var blob=new Blob([JSON.stringify({version:'V13',exportedAt:new Date().toISOString(),questions:rows},null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bank-soal-klinikfisikapku-v13.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+ };
+ window.v13ImportBankJson=function(input){
+  var file=input.files&&input.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var obj=JSON.parse(r.result),arr=Array.isArray(obj)?obj:obj.questions;if(!Array.isArray(arr))throw new Error('Format questions tidak ditemukan');var old=bank(),map=new Map(old.map(q=>[q.id,q]));arr.forEach(function(q){q=normalizeAIQuestion(q);map.set(q.id||uid(),q)});setBank(Array.from(map.values()));renderBank();alert(arr.length+' soal berhasil diimpor.')}catch(e){alert('Import JSON gagal: '+e.message)}input.value=''};r.readAsText(file);
+ };
+ window.v13ImproveQuestionAI=async function(){
+  var q=($v('question')?.value||'').trim();if(!q)return alert('Isi/buka soal terlebih dahulu.');
+  var st=$v('explanationAIStatus');if(st)st.textContent='✨ Gemini sedang merapikan soal...';
+  try{
+   var payload={prompt:'Rapikan redaksi soal berikut tanpa mengubah konsep, data, opsi, atau jawaban benar. Kembalikan hanya teks soal yang sudah rapi.\n\n'+q,jumlah:1,tipe:currentType,jenjang:$v('jenjang')?.value||'',topik:$v('topik')?.value||''};
+   var res=await postGAS('assistant',payload).catch(()=>postGAS('testAI',payload));
+   var text=res?.text||res?.message;if(!text)throw new Error('Gemini tidak mengembalikan teks.');
+   if(/^OK$/i.test(String(text).trim()))throw new Error('Endpoint AI hanya mengembalikan status tes, bukan hasil perapihan.');
+   $v('question').value=String(text).trim();$v('question').dispatchEvent(new Event('input'));if(st)st.textContent='✓ Redaksi soal diperbarui. Periksa kembali sebelum disimpan.';
+  }catch(e){if(st)st.textContent='✗ '+e.message}
+ };
+ document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(function(){
+   var editor=$v('v12EditorCard');
+   if(editor&&!$v('v13EditorAiTools')){
+    var bar=document.createElement('div');bar.id='v13EditorAiTools';bar.className='actions';bar.style.margin='0 0 12px';
+    bar.innerHTML='<button type="button" class="btn pink" onclick="v13ImproveQuestionAI()">✨ Rapikan Redaksi dengan Gemini</button><span class="small">Gemini yang sama dengan Apps Script admin; hasil tetap harus direview.</span>';
+    editor.insertBefore(bar,editor.firstChild);
+   }
+   var list=$v('bankList');
+   if(list&&!$v('v13BankTools')){
+    var bar=document.createElement('div');bar.id='v13BankTools';bar.className='v13-bankbar';
+    bar.innerHTML='<span class="tag" id="v13SelectedCount">0 soal dipilih</span><button type="button" class="btn sm" onclick="v13SelectAllBank(true)">☑ Pilih Semua</button><button type="button" class="btn sm" onclick="v13SelectAllBank(false)">☐ Lepas Semua</button><button type="button" class="btn sm primary" onclick="v13CreateOnePackage()">📦 Buat 1 Paket dari Soal Terpilih</button><button type="button" class="btn sm" onclick="v13ExportBankJson()">⬇ Export JSON</button><label class="btn sm" style="cursor:pointer">⬆ Import JSON<input type="file" accept=".json,application/json" style="display:none" onchange="v13ImportBankJson(this)"></label>';
+    list.parentNode.insertBefore(bar,list);
+   }
+  },700);
+ });
+})();
+</script><script id="v13-docx-gallery">
+document.addEventListener('DOMContentLoaded',function(){
+ setTimeout(function(){
+  var r=document.getElementById('importResult');if(!r||document.getElementById('v13DocxGallery'))return;
+  var g=document.createElement('div');g.id='v13DocxGallery';g.style.marginTop='10px';r.parentNode.insertBefore(g,r.nextSibling);
+  var obs=new MutationObserver(function(){var imgs=window.__V13_DOCX_IMAGES__||[];if(!imgs.length){g.innerHTML='';return}g.innerHTML='<div class="small"><b>Gambar dari Word ('+imgs.length+')</b> — klik gambar untuk menjadikannya gambar pertanyaan.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:7px">'+imgs.map(function(src,i){return '<button type="button" class="btn sm" data-docx-img="'+i+'">Gambar '+(i+1)+'</button>'}).join('')+'</div>';});
+  obs.observe(r,{childList:true,subtree:true,characterData:true});
+  g.addEventListener('click',function(e){var b=e.target.closest('[data-docx-img]');if(!b)return;var src=(window.__V13_DOCX_IMAGES__||[])[Number(b.dataset.docxImg)];if(!src)return;imageData=src;var u=document.getElementById('qImageUrl');if(u)u.value='';showImage();changed();document.getElementById('v12EditorCard')?.scrollIntoView({behavior:'smooth'});});
+ },700);
+});
+</script>
+
+<script id="kf-one-safe-js">
+window.KFSafe=(function(){function E(i){return document.getElementById(i)}function S(t,b){var e=E('kfSafeStatus');if(e){e.textContent=t;e.className='notice'+(b?' bad':'')}}function I(){return E('kfSafeInput')}
+function manual(){var q=E('question');if(!q)return S('Editor belum siap.',true);q.value=(I().innerText||'').trim();q.dispatchEvent(new Event('input',{bubbles:true}));S('✓ Teks masuk ke Editor.');E('v12EditorCard')?.scrollIntoView({behavior:'smooth'})}
+async function ai(){var d=E('v12PasteMaterial');if(!d||typeof window.v12ProcessPaste!=='function')return S('Mesin AI V13 belum siap.',true);d.innerHTML=I().innerHTML;d.dispatchEvent(new Event('input',{bubbles:true}));S('⏳ AI memproses...');try{await window.v12ProcessPaste();S('✓ AI selesai. Periksa Editor.');E('v12EditorCard')?.scrollIntoView({behavior:'smooth'})}catch(e){console.error(e);S('⚠ '+(e.message||e),true)}}
+function image(x){var f=x.files&&x.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var im=document.createElement('img');im.src=r.result;im.style.maxWidth='320px';im.style.display='block';im.style.margin='8px 0';I().appendChild(im);S('✓ Gambar siap. Klik AI Susun.')};r.readAsDataURL(f);x.value=''}
+async function doc(x){var f=x.files&&x.files[0],t=E('wordSoalFileV13');if(!f)return;if(!t||typeof window.prosesWordKeV13!=='function')return S('Mesin Word/PDF belum siap.',true);try{var dt=new DataTransfer();dt.items.add(f);t.files=dt.files;S('⏳ Memproses '+f.name+'...');await window.prosesWordKeV13(true);S('✓ File selesai. Periksa Editor.')}catch(e){S('⚠ '+(e.message||e),true)}x.value=''}
+document.addEventListener('DOMContentLoaded',function(){var e=I();if(!e)return;e.addEventListener('paste',function(v){var it=Array.from(v.clipboardData?.items||[]).find(function(a){return a.type&&a.type.indexOf('image/')===0});if(!it)return;v.preventDefault();var r=new FileReader();r.onload=function(){var im=document.createElement('img');im.src=r.result;im.style.maxWidth='320px';e.appendChild(im);S('✓ Screenshot ditempel. Klik AI Susun.')};r.readAsDataURL(it.getAsFile())})});return{manual:manual,ai:ai,image:image,doc:doc}})();
 </script></body></html>
