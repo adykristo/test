@@ -2076,7 +2076,13 @@ function openPanel(id, b) {
         if (!(await KFUI.confirm('Hapus "' + (x.judul||x.topik||"konten ini") + '"?\n\nTindakan ini tidak dapat dipulihkan.',"Hapus Konten"))) return;
         try {
           await adminApi("adminHapusKonten", { id });
-          await renderKontenAdmin();KFUI.toast("Konten berhasil dihapus.","ok");
+          // Bersihkan pemetaan paket yang mungkin masih tersisa. Ini hanya metadata
+          // distribusi; progress/riwayat peserta tidak disentuh.
+          try{
+            const db=kfdb();
+            await db.from("member_content_packages").delete().eq("content_id",id);
+          }catch(_){}
+          await renderKontenAdmin();KFUI.toast("Konten berhasil dihapus dan disinkronkan dari Member.","ok");
         } catch (err) {
           KFUI.toast("Gagal menghapus: " + err.message,"err",6000);
         }
