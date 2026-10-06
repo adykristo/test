@@ -1618,6 +1618,44 @@ function exportPackagePDF(id,mode){
  <button class="toolbar" onclick="window.print()">🖨 Simpan sebagai PDF</button><h1>${esc(p.name)}</h1><div class="meta">${p.questions.length} soal</div>${body}
  <scr${'ipt'}>window.onload=()=>setTimeout(()=>window.print(),1000)<\${""}\/scr${""}ipt>
 
+
+<script id="kf-stability-guard-v13">
+/* KF STABILITY GUARD V13 2026-10-06 */
+(function(){
+'use strict';
+const $id=id=>document.getElementById(id);
+window.addEventListener('error',e=>{console.error('[KF V13 runtime]',e.error||e.message)});
+window.addEventListener('unhandledrejection',e=>{console.error('[KF V13 async]',e.reason)});
+function health(){
+ const checks={
+  editor:!!$id('question'), bank:typeof window.renderBank==='function', preview:typeof window.previewBank==='function',
+  save:typeof window.saveCurrentToPackage==='function', aiRapikan:typeof window.aiImprove==='function',
+  aiPembahasan:typeof window.aiExplain==='function', aiTempel:typeof window.v12ProcessPaste==='function',
+  gas:typeof window.postGAS==='function', math:!!window.MathJax
+ };
+ const failed=Object.keys(checks).filter(k=>!checks[k]);
+ console.info('[KF V13 health]',checks,failed.length?'GAGAL: '+failed.join(', '):'OK');
+ return {ok:!failed.length,checks,failed};
+}
+window.KF_V13_HEALTH=health;
+function syncBankAssetFromDraft(){
+ try{
+  if(typeof window.bank!=='function'||typeof window.setBank!=='function')return;
+  const d=JSON.parse(localStorage.getItem('kf_v13_draft')||'null'); if(!d)return;
+  const b=window.bank(),i=b.findIndex(q=>String(q.id||'')===String(d.id||'')||(q.question&&d.question&&q.question.trim()===d.question.trim()));
+  if(i<0)return;
+  let changed=false,q=b[i];
+  if(d.image&&!q.image){q.image=d.image;changed=true}
+  if(d.explanationImage&&!q.explanationImage){q.explanationImage=d.explanationImage;changed=true}
+  q.answers=q.answers||{};d.answers=d.answers||{};q.answers.optionImages=q.answers.optionImages||{};
+  Object.keys(d.answers.optionImages||{}).forEach(k=>{if(d.answers.optionImages[k]&&!q.answers.optionImages[k]){q.answers.optionImages[k]=d.answers.optionImages[k];changed=true}});
+  Object.keys(d.answers.optionImageData||{}).forEach(k=>{if(d.answers.optionImageData[k]&&!q.answers.optionImages[k]){q.answers.optionImages[k]=d.answers.optionImageData[k];changed=true}});
+  if(changed){b[i]=q;window.setBank(b);console.info('[KF V13] aset gambar draft dipulihkan ke Bank')}
+ }catch(e){console.warn('[KF V13 asset sync]',e)}
+}
+setTimeout(()=>{health();syncBankAssetFromDraft()},700);
+})();
+</script>
 </body></html>`);w.document.close();
 }
 
