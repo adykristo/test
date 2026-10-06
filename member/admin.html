@@ -943,6 +943,11 @@ table{max-width:100%}
             <div class="table-wrap"><table><thead><tr><th>Peserta</th><th>Jenjang</th><th>Paket Aktif</th><th>Status Audit</th><th>Temuan</th><th>Aksi</th></tr></thead><tbody id="kfAuditRows"></tbody></table></div>
           </div>
         </section>
+        <section id="participant-preview" class="panel">
+          <div class="head"><div><h1>👁 Tampilan Peserta V14</h1><p class="sub">Preview read-only seluruh konten yang terhubung ke paket peserta.</p></div><button class="btn ghost" onclick="openPanel('monitoring',this);kfRenderAuditRows()">← Kembali ke Monitoring</button></div>
+          <div id="kfParticipantPreviewHead"></div>
+          <div id="kfParticipantPreviewGrid" class="kf-preview-package-grid"></div>
+        </section>
         <section id="paket" class="panel">
   <div class="head"><div><h1>Paket &amp; Harga</h1><p class="sub">Kelola paket mandiri. Paket yang dibeli peserta tidak membuka paket lain secara otomatis.</p></div><button class="btn" onclick="tambahPaketBaru()">+ Tambah Paket</button></div>
   <div class="learning-policy-card">
@@ -2759,26 +2764,23 @@ async function kfPerbaikiPaketPeserta(memberId){await kelolaPaketMember(memberId
 async function kfLihatSebagaiPeserta(memberId){
  const m=MEMBER_CACHE.find(x=>String(x.id)===String(memberId));if(!m)return KFUI.toast("Peserta tidak ditemukan.","err");
  try{
-  await loadPackageCore();
-  const db=kfdb(),ownq=await db.rpc("kf_admin_member_packages",{p_user:memberId});if(ownq.error)throw ownq.error;
+  await loadPackageCore();const db=kfdb(),ownq=await db.rpc("kf_admin_member_packages",{p_user:memberId});if(ownq.error)throw ownq.error;
   const active=(ownq.data||[]).filter(x=>String(x.status||"").toLowerCase()==="active"),ids=active.map(x=>String(x.package_id));
   let maps=[];if(ids.length){const mq=await db.from("member_content_packages").select("content_id,package_id").in("package_id",ids);if(!mq.error)maps=mq.data||[]}
   if(!KONTEN_CACHE.length){try{const cr=await adminApi("adminListKonten",{});KONTEN_CACHE=cr.data||[]}catch(e){}}
-  const contentById=new Map(KONTEN_CACHE.map(x=>[String(x.id),x]));
-  let finals=[],access=[];try{if(window.KFPackagePublisher)finals=await KFPackagePublisher.adminList();const aq=await db.from("kf_package_access").select("kf_package_id,member_package_id");if(!aq.error)access=aq.data||[]}catch(e){console.warn("Preview paket interaktif:",e)}
-  const finalById=new Map(finals.map(x=>[String(x.id),x]));
-  const sections=active.map((p,i)=>{
-    const pid=String(p.package_id),linked=maps.filter(x=>String(x.package_id)===pid).map(x=>contentById.get(String(x.content_id))).filter(Boolean);
-    const modules=linked.filter(x=>["pdf","modul","module","materi"].includes(String(x.jenis||"").toLowerCase())&&String(x.tujuan||"").toLowerCase()!=="latihan");
-    const pdfs=linked.filter(x=>String(x.tujuan||"").toLowerCase()==="latihan"||["latihan","exercise"].includes(String(x.jenis||"").toLowerCase()));
-    const videos=linked.filter(x=>["video","youtube","yt"].includes(String(x.jenis||"").toLowerCase()));
-    const fp=access.filter(a=>String(a.member_package_id)===pid).map(a=>finalById.get(String(a.kf_package_id))).filter(Boolean).filter(x=>x.visible!==false);
-    const latihan=fp.filter(x=>String(x.kind||"").toLowerCase()==="latihan"),tryout=fp.filter(x=>String(x.kind||"").toLowerCase()==="tryout");
-    const names=a=>a.length?a.map(x=>x.judul||x.name||"Tanpa judul").join(", "):"—";
-    return (i+1)+". "+p.package_name+"\n   📘 Modul: "+names(modules)+"\n   📄 Latihan PDF: "+names(pdfs)+"\n   ▶ Video: "+names(videos)+"\n   ✍ Latihan Interaktif: "+names(latihan)+"\n   ★ Tryout: "+names(tryout);
-  });
-  const msg="MODE PREVIEW READ-ONLY\n\nPeserta: "+(m.nama||"Member")+"\nJenjang: "+String(m.jenjang||"-").toUpperCase()+"\nStatus: "+(STATUS_LABEL[statusEfektifMember(m)]||statusEfektifMember(m))+"\n\nSEMUA KONTEN BERDASARKAN PAKET PESERTA:\n\n"+(sections.join("\n\n")||"Belum ada paket aktif")+"\n\n— = belum ada konten yang dipetakan/dipublikasikan untuk jenis tersebut.";
-  await KFUI.confirm(msg,"👁 Tampilan Peserta V14");
+  const contentById=new Map(KONTEN_CACHE.map(x=>[String(x.id),x]));let finals=[],access=[];
+  try{if(window.KFPackagePublisher)finals=await KFPackagePublisher.adminList();const aq=await db.from("kf_package_access").select("kf_package_id,member_package_id");if(!aq.error)access=aq.data||[]}catch(e){console.warn("Preview paket interaktif:",e)}
+  const finalById=new Map(finals.map(x=>[String(x.id),x])),escList=a=>a.length?a.map(x=>'<span class="kf-preview-item">'+escMember(x.judul||x.name||"Tanpa judul")+'</span>').join(""):'<span class="kf-preview-empty">Belum ada</span>';
+  const cards=active.map((p,i)=>{const pid=String(p.package_id),linked=maps.filter(x=>String(x.package_id)===pid).map(x=>contentById.get(String(x.content_id))).filter(Boolean);
+   const modules=linked.filter(x=>["pdf","modul","module","materi"].includes(String(x.jenis||"").toLowerCase())&&String(x.tujuan||"").toLowerCase()!=="latihan"),pdfs=linked.filter(x=>String(x.tujuan||"").toLowerCase()==="latihan"||["latihan","exercise"].includes(String(x.jenis||"").toLowerCase())),videos=linked.filter(x=>["video","youtube","yt"].includes(String(x.jenis||"").toLowerCase()));
+   const fp=access.filter(a=>String(a.member_package_id)===pid).map(a=>finalById.get(String(a.kf_package_id))).filter(Boolean).filter(x=>x.visible!==false),latihan=fp.filter(x=>String(x.kind||"").toLowerCase()==="latihan"),tryout=fp.filter(x=>String(x.kind||"").toLowerCase()==="tryout");
+   const total=modules.length+pdfs.length+videos.length+latihan.length+tryout.length;
+   return '<article class="kf-preview-package"><div class="kf-preview-package-head"><div><small>PAKET '+(i+1)+'</small><h3>'+escMember(p.package_name)+'</h3></div><span class="kf-preview-count">'+total+' konten</span></div><div class="kf-preview-row"><b>📘 Modul</b><div>'+escList(modules)+'</div></div><div class="kf-preview-row"><b>📄 Latihan PDF</b><div>'+escList(pdfs)+'</div></div><div class="kf-preview-row"><b>▶ Video</b><div>'+escList(videos)+'</div></div><div class="kf-preview-row"><b>✍ Latihan Interaktif</b><div>'+escList(latihan)+'</div></div><div class="kf-preview-row"><b>★ Tryout</b><div>'+escList(tryout)+'</div></div></article>';
+  }).join("");
+  openPanel("participant-preview");
+  document.querySelectorAll("aside button").forEach(x=>x.classList.remove("active"));
+  document.getElementById("kfParticipantPreviewHead").innerHTML='<div class="kf-preview-user"><div><small>PREVIEW READ-ONLY</small><h2>'+escMember(m.nama||"Member")+'</h2><p>'+escMember(m.email||"")+'</p></div><div class="kf-preview-user-meta"><span>'+escMember(String(m.jenjang||"-").toUpperCase())+'</span><span>'+(STATUS_LABEL[statusEfektifMember(m)]||statusEfektifMember(m))+'</span><span>'+active.length+' paket aktif</span></div></div>';
+  document.getElementById("kfParticipantPreviewGrid").innerHTML=cards||'<div class="card">Belum ada paket aktif untuk peserta ini.</div>';
  }catch(e){KFUI.toast("Preview peserta gagal: "+e.message,"err",6000)}
 }
 
@@ -2951,6 +2953,9 @@ document.addEventListener("click",function(e){
 },true);
 </script>
 
+<style id="kf-participant-preview-style">
+.kf-preview-user{display:flex;justify-content:space-between;gap:18px;align-items:center;background:linear-gradient(135deg,#6d28d9,#d72d9b);color:#fff;border-radius:18px;padding:20px 22px;margin:16px 0 18px;box-shadow:0 12px 30px rgba(109,40,217,.16)}.kf-preview-user h2{margin:3px 0;font-size:22px}.kf-preview-user p{margin:0;opacity:.88}.kf-preview-user-meta{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.kf-preview-user-meta span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);padding:7px 10px;border-radius:999px;font-weight:800;font-size:12px}.kf-preview-package-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.kf-preview-package{background:#fff;border:1px solid #eadcf5;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(55,22,83,.06)}.kf-preview-package-head{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:15px 16px;background:#fbf7ff;border-bottom:1px solid #eee1f7}.kf-preview-package-head small{font-size:10px;font-weight:900;color:#8a38bd;letter-spacing:.08em}.kf-preview-package-head h3{margin:3px 0 0;font-size:15px}.kf-preview-count{font-size:11px;font-weight:800;background:#efe3fb;color:#6d28d9;padding:6px 9px;border-radius:999px;white-space:nowrap}.kf-preview-row{display:grid;grid-template-columns:145px 1fr;gap:10px;padding:10px 15px;border-bottom:1px solid #f4edf8;font-size:12px}.kf-preview-row:last-child{border-bottom:0}.kf-preview-row>b{color:#48245e}.kf-preview-row>div{display:flex;gap:5px;flex-wrap:wrap}.kf-preview-item{background:#f6f0fb;border:1px solid #eadcf5;padding:4px 7px;border-radius:7px;color:#371b4b}.kf-preview-empty{color:#aaa;font-style:italic}.kf-preview-package:has(.kf-preview-item){}.kf-preview-package-grid+.sub{margin-top:10px}@media(max-width:900px){.kf-preview-package-grid{grid-template-columns:1fr}.kf-preview-user{align-items:flex-start;flex-direction:column}.kf-preview-user-meta{justify-content:flex-start}.kf-preview-row{grid-template-columns:1fr}}
+</style>
 <style id="kf-modern-dialog-style">
 .kf-toast-stack{position:fixed;right:22px;top:88px;z-index:100000;display:grid;gap:10px;max-width:min(390px,calc(100vw - 28px))}
 .kf-toast{background:#fff;border:1px solid #eadcf5;border-radius:14px;box-shadow:0 14px 36px rgba(45,18,80,.16);padding:12px 14px;font-size:13px;font-weight:700;animation:kfToastIn .18s ease}
