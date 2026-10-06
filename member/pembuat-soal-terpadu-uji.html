@@ -421,7 +421,7 @@ window.kfV12Navigate=function(page){
 <div id="kfUWork" class="kf-us-work" contenteditable="true" data-placeholder="Ketik manual, paste teks, Ctrl+V screenshot/foto, drag & drop gambar, atau ketik instruksi AI di sini..." style="margin-top:10px"></div>
 <div class="kf-us-tools"><button class="btn primary" onclick="KFUnified.manual()">✏️ Susun ke Editor</button><button class="btn pink" onclick="KFUnified.aiVision()">✨ AI Susun Soal + Gambar</button><label class="btn">📎 Word/PDF<input type="file" id="kfUDoc" accept=".docx,.pdf,application/pdf" hidden onchange="KFUnified.doc(this)"></label><label class="btn">🖼 Gambar/Foto<input type="file" accept="image/*" hidden onchange="KFUnified.image(this)"></label><button class="btn" onclick="KFUnified.clear()">🧹 Bersihkan</button></div>
 <div class="kf-us-tools kf-us-formula" id="kfUFormula"><b style="width:100%">Toolbar Rumus Fisika — klik untuk masuk ke posisi kursor</b></div><div id="kfUStatus" class="kf-us-status">✓ Sistem V13 siap.</div></div>
-<div class="kf-us-card"><b>② AI TOOLBAR FISIKA</b><div class="kf-us-ai"><button class="btn" onclick="KFUnified.improve()">✨ Rapikan Soal</button><button class="btn" onclick="KFUnified.explain()">💡 Buat Pembahasan</button><button class="btn" onclick="KFUnified.variation()">🔁 Variasi Soal</button><button class="btn" onclick="KFUnified.tidy()">🧠 Rapikan Pembahasan</button><button class="btn" onclick="KFUnified.formulaPhoto()">📷 Gambar → LaTeX</button><button class="btn" onclick="KFUnified.validate()">🔍 Validasi Fisika</button><button class="btn" onclick="previewCurrent()">👁 Preview</button><button class="btn primary" onclick="saveCurrentToPackage()">💾 Simpan Soal Ini</button><button class="btn pink" onclick="KFUnified.saveAll()">💾💾 Simpan Semua Soal</button></div><div class="small" style="margin-top:8px">Editor V13 lengkap berada tepat di bawah: pertanyaan, opsi/pernyataan, kunci, gambar, pembahasan, MCMA, kategori, isian dan esai.</div></div>
+<div class="kf-us-card"><b>② AI TOOLBAR FISIKA</b><div class="kf-us-ai"><button class="btn" onclick="KFUnified.improve()">✨ Rapikan Soal</button><button class="btn" onclick="KFUnified.explain()">💡 Buat Pembahasan</button><button class="btn" onclick="KFUnified.variation()">🔁 Variasi Soal</button><button class="btn" onclick="KFUnified.tidy()">🧠 Rapikan Pembahasan</button><button class="btn" onclick="KFUnified.formulaPhoto()">📷 Gambar → LaTeX</button><button class="btn" onclick="KFUnified.validate()">🔍 Validasi Fisika</button><button class="btn" onclick="KFUnified.physicsCheck()">🧠 Periksa Fisika AI</button><button class="btn" onclick="KFUnified.reviewAll()">📋 Review Semua</button><button class="btn" onclick="previewCurrent()">👁 Preview</button><button class="btn primary" onclick="saveCurrentToPackage()">💾 Simpan Soal Ini</button><button class="btn pink" onclick="KFUnified.saveAll()">💾💾 Simpan Semua Soal</button></div><div class="small" style="margin-top:8px">Editor V13 lengkap berada tepat di bawah: pertanyaan, opsi/pernyataan, kunci, gambar, pembahasan, MCMA, kategori, isian dan esai.</div></div>
 </div><div class="kf-us-card" style="margin-top:4px"><b>③ EDITOR SOAL</b><div class="small">Hasil Manual, Word/PDF, AI, screenshot, gambar dan rumus semuanya masuk ke editor yang sama.</div></div><div class="card" id="v12EditorCard">
 <div class="editor-head"><div><h2 id="editorTitle">Pembuat Soal</h2><div class="sub">Fokus membuat, mengedit, memeriksa kunci, rumus, gambar, dan pembahasan. Nama paket, tujuan Latihan/Tryout, jadwal, durasi, dan akses peserta diatur setelah soal dipilih dari Bank Soal.</div></div></div>
 <div class="package-builder" id="multiQuestionBuilder">
@@ -2370,7 +2370,41 @@ window.KFUnified=(function(){
     st('✓ Proses Simpan Semua dijalankan untuk '+n+' soal.');
   }catch(e){console.error('[Simpan Semua]',e);st('⚠ '+(e.message||e),1)}
  }
- return{setType,manual,aiVision,doc,image,improve,explain,variation,tidy,formulaPhoto,validate:validateQ,clear,saveAll};
+ async function physicsCheck(){
+  try{
+    if(typeof collect!=='function')return st('Editor soal belum siap.',1);
+    const q=collect(), issues=typeof packageQuestionIssues==='function'?packageQuestionIssues(q):[];
+    if(issues.length){showReview([{i:1,q,issues,status:'bad'}]);return st('⚠ Struktur soal perlu diperbaiki sebelum pemeriksaan AI.',1)}
+    st('⏳ AI memeriksa konsep, hitungan, kunci, satuan dan pembahasan...');
+    if(typeof postAIAssistant!=='function')return st('Mesin AI pemeriksa belum tersedia.',1);
+    const prompt='PERIKSA SOAL FISIKA berikut secara independen. Jangan ubah soal. Cek kecukupan data, konsep, perhitungan, satuan/dimensi, kunci, opsi, dan konsistensi pembahasan. Jawab ringkas dengan STATUS: OK atau MASALAH, lalu TEMUAN dan SARAN.\\n'+JSON.stringify(q);
+    const res=await postAIAssistant('periksa fisika',prompt,{question:q});
+    const txt=String(res?.text||res?.result||res?.message||res?.answer||JSON.stringify(res));
+    showReview([{i:1,q,issues:txt&&txt!=='undefined'?[txt]:['Tidak ada respons AI'],status:/STATUS\\s*:\\s*OK/i.test(txt)?'ok':'warn',ai:true}]);
+    st(/STATUS\\s*:\\s*OK/i.test(txt)?'✓ AI tidak menemukan masalah utama.':'⚠ AI menemukan hal yang perlu ditinjau.');
+  }catch(e){console.error('[Physics Check]',e);st('⚠ '+(e.message||e),1)}
+ }
+ function getDraftQuestions(){try{return Array.isArray(packageDraft?.questions)?packageDraft.questions.filter(Boolean):[]}catch(e){return[]}}
+ function reviewAll(){
+   const qs=getDraftQuestions();if(!qs.length)return st('Belum ada kumpulan soal untuk direview.',1);
+   const rows=qs.map((q,i)=>{const issues=typeof packageQuestionIssues==='function'?packageQuestionIssues(q):[];return{i:i+1,q,issues,status:issues.length?'bad':'ok'}});
+   showReview(rows);const good=rows.filter(x=>x.status==='ok').length;st('Review: '+good+' siap, '+(rows.length-good)+' perlu diperbaiki.');
+ }
+ function showReview(rows){
+   let m=document.getElementById('kfReviewModal');if(!m){m=document.createElement('div');m.id='kfReviewModal';m.style.cssText='position:fixed;inset:0;background:#24133399;z-index:99999;padding:4vh 4vw;overflow:auto';document.body.appendChild(m)}
+   const ok=rows.filter(x=>x.status==='ok').length,bad=rows.length-ok;
+   m.innerHTML='<div style="max-width:1000px;margin:auto;background:white;border-radius:18px;padding:18px"><div style="display:flex;justify-content:space-between;gap:10px"><div><h2 style="margin:0">📋 Review Soal</h2><div style="margin-top:5px">✓ '+ok+' siap &nbsp; ⚠ '+bad+' perlu diperiksa</div></div><button class="btn" onclick="document.getElementById(\\'kfReviewModal\\').remove()">✕ Tutup</button></div><div style="margin-top:14px">'+rows.map(x=>'<div style="border:1px solid #e4d5f2;border-radius:12px;padding:11px;margin:8px 0"><b>Soal '+x.i+' '+(x.status==='ok'?'✓':'⚠')+'</b><div style="margin-top:5px">'+esc(String(x.q?.question||'').slice(0,240))+'</div>'+(x.issues.length?'<div style="margin-top:6px;color:#9b2450">'+x.issues.map(z=>esc(String(z))).join('<br>')+'</div>':'<div style="color:#16834a;margin-top:5px">Struktur lengkap.</div>')+'</div>').join('')+'</div><div class="actions"><button class="btn primary" onclick="KFUnified.saveReady()">💾 Simpan Semua yang Lolos</button></div></div>';
+ }
+ function saveReady(){
+   const qs=getDraftQuestions();if(!qs.length)return st('Belum ada soal.',1);
+   const good=qs.filter(q=>!(typeof packageQuestionIssues==='function'?packageQuestionIssues(q):[]).length);
+   if(!good.length)return st('Tidak ada soal yang lolos validasi.',1);
+   try{
+     const original=packageDraft.questions;packageDraft.questions=good;sendWorkspaceToBank();packageDraft.questions=original;
+     document.getElementById('kfReviewModal')?.remove();st('✓ '+good.length+' soal yang lolos diproses ke Bank Soal.');
+   }catch(e){st('⚠ '+(e.message||e),1)}
+ }
+ return{setType,manual,aiVision,doc,image,improve,explain,variation,tidy,formulaPhoto,validate:validateQ,clear,saveAll,physicsCheck,reviewAll,saveReady};
 })();
 </script><script id="kf-unified-runtime-cleanup">
 (function(){
