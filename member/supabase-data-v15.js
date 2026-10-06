@@ -58,5 +58,9 @@
     return await rpc("kf_review_attempt",{p_attempt:attemptId});
   }
   async function results(){return await rpc("kf_my_results");}
-  window.KFPackageDB={client,rpc,listPackages,memberCatalog,memberTopics,paymentMethods,createPackageOrder,startAttempt,questions,saveAnswer,uploadEssayFile,saveEssaySubmission,submit,reviewAttempt,results};
+  // Sertifikat V1 berdiri sendiri: hanya membaca hasil engine yang sudah FIX.
+  async function certificateStatus(){return await rpc("kf_certificate_status");}
+  async function issueEligibleCertificates(){return await rpc("kf_issue_eligible_certificates");}
+  async function certificates(){return await rpc("kf_my_certificates");}
+  window.KFPackageDB={client,rpc,listPackages,memberCatalog,memberTopics,paymentMethods,createPackageOrder,startAttempt,questions,saveAnswer,uploadEssayFile,saveEssaySubmission,submit,reviewAttempt,results,certificateStatus,issueEligibleCertificates,certificates};
 })();
