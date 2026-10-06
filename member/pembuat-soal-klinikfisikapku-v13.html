@@ -656,7 +656,10 @@ function compactQuestionForBank(q){
  if(x.answers){
    x.answers.optionImages=x.answers.optionImages||{};
    Object.keys(x.answers.optionImageData||{}).forEach(k=>{if(x.answers.optionImageData[k])x.answers.optionImages[k]=x.answers.optionImageData[k]});
+   x.answers.statementImages=x.answers.statementImages||{};
+   Object.keys(x.answers.statementImageData||{}).forEach(k=>{if(x.answers.statementImageData[k])x.answers.statementImages[k]=x.answers.statementImageData[k]});
    delete x.answers.optionImageData;
+   delete x.answers.statementImageData;
  }
  return x;
 }
@@ -873,7 +876,7 @@ setTimeout(()=>{
 },0);
 
 function collect(){
- let inlineImagesUsed={};let joined=[question,...(answerState.options||[]),explanation].join('\n');Object.keys(v13InlineImages).forEach(k=>{if(joined.includes(']'+k+'[/GAMBAR]'))inlineImagesUsed[k]=v13InlineImages[k]});return {id:editingId||uid(),inlineImages:inlineImagesUsed,type:currentType,jenjang:$('jenjang').value,mapel:$('mapel').value,kelas:$('kelas').value,difficulty:$('difficulty').value,topik:$('topik').value,subtopik:$('subtopik').value,status:'Siap Pakai',tags:$('tags').value,question:$('question').value,image:imageData||$('qImageUrl')?.value||'',imageRotation,answers:(()=>{let a=JSON.parse(JSON.stringify(answerState));a.optionImages=a.optionImages||{};Object.keys(a.optionImageData||{}).forEach(k=>{if(a.optionImageData[k])a.optionImages[k]=a.optionImageData[k]});return a})(),explanation:$('explanation').value,explanationImage:explanationImageData||$('explanationImageUrl')?.value||'',explanationImagePosition:$('explanationImagePosition')?.value||'bottom',explanationImageAlign:$('explanationImageAlign')?.value||'center',explanationImageWidth:Number($('explanationImageWidth')?.value||50),score:1,scoring:$('scoring')?.value||'exact',source:'',updatedAt:new Date().toISOString()}
+ let inlineImagesUsed={};let joined=[question,...(answerState.options||[]),...(answerState.statements||[]).map(x=>x?.text||''),answerState.short||'',answerState.essayKey||'',explanation].join('\n');Object.keys(v13InlineImages).forEach(k=>{if(joined.includes(']'+k+'[/GAMBAR]'))inlineImagesUsed[k]=v13InlineImages[k]});return {id:editingId||uid(),inlineImages:inlineImagesUsed,type:currentType,jenjang:$('jenjang').value,mapel:$('mapel').value,kelas:$('kelas').value,difficulty:$('difficulty').value,topik:$('topik').value,subtopik:$('subtopik').value,status:'Siap Pakai',tags:$('tags').value,question:$('question').value,image:imageData||$('qImageUrl')?.value||'',imageRotation,answers:(()=>{let a=JSON.parse(JSON.stringify(answerState));a.optionImages=a.optionImages||{};Object.keys(a.optionImageData||{}).forEach(k=>{if(a.optionImageData[k])a.optionImages[k]=a.optionImageData[k]});return a})(),explanation:$('explanation').value,explanationImage:explanationImageData||$('explanationImageUrl')?.value||'',explanationImagePosition:$('explanationImagePosition')?.value||'bottom',explanationImageAlign:$('explanationImageAlign')?.value||'center',explanationImageWidth:Number($('explanationImageWidth')?.value||50),score:1,scoring:$('scoring')?.value||'exact',source:'',updatedAt:new Date().toISOString()}
 }
 function validate(q=collect()){
  let errs=packageQuestionIssues(q);
@@ -895,7 +898,7 @@ function questionHTML(q,interactive=true){if(q&&q.inlineImages)Object.assign(v13
  let h=`<div class="tags"><span class="tag">${esc(typeName(q.type))}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.difficulty)}</span></div><h3 style="line-height:1.5">${q.question?renderRichText(q.question):'<span class="small">Pertanyaan akan tampil di sini…</span>'}</h3>`;
  if(q.image)h+=`<img class="qimg" src="${esc(q.image)}" style="transform:rotate(${q.imageRotation||0}deg)">`;
  if(['pg5','pg4','mcma'].includes(q.type))q.answers.options.forEach((o,i)=>{let typ=q.type==='mcma'?'checkbox':'radio';h+=`<div class="pv-option"><label>${interactive?`<input type="${typ}" name="pvans" value="${i}">`:''}<b>${'ABCDE'[i]}.</b> <span>${renderRichText(o)}</span></label>${(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i])?positionedImageHTML(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i],'option',q.answers.optionImageAlign?.[i]||'center',q.answers.optionImageWidth?.[i]||50):''}</div>`});
- else if(q.type==='kategori')q.answers.statements.forEach((s,i)=>h+=`<div class="pv-option"><b>${i+1}.</b> <span>${renderRichText(s.text||'')}</span> ${interactive?`<select class="catans" data-i="${i}" style="margin-top:7px"><option value="">Pilih...</option><option>Benar</option><option>Salah</option></select>`:''}</div>`);
+ else if(q.type==='kategori')q.answers.statements.forEach((s,i)=>{let im=q.answers?.statementImageData?.[i]||q.answers?.statementImages?.[i]||s.image||'';h+=`<div class="pv-option"><b>${i+1}.</b> <span>${renderRichText(s.text||'')}</span>${im?`<div><img class="qimg" src="${esc(im)}"></div>`:''} ${interactive?`<select class="catans" data-i="${i}" style="margin-top:7px"><option value="">Pilih...</option><option>Benar</option><option>Salah</option></select>`:''}</div>`});
  else if(q.type==='isian')h+=interactive?'<input id="pvShort" placeholder="Ketik jawaban...">':'<div class="notice">Jawaban singkat</div>';
  else if(q.type==='esai'){
    if(interactive){
@@ -1482,7 +1485,7 @@ function practiceQuestionHTML(q,i){
  }else if(q.type==='mcma'){
   (q.answers?.options||[]).forEach((o,k)=>{let im=q.answers?.optionImageData?.[k]||q.answers?.optionImages?.[k],checked=Array.isArray(a)&&a.includes(k);h+=`<label class="student-option"><input type="checkbox" ${checked?'checked':''} onchange="togglePracticeMulti(${k},this.checked)"><b>${'ABCDE'[k]}.</b> ${renderMathText(o||'')}${im?`<br><img class="qimg" src="${im}">`:''}</label>`})
  }else if(q.type==='kategori'){
-  a=a||{};(q.answers?.statements||[]).forEach((x,k)=>h+=`<div class="student-option"><div>${k+1}. ${renderMathText(x.text||'')}</div><select onchange="setPracticeCategory(${k},this.value)"><option value="">Pilih jawaban</option><option ${a[k]==='Benar'?'selected':''}>Benar</option><option ${a[k]==='Salah'?'selected':''}>Salah</option></select></div>`)
+  a=a||{};(q.answers?.statements||[]).forEach((x,k)=>{let im=q.answers?.statementImageData?.[k]||q.answers?.statementImages?.[k]||x.image||'';h+=`<div class="student-option"><div>${k+1}. ${renderMathText(x.text||'')}</div>${im?`<img class="qimg" src="${esc(im)}">`:''}<select onchange="setPracticeCategory(${k},this.value)"><option value="">Pilih jawaban</option><option ${a[k]==='Benar'?'selected':''}>Benar</option><option ${a[k]==='Salah'?'selected':''}>Salah</option></select></div>`})
  }else if(q.type==='isian')h+=`<label>Jawaban</label><input id="studentTextAnswer" value="${esc(a||'')}" oninput="setPracticeText(this.value)" placeholder="Ketik jawaban...">`;
  else h+=`<label>Jawaban Esai</label><textarea id="studentTextAnswer" oninput="setPracticeText(this.value)" placeholder="Tuliskan jawaban...">${esc(a||'')}</textarea>`;
  return h;
@@ -1602,7 +1605,7 @@ function printableQuestionHTML(q,n,mode){
  if(q.image)h+=`<img src="${q.image}" class="print-img">`;
  if(['pg5','pg4','mcma'].includes(q.type)){
   (q.answers?.options||[]).forEach((o,i)=>{h+=`<div class="print-opt"><b>${'ABCDE'[i]}.</b> ${renderMathText(o||'')}`;let im=q.answers?.optionImageData?.[i]||q.answers?.optionImages?.[i];if(im)h+=`<br><img src="${im}" class="print-img small-img">`;h+='</div>'})
- }else if(q.type==='kategori'){(q.answers?.statements||[]).forEach((x,i)=>h+=`<div class="print-opt">${i+1}) ${renderMathText(x.text||'')}</div>`)}
+ }else if(q.type==='kategori'){(q.answers?.statements||[]).forEach((x,i)=>{let im=q.answers?.statementImageData?.[i]||q.answers?.statementImages?.[i]||x.image||'';h+=`<div class="print-opt">${i+1}) ${renderMathText(x.text||'')}${im?`<br><img src="${esc(im)}" class="print-img small-img">`:''}</div>`})}
  else if(q.type==='isian')h+='<div class="answer-line">Jawaban: __________________________________________</div>';
  else if(q.type==='esai')h+='<div class="essay-lines"></div>';
  if(mode==='answers'||mode==='full')h+=`<div class="key"><b>Kunci:</b> ${esc(answerKeyText(q))}</div>`;
