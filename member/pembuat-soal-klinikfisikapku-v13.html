@@ -1749,6 +1749,119 @@ setTimeout(()=>{health();syncBankAssetFromDraft()},700);
  setTimeout(()=>{try{window.KF_V13_RUN_DIAGNOSTIC()}catch(e){console.warn('[KF V13 diagnostic]',e)}},1100);
 })();
 </script>
+
+<script id="v13-ai-editor-hardening-20261006">
+/* V13 hardening 2026-10-06: AI/Vision option images, kategori B/S, esai rubric, difficulty quick buttons. */
+(function(){
+  const _normalizeAIQuestion=window.normalizeAIQuestion;
+  window.normalizeAIQuestion=function(raw){
+    raw=raw&&typeof raw==='object'?raw:{};
+    const out=_normalizeAIQuestion(raw);
+    out.answers=out.answers||{};
+    const rawOpts=raw.opsi||raw.options||raw.pilihan||raw.choices||raw.answers?.options||[];
+    const optImages=Object.assign({},
+      raw.optionImages||raw.option_images||raw.gambarOpsi||raw.gambar_opsi||{},
+      raw.answers?.optionImages||raw.answers?.option_images||{}
+    );
+    if(Array.isArray(rawOpts)) rawOpts.forEach(function(o,i){
+      if(o&&typeof o==='object'){
+        const src=o.image||o.imageUrl||o.image_url||o.gambar||o.gambar_url||'';
+        if(src) optImages[i]=src;
+      }
+    });
+    if(Array.isArray(raw.option_images)) raw.option_images.forEach((src,i)=>{if(src)optImages[i]=src});
+    if(Array.isArray(raw.gambar_opsi)) raw.gambar_opsi.forEach((src,i)=>{if(src)optImages[i]=src});
+    if(Object.keys(optImages).length){
+      out.answers.optionImages=Object.assign({},out.answers.optionImages||{},optImages);
+    }
+    if(out.type==='kategori'){
+      const norm=function(v){
+        if(v===true||v===1)return 'Benar';
+        if(v===false||v===0)return 'Salah';
+        const x=String(v??'').trim().toLowerCase();
+        if(['benar','true','b','ya','yes','1'].includes(x))return 'Benar';
+        if(['salah','false','s','tidak','no','0'].includes(x))return 'Salah';
+        return '';
+      };
+      (out.answers.statements||[]).forEach(function(st){st.answer=norm(st.answer)});
+    }
+    if(out.type==='esai'){
+      out.answers.essayKey=cleanAIMathText(
+        raw.pedoman||raw.pedomanJawaban||raw.rubrik||raw.rubric||raw.kunci||
+        raw.jawaban||raw.essayKey||raw.answers?.essayKey||out.answers.essayKey||''
+      );
+    }
+    return out;
+  };
+
+  const _renderAnswerEditor=window.renderAnswerEditor;
+  window.renderAnswerEditor=function(){
+    _renderAnswerEditor();
+    if(currentType==='esai'){
+      answerState.essayKey=answerState.essayKey||'';
+      const host=document.getElementById('answerEditor');
+      if(host&&!document.getElementById('essayKey')){
+        host.insertAdjacentHTML('beforeend',
+          '<div class="ref-option" style="margin-top:10px">'+
+          '<label><b>Kunci / Pedoman Penilaian Esai</b></label>'+
+          '<div class="small">Diisi admin sebagai acuan koreksi; tidak ditampilkan sebagai jawaban kepada peserta.</div>'+
+          formulaBar('essayKey')+
+          '<textarea id="essayKey" style="min-height:120px" placeholder="Tuliskan jawaban ideal, poin penting, atau rubrik penilaian..."></textarea>'+
+          '<div id="essayKeyPreview" class="math-preview">Pratinjau pedoman akan muncul di sini...</div></div>');
+        const el=document.getElementById('essayKey');
+        el.value=answerState.essayKey;
+        el.addEventListener('input',function(){
+          answerState.essayKey=this.value;
+          const pv=document.getElementById('essayKeyPreview');
+          if(pv){pv.innerHTML=formatTeksDenganLatex(this.value||'');typesetMath(pv)}
+          changed();
+        });
+        const pv=document.getElementById('essayKeyPreview');
+        if(pv){pv.innerHTML=formatTeksDenganLatex(answerState.essayKey||'');typesetMath(pv)}
+      }
+    }
+  };
+
+  const _issues=window.packageQuestionIssues;
+  window.packageQuestionIssues=function(q){
+    const issues=_issues(q);
+    if(q?.type==='kategori'){
+      const st=q.answers?.statements||[];
+      if(st.some(x=>!['Benar','Salah'].includes(String(x.answer||'')))) issues.push('Setiap pernyataan kategori wajib memiliki kunci Benar atau Salah');
+    }
+    if(q?.type==='esai'&&!String(q.answers?.essayKey||'').trim()) issues.push('Kunci/pedoman penilaian Esai belum diisi');
+    return [...new Set(issues)];
+  };
+
+  function syncDifficultyButtons(){
+    const val=document.getElementById('difficulty')?.value||'Sedang';
+    document.querySelectorAll('[data-v13-difficulty]').forEach(b=>b.classList.toggle('primary',b.dataset.v13Difficulty===val));
+  }
+  window.v13SetDifficulty=function(v){
+    const el=document.getElementById('difficulty');if(!el)return;
+    el.value=v;syncDifficultyButtons();changed();
+  };
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){
+      const type=document.getElementById('typeSelect');
+      if(type&&!document.getElementById('v13DifficultyQuick')){
+        const box=document.createElement('div');
+        box.id='v13DifficultyQuick';
+        box.style.margin='10px 0';
+        box.innerHTML='<label>Tingkat Kesulitan</label><div class="actions">'+
+          '<button type="button" class="btn sm" data-v13-difficulty="Mudah" onclick="v13SetDifficulty(\'Mudah\')">🟢 Mudah</button>'+
+          '<button type="button" class="btn sm" data-v13-difficulty="Sedang" onclick="v13SetDifficulty(\'Sedang\')">🟡 Sedang</button>'+
+          '<button type="button" class="btn sm" data-v13-difficulty="Sulit" onclick="v13SetDifficulty(\'Sulit\')">🔴 Sulit</button></div>';
+        type.parentNode.insertBefore(box,type.nextSibling);
+        syncDifficultyButtons();
+      }
+      const diff=document.getElementById('difficulty');
+      if(diff)diff.addEventListener('change',syncDifficultyButtons);
+    },250);
+  });
+})();
+</script>
+
 </body></html>`);w.document.close();
 }
 
