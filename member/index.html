@@ -1791,12 +1791,17 @@ iframe.pdfview{display:block;min-height:520px}
             const pdfBlobOrUrl=pdfDisplayUrl(pdfUrl);
             const isBlob=String(pdfBlobOrUrl).startsWith("blob:");
             const isPrivateSigned=String(pdfBlobOrUrl).includes("/storage/v1/object/sign/learning-files-private/");
-            const sumberPdf=(isBlob||isPrivateSigned)?pdfBlobOrUrl:`https://docs.google.com/viewer?url=${encodeURIComponent(pdfBlobOrUrl)}&embedded=true`;
+            // Signed/private PDF Supabase tidak selalu mengizinkan ditanam di iframe (X-Frame/CSP).
+            // Untuk latihan PDF private, hindari iframe yang menghasilkan "This content is blocked".
+            const canEmbed=isBlob||!isPrivateSigned;
+            const sumberPdf=canEmbed?(isBlob?pdfBlobOrUrl:`https://docs.google.com/viewer?url=${encodeURIComponent(pdfBlobOrUrl)}&embedded=true`):"";
             const namaPdf=String(x.judul||"latihan").replace(/[\\/:*?"<>|]+/g,"-")+".pdf";
-            html += `<iframe class="pdfview" title="Latihan PDF" src="${esc(sumberPdf)}"></iframe>
-              <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+            html += (sumberPdf
+              ? `<iframe class="pdfview" title="Latihan PDF" src="${esc(sumberPdf)}"></iframe>`
+              : `<div class="empty" style="padding:28px;text-align:center"><b>📄 Latihan PDF siap dibuka</b><br><span style="display:block;margin-top:8px">File private dilindungi dan dibuka melalui tautan aman.</span></div>`)
+              + `<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
                 <a class="btn btn-main" style="text-decoration:none" href="${esc(pdfBlobOrUrl)}" ${isBlob?`download="${esc(namaPdf)}"`:`target="_blank" rel="noopener noreferrer"`}>⬇ Unduh PDF</a>
-                <a class="btn btn-ghost" style="text-decoration:none" href="${esc(pdfBlobOrUrl)}" target="_blank" rel="noopener noreferrer">Buka di Tab Baru</a>
+                <a class="btn btn-ghost" style="text-decoration:none" href="${esc(pdfBlobOrUrl)}" target="_blank" rel="noopener noreferrer">Buka PDF</a>
               </div>`;
           }else{
             html += `<div class="empty">PDF latihan belum memiliki URL file yang valid. Periksa kembali file pada Admin → Soal Latihan → Latihan PDF.</div>`;
