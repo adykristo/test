@@ -231,11 +231,33 @@
     if(event==="PASSWORD_RECOVERY") setTimeout(showRecoveryForm,0);
   });
 
+  function showRecoveryOtpForm(email){
+    const old=document.getElementById("kfRecoveryOtpOverlay"); if(old) old.remove();
+    const wrap=document.createElement("div");
+    wrap.id="kfRecoveryOtpOverlay";
+    wrap.style.cssText="position:fixed;inset:0;z-index:200000;background:rgba(32,14,55,.38);display:grid;place-items:center;padding:18px";
+    wrap.innerHTML='<div style="width:min(430px,100%);background:#fff;border:1px solid #e3d5ef;border-radius:18px;padding:25px;box-shadow:0 18px 50px rgba(55,30,86,.22)"><h2 style="margin:0 0 6px;text-align:center;color:#28143c">Masukkan Kode Pemulihan 🔐</h2><p style="margin:0 0 18px;text-align:center;color:#6b5680;font-size:13px">Kami mengirim kode pemulihan ke email Anda. Masukkan kode dari email terbaru.</p><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 5px;color:#402065">Email</label><input id="kfRecoveryEmail" type="email" autocomplete="email" style="width:100%;padding:11px;border:1px solid #e7d8f5;border-radius:9px;font-size:14px" value="'+String(email||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")+'"><label style="display:block;font-weight:700;font-size:12px;margin:12px 0 5px;color:#402065">Kode pemulihan</label><input id="kfRecoveryOtp" inputmode="numeric" autocomplete="one-time-code" style="width:100%;padding:11px;border:1px solid #e7d8f5;border-radius:9px;font-size:18px;letter-spacing:3px;text-align:center" placeholder="Masukkan kode"><div id="kfRecoveryOtpMsg" style="display:none;margin-top:12px;padding:10px;border-radius:9px;font-size:13px"></div><button id="kfVerifyRecoveryOtp" type="button" style="width:100%;margin-top:16px;border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer;background:linear-gradient(100deg,#822bd9,#f34ea5);color:#fff">Verifikasi Kode</button><button id="kfCloseRecoveryOtp" type="button" style="width:100%;margin-top:8px;border:0;background:transparent;color:#6b5680;cursor:pointer;padding:8px">Tutup</button></div>';
+    document.body.appendChild(wrap);
+    document.getElementById("kfCloseRecoveryOtp").onclick=()=>wrap.remove();
+    document.getElementById("kfVerifyRecoveryOtp").onclick=async function(){
+      const e=gmail(document.getElementById("kfRecoveryEmail").value);
+      const token=(document.getElementById("kfRecoveryOtp").value||"").trim().replace(/\s+/g,"");
+      const msg=document.getElementById("kfRecoveryOtpMsg"),btn=this;
+      const notice=(t,ok)=>{msg.style.display="block";msg.style.background=ok?"#e8f8ef":"#fff0f3";msg.style.color=ok?"#147343":"#b4284f";msg.textContent=t;};
+      if(!e||!token){notice("Email dan kode pemulihan wajib diisi.",false);return;}
+      btn.disabled=true;btn.textContent="Memverifikasi...";
+      const {error}=await supabase.auth.verifyOtp({email:e,token:token,type:"recovery"});
+      if(error){notice("Kode tidak valid atau sudah kedaluwarsa. Gunakan kode dari email terbaru.",false);btn.disabled=false;btn.textContent="Verifikasi Kode";return;}
+      wrap.remove(); showRecoveryForm();
+    };
+  }
+
   window.kirimResetPassword=async function(){
     const el=document.getElementById("user")||document.getElementById("email");
     const e=el?gmail(el.value):"";
-    if(!e){alert("Masukkan alamat Email Google Anda terlebih dahulu.");return;}
+    if(!e){alert("Masukkan alamat email Anda terlebih dahulu.");return;}
     const {error}=await supabase.auth.resetPasswordForEmail(e,{redirectTo:window.location.origin+window.location.pathname});
-    alert(error?"Gagal mengirim link reset: "+error.message:"Link pemulihan password telah dikirim ke email Anda.");
+    if(error){alert("Gagal mengirim kode pemulihan: "+error.message);return;}
+    showRecoveryOtpForm(e);
   };
 })();
