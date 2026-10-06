@@ -2927,9 +2927,14 @@ function openV12SameTab(){
 
 /* ===== Free learning policy + Tryout activation ===== */
 async function setTryoutActivation(id,active){
-  const ok=await KFUI.confirm(active?"Aktifkan Tryout ini untuk peserta yang memiliki paket terkait?":"Nonaktifkan Tryout ini? Peserta tidak akan dapat mengaksesnya.",active?"Aktifkan Tryout":"Nonaktifkan Tryout");
-  if(!ok)return;
   try{
+    if(active){
+      const map=await kfdb().from("kf_package_access").select("member_package_id").eq("kf_package_id",id).limit(1);
+      if(map.error)throw map.error;
+      if(!map.data?.length)return KFUI.toast("Tryout belum memiliki Paket Peserta tujuan. Klik Atur Paket terlebih dahulu.","err",6000);
+    }
+    const ok=await KFUI.confirm(active?"Aktifkan Tryout ini untuk peserta yang memiliki paket terkait?":"Nonaktifkan Tryout ini? Peserta tidak akan dapat mengaksesnya.",active?"Aktifkan Tryout":"Nonaktifkan Tryout");
+    if(!ok)return;
     const {error}=await kfdb().from("kf_packages").update({visible:!!active}).eq("id",id).eq("kind","tryout");
     if(error)throw error;
     await renderAccessManagers();
@@ -2941,14 +2946,23 @@ renderAccessManagers=async function(){
  try{
    await loadPackageCore();
    const finals=await KFPackagePublisher.adminList();
+   const aq=await kfdb().from("kf_package_access").select("kf_package_id,member_package_id");
+   if(aq.error)throw aq.error;
+   const accessMap=new Map((aq.data||[]).map(a=>[String(a.kf_package_id),String(a.member_package_id)]));
+   const packageMap=new Map(KF_PACKAGES_NEW.map(p=>[String(p.id),p]));
    for(const kind of ["latihan","tryout"]){
      const box=document.getElementById(kind+"AccessManager");if(!box)continue;
      const rows=finals.filter(x=>x.kind===kind);
      box.innerHTML=rows.length?rows.map(x=>{
        const isTryout=kind==="tryout", active=x.visible===true;
+       const targetId=accessMap.get(String(x.id))||"", target=packageMap.get(targetId);
+       const mapped=!!target;
+       const targetInfo=mapped
+         ? `<span class="status-pill aktif">✓ ${escMember(target.jenjang||"")} · ${escMember(target.nama||target.kode||"Paket")}</span>`
+         : '<span class="status-pill ditolak">⚠ BELUM TERHUBUNG KE PAKET PESERTA</span>';
        const status=isTryout?`<span class="tryout-status ${active?"on":"off"}">${active?"● Aktif untuk Peserta":"● Terkunci"}</span>`:"";
        const toggle=isTryout?`<button class="btn ${active?"ghost":"small"} small" onclick="setTryoutActivation('${x.id}',${!active})">${active?"🔒 Nonaktifkan":"🔓 Aktifkan Tryout"}</button>`:"";
-       return `<div class="manage-item"><div><b>${escMember(x.name)}</b><p>${isTryout?"Tryout hanya dapat diakses setelah Admin mengaktifkannya.":"Latihan dapat dipilih bebas oleh peserta selama termasuk paket yang dimiliki."}</p>${status}</div><div class="row-actions"><button class="btn ghost small final-preview-btn" onclick="previewFinalPackage('${x.id}')">◉ Preview</button><button class="btn ghost small" onclick="aturAksesFinal('${x.id}','${kind}')">Atur Paket</button>${toggle}</div></div>`;
+       return `<div class="manage-item"><div><b>${escMember(x.name)}</b><p>${isTryout?"Tryout hanya dapat diakses setelah Admin mengaktifkannya.":"Latihan dapat dipilih bebas oleh peserta selama termasuk paket yang dimiliki."}</p><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:6px">${targetInfo}${status}</div></div><div class="row-actions"><button class="btn ghost small final-preview-btn" onclick="previewFinalPackage('${x.id}')">◉ Preview</button><button class="btn ${mapped?"ghost":""} small" onclick="aturAksesFinal('${x.id}','${kind}')">${mapped?"Atur Paket":"⚠ Pilih Paket Tujuan"}</button>${toggle}</div></div>`;
      }).join(""):'<div class="sub">Belum ada paket final di Supabase.</div>';
    }
  }catch(e){console.warn(e);KFUI.toast("Gagal memuat distribusi: "+e.message,"err",6000)}
