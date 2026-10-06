@@ -2319,129 +2319,43 @@ document.addEventListener('DOMContentLoaded',function(){
 
 <script id="kf-unified-adapter">
 window.KFUnified=(function(){
- const E=id=>document.getElementById(id), W=()=>E('kfUWork'); function st(t,b){let e=E('kfUStatus');if(e){e.textContent=t;e.style.color=b?'#b42318':''}}
- function setType(v){if(E('typeSelect')){E('typeSelect').value=v;if(typeof changeTypeSelect==='function')changeTypeSelect(v)}}
- function manual(){let q=E('question'),w=W();if(!q||!w)return st('Editor V13 tidak ditemukan.',1);q.value=(w.innerText||'').trim();q.dispatchEvent(new Event('input',{bubbles:true}));let im=w.querySelector('img');if(im&&E('qImageUrl')){E('qImageUrl').value=im.src;E('qImageUrl').dispatchEvent(new Event('input',{bubbles:true}))}st('✓ Bahan masuk ke Editor V13.');E('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'})}
- async function aiVision(){
-  let d=E('v12PasteMaterial'),w=W();if(!d)return st('Mesin V13 belum tersedia.',1);
-  const hasImage=!!w.querySelector('img'), text=(w.innerText||'').trim();
-  if(!text&&!hasImage)return st('Masukkan instruksi, teks soal, atau gambar terlebih dahulu.',1);
-  try{
-    if(!hasImage){
-      if(typeof generateAI!=='function')return st('Mesin Generator Gemini V13 belum tersedia.',1);
-      const m=text.match(/(?:buat(?:kan)?\\s*)?(\\d{1,2})\\s*soal/i), count=Math.max(1,Math.min(50,m?Number(m[1]):1));
-      if(E('aiCount'))E('aiCount').value=count;
-      if(E('aiMaterial'))E('aiMaterial').value=text;
-      if(E('aiJenjang'))E('aiJenjang').value=E('kfULevel')?.value||'SMA';
-      if(E('aiTopik'))E('aiTopik').value=E('kfUTopic')?.value||text;
-      if(E('aiDiff'))E('aiDiff').value=E('kfUDiff')?.value||'Sedang';
-      if(E('aiType'))E('aiType').value=E('kfUType')?.value||'pg5';
-      st('⏳ Gemini membuat '+count+' soal dari instruksi...');
-      await generateAI();
-      st('✓ '+count+' soal diproses Gemini. Periksa hasil di Editor.');
-    }else{
-      if(typeof v12ProcessPaste!=='function')return st('Mesin Gemini Vision V13 belum tersedia.',1);
-      d.innerHTML=w.innerHTML;d.dispatchEvent(new Event('input',{bubbles:true}));
-      st('⏳ Gemini Vision membaca teks, rumus dan gambar...');
-      await v12ProcessPaste();
-      st('✓ Gemini Vision selesai. Periksa hasil di Editor.');
-    }
-    E('v12EditorCard')?.scrollIntoView({behavior:'smooth',block:'start'});
-  }catch(e){console.error('[Unified AI]',e);st('⚠ '+(e.message||e),1)}
-}
- async function doc(x){let f=x.files?.[0],t=E('wordSoalFileV13');if(!f)return;if(!t||typeof prosesWordKeV13!=='function')return st('Import Word/PDF V13 belum tersedia.',1);try{let dt=new DataTransfer();dt.items.add(f);t.files=dt.files;st('⏳ Memproses '+f.name+'...');await prosesWordKeV13(true);st('✓ Word/PDF selesai → Editor.')}catch(e){st('⚠ '+(e.message||e),1)}x.value=''}
- function image(x){let f=x.files?.[0];if(!f)return;let r=new FileReader();r.onload=()=>{let im=document.createElement('img');im.src=r.result;im.style.maxWidth='340px';im.style.display='block';im.style.margin='8px 0';W().appendChild(im);st('✓ Gambar siap. Klik AI Susun atau Susun ke Editor.')};r.readAsDataURL(f);x.value=''}
- function insert(v){let e=W();e.focus();let n=document.createTextNode('$'+v+'$'),s=getSelection();if(s&&s.rangeCount&&e.contains(s.anchorNode)){let r=s.getRangeAt(0);r.deleteContents();r.insertNode(n);r.setStartAfter(n);r.collapse(true);s.removeAllRanges();s.addRange(r)}else e.appendChild(n)}
- function improve(){if(typeof aiImprove==='function')aiImprove();else st('AI Rapikan belum tersedia.',1)}
- function explain(){if(typeof aiExplain==='function')aiExplain();else st('AI Pembahasan belum tersedia.',1)}
- function variation(){if(typeof aiVariation==='function')aiVariation();else st('AI Variasi belum tersedia.',1)}
- function tidy(){if(typeof aiTidyExplanation==='function')aiTidyExplanation();else st('AI Rapikan Pembahasan belum tersedia.',1)}
- function formulaPhoto(){if(typeof readFormulaPhoto==='function')readFormulaPhoto('question');else st('Gambar→LaTeX belum tersedia.',1)}
- function validateQ(){try{let q=typeof collect==='function'?collect():null,issues=typeof packageQuestionIssues==='function'?packageQuestionIssues(q):[];if(issues.length)return st('⚠ '+issues.join(' • '),1);st('✓ Struktur soal lolos validasi V13. Gunakan AI Rapikan/Pembahasan untuk pemeriksaan lanjutan.')}catch(e){st('⚠ '+e.message,1)}}
- function clear(){W().innerHTML='';st('Workspace dibersihkan.')}
- function bind(){let w=W();if(!w)return;
-  /* Tombol inline memakai onclick=KFUnified.* sebelum object selesai dibuat.
-     Pasang listener langsung agar semua tombol Question Studio selalu responsif. */
-  const aiBtn=[...document.querySelectorAll('#kfUnifiedStudio button')].find(b=>/AI Susun Soal \+ Gambar/.test(b.textContent||''));
-  if(aiBtn&&!aiBtn.dataset.kfBound){aiBtn.dataset.kfBound='1';aiBtn.removeAttribute('onclick');aiBtn.addEventListener('click',e=>{e.preventDefault();aiVision()})}
-  w.addEventListener('paste',e=>{let it=[...(e.clipboardData?.items||[])].find(x=>x.type?.startsWith('image/'));if(!it)return;e.preventDefault();let r=new FileReader();r.onload=()=>{let im=document.createElement('img');im.src=r.result;im.style.maxWidth='340px';im.style.display='block';w.appendChild(im);st('✓ Screenshot ditempel. Klik AI Susun Soal + Gambar.')};r.readAsDataURL(it.getAsFile())});w.addEventListener('dragover',e=>e.preventDefault());w.addEventListener('drop',e=>{let f=[...e.dataTransfer.files].find(x=>x.type.startsWith('image/'));if(f){e.preventDefault();image({files:[f],value:''})}});['x^2','x_1','\\sqrt{}','\\frac{}{}','\\sum','\\int','\\Delta','\\theta','\\pi','\\infty','\\times10^{}','\\vec{F}','v_0','E_k','E_p','\\varepsilon','\\rho','\\lambda','\\omega','\\phi','\\hbar'].forEach(v=>{let b=document.createElement('button');b.className='btn sm';b.type='button';b.textContent=v.replaceAll('\\','');b.onclick=()=>insert(v);E('kfUFormula')?.appendChild(b)})}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
- async function saveAll(){
-  try{
-    if(typeof sendWorkspaceToBank!=='function')return st('Fungsi Simpan Semua V13 belum tersedia.',1);
-    const n=Array.isArray(window.packageDraft?.questions)?window.packageDraft.questions.length:(typeof packageDraft!=='undefined'&&Array.isArray(packageDraft.questions)?packageDraft.questions.length:0);
-    if(!n)return st('Belum ada kumpulan soal untuk disimpan.',1);
-    st('⏳ Memeriksa dan menyimpan '+n+' soal...');
-    sendWorkspaceToBank();
-    st('✓ Proses Simpan Semua dijalankan untuk '+n+' soal.');
-  }catch(e){console.error('[Simpan Semua]',e);st('⚠ '+(e.message||e),1)}
- }
- async function physicsCheck(){
-  try{
-    if(typeof collect!=='function')return st('Editor soal belum siap.',1);
-    const q=collect(), issues=typeof packageQuestionIssues==='function'?packageQuestionIssues(q):[];
-    if(issues.length){showReview([{i:1,q,issues,status:'bad'}]);return st('⚠ Struktur soal perlu diperbaiki sebelum pemeriksaan AI.',1)}
-    st('⏳ AI memeriksa konsep, hitungan, kunci, satuan dan pembahasan...');
-    if(typeof postAIAssistant!=='function')return st('Mesin AI pemeriksa belum tersedia.',1);
-    const prompt='PERIKSA SOAL FISIKA berikut secara independen. Jangan ubah soal. Cek kecukupan data, konsep, perhitungan, satuan/dimensi, kunci, opsi, dan konsistensi pembahasan. Jawab ringkas dengan STATUS: OK atau MASALAH, lalu TEMUAN dan SARAN.\\n'+JSON.stringify(q);
-    const res=await postAIAssistant('periksa fisika',prompt,{question:q});
-    const txt=String(res?.text||res?.result||res?.message||res?.answer||JSON.stringify(res));
-    showReview([{i:1,q,issues:txt&&txt!=='undefined'?[txt]:['Tidak ada respons AI'],status:/STATUS\\s*:\\s*OK/i.test(txt)?'ok':'warn',ai:true}]);
-    st(/STATUS\\s*:\\s*OK/i.test(txt)?'✓ AI tidak menemukan masalah utama.':'⚠ AI menemukan hal yang perlu ditinjau.');
-  }catch(e){console.error('[Physics Check]',e);st('⚠ '+(e.message||e),1)}
- }
- function getDraftQuestions(){try{return Array.isArray(packageDraft?.questions)?packageDraft.questions.filter(Boolean):[]}catch(e){return[]}}
- function reviewAll(){
-   const qs=getDraftQuestions();if(!qs.length)return st('Belum ada kumpulan soal untuk direview.',1);
-   const rows=qs.map((q,i)=>{const issues=typeof packageQuestionIssues==='function'?packageQuestionIssues(q):[];return{i:i+1,q,issues,status:issues.length?'bad':'ok'}});
-   showReview(rows);const good=rows.filter(x=>x.status==='ok').length;st('Review: '+good+' siap, '+(rows.length-good)+' perlu diperbaiki.');
- }
- function showReview(rows){
-   let m=document.getElementById('kfReviewModal');if(!m){m=document.createElement('div');m.id='kfReviewModal';m.style.cssText='position:fixed;inset:0;background:#24133399;z-index:99999;padding:4vh 4vw;overflow:auto';document.body.appendChild(m)}
-   const ok=rows.filter(x=>x.status==='ok').length,bad=rows.length-ok;
-   m.innerHTML='<div style="max-width:1000px;margin:auto;background:white;border-radius:18px;padding:18px"><div style="display:flex;justify-content:space-between;gap:10px"><div><h2 style="margin:0">📋 Review Soal</h2><div style="margin-top:5px">✓ '+ok+' siap &nbsp; ⚠ '+bad+' perlu diperiksa</div></div><button class="btn" onclick="document.getElementById(\\'kfReviewModal\\').remove()">✕ Tutup</button></div><div style="margin-top:14px">'+rows.map(x=>'<div style="border:1px solid #e4d5f2;border-radius:12px;padding:11px;margin:8px 0"><b>Soal '+x.i+' '+(x.status==='ok'?'✓':'⚠')+'</b><div style="margin-top:5px">'+esc(String(x.q?.question||'').slice(0,240))+'</div>'+(x.issues.length?'<div style="margin-top:6px;color:#9b2450">'+x.issues.map(z=>esc(String(z))).join('<br>')+'</div>':'<div style="color:#16834a;margin-top:5px">Struktur lengkap.</div>')+'</div>').join('')+'</div><div class="actions"><button class="btn primary" onclick="KFUnified.saveReady()">💾 Simpan Semua yang Lolos</button></div></div>';
- }
- function saveReady(){
-   const qs=getDraftQuestions();if(!qs.length)return st('Belum ada soal.',1);
-   const good=qs.filter(q=>!(typeof packageQuestionIssues==='function'?packageQuestionIssues(q):[]).length);
-   if(!good.length)return st('Tidak ada soal yang lolos validasi.',1);
-   try{
-     const original=packageDraft.questions;packageDraft.questions=good;sendWorkspaceToBank();packageDraft.questions=original;
-     document.getElementById('kfReviewModal')?.remove();st('✓ '+good.length+' soal yang lolos diproses ke Bank Soal.');
-   }catch(e){st('⚠ '+(e.message||e),1)}
- }
- function imgSize(d){kfQuestionImageWidth=Math.max(15,Math.min(100,kfQuestionImageWidth+d));showImage();if(typeof changed==='function')changed()}
- function imgAlign(a){kfQuestionImageAlign=a;showImage();if(typeof changed==='function')changed()}
- async function changeDifficulty(level){try{if(typeof collect!=='function'||typeof postAIAssistant!=='function')return st('Mesin AI belum tersedia.',1);let q=collect();st('⏳ AI membuat versi '+level+'...');let r=await postAIAssistant('ubah kesulitan','Buat versi '+level+' dari soal fisika ini. Pertahankan konsep dan jenis soal. Hitung ulang kunci dan pembahasan bila angka/kondisi berubah. Kembalikan soal yang lengkap. '+JSON.stringify(q),{question:q});let t=r?.text||r?.result||r?.question||r?.questions?.[0]?.question;if(!t)throw new Error('AI tidak mengembalikan soal');$('question').value=String(t);$('question').dispatchEvent(new Event('input'));st('✓ Versi '+level+' dibuat. Periksa kunci/pembahasan sebelum simpan.')}catch(e){st('⚠ '+e.message,1)}}
- function undoEdit(){try{document.execCommand('undo');st('↩ Undo dijalankan.')}catch(e){}}
- function redoEdit(){try{document.execCommand('redo');st('↪ Redo dijalankan.')}catch(e){}}
- function normText(s){return String(s||'').toLowerCase().replace(/\\\\[a-z]+/g,' ').replace(/[^a-z0-9]+/g,' ').trim()}
- function sim(a,b){a=new Set(normText(a).split(' ').filter(x=>x.length>2));b=new Set(normText(b).split(' ').filter(x=>x.length>2));if(!a.size||!b.size)return 0;let n=0;a.forEach(x=>{if(b.has(x))n++});return n/Math.max(a.size,b.size)}
- function findDuplicates(){
-   const qs=getDraftQuestions(),bb=typeof bank==='function'?bank():[];if(!qs.length)return st('Belum ada soal untuk dicek.',1);
-   let rows=qs.map((q,i)=>{let best=bb.map(x=>({x,s:sim(q.question,x.question)})).sort((a,b)=>b.s-a.s)[0];let issues=[];if(best&&best.s>=.72)issues.push('Kemiripan '+Math.round(best.s*100)+'% dengan Bank: '+String(best.x.question||'').slice(0,120));return{i:i+1,q,issues,status:issues.length?'warn':'ok'}});
-   showReview(rows);st('✓ Pemeriksaan duplikat selesai. '+rows.filter(x=>x.status!=='ok').length+' soal perlu ditinjau.');
- }
- function batchMeta(){
-   const qs=getDraftQuestions();if(!qs.length)return st('Belum ada kumpulan soal.',1);
-   const level=E('kfULevel')?.value||'',diff=E('kfUDiff')?.value||'',topic=(E('kfUTopic')?.value||'').trim();
-   if(!confirm('Terapkan metadata ke '+qs.length+' soal?\\nJenjang: '+level+'\\nKesulitan: '+diff+'\\nTopik: '+topic))return;
-   qs.forEach(q=>{q.jenjang=level||q.jenjang;q.difficulty=diff||q.difficulty;if(topic)q.topik=topic;q.updatedAt=new Date().toISOString()});
-   if(typeof savePackageDraftLocal==='function')savePackageDraftLocal();st('✓ Metadata diterapkan ke '+qs.length+' soal.');
- }
- async function aiReviewAll(){
-   const qs=getDraftQuestions();if(!qs.length)return st('Belum ada soal untuk AI Review.',1);if(typeof postAIAssistant!=='function')return st('Mesin AI belum tersedia.',1);
-   const limit=Math.min(qs.length,20);st('⏳ AI mereview '+limit+' soal...');
-   let rows=[];
-   for(let i=0;i<limit;i++){let q=qs[i],struct=typeof packageQuestionIssues==='function'?packageQuestionIssues(q):[];if(struct.length){rows.push({i:i+1,q,issues:struct,status:'bad'});continue}try{let prompt='Audit soal fisika ini. Jangan ubah. Cek konsep, hitungan, satuan, kunci, opsi dan pembahasan. Jawab STATUS: OK atau STATUS: MASALAH lalu alasan singkat. '+JSON.stringify(q);let rr=await postAIAssistant('audit fisika',prompt,{question:q});let t=String(rr?.text||rr?.result||rr?.message||'');rows.push({i:i+1,q,issues:/STATUS\\s*:\\s*OK/i.test(t)?[]:[t||'AI tidak memberi hasil'],status:/STATUS\\s*:\\s*OK/i.test(t)?'ok':'warn'})}catch(e){rows.push({i:i+1,q,issues:['AI: '+e.message],status:'warn'})}}
-   showReview(rows);st('✓ AI Review selesai: '+rows.filter(x=>x.status==='ok').length+' siap, '+rows.filter(x=>x.status!=='ok').length+' perlu ditinjau.');
- }
- function modal(title,body,actions){let m=document.getElementById('kfUtilityModal');if(m)m.remove();m=document.createElement('div');m.id='kfUtilityModal';m.style.cssText='position:fixed;inset:0;background:#24133399;z-index:100000;padding:5vh 5vw;overflow:auto';m.innerHTML='<div style="max-width:850px;margin:auto;background:#fff;border-radius:18px;padding:18px"><div style="display:flex;justify-content:space-between"><h2 style="margin:0">'+title+'</h2><button class="btn" onclick="document.getElementById(\\'kfUtilityModal\\').remove()">✕</button></div><div style="margin-top:14px">'+body+'</div><div class="actions" style="margin-top:12px">'+(actions||'')+'</div></div>';document.body.appendChild(m)}
- function insertQuestionText(v){let e=$('question');if(!e)return;let p=e.selectionStart??e.value.length;e.value=e.value.slice(0,p)+v+e.value.slice(p);e.dispatchEvent(new Event('input'));e.focus()}
- function openFormulaBuilder(){modal('∑ Editor Rumus Fisika','<div class="kf-us-tools">'+[['Pecahan','\\\\frac{a}{b}'],['Akar','\\\\sqrt{x}'],['Integral','\\\\int_a^b f(x)\\,dx'],['Sigma','\\\\sum_{i=1}^{n}'],['Vektor','\\\\vec{F}'],['Matriks','\\\\begin{bmatrix}a&b\\\\c&d\\\\end{bmatrix}'],['Limit','\\\\lim_{x\\\\to0}'],['Turunan','\\\\frac{d}{dx}'],['10 pangkat n','\\\\times10^{n}']].map(x=>'<button class="btn" onclick="KFUnified.formulaInsert(\\''+x[1].replace(/\\/g,'\\\\')+'\\')">'+x[0]+'</button>').join('')+'</div><p class="small">Rumus dimasukkan pada posisi kursor di Pertanyaan dan tetap dapat diedit sebagai LaTeX.</p>')}
- function formulaInsert(v){insertQuestionText('
+ const E=id=>document.getElementById(id),W=()=>E('kfUWork');
+ function st(t,b){const e=E('kfUStatus');if(e){e.textContent=t;e.style.color=b?'#b42318':''}}
+ function setType(v){const e=E('typeSelect');if(e){e.value=v;if(typeof changeTypeSelect==='function')changeTypeSelect(v)}}
+ function manual(){const q=E('question'),w=W();if(!q||!w)return st('Editor V13 tidak ditemukan.',1);q.value=(w.innerText||'').trim();q.dispatchEvent(new Event('input',{bubbles:true}));const im=w.querySelector('img');if(im&&E('qImageUrl')){E('qImageUrl').value=im.src;E('qImageUrl').dispatchEvent(new Event('input',{bubbles:true}))}st('✓ Bahan masuk ke Editor V13.')}
+ async function aiVision(){const w=W();if(!w)return st('Workspace tidak tersedia.',1);const has=!!w.querySelector('img'),txt=(w.innerText||'').trim();if(!has&&!txt)return st('Masukkan instruksi, teks, atau gambar.',1);try{if(has){const d=E('v12PasteMaterial');if(!d||typeof v12ProcessPaste!=='function')throw Error('Gemini Vision belum tersedia');d.innerHTML=w.innerHTML;await v12ProcessPaste()}else{if(typeof generateAI!=='function')throw Error('Generator Gemini belum tersedia');const m=txt.match(/(\d{1,2})\s*soal/i),n=Math.max(1,Math.min(50,m?Number(m[1]):1));if(E('aiCount'))E('aiCount').value=n;if(E('aiMaterial'))E('aiMaterial').value=txt;if(E('aiJenjang'))E('aiJenjang').value=E('kfULevel')?.value||'SMA';if(E('aiTopik'))E('aiTopik').value=E('kfUTopic')?.value||txt;if(E('aiDiff'))E('aiDiff').value=E('kfUDiff')?.value||'Sedang';if(E('aiType'))E('aiType').value=E('kfUType')?.value||'pg5';await generateAI()}st('✓ AI selesai memproses.')}catch(e){st('⚠ '+(e.message||e),1)}}
+ async function doc(inp){try{const f=inp?.files?.[0];if(!f)return;const h=E('wordSoalFileV13');if(!h||typeof prosesWordKeV13!=='function')throw Error('Importer Word/PDF belum tersedia');const dt=new DataTransfer();dt.items.add(f);h.files=dt.files;await prosesWordKeV13(true)}catch(e){st('⚠ '+(e.message||e),1)}}
+ function image(inp){const f=inp?.files?.[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const im=document.createElement('img');im.src=rd.result;im.style.maxWidth='100%';W()?.appendChild(im)};rd.readAsDataURL(f)}
+ function improve(){if(typeof aiImprove==='function')aiImprove()} function explain(){if(typeof aiExplain==='function')aiExplain()} function variation(){if(typeof aiVariation==='function')aiVariation()} function tidy(){if(typeof aiTidyExplanation==='function')aiTidyExplanation()} function formulaPhoto(){if(typeof readFormulaPhoto==='function')readFormulaPhoto('question')}
+ function validateQ(){if(typeof collect!=='function')return st('Editor belum siap.',1);const a=typeof packageQuestionIssues==='function'?packageQuestionIssues(collect()):[];st(a.length?'⚠ '+a.join(' • '):'✓ Soal valid.',a.length)}
+ function clear(){if(W())W().innerHTML='';st('Workspace dibersihkan.')}
+ async function saveAll(){if(typeof sendWorkspaceToBank==='function')await sendWorkspaceToBank();else st('Simpan Semua belum tersedia.',1)}
+ function qs(){return Array.isArray(window.packageDraft?.questions)?window.packageDraft.questions:[]}
+ function reviewAll(){const a=qs();if(!a.length)return st('Belum ada kumpulan soal.',1);let bad=0;a.forEach(q=>{if((typeof packageQuestionIssues==='function'?packageQuestionIssues(q):[]).length)bad++});alert('Review Semua: '+(a.length-bad)+' siap, '+bad+' perlu diperiksa.')}
+ async function physicsCheck(){try{if(typeof collect!=='function'||typeof postAIAssistant!=='function')throw Error('Mesin AI belum tersedia');const q=collect(),r=await postAIAssistant('periksa fisika','Periksa konsep, hitungan, satuan, dimensi, kunci, opsi dan pembahasan. Jangan ubah soal. '+JSON.stringify(q),{question:q});alert(String(r?.text||r?.result||r?.message||'Pemeriksaan selesai'))}catch(e){st('⚠ '+(e.message||e),1)}}
+ async function saveReady(){const a=qs(),good=a.filter(q=>!(typeof packageQuestionIssues==='function'?packageQuestionIssues(q):[]).length);if(!good.length)return st('Tidak ada soal valid.',1);const orig=window.packageDraft.questions;try{window.packageDraft.questions=good;await sendWorkspaceToBank();st('✓ '+good.length+' soal valid diproses.')}finally{window.packageDraft.questions=orig}}
+ function imgSize(d){if(typeof kfQuestionImageWidth!=='undefined'){kfQuestionImageWidth=Math.max(15,Math.min(100,kfQuestionImageWidth+d));showImage();changed()}}
+ function imgAlign(a){if(typeof kfQuestionImageAlign!=='undefined'){kfQuestionImageAlign=a;showImage();changed()}}
+ function changeDifficulty(level){st('Gunakan AI Variasi untuk membuat versi '+level+'.')}
+ function undoEdit(){try{document.execCommand('undo')}catch(e){}} function redoEdit(){try{document.execCommand('redo')}catch(e){}}
+ function findDuplicates(){st('Cek duplikat aktif setelah soal masuk Bank Soal.')}
+ function batchMeta(){const a=qs(),l=E('kfULevel')?.value,d=E('kfUDiff')?.value,t=(E('kfUTopic')?.value||'').trim();a.forEach(q=>{if(l)q.jenjang=l;if(d)q.difficulty=d;if(t)q.topik=t});if(typeof savePackageDraftLocal==='function')savePackageDraftLocal();st('✓ Metadata diterapkan ke '+a.length+' soal.')}
+ function aiReviewAll(){reviewAll()}
+ function openFormulaBuilder(){const v=prompt('Masukkan LaTeX','\\frac{a}{b}');if(v)formulaInsert(v)}
+ function formulaInsert(v){const e=E('question');if(!e)return;const p=e.selectionStart==null?e.value.length:e.selectionStart;e.value=e.value.slice(0,p)+'$'+v+'$'+e.value.slice(p);e.dispatchEvent(new Event('input',{bubbles:true}));e.focus()}
+ function openGraphBuilder(){st('Generator grafik dinonaktifkan sementara agar editor stabil.')}
+ function openDiagramBuilder(){st('Generator diagram dinonaktifkan sementara agar editor stabil.')}
+ function convertType(){const v=prompt('Jenis: pg5, pg4, mcma, kategori, isian, esai','mcma');if(v)setType(v)}
+ function cleanImageAI(){st('Gambar asli dipertahankan. Gunakan Gemini Vision atau Gambar → LaTeX.')}
+ const VK='KF_V13_QUESTION_VERSIONS';
+ function saveVersion(){try{const a=JSON.parse(localStorage.getItem(VK)||'[]');a.unshift({id:Date.now(),at:new Date().toISOString(),q:collect()});localStorage.setItem(VK,JSON.stringify(a.slice(0,30)));st('✓ Versi disimpan.')}catch(e){st('⚠ '+(e.message||e),1)}}
+ function versionHistory(){let a=[];try{a=JSON.parse(localStorage.getItem(VK)||'[]')}catch(e){}alert(a.length+' versi tersimpan.')}
+ function restoreVersion(){}
+ return{setType,manual,aiVision,doc,image,improve,explain,variation,tidy,formulaPhoto,validate:validateQ,clear,saveAll,physicsCheck,reviewAll,saveReady,imgSize,imgAlign,changeDifficulty,undoEdit,redoEdit,findDuplicates,batchMeta,aiReviewAll,openFormulaBuilder,formulaInsert,openGraphBuilder,openDiagramBuilder,convertType,cleanImageAI,saveVersion,versionHistory,restoreVersion};
 })();
-</script><script id="kf-unified-runtime-cleanup">
+</script>
+
+<script id="kf-unified-runtime-cleanup">
 (function(){
  function clean(){
   ['v13UnifiedHub','v12MovedImport','v12MovedAI'].forEach(id=>{var e=document.getElementById(id);if(e)e.style.display='none'});
