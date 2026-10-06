@@ -789,25 +789,25 @@ table{max-width:100%}
 #tryout .card:has(#tryoutList){display:none!important}
 </style>
 </head>
-  <body><div id="kfAdminLoginGate" style="display:none;position:fixed;inset:0;z-index:99999;background:#f5f5fc;align-items:stretch;justify-content:center">
-  <div style="width:100%;min-height:100vh;display:flex;flex-direction:column">
-    <div style="height:54px;background:linear-gradient(90deg,#4b176f,#8b24d6,#ec3d9b);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 max(22px,calc((100vw - 950px)/2));font-size:14px"><b>KlinikFisikapku · Admin Area</b><a href="index.html" style="color:#fff;text-decoration:none;border:1px solid #ffffff66;border-radius:8px;padding:7px 15px">Member</a></div>
-    <div style="flex:1;display:flex;justify-content:center;align-items:flex-start;background:linear-gradient(110deg,#f5f4ff,#f7fbff 55%,#f2ffff);padding:32px 16px">
-      <div style="width:342px;max-width:100%;background:#fff;border:1px solid #e6dbea;border-radius:17px;padding:21px 19px 20px;box-shadow:0 16px 35px rgba(60,25,90,.12);box-sizing:border-box">
-        <h2 style="text-align:center;margin:0 0 8px;color:#18092e;font-size:21px">Masuk</h2>
-        <p style="text-align:center;color:#725b83;font-size:11px;margin:0 0 18px">Masukkan email dan password Admin untuk masuk ke akun.</p>
-        <label style="display:block;font-size:11px;font-weight:800;color:#37104f;margin-bottom:6px">Email Google</label>
-        <input id="kfAdminEmail" type="email" autocomplete="username" placeholder="nama@gmail.com" style="width:100%;height:38px;box-sizing:border-box;padding:0 10px;border:1px solid #ddc9ec;border-radius:8px;background:#fff;font-size:12px;margin-bottom:11px">
-        <label style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:#37104f;margin-bottom:6px"><span>Password</span><span style="color:#7b2cff;font-weight:600">Admin</span></label>
-        <div style="position:relative"><input id="kfAdminPassword" type="password" autocomplete="current-password" placeholder="Masukkan password" onkeydown="if(event.key==='Enter')KFAdminPasswordLoginDirect()" style="width:100%;height:38px;box-sizing:border-box;padding:0 38px 0 10px;border:1px solid #edb6e5;border-radius:8px;background:#fff;font-size:12px"><button type="button" onclick="const x=document.getElementById('kfAdminPassword');x.type=x.type==='password'?'text':'password';this.textContent=x.type==='password'?'◉':'○'" style="position:absolute;right:6px;top:4px;width:30px;height:30px;border:0;background:transparent;color:#5f2a7b;cursor:pointer">◉</button></div>
-        <button id="kfAdminPasswordBtn" type="button" onclick="KFAdminPasswordLoginDirect(this)" style="width:100%;height:38px;margin-top:12px;border:0;border-radius:8px;background:linear-gradient(90deg,#8b22df,#ed3e9c);color:#fff;font-size:12px;font-weight:800;box-shadow:0 7px 14px rgba(170,42,190,.22);cursor:pointer">Masuk</button>
-        <div style="display:flex;align-items:center;gap:9px;color:#a08cae;font-size:10px;margin:14px 0"><span style="height:1px;background:#eadff0;flex:1"></span>atau<span style="height:1px;background:#eadff0;flex:1"></span></div>
-        <button type="button" onclick="KFAdminGoogleLoginDirect(this)" style="width:100%;height:38px;border:1px solid #ddc9ec;border-radius:8px;background:#fff;color:#4b176f;font-size:12px;font-weight:700;cursor:pointer">G&nbsp;&nbsp; Masuk lewat Google</button>
-        <div id="kfAdminLoginMessage" style="min-height:16px;margin-top:8px;color:#b42318;font-size:11px;text-align:center"></div>
-        <p style="text-align:center;margin:4px 0 0;font-size:11px">Kembali ke <a href="index.html" style="color:#7b2cff;text-decoration:none">halaman Member</a></p>
+  <body><div id="kfAdminLoginGate" style="display:none;position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 75% 55%,rgba(92,221,207,.22),transparent 34%),linear-gradient(135deg,#eef2ff 0%,#f8f5ff 50%,#effcf9 100%);overflow:auto">
+  <div style="padding:34px 16px 54px;min-height:100vh;box-sizing:border-box">
+    <h1 style="text-align:center;margin:0 0 20px;color:#211231;font-size:28px">Halo, Selamat Datang 👋</h1>
+    <div style="width:min(430px,100%);margin:0 auto;padding:25px;border:1px solid rgba(91,56,124,.16);border-radius:18px;background:rgba(255,255,255,.9);box-shadow:0 16px 42px rgba(55,30,86,.14);box-sizing:border-box">
+      <h2 style="margin:0 0 5px;text-align:center;color:#211231">Masuk</h2>
+      <p style="margin:0 0 18px;text-align:center;color:#6b5680;font-size:13px">Masukkan email dan password Admin untuk masuk ke akun.</p>
+      <label style="display:flex;justify-content:space-between;align-items:center;font-weight:bold;font-size:12px;margin:12px 0 5px;color:#512066">Email Google</label>
+      <input id="kfAdminEmail" type="email" autocomplete="username" placeholder="nama@gmail.com" style="width:100%;padding:11px;border:1px solid #dfc8ef;border-radius:9px;font-size:14px;font-family:inherit;box-sizing:border-box;background:#fff">
+      <div style="position:relative">
+        <label style="display:flex;justify-content:space-between;align-items:center;font-weight:bold;font-size:12px;margin:12px 0 5px;color:#512066"><span>Password</span></label>
+        <input id="kfAdminPassword" type="password" autocomplete="current-password" placeholder="Masukkan password" onkeydown="if(event.key==='Enter')KFAdminPasswordLoginDirect()" style="width:100%;padding:11px 46px 11px 11px;border:1px solid #dfc8ef;border-radius:9px;font-size:14px;font-family:inherit;box-sizing:border-box;background:#fff">
+        <button type="button" onclick="const x=document.getElementById('kfAdminPassword');x.type=x.type==='password'?'text':'password'" aria-label="Tampilkan password" style="position:absolute;right:8px;bottom:7px;width:34px;border:0;background:transparent;color:#57307e;cursor:pointer;font-size:16px">◉</button>
       </div>
+      <button id="kfAdminPasswordBtn" type="button" onclick="KFAdminPasswordLoginDirect(this)" style="width:100%;margin-top:16px;padding:11px;border:0;border-radius:9px;background:linear-gradient(100deg,#8d22e4,#ec3d9b);color:#fff;box-shadow:0 6px 16px rgba(130,43,217,.28);font-weight:bold;cursor:pointer">Masuk</button>
+      <div style="display:flex;align-items:center;gap:10px;margin:18px 0;color:#826d95;font-size:11px"><span style="height:1px;flex:1;background:#d9cce5"></span>atau<span style="height:1px;flex:1;background:#d9cce5"></span></div>
+      <button type="button" onclick="KFAdminGoogleLoginDirect(this)" style="width:100%;padding:12px;border:1px solid #cfc1dc;border-radius:11px;background:#fff;color:#2f213b;font-weight:700;cursor:pointer"><span style="display:inline-grid;place-items:center;width:20px;height:20px;margin-right:7px;border-radius:50%;font-weight:900;color:#4285f4">G</span>Masuk lewat Google</button>
+      <div id="kfAdminLoginMessage" style="min-height:18px;margin-top:10px;color:#b42318;font-size:12px;text-align:center"></div>
+      <p style="text-align:center;margin:8px 0 0;font-size:12px;color:#5e4a70">Kembali ke <a href="index.html" style="color:#6e34e8;text-decoration:none;font-weight:700">halaman Member</a></p>
     </div>
-    <div style="height:58px;background:#42196b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px">KlinikFisikapku · Admin Area · 2026</div>
   </div>
 </div>
     <header class="top">
