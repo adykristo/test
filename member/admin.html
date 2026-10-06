@@ -808,7 +808,7 @@ table{max-width:100%}
         ><button onclick="openKontenV2('soal', this)">✎ Soal Latihan</button
         ><button onclick="openKontenV2('video', this)">▶ Video Pembahasan</button
         ><button onclick="openKontenV2('tryout', this)">★ Tryout Mingguan</button
-        ><button onclick="openPanel('v12builder', this);setTimeout(bacaBankV12,250)">✦ Pembuat Soal V13</button>
+        ><button onclick="openPanel('v12builder', this);setTimeout(bacaBankV12,250)">✦ Pembuat Soal V14</button>
       </aside>
       <main>
         <section id="ringkasan" class="panel show">
@@ -1130,25 +1130,25 @@ table{max-width:100%}
               <div class="v12-launch-mark">✦</div>
               <div class="v12-launch-copy">
                 <span class="v12-launch-kicker">KLINIKFISIKAPKU · QUESTION STUDIO</span>
-                <h1>Pembuat Soal V13</h1>
-                <p>Studio V13 dibuka sebagai ruang kerja tersendiri agar editor lebih luas, lebih fokus, dan Admin tetap tersedia di tab ini.</p>
+                <h1>Pembuat Soal V14</h1>
+                <p>Studio V14 dibuka sebagai ruang kerja tersendiri agar editor lebih luas, lebih fokus, dan Admin tetap tersedia di tab ini.</p>
                 <div class="v12-launch-actions">
-                  <button class="btn v12-launch-primary" type="button" onclick="openV12NewTab()">🚀 Buka Studio V13 di Tab Baru</button>
+                  <button class="btn v12-launch-primary" type="button" onclick="openV12NewTab()">🚀 Buka Studio V14 di Tab Baru</button>
                   <button class="btn ghost" type="button" onclick="openV12SameTab()">↗ Buka di Tab Ini</button>
                 </div>
                 <div class="v12-launch-note">Disarankan menggunakan <b>Tab Baru</b>. Setelah selesai membuat soal, kembali ke tab Admin untuk distribusi Paket dan Topik.</div>
               </div>
             </div>
             <div class="v12-launch-grid">
-              <div class="v12-mini-card"><div class="v12-mini-icon">✎</div><div><b>Buat Soal</b><p>Area kerja V13 mendapat ruang browser penuh.</p></div></div>
-              <div class="v12-mini-card"><div class="v12-mini-icon">▣</div><div><b>Bank Soal</b><p>Simpan paket soal seperti biasa di V13.</p></div></div>
+              <div class="v12-mini-card"><div class="v12-mini-icon">✎</div><div><b>Buat Soal</b><p>Area kerja V14 mendapat ruang browser penuh.</p></div></div>
+              <div class="v12-mini-card"><div class="v12-mini-icon">▣</div><div><b>Bank Soal</b><p>Simpan paket soal seperti biasa di V14.</p></div></div>
               <div class="v12-mini-card"><div class="v12-mini-icon">⇢</div><div><b>Distribusi</b><p>Kembali ke Admin untuk Paket, Topik, Latihan, dan Tryout.</p></div></div>
             </div>
             <div class="v12-workflow-card"><b>Alur kerja</b><div class="v12-workflow"><span>1. Buka Studio</span><i>→</i><span>2. Buat & Simpan</span><i>→</i><span>3. Kembali ke Admin</span><i>→</i><span>4. Distribusikan</span></div></div>
           </div>
 
           <!-- Bridge V13: iframe tersembunyi dipertahankan untuk kompatibilitas fungsi lama; data Bank V13 dibaca dari localStorage origin yang sama. -->
-          <iframe id="v12Frame" src="pembuat-soal-klinikfisikapku-v13.html" title="V13 Bridge" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0" aria-hidden="true" tabindex="-1"></iframe>
+          <iframe id="v12Frame" src="pembuat-soal-terpadu-uji.html" title="V14 Bridge" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0" aria-hidden="true" tabindex="-1"></iframe>
           <div class="card">
             <div class="head"><div><h2>Kirim dari Bank V13</h2><p class="sub" style="margin:4px 0 0">Pilih seluruh paket atau pilih soal tertentu, kemudian kirim sebagai draf Paket Latihan/Tryout.</p></div><button class="btn ghost small" onclick="bacaBankV12()">↻ Segarkan Bank V13</button><button class="btn ghost small" onclick="KFGASWorkspace.push().then(r=>KFUI.toast('Workspace V13 tersimpan di Google Sheets: '+r.count+' paket','ok')).catch(e=>KFUI.toast(e.message,'err',5000))">☁ Simpan Workspace ke Google</button><button class="btn ghost small" onclick="KFGASWorkspace.pull().then(()=>{bacaBankV12();KFUI.toast('Workspace berhasil dipanggil dari Google Sheets','ok')}).catch(e=>KFUI.toast(e.message,'err',5000))">☁ Panggil dari Google</button><button class="btn ghost small" onclick="const u=prompt('URL Web App Google Apps Script (/exec):',localStorage.getItem('kf_v12_gas_url')||'');if(u){KFGASWorkspace.setUrl(u.trim());alert('✓ URL Google Apps Script tersimpan di browser Admin.')}">⚙ Atur Google Script</button></div>
             <div id="v12BankBridge" class="manage-list"><div class="sub">Muat Bank V13 untuk mulai.</div></div>
@@ -2642,12 +2642,12 @@ window.addEventListener("load",()=>{setTimeout(()=>{compactMemberActions();enhan
 
 /* ===== V12 Dedicated Tab Launcher ===== */
 function openV12NewTab(){
-  const w=window.open("pembuat-soal-klinikfisikapku-v13.html","KF_V13_STUDIO");
+  const w=window.open("pembuat-soal-terpadu-uji.html","KF_V14_STUDIO");
   if(w){try{w.focus()}catch(e){}}
   else KFUI.toast("Tab baru diblokir browser. Izinkan pop-up untuk KlinikFisikapku lalu coba lagi.","err",5500);
 }
 function openV12SameTab(){
-  window.location.href="pembuat-soal-klinikfisikapku-v13.html";
+  window.location.href="pembuat-soal-terpadu-uji.html";
 }
 
 /* ===== Free learning policy + Tryout activation ===== */
