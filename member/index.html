@@ -1388,6 +1388,7 @@ iframe.pdfview{display:block;min-height:520px}
         renderRingkasan();
         renderList();
         renderProgressPerPaket();
+        try{await kfLoadServerPackages()}catch(e){console.warn("Sinkron paket V14 Member:",e)}
       }
 
       async function keluar() {
@@ -1968,11 +1969,11 @@ iframe.pdfview{display:block;min-height:520px}
     <script src="supabase-data-v15.js?v=20261005-final-security2"></script>
   
 <script>
-/* V15 SERVER PACKAGE ENGINE — single source of truth */
+/* V14 MEMBER PACKAGE ENGINE — sinkron dengan Admin V14; Supabase tetap single source of truth */
 let KF_SERVER_PACKAGES=[];
 async function kfLoadServerPackages(){
  if(!window.KFPackageDB)return;
- try{KF_SERVER_PACKAGES=await KFPackageDB.listPackages()||[];kfRenderServerPackageBoxes();}catch(e){console.warn("Paket Supabase:",e)}
+ try{KF_SERVER_PACKAGES=await KFPackageDB.listPackages()||[];kfRenderServerPackageBoxes();}catch(e){KF_SERVER_PACKAGES=[];kfRenderServerPackageBoxes();console.warn("Paket V14 Supabase:",e)}
 }
 function kfRenderServerPackageBoxes(){
  let old=document.getElementById("kfPackageAccessBox");
@@ -1983,9 +1984,9 @@ function kfRenderServerPackageBoxes(){
   return `<div class="kf-pkg-card ${blocked?"kf-pkg-locked":""}"><h3>${kind==="tryout"?"🏆":"✎"} ${esc(p.name)}</h3><div class="kf-pkg-meta">${Number(p.question_count||0)} soal${kind==="tryout"?` · ${p.duration_minutes||0} menit · Percobaan ${Number(p.attempts_used||0)}/${Number(p.max_attempts||1)}`:""}${schedule}<br><b>${blocked||"Tersedia untuk paket langganan Anda"}</b></div><button class="btn ${blocked?"btn-ghost":"btn-main"}" ${blocked?"disabled":`onclick="kfStartServerPackage('${p.id}')"`}>${blocked?blocked:"Mulai"}</button></div>`;
  }).join("");
  if(filterAktif==="soal"){
-   old.innerHTML=`<div class="server-section-head"><small>LATIHAN INTERAKTIF</small><h2>✍️ Latihan Soal</h2><p>Latihan yang tersedia untuk paket aktif Anda.</p></div><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty learning-empty">Belum ada latihan yang tersedia pada paket Anda.</div>'}</div>`;
+   old.innerHTML=`<div class="server-section-head"><small>LATIHAN INTERAKTIF V14</small><h2>✍️ Latihan Interaktif</h2><p>Latihan V14 yang dipublikasikan Admin dan tersedia untuk paket aktif Anda.</p></div><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty learning-empty">Belum ada latihan yang tersedia pada paket Anda.</div>'}</div>`;
  }else if(filterAktif==="tryout"){
-   old.innerHTML=`<div class="server-section-head tryout-head"><small>SIMULASI OLIMPIADE</small><h2>🏆 Tryout</h2><p>Tryout hanya tersedia setelah diaktifkan Admin untuk paket Anda.</p></div><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty learning-empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
+   old.innerHTML=`<div class="server-section-head tryout-head"><small>TRYOUT MINGGUAN V14</small><h2>🏆 Tryout Mingguan</h2><p>Tryout V14 hanya tampil setelah dipublikasikan Admin untuk paket aktif Anda.</p></div><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty learning-empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
  }else{
    old.innerHTML="";
  }
