@@ -876,11 +876,9 @@ function collect(){
  let inlineImagesUsed={};let joined=[question,...(answerState.options||[]),explanation].join('\n');Object.keys(v13InlineImages).forEach(k=>{if(joined.includes(']'+k+'[/GAMBAR]'))inlineImagesUsed[k]=v13InlineImages[k]});return {id:editingId||uid(),inlineImages:inlineImagesUsed,type:currentType,jenjang:$('jenjang').value,mapel:$('mapel').value,kelas:$('kelas').value,difficulty:$('difficulty').value,topik:$('topik').value,subtopik:$('subtopik').value,status:'Siap Pakai',tags:$('tags').value,question:$('question').value,image:imageData||$('qImageUrl')?.value||'',imageRotation,answers:(()=>{let a=JSON.parse(JSON.stringify(answerState));a.optionImages=a.optionImages||{};Object.keys(a.optionImageData||{}).forEach(k=>{if(a.optionImageData[k])a.optionImages[k]=a.optionImageData[k]});return a})(),explanation:$('explanation').value,explanationImage:explanationImageData||$('explanationImageUrl')?.value||'',explanationImagePosition:$('explanationImagePosition')?.value||'bottom',explanationImageAlign:$('explanationImageAlign')?.value||'center',explanationImageWidth:Number($('explanationImageWidth')?.value||50),score:1,scoring:$('scoring')?.value||'exact',source:'',updatedAt:new Date().toISOString()}
 }
 function validate(q=collect()){
- let errs=[];if(!q.question.trim())errs.push('Pertanyaan belum diisi');
- if(['pg5','pg4','mcma'].includes(q.type)){if(q.answers.options.some(x=>!x.trim()))errs.push('Masih ada opsi kosong');if(!q.answers.keys.length)errs.push('Kunci belum dipilih');if(q.type==='mcma'&&q.answers.keys.length<2)errs.push('MCMA sebaiknya memiliki ≥2 jawaban benar')}
- if(q.type==='kategori'&&q.answers.statements.some(x=>!x.text.trim()))errs.push('Ada pernyataan kategori kosong');
- if(q.type==='isian'&&!q.answers.short.trim())errs.push('Jawaban isian belum diisi');
- let el=$('validation');if(el){el.className='notice '+(errs.length?'bad':'good');el.innerHTML=errs.length?'⚠️ '+errs.join(' • '):'✓ Soal siap disimpan.'}return errs
+ let errs=packageQuestionIssues(q);
+ if(q.type==='mcma'&&(q.answers?.keys||[]).length<2)errs.push('MCMA sebaiknya memiliki ≥2 jawaban benar');
+ let el=$('validation');if(el){el.className='notice '+(errs.length?'bad':'good');el.innerHTML=errs.length?'⚠️ '+errs.map(esc).join(' • '):'✓ Soal siap disimpan.'}return errs
 }
 async function saveEssayParticipantSubmission(payload){
  const db=window.KFMemberAuth?.client||window.KFSupabaseAdmin?.client;
@@ -897,7 +895,7 @@ function questionHTML(q,interactive=true){if(q&&q.inlineImages)Object.assign(v13
  let h=`<div class="tags"><span class="tag">${esc(typeName(q.type))}</span><span class="tag">${esc(q.jenjang)}</span><span class="tag">${esc(q.difficulty)}</span></div><h3 style="line-height:1.5">${q.question?renderRichText(q.question):'<span class="small">Pertanyaan akan tampil di sini…</span>'}</h3>`;
  if(q.image)h+=`<img class="qimg" src="${esc(q.image)}" style="transform:rotate(${q.imageRotation||0}deg)">`;
  if(['pg5','pg4','mcma'].includes(q.type))q.answers.options.forEach((o,i)=>{let typ=q.type==='mcma'?'checkbox':'radio';h+=`<div class="pv-option"><label>${interactive?`<input type="${typ}" name="pvans" value="${i}">`:''}<b>${'ABCDE'[i]}.</b> <span>${renderRichText(o)}</span></label>${(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i])?positionedImageHTML(q.answers.optionImageData?.[i]||q.answers.optionImages?.[i],'option',q.answers.optionImageAlign?.[i]||'center',q.answers.optionImageWidth?.[i]||50):''}</div>`});
- else if(q.type==='kategori')q.answers.statements.forEach((s,i)=>h+=`<div class="pv-option"><b>${i+1}.</b> ${esc(cleanAIMathText(s.text))} ${interactive?`<select class="catans" data-i="${i}" style="margin-top:7px"><option value="">Pilih...</option><option>Benar</option><option>Salah</option></select>`:''}</div>`);
+ else if(q.type==='kategori')q.answers.statements.forEach((s,i)=>h+=`<div class="pv-option"><b>${i+1}.</b> <span>${renderRichText(s.text||'')}</span> ${interactive?`<select class="catans" data-i="${i}" style="margin-top:7px"><option value="">Pilih...</option><option>Benar</option><option>Salah</option></select>`:''}</div>`);
  else if(q.type==='isian')h+=interactive?'<input id="pvShort" placeholder="Ketik jawaban...">':'<div class="notice">Jawaban singkat</div>';
  else if(q.type==='esai'){
    if(interactive){
@@ -1726,7 +1724,7 @@ function sendWorkspaceToBank(){
  alert('✓ '+valid.length+' soal berhasil dikirim ke Bank Soal.');
  renderBank();nav('bank');
 }
-function packageQuestionValid(q){if(!q||!(q.question||q.image))return false;if(['pg5','pg4','mcma'].includes(q.type))return (q.answers?.options||[]).filter(x=>String(x||'').trim()).length>=2&&(q.answers?.keys||[]).length>0;if(q.type==='kategori')return (q.answers?.statements||[]).some(x=>String(x.text||'').trim());if(q.type==='isian')return !!String(q.answers?.short||'').trim();return true}
+function packageQuestionValid(q){return packageQuestionIssues(q).length===0}
 function saveCurrentToPackage(){
  let q=collect(),issues=packageQuestionIssues(q);
  q.id=editingId||q.id||uid();q.updatedAt=new Date().toISOString();q.status=issues.length?'Draft':'Siap Pakai';
@@ -1800,7 +1798,7 @@ function packageQuestionIssues(q){
  if(!q){return ['Soal belum dibuat'];}
  if(!String(q.question||'').trim()&&!q.image)issues.push('Pertanyaan belum diisi');
  if(['pg5','pg4','mcma'].includes(q.type)){
-   let required=q.type==='pg5'?5:q.type==='pg4'?4:2;
+   let required=q.type==='pg5'?5:q.type==='pg4'?4:5;
    let opts=(q.answers?.options||[]).filter(x=>String(x||'').trim());
    if(opts.length<required)issues.push('Pilihan jawaban belum lengkap');
    if(!(q.answers?.keys||[]).length)issues.push('Kunci jawaban belum dipilih');
