@@ -1703,14 +1703,15 @@ iframe.pdfview{display:block;min-height:520px}
             const terkunci = !bolehBuka(x),
               selesai = selesaiItem(x) || statusTopik(x.topik),
               tryout = false;
-            const klikKartu=normalJenis(x)==="video" ? "" : (terkunci ? "alert('Selesaikan seluruh latihan topik sebelumnya terlebih dahulu.')" : "bukaDetail(" + dataMateri.indexOf(x) + ")");
+            const isPdfCard=normalJenis(x)==="soal" && (String(x.source_type||"").toLowerCase()==="pdf" || !!String(x.pdfUrl||x.pdf_url||x.file_url||"").trim());
+            const klikKartu=(normalJenis(x)==="video" || isPdfCard) ? "" : (terkunci ? "alert('Selesaikan seluruh latihan topik sebelumnya terlebih dahulu.')" : "bukaDetail(" + dataMateri.indexOf(x) + ")");
             return `<div class="mcard ${terkunci ? "locked" : ""}"${klikKartu ? ` onclick="${klikKartu}"` : ""}>
       <div class="ic">${ICON[normalJenis(x)] || "📁"}</div>
       <div>
         <div class="topik">${esc(x.topik || "")}</div>
         <div class="judul">${terkunci ? "🔒 " : ""}${esc(x.judul || "")}</div>
         <div class="card-meta-row">
-          <span class="tag ${["pdf","soal","video"].includes(normalJenis(x))?normalJenis(x):""}">${esc(tryout ? "🏆 Tryout Topik" : LABEL[normalJenis(x)] || normalJenis(x))}</span>
+          <span class="tag ${["pdf","soal","video"].includes(normalJenis(x))?normalJenis(x):""}">${esc(isPdfCard ? "Latihan PDF" : (tryout ? "🏆 Tryout Topik" : LABEL[normalJenis(x)] || normalJenis(x)))}</span>
           <span class="package-badge">${(paketNamaKonten(x)||topikDiPaketSaya(x))?"📦 "+esc(paketNamaKonten(x)||topikDiPaketSaya(x)):"📦 Belum dipetakan ke paket"}</span>
         </div>
         ${selesai ? '<span class="tag" style="margin-left:5px">✓ Latihan selesai</span>' : ""}
