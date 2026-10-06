@@ -1269,8 +1269,8 @@ async function postGAS(action,data={}){
  if(out?.ok===false||out?.status==='error')throw new Error(out.error||out.message||'Apps Script menolak permintaan.');
  return out;
 }
-async async function testConnection(){saveConnection();$('connectionStatus').className='notice';$('connectionStatus').textContent='Menguji koneksi...';try{let r=await postGAS('health');$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Apps Script terhubung'+(r.message?' — '+r.message:'')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ '+e.message}}
-async async function syncOnline(){
+async function testConnection(){saveConnection();$('connectionStatus').className='notice';$('connectionStatus').textContent='Menguji koneksi...';try{let r=await postGAS('health');$('connectionStatus').className='notice good';$('connectionStatus').textContent='✓ Apps Script terhubung'+(r.message?' — '+r.message:'')}catch(e){$('connectionStatus').className='notice bad';$('connectionStatus').textContent='✗ '+e.message}}
+async function syncOnline(){
  const status=$('connectionStatus');
  if(status){status.className='notice';status.textContent='Menyinkronkan paket ke Supabase...'}
  try{
