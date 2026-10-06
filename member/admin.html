@@ -807,6 +807,7 @@ table{max-width:100%}
         ><button onclick="openPanel('pendaftaran', this)">
           ◷ Pendaftaran Baru</button
         ><button onclick="openPanel('member', this)">♙ Daftar Member</button
+        ><button onclick="openPanel('monitoring', this);kfAuditPeserta()">🔍 Monitoring Peserta</button
         ><button onclick="openPanel('paket', this);renderPaketBaru()">💳 Paket &amp; Harga</button
         ><button onclick="openPanel('transaksi', this);renderBundleOrders()">➕ Permintaan Paket</button
         ><button onclick="openPanel('laporan', this);muatLaporan()">▥ Laporan</button
@@ -926,6 +927,20 @@ table{max-width:100%}
               <span id="memberHasilInfo">0 peserta ditampilkan</span>
               <span>Ekspor mengikuti hasil pencarian dan filter.</span>
             </div>
+          </div>
+        </section>
+        <section id="monitoring" class="panel">
+          <div class="head"><div><h1>🔍 Monitoring Peserta V14</h1><p class="sub">Audit read-only untuk melihat kesehatan akses peserta tanpa mengubah nilai atau progress.</p></div><button class="btn" onclick="kfAuditPeserta()">↻ Jalankan Audit</button></div>
+          <div class="stats">
+            <div class="stat"><b id="kfAuditTotal">0</b>Peserta</div>
+            <div class="stat"><b id="kfAuditNormal">0</b>Normal</div>
+            <div class="stat"><b id="kfAuditWarn">0</b>Perlu diperiksa</div>
+            <div class="stat"><b id="kfAuditBad">0</b>Bermasalah</div>
+          </div>
+          <div class="card">
+            <div class="member-toolbar"><select id="kfAuditJenjang" onchange="kfRenderAuditRows()"><option value="">Semua jenjang</option><option>SD</option><option>SMP</option><option>SMA</option></select><input id="kfAuditCari" placeholder="Cari peserta atau paket…" oninput="kfRenderAuditRows()"></div>
+            <div id="kfAuditSummary" class="sub" style="margin:10px 0">Klik Jalankan Audit.</div>
+            <div class="table-wrap"><table><thead><tr><th>Peserta</th><th>Jenjang</th><th>Paket Aktif</th><th>Status Audit</th><th>Temuan</th><th>Aksi</th></tr></thead><tbody id="kfAuditRows"></tbody></table></div>
           </div>
         </section>
         <section id="paket" class="panel">
@@ -1490,7 +1505,7 @@ function openPanel(id, b) {
             <td><b>${escMember(x.paket||"Belum ada paket aktif")}</b><br><span class="status-pill ${st}">${escMember(STATUS_LABEL[st]||st)}</span></td>
             <td>${escMember(formatTanggalMember(x.berakhir))}</td>
             <td><span class="member-date-cell">${escMember(formatTanggalMember(x.updated_at||x.created_at,true))}</span></td>
-            <td><div class="row-actions member-actions"><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn ghost small" onclick="kelolaPaketMember('${x.id}')">Kelola Paket</button>${aksi}<button class="btn danger small" onclick="hapusMember('${x.id}')">Arsipkan</button></div></td>
+            <td><div class="row-actions member-actions"><button class="btn ghost small" onclick="lihatDetailMember('${x.id}')">Detail</button><button class="btn ghost small" onclick="kfLihatSebagaiPeserta('${x.id}')">👁 Lihat Tampilan</button><button class="btn ghost small" onclick="kelolaPaketMember('${x.id}')">Kelola Paket</button>${aksi}<button class="btn danger small" onclick="hapusMember('${x.id}')">Arsipkan</button></div></td>
           </tr>`;
         }).join("")||'<tr><td colspan="9" style="text-align:center;padding:30px">Tidak ada peserta yang sesuai dengan pencarian atau filter.</td></tr>';
         const info=document.getElementById("memberHasilInfo");if(info)info.textContent=`${tersaring.length} dari ${MEMBER_CACHE.length} peserta ditampilkan · data profil tersinkron dari akun peserta`;
@@ -2702,6 +2717,56 @@ const _renderAccessManagersPreview=renderAccessManagers;
 renderAccessManagers=async function(){await _renderAccessManagersPreview();for(const kind of ["latihan","tryout"]){document.querySelectorAll(`#${kind}AccessManager .manage-item`).forEach(el=>{if(el.querySelector(".final-preview-btn"))return;const access=el.querySelector("button[onclick*='aturAksesFinal']");if(!access)return;const m=(access.getAttribute("onclick")||"").match(/'([^']+)'/);if(!m)return;const b=document.createElement("button");b.className="btn ghost small final-preview-btn";b.innerHTML="◉ Preview";b.onclick=()=>previewFinalPackage(m[1]);access.parentElement?.insertBefore(b,access)})}}
 const kfMutationObserver=new MutationObserver(()=>{compactMemberActions();enhanceContentPreviewButtons()});
 window.addEventListener("load",()=>{setTimeout(()=>{compactMemberActions();enhanceContentPreviewButtons();kfMutationObserver.observe(document.body,{childList:true,subtree:true})},1700)});
+
+
+/* ===== Monitoring Peserta V14 — READ ONLY ===== */
+let KF_AUDIT_ROWS=[];
+async function kfAuditPeserta(){
+ const box=document.getElementById("kfAuditSummary");if(box)box.textContent="Memeriksa peserta, kepemilikan paket, dan pemetaan konten…";
+ try{
+  if(!MEMBER_CACHE.length)await renderMemberAdmin();
+  await loadPackageCore();
+  const db=kfdb();
+  const mapq=await db.from("member_content_packages").select("content_id,package_id");
+  const maps=mapq.error?[]:(mapq.data||[]);
+  const contentCount=new Map();maps.forEach(x=>contentCount.set(String(x.package_id),(contentCount.get(String(x.package_id))||0)+1));
+  const rows=[];
+  for(const m of MEMBER_CACHE){
+   let own=[];try{const q=await db.rpc("kf_admin_member_packages",{p_user:m.id});if(!q.error)own=q.data||[]}catch(e){}
+   const active=own.filter(x=>String(x.status||"").toLowerCase()==="active");
+   const findings=[],level=String(m.jenjang||"").toUpperCase();
+   if(statusEfektifMember(m)==="aktif"&&!active.length)findings.push("Akun aktif tetapi tidak memiliki paket aktif");
+   active.forEach(p=>{
+    const pkg=KF_PACKAGES_NEW.find(x=>String(x.id)===String(p.package_id));
+    if(!pkg)findings.push("Paket aktif tidak ditemukan di katalog");
+    else if(level&&String(pkg.jenjang||"").toUpperCase()!==level)findings.push("Jenjang peserta berbeda dengan "+pkg.nama);
+    if((contentCount.get(String(p.package_id))||0)===0)findings.push((p.package_name||pkg?.nama||"Paket")+" belum memiliki konten Modul/PDF/Video");
+   });
+   rows.push({member:m,active,findings,status:findings.length?(findings.some(x=>/tidak memiliki paket|tidak ditemukan|berbeda/i.test(x))?"bad":"warn"):"normal"});
+  }
+  KF_AUDIT_ROWS=rows;kfRenderAuditRows();
+ }catch(e){if(box)box.textContent="Audit gagal: "+e.message;console.warn(e)}
+}
+function kfRenderAuditRows(){
+ const q=String(document.getElementById("kfAuditCari")?.value||"").toLowerCase(),j=String(document.getElementById("kfAuditJenjang")?.value||"").toUpperCase();
+ const rows=KF_AUDIT_ROWS.filter(r=>(!j||String(r.member.jenjang||"").toUpperCase()===j)&&(!q||[r.member.nama,r.member.email,r.member.paket,...r.active.map(x=>x.package_name)].join(" ").toLowerCase().includes(q)));
+ const n=x=>KF_AUDIT_ROWS.filter(r=>r.status===x).length;
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set("kfAuditTotal",KF_AUDIT_ROWS.length);set("kfAuditNormal",n("normal"));set("kfAuditWarn",n("warn"));set("kfAuditBad",n("bad"));
+ const body=document.getElementById("kfAuditRows");if(body)body.innerHTML=rows.map(r=>{const m=r.member,label=r.status==="normal"?"🟢 Normal":r.status==="warn"?"🟡 Perlu diperiksa":"🔴 Bermasalah";return '<tr><td><b>'+escMember(m.nama||"Member")+'</b><br><small>'+escMember(m.email||"")+'</small></td><td>'+escMember(String(m.jenjang||"-").toUpperCase())+'</td><td>'+escMember(r.active.map(x=>x.package_name).join(", ")||"—")+'</td><td><b>'+label+'</b></td><td><small>'+escMember(r.findings.join(" • ")||"Tidak ada anomali dasar")+'</small></td><td><button class="btn ghost small" onclick="kfLihatSebagaiPeserta(\''+m.id+'\')">👁 Lihat Tampilan</button></td></tr>'}).join("")||'<tr><td colspan="6" style="text-align:center;padding:24px">Tidak ada data sesuai filter.</td></tr>';
+ const info=document.getElementById("kfAuditSummary");if(info)info.textContent=rows.length+" peserta ditampilkan · audit ini read-only dan tidak mengubah progress peserta.";
+}
+async function kfLihatSebagaiPeserta(memberId){
+ const m=MEMBER_CACHE.find(x=>String(x.id)===String(memberId));if(!m)return KFUI.toast("Peserta tidak ditemukan.","err");
+ try{
+  await loadPackageCore();const db=kfdb(),q=await db.rpc("kf_admin_member_packages",{p_user:memberId});if(q.error)throw q.error;
+  const active=(q.data||[]).filter(x=>String(x.status||"").toLowerCase()==="active"),ids=active.map(x=>String(x.package_id));
+  let maps=[];if(ids.length){const mq=await db.from("member_content_packages").select("content_id,package_id").in("package_id",ids);if(!mq.error)maps=mq.data||[]}
+  const counts={};maps.forEach(x=>counts[String(x.package_id)]=(counts[String(x.package_id)]||0)+1);
+  const lines=active.map((x,i)=>(i+1)+". "+x.package_name+" — "+(counts[String(x.package_id)]||0)+" konten Modul/PDF/Video");
+  const msg="MODE PREVIEW READ-ONLY\n\nPeserta: "+(m.nama||"Member")+"\nJenjang: "+String(m.jenjang||"-").toUpperCase()+"\nStatus: "+(STATUS_LABEL[statusEfektifMember(m)]||statusEfektifMember(m))+"\n\nPAKET YANG SEHARUSNYA TERLIHAT:\n"+(lines.join("\n")||"Belum ada paket aktif")+"\n\nLatihan Interaktif dan Tryout tetap difilter server berdasarkan paket peserta saat login.";
+  await KFUI.alert(msg,"👁 Tampilan Peserta V14");
+ }catch(e){KFUI.toast("Preview peserta gagal: "+e.message,"err",6000)}
+}
 
 /* ===== V12 Dedicated Tab Launcher ===== */
 function openV12NewTab(){
