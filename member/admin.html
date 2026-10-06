@@ -2046,7 +2046,7 @@ function openPanel(id, b) {
 
 <script>
 
-/* ===== V13 -> PAKET LATIHAN / TRYOUT ===== */
+/* ===== V14 -> PAKET LATIHAN / TRYOUT ===== */
 const KF_TRAIN_PACKAGES="kf_member_training_packages_v13";
 const KF_TRYOUT_PACKAGES="kf_member_tryout_packages_v13";
 const KF_V13_BANK="kf_package_bank_v1"; // legacy storage key dipertahankan agar Bank Soal lama tidak hilang
@@ -2091,7 +2091,7 @@ function renderPkgManagers(){
    <div class="head"><div><b>${h(p.name)}</b><div class="pkg-meta">${p.questions.length} soal · ${p.visible?"Dipublikasikan":"Draf"}${kind==="tryout"?` · ${Number(p.duration)||90} menit`:""} · <b>Tujuan: ${h(p.targetPackageName||"BELUM DIPILIH")}</b></div></div></div>
    <div class="pkg-actions">
     <button class="btn small" onclick="bukaPkgEditor('${kind}','${p.id}')">✎ Atur & Edit Soal</button>
-    <button class="btn ghost small" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal V13</button>
+    <button class="btn ghost small" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal V14</button>
     <button class="btn ghost small" onclick="aturTujuanPaketLokal('${kind}','${p.id}')">👥 Atur Paket Peserta</button>
     <button class="btn ghost small" onclick="duplikatPkg('${kind}','${p.id}')">Duplikat</button>
     <button class="btn ghost small" onclick="eksporPaketWord('${kind}','${p.id}')">📄 Word</button>
@@ -2203,7 +2203,7 @@ async function addV12Questions(kind,targetId,srcPack,questions){
    if(name===null)return;
    p=newPkg(kind,name.trim()||srcPack.name);a.unshift(p);
  }
- questions.forEach(q=>{let c=cloneObj(q);c.sourceV12Package=srcPack.id;c.sourceV12Question=q.id||"";c.packageEdited=false;p.questions.push(c)});
+ questions.forEach(q=>{let c=cloneObj(q);c.sourceV14Package=srcPack.id;c.sourceV14Question=q.id||"";c.packageEdited=false;p.questions.push(c)});
  p.updatedAt=new Date().toISOString();let i=a.findIndex(x=>x.id===p.id);if(i>=0)a[i]=p;
  localStorage.setItem(pkgKey(kind),JSON.stringify(a));renderPkgManagers();
  KFUI.toast(questions.length+" soal ditambahkan ke "+(kind==="tryout"?"Paket Tryout":"Paket Latihan")+".","ok",4500);
