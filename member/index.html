@@ -1583,10 +1583,19 @@ iframe.pdfview{display:block;min-height:520px}
           const contentDone=items.filter(selesaiItem).length;
           // Progress produksi: konten (Modul/Video) + paket interaktif V14 (Latihan/Tryout).
           // Engine soal/scoring/review tidak disentuh; status selesai berasal dari kf_my_results.
+          const normPkgName=v=>String(v||"").trim().toLowerCase().replace(/\s+/g," ");
           const serverPackages=(KF_SERVER_PACKAGES||[]).filter(sp=>{
             const sid=String(sp.member_package_id||sp.target_package_id||sp.package_access_id||"");
-            const sn=String(sp.member_package_name||sp.target_package_name||"");
-            return (pid&&sid===pid)||(!sid&&sn===pname);
+            const sn=String(sp.member_package_name||sp.target_package_name||sp.package_name||"");
+            if(pid&&sid===pid)return true;
+            if(sn&&normPkgName(sn)===normPkgName(pname))return true;
+            // RPC daftar assessment peserta sudah difilter berdasarkan paket yang dimiliki.
+            // Jika metadata target paket tidak ikut dikembalikan, nama assessment seperti
+            // "PAKET 13" tetap dapat dipetakan ke "SMA • Paket 13" secara aman.
+            const assessmentName=normPkgName(sp.name||"");
+            const memberName=normPkgName(pname);
+            const paketNo=(memberName.match(/paket\s*(\d+)/i)||[])[1];
+            return !!(paketNo&&new RegExp("(^|\\s)paket\\s*"+paketNo+"($|\\s)","i").test(assessmentName));
           });
           const attempts=(dataBelajarAktif.attempts||[]).filter(a=>{
             const memberPid=String(a.member_package_id||a.target_package_id||"");
@@ -2137,7 +2146,16 @@ iframe.pdfview{display:block;min-height:520px}
 let KF_SERVER_PACKAGES=[];
 async function kfLoadServerPackages(){
  if(!window.KFPackageDB)return;
- try{KF_SERVER_PACKAGES=await KFPackageDB.listPackages()||[];kfRenderServerPackageBoxes();}catch(e){KF_SERVER_PACKAGES=[];kfRenderServerPackageBoxes();console.warn("Paket V14 Supabase:",e)}
+ try{
+   KF_SERVER_PACKAGES=await KFPackageDB.listPackages()||[];
+   window.KF_SERVER_PACKAGES=KF_SERVER_PACKAGES;
+   kfRenderServerPackageBoxes();
+ }catch(e){
+   KF_SERVER_PACKAGES=[];
+   window.KF_SERVER_PACKAGES=KF_SERVER_PACKAGES;
+   kfRenderServerPackageBoxes();
+   console.warn("Paket V14 Supabase:",e);
+ }
 }
 function kfRenderServerPackageBoxes(){
  let old=document.getElementById("kfPackageAccessBox");
