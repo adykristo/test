@@ -1387,7 +1387,7 @@ let packageDraft={name:'',count:10,current:0,questions:Array(10).fill(null)};
 let packageEditId=null;
 
 
-let practiceState={package:null,current:0,answers:[]};
+let practiceState={package:null,current:0,answers:[],timerId:null,deadline:null,finishing:false};
 
 let v13EssayGradeRows=[];
 async function v13EssayAdminDb(){
@@ -1464,18 +1464,32 @@ async function startPractice(id){
    if(!q.error&&(q.data||[]).length>=Number(p.attempts))return alert('Batas pengerjaan paket ini sudah tercapai ('+Number(p.attempts)+' kali).');
   }catch(e){console.warn('[V13 attempt check]',e)}
  }
+ const now=Date.now(),startAt=p.start?new Date(p.start).getTime():null,endAt=p.end?new Date(p.end).getTime():null;
+ if(Number.isFinite(startAt)&&now<startAt)return alert('Paket ini belum dapat dikerjakan. Mulai: '+new Date(startAt).toLocaleString('id-ID'));
+ if(Number.isFinite(endAt)&&now>endAt)return alert('Waktu pengerjaan paket ini sudah berakhir: '+new Date(endAt).toLocaleString('id-ID'));
  const raw=Array.isArray(p.questions)?p.questions.filter(Boolean):[];
  const invalid=raw.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
  if(invalid.length)return alert('Paket belum dapat dikerjakan. Perbaiki soal: '+invalid.map(x=>(x.i+1)+' ('+x.issues.join(', ')+')').join('; '));
  const qs=raw.map(q=>window.KFQuestionSchema?.normalize?window.KFQuestionSchema.normalize(q):q);
  if(!qs.length)return alert('Paket ini belum memiliki isi soal yang valid.');
  const safe=JSON.parse(JSON.stringify(p));safe.questions=qs;
- practiceState={package:safe,current:0,answers:qs.map(()=>null),attemptId:crypto.randomUUID(),startedAt:new Date().toISOString()};
+ if(practiceState.timerId)clearInterval(practiceState.timerId);
+ const startedAt=new Date().toISOString(),durationMin=Math.max(0,Number(safe.duration)||0),durationDeadline=durationMin?Date.now()+durationMin*60000:null,hardEnd=safe.end?new Date(safe.end).getTime():null;
+ let deadline=durationDeadline;if(Number.isFinite(hardEnd))deadline=deadline?Math.min(deadline,hardEnd):hardEnd;
+ practiceState={package:safe,current:0,answers:qs.map(()=>null),attemptId:crypto.randomUUID(),startedAt,timerId:null,deadline:Number.isFinite(deadline)?deadline:null,finishing:false};
  nav('practice');$('practiceStart').style.display='none';$('practiceResult').style.display='none';$('practiceWork').style.display='block';
  $('practiceTitle').textContent=p.name;$('practiceMeta').textContent=qs.length+' soal';
- renderPractice();
+ if(practiceState.deadline)practiceState.timerId=setInterval(v13PracticeTick,1000);
+ renderPractice();v13PracticeTick();
 }
-function exitPractice(){if(confirm('Keluar dari latihan? Jawaban latihan ini akan dihapus.')){practiceState={package:null,current:0,answers:[]};nav('bank')}}
+function v13StopPracticeTimer(){if(practiceState.timerId){clearInterval(practiceState.timerId);practiceState.timerId=null}}
+function v13PracticeTick(){
+ if(!practiceState.package||!practiceState.deadline)return;
+ let left=Math.max(0,practiceState.deadline-Date.now()),m=Math.floor(left/60000),s=Math.floor((left%60000)/1000),meta=$('practiceMeta');
+ if(meta)meta.textContent=practiceState.package.questions.length+' soal • ⏱ '+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+ if(left<=0&&!practiceState.finishing){v13StopPracticeTimer();practiceState.finishing=true;finishPractice(true);}
+}
+function exitPractice(){if(confirm('Keluar dari latihan? Jawaban latihan ini akan dihapus.')){v13StopPracticeTimer();practiceState={package:null,current:0,answers:[],timerId:null,deadline:null,finishing:false};nav('bank')}}
 function practiceAnswered(i){
  const a=practiceState.answers[i],q=practiceState.package?.questions[i];if(!q)return false;
  if(['pg5','pg4'].includes(q.type))return Number.isInteger(a);
@@ -1537,10 +1551,12 @@ function studentAnswerText(q,a){
  if(q.type==='kategori')return (q.answers?.statements||[]).map((x,i)=>(i+1)+'. '+((a||{})[i]||'-')).join('; ');
  return String(a||'Belum dijawab');
 }
-async function finishPractice(){
+async function finishPractice(autoSubmit=false){
  const p=practiceState.package;if(!p)return;
+ if(practiceState.finishing&&!autoSubmit)return;
+ practiceState.finishing=true;v13StopPracticeTimer();
  let unanswered=p.questions.map((q,i)=>practiceAnswered(i)?null:i+1).filter(Boolean);
- if(unanswered.length&&!confirm('Masih ada soal belum dijawab: '+unanswered.join(', ')+'. Tetap cek hasil?'))return;
+ if(unanswered.length&&!autoSubmit&&!confirm('Masih ada soal belum dijawab: '+unanswered.join(', ')+'. Tetap cek hasil?')){practiceState.finishing=false;if(practiceState.deadline)practiceState.timerId=setInterval(v13PracticeTick,1000);return;}
  let grades=p.questions.map((q,i)=>gradePracticeQuestion(q,practiceState.answers[i])),auto=grades.filter(g=>g.auto),manual=grades.filter(g=>!g.auto).length;
  let earned=auto.reduce((a,g)=>a+g.score,0),max=auto.reduce((a,g)=>a+g.max,0),score=max?Math.round(earned/max*100):0;
  let correct=auto.filter(g=>g.correct===true).length,wrong=auto.length-correct;
@@ -1549,10 +1565,12 @@ async function finishPractice(){
  $('practiceWork').style.display='none';$('practiceResult').style.display='block';
  $('practiceResult').innerHTML=`<div class="card"><h2>📊 Hasil Latihan — ${esc(p.name)}</h2>
  <div class="result-summary"><div class="result-box"><b>${score}</b>Nilai Objektif</div><div class="result-box"><b>${correct}</b>Benar</div><div class="result-box"><b>${wrong}</b>Salah/Parsial</div><div class="result-box"><b>${manual}</b>Perlu Guru</div></div>
+ ${Number(p.pass)>0?'<div class="notice '+(score>=Number(p.pass)?'good':'bad')+'"><b>'+(score>=Number(p.pass)?'✓ Lulus':'Belum Lulus')+'</b> • Nilai minimum '+Number(p.pass)+'</div>':''}
+ ${autoSubmit?'<div class="notice">⏱ Waktu habis. Jawaban dikumpulkan otomatis.</div>':''}
  ${syncWarning?'<div class="notice bad">'+esc(syncWarning)+'</div>':''}
  ${manual?'<div class="notice">Nilai di atas dihitung dari soal yang dapat dikoreksi otomatis. Jawaban esai perlu diperiksa guru.</div>':''}
  <div class="actions"><button class="btn" onclick="retryPractice()">↻ Kerjakan Ulang</button><button class="btn primary" onclick="nav('bank')">Kembali ke Bank Soal</button></div></div>`+
- p.questions.map((q,i)=>practiceResultItem(q,i,practiceState.answers[i],grades[i])).join('');
+ (p.showExplain===false?'':p.questions.map((q,i)=>practiceResultItem(q,i,practiceState.answers[i],grades[i])).join(''));
  if(window.MathJax?.typesetPromise)MathJax.typesetPromise([$('practiceResult')]).catch(()=>{});
 }
 function practiceResultItem(q,i,a,g){
@@ -1563,7 +1581,7 @@ function practiceResultItem(q,i,a,g){
  <div class="result-answer"><b>Kunci:</b> ${renderMathText(answerKeyText(q))}</div>
  ${q.explanation?`<div class="result-answer"><b>Pembahasan:</b> ${renderMathText(q.explanation)}</div>`:''}</div>`;
 }
-function retryPractice(){let p=practiceState.package;practiceState={package:p,current:0,answers:p.questions.map(()=>null),attemptId:crypto.randomUUID(),startedAt:new Date().toISOString()};$('practiceResult').style.display='none';$('practiceWork').style.display='block';renderPractice()}
+async function retryPractice(){let p=practiceState.package;if(!p)return;v13StopPracticeTimer();$('practiceResult').style.display='none';$('practiceWork').style.display='none';practiceState={package:null,current:0,answers:[],timerId:null,deadline:null,finishing:false};await startPractice(p.id)}
 
 function showExportMenu(id,format){$('exportPackageId').value=id;$('exportFormat').value=format;$('exportModal').classList.add('show')}
 function runPackageExport(){
