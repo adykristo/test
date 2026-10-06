@@ -963,17 +963,19 @@ function renderBank(){let b=bank(),s=($('bankSearch')?.value||'').toLowerCase(),
 function updateCounts(){let b=bank();if($('bankCountTop'))$('bankCountTop').textContent=b.length;if($('statTotal')){$('statTotal').textContent=b.length;$('statReady').textContent=b.filter(x=>x.status==='Siap Pakai').length;$('statDraft').textContent=b.filter(x=>x.status==='Draft').length;$('statTypes').textContent=new Set(b.map(x=>x.type)).size}}
 function previewBank(id){
  let q=bank().find(x=>x.id===id);if(!q)return;
- // Data lama mungkin belum memiliki gambar di Bank karena versi sebelumnya membuang base64.
- // Jika soal yang sama masih ada di draft editor, pulihkan gambar secara otomatis untuk preview.
+ // Preview Bank harus memakai aset gambar terbaru dari editor/draft untuk soal yang sama.
  try{
    const d=JSON.parse(localStorage.getItem(DRAFT)||'null');
-   if(d&&String(d.id)===String(q.id)){
-     if(!q.image&&d.image)q.image=d.image;
-     if(!q.explanationImage&&d.explanationImage)q.explanationImage=d.explanationImage;
+   const sameId=d&&String(d.id||'')===String(q.id||'');
+   const sameQuestion=d&&String(d.question||'').trim()===String(q.question||'').trim();
+   if(d&&(sameId||sameQuestion)){
+     if(d.image)q.image=d.image;
+     if(d.imageRotation!==undefined)q.imageRotation=d.imageRotation;
+     if(d.explanationImage)q.explanationImage=d.explanationImage;
      q.answers=q.answers||{};d.answers=d.answers||{};
      q.answers.optionImages=q.answers.optionImages||{};
-     Object.keys(d.answers.optionImages||{}).forEach(k=>{if(!q.answers.optionImages[k])q.answers.optionImages[k]=d.answers.optionImages[k]});
-     Object.keys(d.answers.optionImageData||{}).forEach(k=>{if(!q.answers.optionImages[k])q.answers.optionImages[k]=d.answers.optionImageData[k]});
+     Object.keys(d.answers.optionImages||{}).forEach(k=>{if(d.answers.optionImages[k])q.answers.optionImages[k]=d.answers.optionImages[k]});
+     Object.keys(d.answers.optionImageData||{}).forEach(k=>{if(d.answers.optionImageData[k])q.answers.optionImages[k]=d.answers.optionImageData[k]});
    }
  }catch(e){}
  $('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button id="kfBankPreviewCheck" class="btn primary" type="button">Periksa Jawaban</button></div><div id="pvResult"></div>`;
@@ -1648,6 +1650,8 @@ function packageQuestionValid(q){if(!q||!(q.question||q.image))return false;if([
 function saveCurrentToPackage(){
  let q=collect(),issues=packageQuestionIssues(q);
  q.id=editingId||q.id||uid();q.updatedAt=new Date().toISOString();q.status=issues.length?'Draft':'Siap Pakai';
+ // Pastikan draft memakai ID final yang sama dengan Bank Soal agar gambar dapat dipulihkan konsisten.
+ try{localStorage.setItem(DRAFT,JSON.stringify(q))}catch(e){}
 
  // Saat Buka/Edit paket: simpan perubahan ke nomor soal aktif di paket, bukan keluar ke Bank Soal.
  if(packageEditId){
