@@ -36,7 +36,7 @@ body.direct-pdf-form #editDlg .editor-section{max-width:1180px;margin-left:auto!
 <div id="status" class="panel">Memeriksa akses Super Admin…</div>
 <div id="app" class="hidden">
  <div class="tabs"><button class="tab on" data-kind="pdf">📘 Modul</button><button class="tab" data-kind="soal">✍️ Latihan</button><button class="tab" data-kind="video">🎥 Video</button><button class="tab" data-kind="tryout">🏆 Tryout</button></div>
- <section class="panel" id="modePanel"><div id="modeInfo"></div><div id="exerciseModes" class="exercise-modes hidden"><button type="button" class="btn primary" data-exmode="pdf">📄 Latihan PDF</button><button type="button" class="btn" data-exmode="interactive">⚡ Latihan Interaktif / Bank Soal V14</button></div></section>
+ <section class="panel" id="modePanel"><div id="modeInfo"></div><div id="exerciseModes" class="exercise-modes hidden"><button type="button" class="btn primary" data-exmode="pdf">📄 Latihan PDF</button><button type="button" class="btn" data-exmode="interactive">⚡ Ke Latihan Interaktif V14</button></div></section>
  <section class="panel"><div class="filters"><select id="level"><option value="">Semua jenjang</option><option>SD</option><option>SMP</option><option>SMA</option></select><select id="pkg"><option value="">Semua paket</option><option value="__unmapped">Belum dipetakan</option></select><input id="search" placeholder="Cari judul atau topik…"><button class="btn primary" id="add">+ Tambah</button></div><div class="summary" id="summary"></div><div id="list"></div></section>
 </div></main>
 <dialog id="editDlg" class="editor-dialog">
@@ -85,7 +85,7 @@ function updateModeInfo(){
   video:"<b>🎥 Video Pembahasan</b><br><span>Input URL YouTube/video → pilih jenjang → paket → topik.</span>",
   tryout:"<b>🏆 Tryout Mingguan</b><br><span>Tryout interaktif mengambil set soal dari <b>Bank Soal V14</b>, lalu dipetakan ke paket. Aktivasi peserta tetap mengikuti akses paket.</span>"
  };$("modeInfo").innerHTML=info[kind]||"";
- const em=$("exerciseModes");em.classList.toggle("hidden",kind!=="soal"||exerciseMode==="pdf");
+ const em=$("exerciseModes");em.classList.toggle("hidden",kind!=="soal");
  em.querySelectorAll("[data-exmode]").forEach(b=>b.classList.toggle("primary",b.dataset.exmode===exerciseMode));
  $("add").textContent=kind==="pdf"?"+ Tambah Modul PDF":kind==="video"?"+ Tambah Video":kind==="soal"?(exerciseMode==="pdf"?"+ Tambah Latihan PDF":"+ Tambah Latihan Interaktif"):"+ Tambah Tryout";
 }
@@ -185,7 +185,7 @@ function preview(x){
 async function openPkg(x){mapping=x;const current=new Set(idsFor(x.id)),j=String(x.jenjang||"").toUpperCase();$("pkgTitle").textContent="Paket · "+x.judul;$("pkgChoices").innerHTML=packages.filter(p=>!j||String(p.jenjang).toUpperCase()===j).map(p=>'<label class="pkg"><input type="checkbox" value="'+esc(p.id)+'" '+(current.has(String(p.id))?"checked":"")+'> '+esc(p.nama)+'</label>').join("");pkgDlg.showModal()}
 async function savePkg(){if(!mapping)return;const ids=[...document.querySelectorAll("#pkgChoices input:checked")].map(x=>x.value);const d=await DB.from("member_content_packages").delete().eq("content_id",mapping.id);if(d.error)return alert("Gagal: "+d.error.message);if(ids.length){const r=await DB.from("member_content_packages").insert(ids.map(package_id=>({content_id:mapping.id,package_id})));if(r.error)return alert("Gagal: "+r.error.message)}pkgDlg.close();await load()}
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const x=item(b.dataset.id);if(!x)return alert("Konten tidak ditemukan.");const a=b.dataset.a;if(a==="preview")preview(x);if(a==="package")openPkg(x);if(a==="edit")openEdit(x);if(a==="toggle"){const r=await DB.from("member_content").update({visible:x.visible===false}).eq("id",x.id);if(r.error)alert(r.error.message);else load()}if(a==="delete"&&confirm('Hapus "'+x.judul+'"?')){const r=await DB.from("member_content").delete().eq("id",x.id);if(r.error)alert(r.error.message);else load()}});
-document.querySelectorAll("[data-exmode]").forEach(b=>b.onclick=()=>{exerciseMode=b.dataset.exmode;updateModeInfo();render()});
+document.querySelectorAll("[data-exmode]").forEach(b=>b.onclick=()=>{if(b.dataset.exmode==="interactive"&&new URLSearchParams(location.search).get("embed")==="1"&&parent&&parent!==window&&typeof parent.openLatihanInteraktif==="function"){parent.openLatihanInteraktif();return}exerciseMode=b.dataset.exmode;updateModeInfo();render()});
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));b.classList.add("on");kind=b.dataset.kind;updateModeInfo();render()});$("level").onchange=()=>{fillPackages();render()};$("pkg").onchange=render;$("search").oninput=render;$("add").onclick=()=>openEdit(null);$("saveEdit").onclick=saveEdit;$("savePkg").onclick=savePkg;$("eLevel").onchange=()=>fillEditPackages("");$("eSourceType").onchange=()=>{fillBankSets($("eBankSet").value,kind);syncSourceFields()};$("eFile").onchange=()=>{const f=$("eFile").files[0];$("uploadState").textContent=f?"Dipilih: "+f.name:""};
 (async()=>{try{
  const qs=new URLSearchParams(location.search),embed=qs.get("embed")==="1",locked=qs.get("locked")==="1",requested=qs.get("kind"),requestedExercise=qs.get("exercise"),autoAdd=qs.get("autoadd")==="1";
