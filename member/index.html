@@ -1359,24 +1359,9 @@ iframe.pdfview{display:block;min-height:520px}
                 const v15Results=await window.KFPackageDB.results();
                 dataBelajarAktif.attempts=Array.isArray(v15Results)?v15Results:[];
               }
-              // V13 assessment_attempts adalah sumber nilai baru. Gabungkan tanpa menghapus hasil V15 lama.
-              try{
-                const db=window.KFMemberAuth.client,s=await db.auth.getSession(),uid=s?.data?.session?.user?.id;
-                if(uid){
-                  const ar=await db.from('assessment_attempts').select('*').eq('participant_id',uid).eq('status','submitted').order('submitted_at',{ascending:false});
-                  if(!ar.error){
-                    const modern=(ar.data||[]).map(a=>Object.assign({},a,{
-                      skor:a.final_score!=null?a.final_score:a.objective_score,
-                      score:a.final_score!=null?a.final_score:a.objective_score,
-                      kind:a.assessment_kind||'latihan',
-                      jenis:a.assessment_kind||'latihan',
-                      nama:a.package_name||'Latihan / Tryout'
-                    }));
-                    const merged=[...modern,...(dataBelajarAktif.attempts||[])],seen=new Set();
-                    dataBelajarAktif.attempts=merged.filter(a=>{const k=String(a.id||a.attempt_id||'')+'|'+String(a.package_id||'')+'|'+String(a.submitted_at||a.selesai_at||'');if(seen.has(k))return false;seen.add(k);return true});
-                  }
-                }
-              }catch(e){console.warn('[Member assessment_attempts]',e)}
+              // PRODUKSI: hasil Latihan/Tryout hanya memakai KFPackageDB.results() / kf_my_results.
+              // assessment_attempts lama sengaja tidak lagi digabungkan agar Progress memiliki satu sumber resmi.
+
             } catch (sinkronError) {
               dataBelajarAktif={progress:[],bookmarks:[],attempts:[],orders:[],certificates:[]};
               console.warn("Data belajar Supabase belum dapat dimuat:", sinkronError);
