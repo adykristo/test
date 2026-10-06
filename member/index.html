@@ -1542,7 +1542,16 @@ iframe.pdfview{display:block;min-height:520px}
           });
           const done=items.filter(selesaiItem).length;
           const pct=items.length?Math.round(done/items.length*100):0;
-          return `<div class="package-progress-row"><div class="rowhead"><span><b>${esc(pname)}</b><br><small>${done} dari ${items.length} materi selesai</small></span><strong>${pct}%</strong></div><div class="mini-track"><div class="mini-fill" style="width:${pct}%"></div></div></div>`;
+          const attempts=(dataBelajarAktif.attempts||[]).filter(a=>{
+            const aid=String(a.package_id||a.paket_id||""),an=String(a.package_name||a.paket_name||a.package||"");
+            return (pid&&aid===pid)||(!aid&&an===pname);
+          });
+          const scoreOf=a=>{const v=a.final_score!=null?a.final_score:(a.skor!=null?a.skor:(a.score!=null?a.score:a.objective_score));const n=Number(v);return Number.isFinite(n)?n:null};
+          const latihanScores=attempts.filter(a=>String(a.assessment_kind||a.kind||a.jenis||"latihan").toLowerCase()!=="tryout").map(scoreOf).filter(v=>v!=null);
+          const tryoutScores=attempts.filter(a=>String(a.assessment_kind||a.kind||a.jenis||"").toLowerCase()==="tryout").map(scoreOf).filter(v=>v!=null);
+          const bestLatihan=latihanScores.length?Math.max(...latihanScores):null,bestTryout=tryoutScores.length?Math.max(...tryoutScores):null;
+          const scoreInfo=(bestLatihan!=null||bestTryout!=null)?`<small style="display:block;margin-top:6px">✍️ Latihan terbaik: <b>${bestLatihan==null?"—":Math.round(bestLatihan)}</b> &nbsp;•&nbsp; 🏆 Tryout terbaik: <b>${bestTryout==null?"—":Math.round(bestTryout)}</b></small>`:"";
+          return `<div class="package-progress-row"><div class="rowhead"><span><b>${esc(pname)}</b><br><small>${done} dari ${items.length} materi selesai</small>${scoreInfo}</span><strong>${pct}%</strong></div><div class="mini-track"><div class="mini-fill" style="width:${pct}%"></div></div></div>`;
         }).join("");
         panel.innerHTML='<h2 style="margin-top:0">📈 Progress per Paket</h2><p style="color:#725c82;margin-top:-4px">Kemajuan dihitung dari progress yang tersimpan di Supabase.</p><div class="package-progress-list">'+rows+'</div>';
         if(details)details.style.display="block";
