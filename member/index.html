@@ -1713,7 +1713,7 @@ iframe.pdfview{display:block;min-height:520px}
           <span class="package-badge">${(paketNamaKonten(x)||topikDiPaketSaya(x))?"📦 "+esc(paketNamaKonten(x)||topikDiPaketSaya(x)):"📦 Belum dipetakan ke paket"}</span>
         </div>
         ${selesai ? '<span class="tag" style="margin-left:5px">✓ Latihan selesai</span>' : ""}
-        ${normalJenis(x)==="soal" && (String(x.source_type||"").toLowerCase()==="pdf" || !!String(x.pdfUrl||x.pdf_url||x.file_url||"").trim()) ? '<div style="margin-top:10px"><button class="btn btn-main" type="button" onclick="event.stopPropagation();bukaDetail('+dataMateri.indexOf(x)+')">📖 Buka / Baca PDF</button></div>' : ""}
+        ${normalJenis(x)==="soal" ? '<div style="margin-top:10px"><button class="btn btn-main" type="button" onclick="event.stopPropagation();bukaDetail('+dataMateri.indexOf(x)+')">📖 Buka / Baca PDF</button></div>' : ""}
       </div>
       <button class="bookmark-btn ${bookmarked(x.id)?"active":""}" type="button" onclick="toggleBookmark(event,'${esc(String(x.id||"").replace(/[^0-9a-f-]/gi,""))}')" aria-label="Simpan materi">${bookmarked(x.id)?"★":"☆"}</button>
     </div>`;
