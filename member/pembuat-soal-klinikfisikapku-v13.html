@@ -1411,7 +1411,7 @@ async function v13SaveEssayGrade(id,i){
   if(r.error)throw r.error;alert('Nilai Esai berhasil disimpan.');await v13LoadEssayGrading();
  }catch(e){alert('Gagal menyimpan nilai Esai: '+(e?.message||e))}
 }
-async async function v13SubmissionDb(){
+async function v13SubmissionDb(){
  const db=window.KFMemberAuth?.client||window.KFSupabaseAdmin?.client;if(!db)throw new Error('Supabase belum siap.');
  const s=await db.auth.getSession(),user=s?.data?.session?.user;if(!user)throw new Error('Peserta belum login.');
  return {db,user};
