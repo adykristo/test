@@ -181,7 +181,7 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelect
 (async()=>{try{
  const qs=new URLSearchParams(location.search),embed=qs.get("embed")==="1",locked=qs.get("locked")==="1",requested=qs.get("kind"),requestedExercise=qs.get("exercise"),autoAdd=qs.get("autoadd")==="1";
  if(requestedExercise==="pdf"||requestedExercise==="interactive")exerciseMode=requestedExercise;
- if(embed){document.querySelector(".top").style.display="none";document.body.style.background="#fff"}
+ if(embed){document.querySelector(".top").style.display="none";document.body.style.background="#fff"}if(autoAdd){const main=document.querySelector("main.wrap");if(main)main.style.display="none";document.body.style.background="transparent"}
  if(["pdf","soal","video","tryout"].includes(requested)){kind=requested;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.kind===kind))}
  if(locked){const tabs=document.querySelector(".tabs");if(tabs)tabs.style.display="none";document.body.classList.add("locked-mode")}
  updateModeInfo()
