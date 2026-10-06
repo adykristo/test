@@ -780,6 +780,14 @@ table{max-width:100%}
   #v12builder>.v12-launch-page,#v12builder>.card{width:100%}
 }
 </style>
+<style id="kf-hide-legacy-tryout-panels">
+#tryout #tryoutAccessManager,
+#tryout #tryoutPackageManagerSupabase,
+#tryout #tryoutList{display:none!important}
+#tryout .distribution-box:has(#tryoutAccessManager),
+#tryout .card:has(#tryoutPackageManagerSupabase),
+#tryout .card:has(#tryoutList){display:none!important}
+</style>
 </head>
   <body><div id="kfAdminLoginGate" style="display:none;position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#f8efff,#fff0f8);align-items:center;justify-content:center;padding:20px"><div style="width:min(440px,100%);background:#fff;border:1px solid #ead8f4;border-radius:22px;padding:30px;box-shadow:0 24px 70px #4b17642b;text-align:center"><div style="font-size:38px">🔐</div><h2 style="margin:10px 0 6px;color:#512066">Admin KlinikFisikapku</h2><p style="color:#765f82;line-height:1.55">Masuk menggunakan akun Google Super Admin yang terdaftar.</p><button type="button" class="btn" style="width:100%;min-height:46px;margin-top:12px" onclick="KFAdminGoogleLoginDirect(this)">Masuk dengan Google</button><a href="index.html" style="display:block;margin-top:16px;color:#7b2cab">← Kembali ke Member</a></div></div>
     <header class="top">
@@ -1118,7 +1126,7 @@ table{max-width:100%}
               <input id="tryoutFilterSearch" type="search" placeholder="Cari judul atau topik..." oninput="renderPkgManagers()">
               <button class="btn" onclick="buatPaketKelola('tryout')">+ Tambah Tryout</button>
             </div>
-            <div id="tryoutPackageManager" class="manage-list"></div><div class="card" style="margin-top:14px"><div class="head"><h3>Paket Final di Supabase</h3><button class="btn ghost small" onclick="renderSupabasePackageStatus()">↻ Panggil dari Supabase</button></div><div id="tryoutPackageManagerSupabase" class="manage-list"><div class="sub">Klik muat untuk melihat data final.</div></div></div>
+            <div id="tryoutPackageManager" class="manage-list"></div>
           </div>
           
         </section>
