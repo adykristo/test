@@ -176,7 +176,8 @@
         // PENGECUALIAN: Latihan PDF adalah konten belajar biasa, bukan engine soal interaktif,
         // sehingga tetap harus tampil jika RPC server sudah mengizinkan paket peserta.
         const sourceType=clean(x&&x.source_type).toLowerCase();
-        const isLatihanPdf=jenis==="soal" && sourceType==="pdf" && tujuan!=="tryout";
+        const hasPdf=!!clean(x&&(x.pdfUrl||x.pdf_url||x.file_url));
+        const isLatihanPdf=jenis==="soal" && (sourceType==="pdf"||hasPdf) && tujuan!=="tryout";
         return isLatihanPdf || (
           !["soal","quiz","question","qset","tryout"].includes(jenis)
           && tujuan!=="tryout"
