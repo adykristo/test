@@ -1791,18 +1791,33 @@ iframe.pdfview{display:block;min-height:520px}
             const pdfBlobOrUrl=pdfDisplayUrl(pdfUrl);
             const isBlob=String(pdfBlobOrUrl).startsWith("blob:");
             const isPrivateSigned=String(pdfBlobOrUrl).includes("/storage/v1/object/sign/learning-files-private/");
-            // URL Supabase (signed/public) dapat menolak iframe atau Google Viewer.
-            // Jangan embed URL storage Supabase; gunakan tombol buka/unduh agar browser membuka PDF langsung.
+            // PDF Supabase private/public diambil sebagai Blob lebih dulu agar dapat dibaca
+            // langsung di halaman tanpa menurunkan keamanan Storage.
             const isSupabaseStorage=/\/storage\/v1\/object\//i.test(String(pdfBlobOrUrl));
-            const canEmbed=isBlob||(!isPrivateSigned&&!isSupabaseStorage);
-            const sumberPdf=canEmbed?(isBlob?pdfBlobOrUrl:`https://docs.google.com/viewer?url=${encodeURIComponent(pdfBlobOrUrl)}&embedded=true`):"";
+            let sumberPdf="";
+            let directPdfUrl=pdfBlobOrUrl;
+            if(isSupabaseStorage && !isBlob){
+              try{
+                const pdfRes=await fetch(pdfBlobOrUrl,{credentials:"omit"});
+                if(!pdfRes.ok) throw new Error("HTTP "+pdfRes.status);
+                const pdfBlob=await pdfRes.blob();
+                if(kfPdfBlobUrl) URL.revokeObjectURL(kfPdfBlobUrl);
+                kfPdfBlobUrl=URL.createObjectURL(new Blob([pdfBlob],{type:"application/pdf"}));
+                sumberPdf=kfPdfBlobUrl;
+                directPdfUrl=kfPdfBlobUrl;
+              }catch(err){
+                console.warn("PDF Supabase tidak dapat dibuat Blob:",err);
+              }
+            }else{
+              sumberPdf=isBlob?pdfBlobOrUrl:`https://docs.google.com/viewer?url=${encodeURIComponent(pdfBlobOrUrl)}&embedded=true`;
+            }
             const namaPdf=String(x.judul||"latihan").replace(/[\\/:*?"<>|]+/g,"-")+".pdf";
             html += (sumberPdf
               ? `<iframe class="pdfview" title="Latihan PDF" src="${esc(sumberPdf)}"></iframe>`
               : `<div class="empty" style="padding:28px;text-align:center"><b>📄 Latihan PDF siap dibuka</b><br><span style="display:block;margin-top:8px">File private dilindungi dan dibuka melalui tautan aman.</span></div>`)
               + `<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-                <a class="btn btn-main" style="text-decoration:none" href="${esc(pdfBlobOrUrl)}" ${isBlob?`download="${esc(namaPdf)}"`:`target="_blank" rel="noopener noreferrer"`}>⬇ Unduh PDF</a>
-                <a class="btn btn-ghost" style="text-decoration:none" href="${esc(pdfBlobOrUrl)}" target="_blank" rel="noopener noreferrer">Buka PDF</a>
+                <a class="btn btn-main" style="text-decoration:none" href="${esc(directPdfUrl)}" download="${esc(namaPdf)}">⬇ Unduh PDF</a>
+                <a class="btn btn-ghost" style="text-decoration:none" href="${esc(directPdfUrl)}" target="_blank" rel="noopener noreferrer">Buka di Tab Baru</a>
               </div>`;
           }else{
             html += `<div class="empty">PDF latihan belum memiliki URL file yang valid. Periksa kembali file pada Admin → Soal Latihan → Latihan PDF.</div>`;
