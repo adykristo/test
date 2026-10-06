@@ -312,6 +312,11 @@ body{background:var(--v12-bg)!important}
 #page-ai,#page-import,#page-paste{display:none!important}
 /* Sembunyikan item menu sumber lama; Question Studio menjadi satu pintu */
 [data-page="ai"],[data-page="import"],[data-page="paste"]{display:none!important}
+</style><style id="kf-unified-hide-runtime-v12">
+/* Setelah V12 memindahkan panel lama ke page-buat, sembunyikan UI-nya tetapi pertahankan DOM sebagai mesin backend */
+#v13UnifiedHub,#v12MovedImport,#v12MovedAI,.v12-step-head,.v12-paste-box{display:none!important}
+.v12-pro-nav a[href*="v12MovedAI"],.v12-pro-nav a[href*="v12MovedImport"],.v12-pro-nav a[href*="v12PasteMaterial"]{display:none!important}
+#page-buat>.v12-section-label{display:none!important}
 </style></head>
 <body><div id="kfV12AuthGate" style="position:fixed;inset:0;z-index:2147483647;background:#f7f1fb;display:grid;place-items:center;font-family:Arial,sans-serif"><div style="max-width:460px;margin:24px;padding:28px;border-radius:20px;background:white;box-shadow:0 18px 60px rgba(74,25,100,.18);text-align:center"><div style="font-size:34px">🔐</div><h2 style="margin:10px 0 6px;color:#381452">Memeriksa Akses Admin</h2><p id="kfV12AuthText" style="margin:0;color:#725f7c;line-height:1.5">Question Studio V13 hanya dapat digunakan oleh Super Admin yang aktif.</p></div></div>
 <style id="kfV12GateStyle">body > *:not(#kfV12AuthGate):not(#kfV12GateStyle):not(script){visibility:hidden!important}</style>
@@ -2313,5 +2318,14 @@ window.KFUnified=(function(){
  function bind(){let w=W();if(!w)return;w.addEventListener('paste',e=>{let it=[...(e.clipboardData?.items||[])].find(x=>x.type?.startsWith('image/'));if(!it)return;e.preventDefault();let r=new FileReader();r.onload=()=>{let im=document.createElement('img');im.src=r.result;im.style.maxWidth='340px';im.style.display='block';w.appendChild(im);st('✓ Screenshot ditempel. Klik AI Susun Soal + Gambar.')};r.readAsDataURL(it.getAsFile())});w.addEventListener('dragover',e=>e.preventDefault());w.addEventListener('drop',e=>{let f=[...e.dataTransfer.files].find(x=>x.type.startsWith('image/'));if(f){e.preventDefault();image({files:[f],value:''})}});['x^2','x_1','\\sqrt{}','\\frac{}{}','\\sum','\\int','\\Delta','\\theta','\\pi','\\infty','\\times10^{}','\\vec{F}','v_0','E_k','E_p','\\varepsilon','\\rho','\\lambda','\\omega','\\phi','\\hbar'].forEach(v=>{let b=document.createElement('button');b.className='btn sm';b.type='button';b.textContent=v.replaceAll('\\','');b.onclick=()=>insert(v);E('kfUFormula')?.appendChild(b)})}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
  return{setType,manual,aiVision,doc,image,improve,explain,variation,tidy,formulaPhoto,validate:validateQ,clear};
+})();
+</script><script id="kf-unified-runtime-cleanup">
+(function(){
+ function clean(){
+  ['v13UnifiedHub','v12MovedImport','v12MovedAI'].forEach(id=>{var e=document.getElementById(id);if(e)e.style.display='none'});
+  document.querySelectorAll('.v12-step-head,.v12-paste-box').forEach(e=>e.style.display='none');
+  document.querySelectorAll('.v12-pro-nav a').forEach(a=>{var h=a.getAttribute('href')||'';if(/v12MovedAI|v12MovedImport|v12PasteMaterial/.test(h))a.style.display='none'});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{clean();setTimeout(clean,500);setTimeout(clean,1200)});else{clean();setTimeout(clean,500)}
 })();
 </script></body></html>
