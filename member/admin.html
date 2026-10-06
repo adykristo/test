@@ -977,14 +977,14 @@ table{max-width:100%}
 <div id="discountRulesAdmin" class="manage-list"><div class="sub">Memuat aturan diskon…</div></div></div>
 
   <div class="card">
-    <div class="head"><div><h2>Topik per Paket</h2><p class="sub" style="margin:4px 0 0">Topik yang dibuat di sini dapat dipilih saat mendistribusikan Modul, Video, Latihan, dan Tryout.</p></div></div>
+    <div class="head"><div><h2>🗂 Kelola Topik Paket</h2><p class="sub" style="margin:4px 0 0">Buat topik satu kali untuk setiap paket. Daftar ini menjadi sumber topik bersama saat mengatur konten belajar.</p></div></div>
     <div class="form">
-      <div><label>Filter jenjang</label><select id="topicLevelFilter" onchange="fillPackageSelectors()"><option value="SEMUA">Semua jenjang</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option></select></div>
-      <div><label>Paket</label><select id="topicPackageSelect" onchange="renderTopikPaket()"></select></div>
-      <div><label>Nama topik baru</label><input id="topicTitleInput" placeholder="Contoh: Momentum & Impuls"></div>
-      <div class="wide"><label>Deskripsi singkat</label><input id="topicDescInput" placeholder="Ringkasan materi yang akan dilihat peserta"></div>
-      <div><label>Urutan</label><input id="topicOrderInput" type="number" min="0" value="1"></div>
-      <div style="display:flex;align-items:end"><button class="btn" type="button" onclick="tambahTopikPaket()">+ Tambah Topik</button></div>
+      <div><label>1. Pilih jenjang</label><select id="topicLevelFilter" onchange="fillPackageSelectors()"><option value="SEMUA">Semua jenjang</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option></select></div>
+      <div><label>2. Pilih paket</label><select id="topicPackageSelect" onchange="renderTopikPaket()"></select></div>
+      <div><label>3. Nama topik</label><input id="topicTitleInput" placeholder="Contoh: Momentum & Impuls"></div>
+      <div class="wide"><label>Deskripsi topik</label><input id="topicDescInput" placeholder="Ringkasan materi yang akan dilihat peserta"></div>
+      <div><label>Urutan tampil</label><input id="topicOrderInput" type="number" min="0" value="1"></div>
+      <div style="display:flex;align-items:end"><button class="btn" type="button" onclick="tambahTopikPaket()">+ Simpan Topik Paket</button></div>
     </div>
     <div id="topicPackageList" class="manage-list" style="margin-top:14px"></div>
   </div>
@@ -2395,8 +2395,8 @@ function fillPackageSelectors(){
 function selectedPackages(kind){return [...document.querySelectorAll(`#${kind}PackageChecks input:checked`)].map(x=>x.value)}
 function updateTopicChoices(kind){
  const ids=selectedPackages(kind),sel=document.getElementById(kind+"PackageTopic");if(!sel)return;
- const topics=KF_TOPICS_NEW.filter(t=>ids.includes(t.package_id)&&t.visible);
- sel.innerHTML='<option value="">Tanpa topik paket</option>'+topics.map(t=>`<option value="${t.id}">${escMember(KF_PACKAGES_NEW.find(p=>p.id===t.package_id)?.nama||"Paket")} — ${escMember(t.judul)}</option>`).join("");
+ const topics=KF_TOPICS_NEW.filter(t=>ids.includes(t.package_id)&&t.visible).sort((a,b)=>(Number(a.urutan)||0)-(Number(b.urutan)||0));
+ sel.innerHTML='<option value="">Pilih topik paket (opsional)</option>'+topics.map(t=>`<option value="${t.id}">${escMember(KF_PACKAGES_NEW.find(p=>p.id===t.package_id)?.nama||"Paket")} — ${escMember(t.judul)}</option>`).join("");
 }
 let KF_PACKAGE_LEVEL_FILTER="SEMUA";
 function setPackageLevelFilter(level,btn){
