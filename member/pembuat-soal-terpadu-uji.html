@@ -1186,7 +1186,7 @@ function renderAIQueueNavigator(){
  if(!aiEditorQueue.length)return;
  let card=$('v12EditorCard')||$('question')?.closest('.card');if(!card)return;
  let box=document.createElement('div');box.id='aiQueueNavigator';box.className='notice good';box.style.margin='8px 0';
- box.innerHTML='<b>📚 Hasil AI: '+aiEditorQueue.length+' soal</b><div class="small">Sedang membuka soal '+(aiEditorIndex+1)+' dari '+aiEditorQueue.length+'. Periksa lalu Simpan Soal. Gunakan nomor untuk membuka soal lainnya.</div><div class="actions" style="margin-top:8px">'+
+ box.innerHTML='<b>📚 Hasil AI: '+aiEditorQueue.length+' soal</b><div class="small">Sedang membuka soal '+(aiEditorIndex+1)+' dari '+aiEditorQueue.length+'. Periksa satu per satu atau tambahkan semua sekaligus.</div><div class="actions" style="margin-top:8px"><button type="button" class="btn pink" onclick="addAllAIToBank()">➕ Tambah Semua Soal</button>'+
  aiEditorQueue.map((q,i)=>'<button type="button" class="btn sm '+(i===aiEditorIndex?'primary':'')+'" onclick="loadAIQueueToEditor('+i+')">'+(i+1)+'</button>').join('')+'</div>';
  card.insertBefore(box,card.firstChild);
 }
@@ -1202,6 +1202,22 @@ function editAIDraft(i){loadAIQueueToEditor(i)}
 function prepareAIBankQuestion(q){const x=JSON.parse(JSON.stringify(q));x.status='Draft';x.updatedAt=new Date().toISOString();return x}
 function acceptAI(i){if(Number.isInteger(i))loadAIQueueToEditor(i)}
 function acceptAllAI(){if(aiEditorQueue.length)loadAIQueueToEditor(0)}
+function addAllAIToBank(){
+ if(!aiEditorQueue.length)return alert('Belum ada hasil AI untuk ditambahkan.');
+ let qs=aiEditorQueue.filter(Boolean).map(q=>v13NormalizeQuestionObject(JSON.parse(JSON.stringify(q))));
+ let bad=qs.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
+ if(bad.length){
+   let msg=bad.slice(0,8).map(x=>'Soal '+(x.i+1)+': '+x.issues.join(', ')).join('\n');
+   if(!confirm((qs.length-bad.length)+' soal lengkap dan '+bad.length+' soal perlu diperbaiki.\n\n'+msg+'\n\nTambahkan hanya soal yang lengkap?'))return;
+ }
+ let valid=qs.filter(q=>packageQuestionIssues(q).length===0);
+ if(!valid.length)return alert('Belum ada soal lengkap yang dapat ditambahkan.');
+ let rows=bank();
+ valid.forEach(q=>{let x=compactQuestionForBank(q);x.id=x.id||uid();x.status='Siap Pakai';x.updatedAt=new Date().toISOString();let idx=rows.findIndex(r=>r.id===x.id);if(idx>=0)rows[idx]=x;else rows.unshift(x)});
+ try{setBank(rows)}catch(e){return alert('Gagal menambahkan semua soal: '+(e.message||e))}
+ renderBank();updateCounts();
+ alert('✓ '+valid.length+' soal berhasil ditambahkan sekaligus ke Bank Soal.'+(bad.length?' '+bad.length+' soal belum lengkap tidak ditambahkan.':''));
+}
 function regenAI(i){if(Number.isInteger(i)&&aiDrafts[i])loadAIQueueToEditor(i)}
 function pickFormulaImageForExplanation(){const x=$('formulaImageInput');if(x)x.click()}
 function fileToBase64Payload(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({mimeType:file.type||'image/png',data:String(r.result).split(',')[1]||''});r.onerror=reject;r.readAsDataURL(file)})}
