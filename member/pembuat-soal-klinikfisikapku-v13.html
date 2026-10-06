@@ -1939,6 +1939,8 @@ function v13SendPackageToAdmin(id,kind){
  const arr=packageBank(),p=arr.find(x=>String(x.id)===String(id));
  if(!p)return alert('Paket soal tidak ditemukan.');
  if(!Array.isArray(p.questions)||!p.questions.length)return alert('Paket ini belum memiliki soal.');
+ const invalid=p.questions.map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
+ if(invalid.length)return alert('Paket belum dapat dijadikan '+(kind==='tryout'?'Tryout':'Latihan')+'. Perbaiki: '+invalid.map(x=>'Soal '+(x.i+1)+' ('+x.issues.join(', ')+')').join('; '));
  const key=kind==='tryout'?'kf_member_tryout_packages_v13':'kf_member_training_packages_v13';
  let rows=[];try{rows=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(rows))rows=[]}catch(e){rows=[]}
  const bridgeId='V13-'+kind+'-'+String(p.id);
@@ -1959,6 +1961,9 @@ function v13SendPackageToAdmin(id,kind){
 }
 function v13MovePackageToQueue(id,kind){
  const arr=packageBank(),p=arr.find(x=>x.id===id);if(!p)return alert('Draft soal tidak ditemukan.');
+ const invalid=(p.questions||[]).map((q,i)=>({i,issues:packageQuestionIssues(q)})).filter(x=>x.issues.length);
+ if(!p.questions?.length)return alert('Draft ini belum memiliki soal.');
+ if(invalid.length)return alert('Draft belum siap dikirim. Perbaiki: '+invalid.map(x=>'Soal '+(x.i+1)+' ('+x.issues.join(', ')+')').join('; '));
  p.stage=kind;p.kind=kind;p.updatedAt=new Date().toISOString();setPackageBank(arr);
  renderPackageBank();v13RenderDistributionQueues();nav('paket');
  setTimeout(()=>document.getElementById(kind==='tryout'?'v13TryoutQueue':'v13LatihanQueue')?.scrollIntoView({behavior:'smooth',block:'center'}),100);
@@ -2081,9 +2086,14 @@ async function v13ConfirmDistribution(){
   const finalPack=await window.KFPackagePublisher.publish(pub);
   const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;
   if(!db)throw new Error('Supabase Admin belum siap untuk distribusi paket.');
-  const del=await db.from('kf_package_access').delete().eq('kf_package_id',finalPack.id);if(del.error)throw del.error;
   const accessRows=memberPackageIds.map(member_package_id=>({kf_package_id:finalPack.id,member_package_id}));
-  if(accessRows.length){const ins=await db.from('kf_package_access').insert(accessRows);if(ins.error)throw ins.error;}
+  // Jangan hapus akses lama sebelum akses baru berhasil ditulis. Ini mencegah paket kehilangan seluruh akses jika insert gagal.
+  if(accessRows.length){
+   const ins=await db.from('kf_package_access').upsert(accessRows,{onConflict:'kf_package_id,member_package_id'});if(ins.error)throw ins.error;
+   const oldAccess=await db.from('kf_package_access').select('member_package_id').eq('kf_package_id',finalPack.id);if(oldAccess.error)throw oldAccess.error;
+   const obsolete=(oldAccess.data||[]).map(x=>String(x.member_package_id)).filter(id=>!memberPackageIds.includes(id));
+   if(obsolete.length){const del=await db.from('kf_package_access').delete().eq('kf_package_id',finalPack.id).in('member_package_id',obsolete);if(del.error)throw del.error;}
+  }
   const now=new Date().toISOString();
   setPackageBank(packageBank().map(x=>x.id===p.id?Object.assign({},x,pub,{published:true,stage:'',publishedAt:now,updatedAt:now}):x));
   v13CloseDistribution();renderPackageBank();v13RenderDistributionQueues();v13RenderPublished();
