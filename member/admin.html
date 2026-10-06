@@ -1115,7 +1115,13 @@ table{max-width:100%}
           <h1>Tryout Mingguan</h1>
           <p class="sub">Tryout V14 mengambil soal dari Bank Soal V14. Atur durasi, jadwal, susunan soal, pilih Paket Peserta tujuan, lalu publikasikan ke Member Area.</p>
           <div class="card">
-            <div class="head"><div><h2>Paket Tryout</h2><p class="sub" style="margin:4px 0 0">Atur durasi, jadwal, akses paket langganan, susunan soal, dan publikasi.</p></div><button class="btn" onclick="buatPaketKelola('tryout')">+ Paket Tryout</button></div>
+            <div class="head"><div><h2>Paket Tryout</h2><p class="sub" style="margin:4px 0 0">Atur durasi, jadwal, akses paket langganan, susunan soal, dan publikasi.</p></div></div>
+            <div class="bulk-filter-row" style="display:grid;grid-template-columns:140px 280px minmax(220px,1fr) auto;gap:8px;align-items:center;margin:14px 0">
+              <select id="tryoutFilterJenjang" onchange="renderPkgManagers()"><option value="">Semua jenjang</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option></select>
+              <select id="tryoutFilterPaket" onchange="renderPkgManagers()"><option value="">Semua paket</option></select>
+              <input id="tryoutFilterSearch" type="search" placeholder="Cari judul atau topik..." oninput="renderPkgManagers()">
+              <button class="btn" onclick="buatPaketKelola('tryout')">+ Tambah Tryout</button>
+            </div>
             <div id="tryoutPackageManager" class="manage-list"></div><div class="distribution-box" style="margin-top:14px"><b>Distribusi Paket Final</b><p class="sub">Atur paket peserta dan topik yang boleh mengakses setiap tryout final.</p><div id="tryoutAccessManager" class="manage-list"></div></div><div class="card" style="margin-top:14px"><div class="head"><h3>Paket Final di Supabase</h3><button class="btn ghost small" onclick="renderSupabasePackageStatus()">↻ Panggil dari Supabase</button></div><div id="tryoutPackageManagerSupabase" class="manage-list"><div class="sub">Klik muat untuk melihat data final.</div></div></div>
           </div>
           <div class="card">
@@ -2106,6 +2112,21 @@ function duplikatPkg(kind,id){let p=cloneObj(getPkg(kind,id));if(!p)return;p.id=
 function renderPkgManagers(){
  [["latihan","latihanPackageManager"],["tryout","tryoutPackageManager"]].forEach(([kind,target])=>{
   let box=document.getElementById(target);if(!box)return;let a=pkgGet(kind);
+  if(kind==="tryout"){
+    const fj=document.getElementById("tryoutFilterJenjang"),fp=document.getElementById("tryoutFilterPaket"),fs=document.getElementById("tryoutFilterSearch");
+    const all=a.slice();
+    if(fp){
+      const cur=fp.value, names=[...new Set(all.map(p=>p.targetPackageName).filter(Boolean))].sort();
+      fp.innerHTML='<option value="">Semua paket</option>'+names.map(n=>'<option value="'+h(n)+'">'+h(n)+'</option>').join("");
+      fp.value=names.includes(cur)?cur:"";
+    }
+    const j=(fj?.value||"").toUpperCase(), pn=fp?.value||"", q=(fs?.value||"").trim().toLowerCase();
+    a=a.filter(p=>{
+      const hay=[p.name,p.topic,p.topik,p.targetPackageName].filter(Boolean).join(" ").toLowerCase();
+      const level=String(p.jenjang||p.level||p.stage||"").toUpperCase();
+      return (!j||level===j||hay.includes(j.toLowerCase()))&&(!pn||p.targetPackageName===pn)&&(!q||hay.includes(q));
+    });
+  }
   box.innerHTML=a.length?a.map(p=>`<div class="pkg-card">
    <div class="head"><div><b>${h(p.name)}</b><div class="pkg-meta">${p.questions.length} soal · ${p.visible?"Dipublikasikan":"Draf"}${kind==="tryout"?` · ${Number(p.duration)||90} menit`:""} · <b>Tujuan: ${h(p.targetPackageName||"BELUM DIPILIH")}</b></div></div></div>
    <div class="pkg-actions">
