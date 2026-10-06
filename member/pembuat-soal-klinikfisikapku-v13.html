@@ -283,7 +283,20 @@ body{background:var(--v12-bg)!important}
 #v12EditorCard{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
 #v12EditorCard>.row,#v12EditorCard>label,#v12EditorCard>#typeButtons,#v12EditorCard>select,#v12EditorCard>textarea,#v12EditorCard>.math-preview,#v12EditorCard>.actions,#v12EditorCard>[id$="FormulaBar"],#v12EditorCard>[id*="Answer"]{background:#fff}
 @media(max-width:900px){:root{--v12-side:0px}.topbar.v12-pro-sidebar{position:relative!important;width:100%!important;height:auto!important;inset:auto!important}.v12-pro-nav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}.v12-sidebar-foot{display:none}.wrap{margin-left:0!important;padding:16px 12px 50px!important}}
-</style><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script></head>
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style id="kf-preview-explanation-cleanup">
+/* KF PREVIEW EXPLANATION CLEANUP 2026-10-06 */
+#pvResult .notice{line-height:1.65}
+#pvResult .kf-explanation{margin-top:12px;padding:14px 15px;border:1px solid #dcefe6;border-radius:12px;background:#fff;color:#26352f}
+#pvResult .kf-explanation-title{font-weight:900;color:#087b4d;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid #e4f1ea}
+#pvResult .kf-explanation-body{font-size:13px;line-height:1.72;color:#26352f;white-space:normal}
+#pvResult .kf-explanation-body br+br{line-height:2.15}
+#pvResult .kf-explanation-body mjx-container{color:#17221d!important;margin:.25em 0!important}
+#pvResult .good{background:#f5fff9;color:#087b4d;border:1px solid #ccebdc}
+#previewModal .modalbox{max-width:760px}
+@media(max-width:560px){#pvResult .kf-explanation{padding:12px}#pvResult .kf-explanation-body{font-size:12.5px;line-height:1.65}}
+</style>
+</head>
 <body><div id="kfV12AuthGate" style="position:fixed;inset:0;z-index:2147483647;background:#f7f1fb;display:grid;place-items:center;font-family:Arial,sans-serif"><div style="max-width:460px;margin:24px;padding:28px;border-radius:20px;background:white;box-shadow:0 18px 60px rgba(74,25,100,.18);text-align:center"><div style="font-size:34px">🔐</div><h2 style="margin:10px 0 6px;color:#381452">Memeriksa Akses Admin</h2><p id="kfV12AuthText" style="margin:0;color:#725f7c;line-height:1.5">Question Studio V13 hanya dapat digunakan oleh Super Admin yang aktif.</p></div></div>
 <style id="kfV12GateStyle">body > *:not(#kfV12AuthGate):not(#kfV12GateStyle):not(script){visibility:hidden!important}</style>
 <script>
@@ -916,13 +929,13 @@ function renderExplanationWithImage(q){if(q&&q.inlineImages)Object.assign(v13Inl
  let body='';
  if(q.explanationImage&&((q.explanationImagePosition||'bottom')==='middle')){
    let marker='[[GAMBAR]]',parts=raw.split(marker);
-   if(parts.length>1)body=esc(parts.shift()).replace(/\n/g,'<br>')+img+esc(parts.join(marker)).replace(/\n/g,'<br>');
-   else {let lines=raw.split('\n'),cut=Math.ceil(lines.length/2);body=esc(lines.slice(0,cut).join('\n')).replace(/\n/g,'<br>')+img+esc(lines.slice(cut).join('\n')).replace(/\n/g,'<br>')}
+   if(parts.length>1)body=renderRichText(parts.shift())+img+renderRichText(parts.join(marker));
+   else {let lines=raw.split('\n'),cut=Math.ceil(lines.length/2);body=renderRichText(lines.slice(0,cut).join('\n'))+img+renderRichText(lines.slice(cut).join('\n'))}
  }else{
-   let txt=esc(raw).replace(/\n/g,'<br>');
+   let txt=renderRichText(raw);
    body=(q.explanationImagePosition==='top'?img:'')+txt+(q.explanationImagePosition==='top'?'':img);
  }
- return `<div class="sep"></div><b>Pembahasan:</b><br>${body}`;
+ return `<div class="sep"></div><div class="kf-explanation"><div class="kf-explanation-title">Pembahasan</div><div class="kf-explanation-body">${body}</div></div>`;
 }
 function previewCurrent(){let q=collect();kfPreviewQuestion=q;$('studentPreview').innerHTML=questionHTML(q,true)+`<div class="actions" style="margin-top:12px"><button id="kfPreviewCheckBtn" class="btn primary" type="button">Periksa Jawaban</button></div><div id="pvResult"></div>`;$('kfPreviewCheckBtn').onclick=()=>checkPreview(kfPreviewQuestion);$('previewModal').classList.add('show');typesetMath('studentPreview')}
 function checkPreview(q){let ok=false,detail='';if(['pg5','pg4','mcma'].includes(q.type)){let chosen=[...document.querySelectorAll('#studentPreview input[name=pvans]:checked')].map(x=>Number(x.value)).sort();let keys=[...q.answers.keys].sort();ok=JSON.stringify(chosen)===JSON.stringify(keys);if(q.type==='mcma'&&q.scoring==='partial'){let hit=chosen.filter(x=>keys.includes(x)).length,wrong=chosen.filter(x=>!keys.includes(x)).length;let pct=Math.max(0,(hit-wrong)/keys.length);detail=` Skor parsial: ${Math.round(pct*100)}%.`}}else if(q.type==='kategori'){ok=[...document.querySelectorAll('#studentPreview .catans')].every(x=>x.value===q.answers.statements[Number(x.dataset.i)].answer)}else if(q.type==='isian')ok=($('pvShort').value||'').trim().toLowerCase()===(q.answers.short||'').trim().toLowerCase();else{detail='Esai memerlukan penilaian guru.'}
