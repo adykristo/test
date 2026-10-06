@@ -27,7 +27,7 @@
 <div id="status" class="panel">Memeriksa akses Super Admin…</div>
 <div id="app" class="hidden">
  <div class="tabs"><button class="tab on" data-kind="pdf">📘 Modul</button><button class="tab" data-kind="soal">✍️ Latihan</button><button class="tab" data-kind="video">🎥 Video</button><button class="tab" data-kind="tryout">🏆 Tryout</button></div>
- <section class="panel" id="modePanel"><div id="modeInfo"></div><div id="exerciseModes" class="exercise-modes hidden"><button type="button" class="btn primary" data-exmode="pdf">📄 Latihan PDF</button><button type="button" class="btn" data-exmode="interactive">⚡ Latihan Interaktif / Bank Soal V13</button></div></section>
+ <section class="panel" id="modePanel"><div id="modeInfo"></div><div id="exerciseModes" class="exercise-modes hidden"><button type="button" class="btn primary" data-exmode="pdf">📄 Latihan PDF</button><button type="button" class="btn" data-exmode="interactive">⚡ Latihan Interaktif / Bank Soal V14</button></div></section>
  <section class="panel"><div class="filters"><select id="level"><option value="">Semua jenjang</option><option>SD</option><option>SMP</option><option>SMA</option></select><select id="pkg"><option value="">Semua paket</option><option value="__unmapped">Belum dipetakan</option></select><input id="search" placeholder="Cari judul atau topik…"><button class="btn primary" id="add">+ Tambah</button></div><div class="summary" id="summary"></div><div id="list"></div></section>
 </div></main>
 <dialog id="editDlg" class="editor-dialog">
@@ -38,9 +38,9 @@
   </div>
   <div class="editor-section"><div class="editor-section-title"><span>2</span><div><b>Informasi Konten</b><small>Beri nama yang jelas agar mudah dicari dan dikelola.</small></div></div>
    <div class="editor-grid"><label class="full"><span>Judul bahan belajar</span><input id="eTitle" placeholder="Masukkan judul bahan belajar"></label>
-   <div id="sourceTypeRow" style="display:none"><label><span>Sumber latihan</span><select id="eSourceType"><option value="pdf">PDF manual</option><option value="interactive">Interaktif / Bank Soal V13</option></select></label></div>
+   <div id="sourceTypeRow" style="display:none"><label><span>Sumber latihan</span><select id="eSourceType"><option value="pdf">PDF manual</option><option value="interactive">Interaktif / Bank Soal V14</option></select></label></div>
    <div id="urlRow" style="display:contents"><label class="full"><span id="urlLabel">URL</span><input id="eUrl" placeholder="Tempel URL di sini…"><small class="field-help" id="urlHelp">Pastikan tautan dapat diakses peserta.</small></label><div id="uploadRow" class="full upload-box"><div><b>atau Upload File PDF</b><small>Pilih PDF dari komputer. File akan diunggah ke Supabase Storage dan URL terisi otomatis.</small></div><label class="upload-btn">⬆ Pilih PDF<input id="eFile" type="file" accept="application/pdf,.pdf" hidden></label><div id="uploadState" class="upload-state"></div></div></div>
-   <div id="bankRow" style="display:none"><label class="full"><span>Nama Paket / Set Soal V13</span><select id="eBankSet"><option value="">Pilih paket soal…</option></select><small class="field-help">Pilih berdasarkan nama. ID set soal disimpan otomatis oleh sistem.</small></label></div>
+   <div id="bankRow" style="display:none"><label class="full"><span>Nama Paket / Set Soal V14</span><select id="eBankSet"><option value="">Pilih paket soal…</option></select><small class="field-help">Pilih berdasarkan nama. ID set soal disimpan otomatis oleh sistem.</small></label></div>
    <div id="questionRow" style="display:none"><label class="full"><span>Teks soal</span><textarea id="eQuestion" rows="5"></textarea></label><label><span>Kunci/Pedoman</span><input id="eKey"></label><label class="full"><span>Pembahasan</span><textarea id="eExplain" rows="5"></textarea></label></div>
    </div>
   </div>
@@ -72,9 +72,9 @@ function kindName(k){return k==="pdf"?"Modul PDF":k==="video"?"Video Pembahasan"
 function updateModeInfo(){
  const info={
   pdf:"<b>📘 Modul & Topik</b><br><span>Input modul PDF manual → pilih jenjang SD/SMP/SMA → paket → topik. Setiap paket dapat memiliki modulnya sendiri.</span>",
-  soal:"<b>✍️ Soal Latihan</b><br><span>Dua sumber: <b>PDF manual</b> atau <b>Latihan Interaktif dari Bank Soal V13</b>. Keduanya dipetakan ke paket.</span>",
+  soal:"<b>✍️ Soal Latihan</b><br><span>Dua sumber: <b>PDF manual</b> atau <b>Latihan Interaktif dari Bank Soal V14</b>. Keduanya dipetakan ke paket.</span>",
   video:"<b>🎥 Video Pembahasan</b><br><span>Input URL YouTube/video → pilih jenjang → paket → topik.</span>",
-  tryout:"<b>🏆 Tryout Mingguan</b><br><span>Tryout interaktif mengambil set soal dari <b>Bank Soal V13</b>, lalu dipetakan ke paket. Aktivasi peserta tetap mengikuti akses paket.</span>"
+  tryout:"<b>🏆 Tryout Mingguan</b><br><span>Tryout interaktif mengambil set soal dari <b>Bank Soal V14</b>, lalu dipetakan ke paket. Aktivasi peserta tetap mengikuti akses paket.</span>"
  };$("modeInfo").innerHTML=info[kind]||"";
  const em=$("exerciseModes");em.classList.toggle("hidden",kind!=="soal");
  em.querySelectorAll("[data-exmode]").forEach(b=>b.classList.toggle("primary",b.dataset.exmode===exerciseMode));
@@ -116,7 +116,7 @@ function syncSourceFields(){
 function openEdit(x){
  editing=x||null;const k=x?(x.tujuan==="tryout"?"tryout":x.jenis):kind,d=x?parseData(x):{},mapped=x?idsFor(x.id):[];
  $("editTitle").textContent=(x?"Ubah ":"Tambah ")+kindName(k);
- const visual={pdf:["📘","Modul PDF","Tambahkan modul terstruktur untuk paket belajar."],soal:["✍️","Soal Latihan","Kelola latihan PDF atau latihan interaktif."],video:["🎥","Video Pembahasan","Tambahkan video pembahasan untuk peserta."],tryout:["🏆","Tryout Mingguan","Hubungkan paket dengan set soal Bank Soal V13."]}[k]||["📚","Bahan Belajar","Lengkapi informasi bahan belajar."];
+ const visual={pdf:["📘","Modul PDF","Tambahkan modul terstruktur untuk paket belajar."],soal:["✍️","Soal Latihan","Kelola latihan PDF atau latihan interaktif."],video:["🎥","Video Pembahasan","Tambahkan video pembahasan untuk peserta."],tryout:["🏆","Tryout Mingguan","Hubungkan paket dengan set soal Bank Soal V14."]}[k]||["📚","Bahan Belajar","Lengkapi informasi bahan belajar."];
  $("editIcon").textContent=visual[0];$("editSubtitle").textContent=visual[2];$("urlHelp").textContent=k==="video"?"Gunakan URL YouTube/video yang dapat diputar peserta.":"Gunakan URL PDF yang dapat diakses peserta.";
  $("eLevel").value=x?.jenjang||$("level").value||"SMA";fillEditPackages(mapped[0]||"");
  $("eTopic").value=x?.topik||"";$("eTitle").value=x?.judul||"";$("eVisible").value=String(x?.visible!==false);
@@ -142,8 +142,8 @@ async function saveEdit(){
  const simpleInteractive=k==="tryout"||(k==="soal"&&$("eSourceType").value==="interactive");if(!pid&&!simpleInteractive)return alert("Pilih paket tujuan.");
  if(k==="pdf"){const uploaded=await uploadPdfIfSelected();if(uploaded&&uploaded.storagePath){d.storage_path=uploaded.storagePath;d.pdfUrl="";}else if(typeof uploaded==="string"&&uploaded){d.pdfUrl=uploaded;}d.source_type="pdf";if(!d.storage_path&&!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}
  if(k==="video"){d.youtube=$("eUrl").value.trim();d.source_type="video"}
- if(k==="soal"){d.source_type=$("eSourceType").value;if(d.source_type==="pdf"){const uploaded=await uploadPdfIfSelected();if(uploaded&&uploaded.storagePath){d.storage_path=uploaded.storagePath;d.pdfUrl="";}else if(typeof uploaded==="string"&&uploaded){d.pdfUrl=uploaded;}if(!d.storage_path&&!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}else {d.bank_set_id=$("eBankSet").value;if(!d.bank_set_id)return alert("Pilih Nama Paket / Set Soal V13 untuk Latihan.")}}
- if(k==="tryout"){d.source_type="interactive";d.bank_set_id=$("eBankSet").value;if(!d.bank_set_id)return alert("Pilih Nama Paket / Set Soal V13 untuk Tryout.")}
+ if(k==="soal"){d.source_type=$("eSourceType").value;if(d.source_type==="pdf"){const uploaded=await uploadPdfIfSelected();if(uploaded&&uploaded.storagePath){d.storage_path=uploaded.storagePath;d.pdfUrl="";}else if(typeof uploaded==="string"&&uploaded){d.pdfUrl=uploaded;}if(!d.storage_path&&!d.pdfUrl)return alert("Masukkan URL PDF atau upload file PDF.")}else {d.bank_set_id=$("eBankSet").value;if(!d.bank_set_id)return alert("Pilih Nama Paket / Set Soal V14 untuk Latihan.")}}
+ if(k==="tryout"){d.source_type="interactive";d.bank_set_id=$("eBankSet").value;if(!d.bank_set_id)return alert("Pilih Nama Paket / Set Soal V14 untuk Tryout.")}
  d.learning_stage=d.learning_stage||1;
  const bankOpt=$("eBankSet")?.selectedOptions?.[0];const autoName=simpleInteractive?(bankOpt?.dataset?.name||bankOpt?.textContent||"").trim():"";const autoLevel=simpleInteractive?(bankOpt?.dataset?.level||$("eLevel").value):$("eLevel").value;const row={jenjang:autoLevel||"SMA",jenis:k==="tryout"?"tryout":k,tujuan:k==="tryout"?"tryout":k==="soal"?"latihan":k,topik:$("eTopic").value.trim(),judul:autoName||$("eTitle").value.trim(),visible:$("eVisible").value==="true",data:d};
  if(!row.judul)return alert("Judul wajib diisi.");
@@ -166,7 +166,7 @@ function preview(x){
    const em=youtubeEmbed(d.youtube||d.video_url||d.youtube_url||d.url||"");
    body+=em?'<iframe class="video-frame" src="'+esc(em)+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>':'<div class="empty"><b>Video belum dapat dipreview.</b><br>URL video belum tersedia atau tidak valid.</div>';
   }else{
-   body+='<h3>Soal</h3><div style="white-space:pre-wrap">'+esc(d.soal||"Set soal interaktif / Bank Soal V13")+'</div><h3>Kunci</h3><div>'+esc(Array.isArray(d.kunci)?d.kunci.join(", "):d.kunci||"-")+'</div><h3>Pembahasan</h3><div style="white-space:pre-wrap">'+esc(d.pembahasan||"-")+'</div>';
+   body+='<h3>Soal</h3><div style="white-space:pre-wrap">'+esc(d.soal||"Set soal interaktif / Bank Soal V14")+'</div><h3>Kunci</h3><div>'+esc(Array.isArray(d.kunci)?d.kunci.join(", "):d.kunci||"-")+'</div><h3>Pembahasan</h3><div style="white-space:pre-wrap">'+esc(d.pembahasan||"-")+'</div>';
   }
   body+='</div>';
   $("prevTitle").textContent="Preview · "+(x.judul||"Konten");$("prevBody").innerHTML=body;
