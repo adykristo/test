@@ -1973,7 +1973,7 @@ function v13SendPackageToAdmin(id,kind){
  let target=rows.find(x=>String(x.sourceV14Package||x.sourceV13Package||'')===String(p.id));
  const now=new Date().toISOString();
  if(!target){
-   target={id:bridgeId,kind:kind,name:(p.name&&!/^Paket Soal/i.test(p.name))?p.name:(kind==='tryout'?'Tryout dari Bank Soal':'Latihan dari Bank Soal'),questions:[],visible:false,duration:kind==='tryout'?90:0,start:'',end:'',subscription:'Semua Paket Aktif',attempts:1,createdAt:now};
+   target={id:bridgeId,kind:kind,name:(p.name&&!/^Paket Soal/i.test(p.name))?p.name:(kind==='tryout'?'Tryout dari Bank Soal V14':'Latihan dari Bank Soal V14'),questions:[],visible:false,duration:kind==='tryout'?90:0,start:'',end:'',subscription:'Pilih Paket Peserta',targetPackageId:'',targetPackageName:'',attempts:1,sourceVersion:14,createdAt:now};
    rows.unshift(target);
  }
  target.questions=JSON.parse(JSON.stringify(p.questions));
@@ -1981,7 +1981,7 @@ function v13SendPackageToAdmin(id,kind){
  try{localStorage.setItem(key,JSON.stringify(rows))}catch(e){return alert('Gagal mengirim ke Admin: '+e.message)}
  p.adminStage=kind;p.adminSentAt=now;p.updatedAt=now;setPackageBank(arr);renderPackageBank();
  const label=kind==='tryout'?'Tryout Mingguan':'Soal Latihan';
- if(confirm('✓ '+p.questions.length+' soal sudah dikirim ke halaman '+label+' di Admin.\n\nBuka halaman Admin sekarang?')){
+ if(confirm('✓ '+p.questions.length+' soal sudah dikirim ke '+label+'.\n\nLangkah berikutnya di Admin:\n1. Klik 👥 Atur Paket Peserta\n2. Pilih paket langganan tujuan\n3. Klik ✓ Publikasikan\n\nBuka Admin sekarang?')){
    location.href='admin.html#'+(kind==='tryout'?'tryout':'latihan');
  }
 }
