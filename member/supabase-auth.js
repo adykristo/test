@@ -203,5 +203,39 @@
     }
   });
 
-  window.kirimResetPassword=async function(){const el=document.getElementById("user")||document.getElementById("email");const e=el?gmail(el.value):"";if(!e){alert("Masukkan alamat Email Google Anda terlebih dahulu.");return;}const {error}=await supabase.auth.resetPasswordForEmail(e,{redirectTo:window.location.origin+window.location.pathname+"#reset"});alert(error?"Gagal mengirim link reset: "+error.message:"Link pemulihan password telah dikirim ke email Anda.");};
+  function showRecoveryForm(){
+    if(document.getElementById("kfRecoveryOverlay")) return;
+    const wrap=document.createElement("div");
+    wrap.id="kfRecoveryOverlay";
+    wrap.style.cssText="position:fixed;inset:0;z-index:200000;background:linear-gradient(135deg,#eef2ff,#f8f5ff 50%,#effcf9);display:grid;place-items:center;padding:18px";
+    wrap.innerHTML='<div style="width:min(430px,100%);background:#fff;border:1px solid #e3d5ef;border-radius:18px;padding:25px;box-shadow:0 18px 50px rgba(55,30,86,.18)"><h2 style="margin:0 0 6px;text-align:center;color:#28143c">Buat Password Baru 🔐</h2><p style="margin:0 0 18px;text-align:center;color:#6b5680;font-size:13px">Masukkan password baru untuk akun KlinikFisikapku Anda.</p><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 5px;color:#402065">Password baru</label><input id="kfNewPassword" type="password" autocomplete="new-password" minlength="8" style="width:100%;padding:11px;border:1px solid #e7d8f5;border-radius:9px;font-size:14px"><label style="display:block;font-weight:700;font-size:12px;margin:12px 0 5px;color:#402065">Ulangi password baru</label><input id="kfNewPassword2" type="password" autocomplete="new-password" minlength="8" style="width:100%;padding:11px;border:1px solid #e7d8f5;border-radius:9px;font-size:14px"><div id="kfRecoveryMsg" style="display:none;margin-top:12px;padding:10px;border-radius:9px;font-size:13px"></div><button id="kfSaveNewPassword" type="button" style="width:100%;margin-top:16px;border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer;background:linear-gradient(100deg,#822bd9,#f34ea5);color:#fff">Simpan Password Baru</button></div>';
+    document.body.appendChild(wrap);
+    document.getElementById("kfSaveNewPassword").onclick=async function(){
+      const p1=document.getElementById("kfNewPassword").value;
+      const p2=document.getElementById("kfNewPassword2").value;
+      const msg=document.getElementById("kfRecoveryMsg");
+      const btn=this;
+      const notice=(t,ok)=>{msg.style.display="block";msg.style.background=ok?"#e8f8ef":"#fff0f3";msg.style.color=ok?"#147343":"#b4284f";msg.textContent=t;};
+      if(p1.length<8){notice("Password minimal 8 karakter.",false);return;}
+      if(p1!==p2){notice("Ulangi password harus sama.",false);return;}
+      btn.disabled=true;btn.textContent="Menyimpan...";
+      const {error}=await supabase.auth.updateUser({password:p1});
+      if(error){notice("Gagal menyimpan password: "+error.message,false);btn.disabled=false;btn.textContent="Simpan Password Baru";return;}
+      notice("Password berhasil diubah. Anda akan diarahkan ke halaman masuk.",true);
+      await supabase.auth.signOut();
+      setTimeout(()=>{history.replaceState(null,"",window.location.pathname);window.location.reload();},1200);
+    };
+  }
+
+  supabase.auth.onAuthStateChange(function(event){
+    if(event==="PASSWORD_RECOVERY") setTimeout(showRecoveryForm,0);
+  });
+
+  window.kirimResetPassword=async function(){
+    const el=document.getElementById("user")||document.getElementById("email");
+    const e=el?gmail(el.value):"";
+    if(!e){alert("Masukkan alamat Email Google Anda terlebih dahulu.");return;}
+    const {error}=await supabase.auth.resetPasswordForEmail(e,{redirectTo:window.location.origin+window.location.pathname});
+    alert(error?"Gagal mengirim link reset: "+error.message:"Link pemulihan password telah dikirim ke email Anda.");
+  };
 })();
