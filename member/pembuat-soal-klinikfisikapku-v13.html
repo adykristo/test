@@ -1419,7 +1419,25 @@ async function v13SaveEssayGrade(id,i){
  try{
   const db=await v13EssayAdminDb(),s=await db.auth.getSession(),uid=s?.data?.session?.user?.id||null;
   const r=await db.from('essay_submissions').update({score,max_score:max,teacher_feedback:feedback,graded_by:uid,graded_at:new Date().toISOString(),grading_status:'graded'}).eq('id',id).select().single();
-  if(r.error)throw r.error;alert('Nilai Esai berhasil disimpan.');await v13LoadEssayGrading();
+  if(r.error)throw r.error;
+  // Sinkronkan nilai akhir attempt bila jawaban Esai terkait attempt yang sama.
+  const essay=r.data||{},attemptId=essay.attempt_id||null;
+  if(attemptId){
+   const obj=await db.from('question_submissions').select('score,max_score').eq('attempt_id',attemptId);
+   const es=await db.from('essay_submissions').select('score,max_score,grading_status').eq('attempt_id',attemptId);
+   if(!obj.error&&!es.error){
+    const objective=(obj.data||[]),essays=(es.data||[]),allEssayGraded=essays.every(x=>(x.grading_status||'pending')==='graded');
+    const earned=objective.reduce((a,x)=>a+Number(x.score||0),0)+essays.reduce((a,x)=>a+Number(x.score||0),0);
+    const total=objective.reduce((a,x)=>a+Number(x.max_score||0),0)+essays.reduce((a,x)=>a+Number(x.max_score||0),0);
+    const finalScore=total?Math.round(earned/total*10000)/100:null;
+    const patch={updated_at:new Date().toISOString()};
+    if(finalScore!==null)patch.final_score=finalScore;
+    if(allEssayGraded)patch.grading_status='graded';
+    const up=await db.from('assessment_attempts').update(patch).eq('id',attemptId);
+    if(up.error)console.warn('[V13 final score]',up.error);
+   }
+  }
+  alert('Nilai Esai berhasil disimpan.');await v13LoadEssayGrading();
  }catch(e){alert('Gagal menyimpan nilai Esai: '+(e?.message||e))}
 }
 async function v13SubmissionDb(){
@@ -1443,7 +1461,9 @@ async function saveObjectiveParticipantSubmission(q,a,grade,pkg,attemptId){
 async function saveAssessmentAttempt(pkg,answers,grades,status='submitted'){
  const {db,user}=await v13SubmissionDb(),attemptId=practiceState.attemptId||crypto.randomUUID(),auto=grades.filter(g=>g.auto),earned=auto.reduce((s,g)=>s+Number(g.score||0),0),max=auto.reduce((s,g)=>s+Number(g.max||0),0);
  practiceState.attemptId=attemptId;
- const row={id:attemptId,participant_id:user.id,package_id:String(pkg?.id||pkg?.kf_package_id||''),package_name:String(pkg?.name||''),assessment_kind:String(pkg?.kind||'latihan'),status,total_questions:(pkg?.questions||[]).length,answered_questions:(pkg?.questions||[]).filter((q,i)=>practiceAnswered(i)).length,objective_score:max?Math.round(earned/max*10000)/100:null,started_at:practiceState.startedAt||new Date().toISOString(),submitted_at:status==='submitted'?new Date().toISOString():null,updated_at:new Date().toISOString()};
+ const objectiveScore=max?Math.round(earned/max*10000)/100:null,hasEssay=(pkg?.questions||[]).some(q=>q.type==='esai');
+ const row={id:attemptId,participant_id:user.id,package_id:String(pkg?.id||pkg?.kf_package_id||''),package_name:String(pkg?.name||''),assessment_kind:String(pkg?.kind||'latihan'),status,total_questions:(pkg?.questions||[]).length,answered_questions:(pkg?.questions||[]).filter((q,i)=>practiceAnswered(i)).length,objective_score:objectiveScore,started_at:practiceState.startedAt||new Date().toISOString(),submitted_at:status==='submitted'?new Date().toISOString():null,updated_at:new Date().toISOString()};
+ if(!hasEssay&&objectiveScore!==null){row.final_score=objectiveScore;row.grading_status='graded'}else if(hasEssay){row.grading_status='pending'}
  const r=await db.from('assessment_attempts').upsert(row,{onConflict:'id'}).select().single();if(r.error)throw r.error;return r.data;
 }
 async function persistAllPracticeAnswers(pkg,answers,grades){
