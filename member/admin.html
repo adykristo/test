@@ -993,7 +993,10 @@ table{max-width:100%}
           </div>
         </section>
         <section id="konten-v2" class="panel">
-  <h1 id="kontenV2Heading">Konten Belajar</h1>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <h1 id="kontenV2Heading" style="margin-bottom:0">Konten Belajar</h1>
+    <button id="kontenV2BackInteractive" class="btn" type="button" onclick="openLatihanInteraktif(this)" style="display:none">⚡ Ke Latihan Interaktif</button>
+  </div>
   <p class="sub">Mesin Admin Konten V2 yang sudah diuji, ditampilkan langsung di Admin Utama.</p>
   <div class="v2-frame-wrap"><iframe id="kontenV2Frame" title="Admin Konten V2" loading="eager"></iframe></div>
 </section>
@@ -1222,6 +1225,7 @@ function openLatihanPdfDirect(b){
   document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("show",x.id==="konten-v2"));
   document.querySelectorAll("aside button").forEach(x=>x.classList.remove("active"));
   const h=document.getElementById("kontenV2Heading");if(h)h.textContent="Latihan PDF";
+  const back=document.getElementById("kontenV2BackInteractive");if(back)back.style.display="";
   const fr=document.getElementById("kontenV2Frame");
   const src="admin-konten-v2.html?embed=1&locked=1&kind=soal&exercise=pdf&v=20261006-modulelayout";
   if(fr)fr.src=src;
@@ -1232,6 +1236,7 @@ function openKontenV2(kind,b){
   if(b)b.classList.add("active");
   const names={pdf:"Modul & Topik",soal:"Soal Latihan",video:"Video Pembahasan",tryout:"Tryout Mingguan"};
   const h=document.getElementById("kontenV2Heading");if(h)h.textContent=names[kind]||"Konten Belajar";
+  const back=document.getElementById("kontenV2BackInteractive");if(back)back.style.display="none";
   const fr=document.getElementById("kontenV2Frame");
   const src="admin-konten-v2.html?embed=1&locked=1&kind="+encodeURIComponent(kind)+"&v=20261005-simple-packages1";
   if(fr&&fr.getAttribute("src")!==src)fr.src=src;
