@@ -482,6 +482,12 @@ window.MathJax = {
     padding:30px 20px;
     font-size:13px;
   }
+
+  /* Sticky footer: hanya menjaga footer tetap di bawah saat konten halaman pendek. */
+  html,body{min-height:100%;}
+  body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;}
+  main{flex:1 0 auto;width:100%;}
+  footer{margin-top:auto;flex-shrink:0;}
   footer strong{ color:#fff; }
 
   /* ===== TRYOUT ===== */
