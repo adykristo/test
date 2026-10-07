@@ -1296,9 +1296,10 @@ table{max-width:100%}
           '<div id="kfRecoveryMsg" style="min-height:18px;margin-top:10px;color:#b42318;font-size:12px;text-align:center"></div>'+
           '<button type="button" onclick="location.replace(location.pathname+\'?login=1\')" style="width:100%;margin-top:6px;padding:9px;border:0;background:transparent;color:#6e34e8;font-weight:700;cursor:pointer">Kembali ke Login</button>';
         document.getElementById("kfVerifyRecoveryBtn").onclick=async function(){
-          const code=(document.getElementById("kfRecoveryCode").value||"").trim();
+          const rawCode=(document.getElementById("kfRecoveryCode").value||"").trim();
+          const code=rawCode.replace(/[^0-9]/g,"");
           const m=document.getElementById("kfRecoveryMsg");
-          if(!/^\d{6,8}$/.test(code)){m.textContent="Masukkan kode pemulihan yang valid.";return;}
+          if(code.length<6||code.length>8){m.textContent="Masukkan kode pemulihan 6–8 digit.";return;}
           this.disabled=true;this.textContent="Memverifikasi...";
           const client=window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client;
           try{
@@ -1339,12 +1340,15 @@ table{max-width:100%}
         };
       }
 
+      let KFAdminRecoveryRequestBusy=false;
       async function KFAdminForgotPassword(){
+        if(KFAdminRecoveryRequestBusy)return;
         const email=(document.getElementById("kfAdminEmail")?.value||"").trim().toLowerCase();
         const msg=document.getElementById("kfAdminLoginMessage");
         if(msg){msg.style.color="#b42318";msg.textContent="";}
         if(!email){if(msg)msg.textContent="Masukkan email Admin terlebih dahulu.";return;}
         try{
+          KFAdminRecoveryRequestBusy=true;
           if(!window.KFSupabaseAdmin||!window.KFSupabaseAdmin.client)throw new Error("Supabase Admin belum siap. Muat ulang halaman.");
           const redirectTo=window.location.origin+window.location.pathname+"?recovery=1";
           const {error}=await window.KFSupabaseAdmin.client.auth.resetPasswordForEmail(email,{redirectTo});
@@ -1352,6 +1356,7 @@ table{max-width:100%}
           try{sessionStorage.setItem("kfRecoveryEmail",email);}catch(_){}
           KFAdminShowRecoveryCode(email);
         }catch(e){
+          KFAdminRecoveryRequestBusy=false;
           if(msg){msg.style.color="#b42318";msg.textContent="Gagal mengirim kode pemulihan: "+(e?.message||String(e));}
         }
       }
