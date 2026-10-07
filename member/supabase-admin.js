@@ -44,16 +44,18 @@
         return false;
       }
 
-      const { data, error } = await supabase
-        .from("member_admins")
-        .select("role,active")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
+      // Gunakan gerbang SECURITY DEFINER yang sama dengan backend agar verifikasi
+      // Admin tidak bergantung pada SELECT langsung ke member_admins/RLS.
+      const { data: isAdmin, error } = await supabase.rpc("is_member_admin");
 
-      if (error || !data || data.role !== "super_admin" || data.active !== true) {
+      if (error) {
+        console.error("Gagal memverifikasi Super Admin:", error);
+        return false;
+      }
+      if (isAdmin !== true) {
         await supabase.auth.signOut({ scope: "local" });
-        alert("Akses ditolak: akun Google ini bukan Super Admin Member yang aktif.");
-        window.location.replace("index.html?admin_access=denied");
+        alert("Akses ditolak: akun ini bukan Super Admin Member yang aktif.");
+        window.location.replace("admin.html?login=1&admin_access=denied");
         return false;
       }
 
