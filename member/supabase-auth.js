@@ -205,8 +205,46 @@
   window.addEventListener("DOMContentLoaded", async function(){
     const {data:s}=await supabase.auth.getSession();
     if(s.session && document.getElementById("dash")){
-      const {data:p}=await supabase.from("member_profiles").select(PROFILE_FIELDS).eq("id",s.session.user.id).single();
-      if(p && typeof masukPeserta==="function"){const d=document.getElementById("dash");if(d&&window.getComputedStyle(d).display==="none")masukPeserta(p);}
+      const user=s.session.user;
+      const {data:p,error:pe}=await supabase.from("member_profiles").select(PROFILE_FIELDS).eq("id",user.id).maybeSingle();
+
+      // Google OAuth hanya untuk MASUK, bukan pendaftaran otomatis.
+      // Profil hasil pendaftaran resmi selalu mempunyai biodata inti ini.
+      // Trigger Supabase boleh saja membuat row profil untuk auth.users baru,
+      // tetapi row kosong/tidak lengkap tidak dianggap sebagai peserta terdaftar.
+      const providers=(user.app_metadata&&Array.isArray(user.app_metadata.providers))
+        ? user.app_metadata.providers.map(x=>String(x).toLowerCase())
+        : [];
+      const viaGoogle=providers.includes("google") || String(user.app_metadata&&user.app_metadata.provider||"").toLowerCase()==="google";
+      const profilTerdaftar=!!(p &&
+        clean(p.email) &&
+        clean(p.nama) &&
+        clean(p.username) &&
+        clean(p.sekolah) &&
+        clean(p.wa) &&
+        /^(1|2|3|4|5|6|7|8|9|10|11|12)$/.test(clean(p.kelas)) &&
+        ["sd","smp","sma"].includes(clean(p.jenjang).toLowerCase()));
+
+      if(viaGoogle && (!profilTerdaftar || pe)){
+        await supabase.auth.signOut();
+        try{localStorage.removeItem("kf_member_profile");}catch(_){}
+        if(typeof buka==="function")buka("login");
+        const msg="Akun Google ini belum terdaftar sebagai peserta KlinikFisikapku. Silakan Daftar terlebih dahulu.";
+        if(window.KFMemberUI&&typeof KFMemberUI.toast==="function")KFMemberUI.toast(msg,"err",7000);
+        const n=document.getElementById("loginNotice");
+        if(n){n.textContent=msg;n.className="auth-notice show err";}
+        return;
+      }
+
+      if(p && p.status==="dihapus"){
+        await supabase.auth.signOut();
+        if(typeof buka==="function")buka("login");
+        return;
+      }
+      if(p && typeof masukPeserta==="function"){
+        const d=document.getElementById("dash");
+        if(d&&window.getComputedStyle(d).display==="none")masukPeserta(p);
+      }
     }
   });
 
