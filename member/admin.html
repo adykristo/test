@@ -1287,11 +1287,18 @@ table{max-width:100%}
       async function KFAdminForgotPassword(){
         const email=(document.getElementById("kfAdminEmail")?.value||"").trim().toLowerCase();
         const msg=document.getElementById("kfAdminLoginMessage");
+        if(msg)msg.textContent="";
         if(!email){if(msg)msg.textContent="Masukkan email Admin terlebih dahulu.";return;}
-        const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+"/member/index.html"});
-        if(error){if(msg)msg.textContent="Gagal mengirim kode pemulihan: "+error.message;return;}
-        try{sessionStorage.setItem("kfRecoveryEmail",email);}catch(_){}
-        window.location.href="index.html?recovery=1";
+        try{
+          if(!window.KFSupabaseAdmin||!window.KFSupabaseAdmin.client)throw new Error("Supabase Admin belum siap. Muat ulang halaman.");
+          const redirectTo=window.location.origin+window.location.pathname+"?recovery=1";
+          const {error}=await window.KFSupabaseAdmin.client.auth.resetPasswordForEmail(email,{redirectTo});
+          if(error)throw error;
+          try{sessionStorage.setItem("kfRecoveryEmail",email);}catch(_){}
+          if(msg){msg.style.color="#18794e";msg.textContent="Link reset password sudah dikirim. Periksa email Admin.";}
+        }catch(e){
+          if(msg){msg.style.color="#b42318";msg.textContent="Gagal mengirim link pemulihan: "+(e?.message||String(e));}
+        }
       }
 
       async function KFAdminPasswordLoginDirect(btn){
@@ -3062,7 +3069,7 @@ async function KFLogoutAdminMemberSafe(){
  try{Object.keys(localStorage).filter(k=>k.startsWith("sb-")&&k.endsWith("-auth-token")).forEach(k=>localStorage.removeItem(k));sessionStorage.clear()}catch(e){}
  window.location.replace("admin.html?login=1");
 }
-if(location.hash&&/access_token|refresh_token|error_description/.test(location.hash))history.replaceState(null,document.title,location.pathname+location.search);
+// OAuth hash dibersihkan oleh ensureAdmin() hanya setelah sesi Supabase berhasil dipulihkan.
 async function renderDiscountRules(){const b=document.getElementById("discountRulesAdmin");if(!b)return;try{const q=await kfdb().from("member_discount_rules").select("*").order("min_packages");if(q.error)throw q.error;b.innerHTML=(q.data||[]).map(r=>`<div class="discount-rule-row"><div><b>${escMember(r.label||r.min_packages+" paket")}</b><p class="sub">${r.min_packages}${r.max_packages?"–"+r.max_packages:"+"} paket · Diskon ${Number(r.discount_percent)}% · ${r.active?"Aktif":"Nonaktif"}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editAturanDiskon('${r.id}')">Edit</button><button class="btn ghost small" onclick="toggleAturanDiskon('${r.id}',${!r.active})">${r.active?"Nonaktifkan":"Aktifkan"}</button><button class="btn danger small" onclick="hapusAturanDiskon('${r.id}')">Hapus</button></div></div>`).join("")||'<div class="sub">Belum ada aturan.</div>'}catch(e){b.innerHTML='<div class="sub">'+escMember(e.message)+'</div>'}}
 async function tambahAturanDiskon(){const a=Number(prompt("Minimal paket:","2"));if(!a)return;const z=prompt("Maksimal paket (kosong = tanpa batas):",String(a));if(z===null)return;const d=Number(prompt("Diskon (%):","5"));if(d<0||d>100||Number.isNaN(d))return;const l=prompt("Label:",a+(z?"–"+z:"+")+" paket")||"";const q=await kfdb().from("member_discount_rules").insert({min_packages:a,max_packages:z.trim()===""?null:Number(z),discount_percent:d,label:l,active:true});if(q.error)return alert(q.error.message);renderDiscountRules()}
 async function editAturanDiskon(id){const q=await kfdb().from("member_discount_rules").select("*").eq("id",id).single();if(q.error)return alert(q.error.message);const r=q.data,a=Number(prompt("Minimal paket:",r.min_packages));if(!a)return;const z=prompt("Maksimal paket (kosong = tanpa batas):",r.max_packages??"");if(z===null)return;const d=Number(prompt("Diskon (%):",r.discount_percent));if(d<0||d>100||Number.isNaN(d))return;const l=prompt("Label:",r.label||"");if(l===null)return;const u=await kfdb().from("member_discount_rules").update({min_packages:a,max_packages:z.trim()===""?null:Number(z),discount_percent:d,label:l}).eq("id",id);if(u.error)return alert(u.error.message);renderDiscountRules()}
