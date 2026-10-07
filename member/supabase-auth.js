@@ -242,8 +242,10 @@
         return;
       }
       if(p && typeof masukPeserta==="function"){
-        const d=document.getElementById("dash");
-        if(d&&window.getComputedStyle(d).display==="none")masukPeserta(p);
+        // Sesi Supabase yang valid harus selalu dipulihkan ke area peserta.
+        // Jangan bergantung pada status display #dash karena halaman publik dapat
+        // sempat tampil lebih dulu saat pemulihan sesi berlangsung.
+        await masukPeserta(p);
       }
     }
   });
