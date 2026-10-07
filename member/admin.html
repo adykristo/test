@@ -2231,7 +2231,7 @@ function h(v){return escMember(v==null?"":String(v))}
 
 function newPkg(kind,name){
  return {id:uidPkg(),kind,name:name|| (kind==="tryout"?"Tryout Baru":"Latihan Baru"),questions:[],visible:false,
- duration:kind==="tryout"?90:0,start:"",end:"",subscription:"Semua Paket Aktif",attempts:1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+ duration:kind==="tryout"?90:0,start:"",end:"",subscription:"Semua Paket Aktif",attempts:kind==="tryout"?3:1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
 }
 async function buatPaketKelola(kind){
  const name=await KFUI.prompt(kind==="tryout"?"Masukkan nama paket tryout.":"Masukkan nama paket latihan.","",kind==="tryout"?"Buat Paket Tryout":"Buat Paket Latihan");
@@ -2379,7 +2379,7 @@ async function bukaPkgEditor(kind,id){
   ${kind==="tryout"?`<div><label>Durasi (menit)</label><input id="peDuration" type="number" min="1" value="${Number(p.duration)||90}"></div>
   <div><label>Mulai</label><input id="peStart" type="datetime-local" value="${h(p.start||"")}"></div>
   <div><label>Selesai</label><input id="peEnd" type="datetime-local" value="${h(p.end||"")}"></div>
-  <div><label>Maksimal percobaan</label><input id="peAttempts" type="number" min="1" value="${Number(p.attempts)||1}"></div>`:""}
+  <div><label>Maksimal percobaan</label><input id="peAttempts" type="number" min="1" value="${kind==="tryout"?(Number(p.attempts)||3):(Number(p.attempts)||1)}"></div>`:""}
   <div class="wide"><div class="notice" style="display:block;background:#fbf7ff;border-color:#e4cef7">🔒 <b>Distribusi aman:</b> 1 paket soal → 1 jenjang → 1 Paket Utama.</div></div>
   <div class="wide pkg-actions"><button class="btn" onclick="simpanMetaPkg()">Simpan Pengaturan</button><button class="btn ghost" onclick="bukaPilihV12('${kind}','${p.id}')">+ Ambil Soal dari V13</button></div>
  </div>
@@ -2405,7 +2405,7 @@ function simpanMetaPkg(){
  if(!target||packageLevel(target)!==level)return KFUI.toast("Paket tujuan tidak sesuai dengan jenjang yang dipilih.","err",5500);
  p.name=document.getElementById("peName").value.trim()||p.name;
  p.targetLevel=level;p.targetPackageId=String(target.id);p.targetPackageName=level+" — "+(target.nama||target.kode||"Paket");p.subscription=p.targetPackageName;p.visible=false;
- if(PKG_EDIT.kind==="tryout"){p.duration=Number(document.getElementById("peDuration").value)||90;p.start=document.getElementById("peStart").value;p.end=document.getElementById("peEnd").value;p.attempts=Number(document.getElementById("peAttempts").value)||1}
+ if(PKG_EDIT.kind==="tryout"){p.duration=Number(document.getElementById("peDuration").value)||90;p.start=document.getElementById("peStart").value;p.end=document.getElementById("peEnd").value;p.attempts=Number(document.getElementById("peAttempts").value)||3}
  savePkgObj(PKG_EDIT.kind,p);renderPkgManagers();KFUI.toast("Tujuan disimpan: "+p.targetPackageName+". Paket kembali menjadi Draf sampai dipublikasikan.","ok",5000);bukaPkgEditor(PKG_EDIT.kind,p.id);
 }
 function removeQuestionPkg(i){let p=getPkg(PKG_EDIT.kind,PKG_EDIT.id);p.questions.splice(i,1);savePkgObj(PKG_EDIT.kind,p);bukaPkgEditor(PKG_EDIT.kind,p.id)}
@@ -2450,7 +2450,7 @@ function v12ToMember(q,p,kind,no){
  else if(tipe==="mcma")k=(a.keys||[]).map(Number);
  else if(tipe==="kategori")k=(a.statements||[]).map(x=>x.answer||"");
  else if(tipe==="isian")k=a.short||"";else k=a.essayKey||"";
- return {id:"pkg-"+p.id+"-q-"+no,jenjang:String(q.jenjang||"sma").toLowerCase(),visible:true,jenis:"soal",tujuan:kind==="tryout"?"tryout":"latihan",paket:p.name,topik:q.topik||p.name,judul:p.name+" · Soal "+no,tipe,soal:q.question||"",gambar:q.image||"",opsi:a.options||[],kunci:k,statements:(a.statements||[]).map(x=>({text:x.text||"",key:x.answer||""})),category_labels:tipe==="kategori"?["Benar","Salah"]:[],pembahasan:q.explanation||"",kelas:q.kelas||"",mapel:q.mapel||"Fisika",scoring:q.scoring||"exact",subscription:p.subscription||"Semua Paket Aktif",duration:p.duration||0,start:p.start||"",end:p.end||"",attempts:p.attempts||1};
+ return {id:"pkg-"+p.id+"-q-"+no,jenjang:String(q.jenjang||"sma").toLowerCase(),visible:true,jenis:"soal",tujuan:kind==="tryout"?"tryout":"latihan",paket:p.name,topik:q.topik||p.name,judul:p.name+" · Soal "+no,tipe,soal:q.question||"",gambar:q.image||"",opsi:a.options||[],kunci:k,statements:(a.statements||[]).map(x=>({text:x.text||"",key:x.answer||""})),category_labels:tipe==="kategori"?["Benar","Salah"]:[],pembahasan:q.explanation||"",kelas:q.kelas||"",mapel:q.mapel||"Fisika",scoring:q.scoring||"exact",subscription:p.subscription||"Semua Paket Aktif",duration:p.duration||0,start:p.start||"",end:p.end||"",attempts:kind==="tryout"?(Number(p.attempts)||3):(Number(p.attempts)||1)};
 }
 async function publikasiPkg(kind,id){
  let p=getPkg(kind,id);if(!p||!p.questions.length)return KFUI.toast("Paket belum memiliki soal.","err");
