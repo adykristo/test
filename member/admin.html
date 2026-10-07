@@ -1284,10 +1284,65 @@ table{max-width:100%}
     <script src="supabase-publisher-v15.js?v=20261005-final3"></script>
     <script src="gas-workspace-bridge-v15.js?v=20261005-final3"></script>
     <script>
+      function KFAdminShowRecoveryCode(email){
+        const gate=document.getElementById("kfAdminLoginGate");
+        const card=gate&&gate.querySelector(":scope > div > div");
+        if(!card)return;
+        card.innerHTML=
+          '<h2 style="margin:0 0 8px;text-align:center;color:#211231">Pemulihan Password</h2>'+
+          '<p style="text-align:center;color:#6b5680;font-size:13px">Masukkan kode pemulihan yang dikirim ke <b>'+String(email).replace(/[<>&]/g,"")+'</b>.</p>'+
+          '<input id="kfRecoveryCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Kode pemulihan" style="width:100%;padding:11px;border:1px solid #dfc8ef;border-radius:9px;box-sizing:border-box;font-size:16px;letter-spacing:3px;text-align:center">'+
+          '<button id="kfVerifyRecoveryBtn" type="button" style="width:100%;margin-top:14px;padding:11px;border:0;border-radius:9px;background:linear-gradient(100deg,#8d22e4,#ec3d9b);color:#fff;font-weight:bold;cursor:pointer">Verifikasi Kode</button>'+
+          '<div id="kfRecoveryMsg" style="min-height:18px;margin-top:10px;color:#b42318;font-size:12px;text-align:center"></div>'+
+          '<button type="button" onclick="location.replace(location.pathname+\'?login=1\')" style="width:100%;margin-top:6px;padding:9px;border:0;background:transparent;color:#6e34e8;font-weight:700;cursor:pointer">Kembali ke Login</button>';
+        document.getElementById("kfVerifyRecoveryBtn").onclick=async function(){
+          const code=(document.getElementById("kfRecoveryCode").value||"").trim();
+          const m=document.getElementById("kfRecoveryMsg");
+          if(!/^\\d{6,8}$/.test(code)){m.textContent="Masukkan kode pemulihan yang valid.";return;}
+          this.disabled=true;this.textContent="Memverifikasi...";
+          const client=window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client;
+          try{
+            const {error}=await client.auth.verifyOtp({email:email,token:code,type:"recovery"});
+            if(error)throw error;
+            KFAdminShowNewPassword();
+          }catch(e){
+            m.textContent="Kode tidak valid atau sudah kedaluwarsa: "+(e?.message||String(e));
+            this.disabled=false;this.textContent="Verifikasi Kode";
+          }
+        };
+      }
+
+      function KFAdminShowNewPassword(){
+        const gate=document.getElementById("kfAdminLoginGate");
+        const card=gate&&gate.querySelector(":scope > div > div");
+        if(!card)return;
+        card.innerHTML=
+          '<h2 style="margin:0 0 8px;text-align:center;color:#211231">Buat Password Baru</h2>'+
+          '<p style="text-align:center;color:#6b5680;font-size:13px">Masukkan password baru untuk akun Admin.</p>'+
+          '<input id="kfRecoveryPassword" type="password" autocomplete="new-password" placeholder="Password baru (minimal 8 karakter)" style="width:100%;padding:11px;border:1px solid #dfc8ef;border-radius:9px;box-sizing:border-box">'+
+          '<input id="kfRecoveryPassword2" type="password" autocomplete="new-password" placeholder="Ulangi password baru" style="width:100%;padding:11px;border:1px solid #dfc8ef;border-radius:9px;box-sizing:border-box;margin-top:10px">'+
+          '<button type="button" id="kfRecoveryBtn" style="width:100%;margin-top:16px;padding:11px;border:0;border-radius:9px;background:linear-gradient(100deg,#8d22e4,#ec3d9b);color:#fff;font-weight:bold;cursor:pointer">Simpan Password Baru</button>'+
+          '<div id="kfRecoveryMsg" style="min-height:18px;margin-top:10px;color:#b42318;font-size:12px;text-align:center"></div>';
+        document.getElementById("kfRecoveryBtn").onclick=async function(){
+          const a=document.getElementById("kfRecoveryPassword").value;
+          const b=document.getElementById("kfRecoveryPassword2").value;
+          const m=document.getElementById("kfRecoveryMsg");
+          if(a.length<8){m.textContent="Password minimal 8 karakter.";return;}
+          if(a!==b){m.textContent="Ulangi password harus sama.";return;}
+          this.disabled=true;this.textContent="Menyimpan...";
+          const client=window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client;
+          const {error}=await client.auth.updateUser({password:a});
+          if(error){m.textContent=error.message;this.disabled=false;this.textContent="Simpan Password Baru";return;}
+          m.style.color="#18794e";m.textContent="Password berhasil diubah. Silakan login.";
+          setTimeout(async()=>{try{await client.auth.signOut({scope:"local"});}catch(_){}
+            location.replace(location.pathname+"?login=1");},900);
+        };
+      }
+
       async function KFAdminForgotPassword(){
         const email=(document.getElementById("kfAdminEmail")?.value||"").trim().toLowerCase();
         const msg=document.getElementById("kfAdminLoginMessage");
-        if(msg)msg.textContent="";
+        if(msg){msg.style.color="#b42318";msg.textContent="";}
         if(!email){if(msg)msg.textContent="Masukkan email Admin terlebih dahulu.";return;}
         try{
           if(!window.KFSupabaseAdmin||!window.KFSupabaseAdmin.client)throw new Error("Supabase Admin belum siap. Muat ulang halaman.");
@@ -1295,9 +1350,9 @@ table{max-width:100%}
           const {error}=await window.KFSupabaseAdmin.client.auth.resetPasswordForEmail(email,{redirectTo});
           if(error)throw error;
           try{sessionStorage.setItem("kfRecoveryEmail",email);}catch(_){}
-          if(msg){msg.style.color="#18794e";msg.textContent="Link reset password sudah dikirim. Periksa email Admin.";}
+          KFAdminShowRecoveryCode(email);
         }catch(e){
-          if(msg){msg.style.color="#b42318";msg.textContent="Gagal mengirim link pemulihan: "+(e?.message||String(e));}
+          if(msg){msg.style.color="#b42318";msg.textContent="Gagal mengirim kode pemulihan: "+(e?.message||String(e));}
         }
       }
 
@@ -1306,7 +1361,7 @@ table{max-width:100%}
         const email=(document.getElementById("kfAdminEmail")?.value||"").trim();
         const password=document.getElementById("kfAdminPassword")?.value||"";
         const msg=document.getElementById("kfAdminLoginMessage");
-        if(msg)msg.textContent="";
+        if(msg){msg.style.color="#b42318";msg.textContent="";}
         if(!email||!password){if(msg)msg.textContent="Masukkan email dan password Admin.";return}
         const old=btn?btn.textContent:"";
         try{
@@ -1339,33 +1394,21 @@ table{max-width:100%}
       async function KFAdminHandleRecovery(){
         const p=new URLSearchParams(location.search);
         if(p.get("recovery")!=="1") return false;
+        const gate=document.getElementById("kfAdminLoginGate");
+        if(gate)gate.style.display="flex";
         const client=window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client;
         if(!client) return false;
         const {data}=await client.auth.getSession();
-        if(!data||!data.session) return false;
-        const gate=document.getElementById("kfAdminLoginGate");
-        if(gate)gate.style.display="flex";
-        const card=gate&&gate.querySelector("div>div");
-        if(!card)return true;
-        card.innerHTML='<h2 style="margin:0 0 8px;text-align:center;color:#211231">Buat Password Baru</h2>'+
-          '<p style="text-align:center;color:#6b5680;font-size:13px">Masukkan password baru untuk akun Admin.</p>'+
-          '<input id="kfRecoveryPassword" type="password" autocomplete="new-password" placeholder="Password baru" style="width:100%;padding:11px;border:1px solid #dfc8ef;border-radius:9px;box-sizing:border-box">'+
-          '<input id="kfRecoveryPassword2" type="password" autocomplete="new-password" placeholder="Ulangi password baru" style="width:100%;padding:11px;border:1px solid #dfc8ef;border-radius:9px;box-sizing:border-box;margin-top:10px">'+
-          '<button type="button" id="kfRecoveryBtn" style="width:100%;margin-top:16px;padding:11px;border:0;border-radius:9px;background:linear-gradient(100deg,#8d22e4,#ec3d9b);color:#fff;font-weight:bold;cursor:pointer">Simpan Password Baru</button>'+
-          '<div id="kfRecoveryMsg" style="min-height:18px;margin-top:10px;color:#b42318;font-size:12px;text-align:center"></div>';
-        document.getElementById("kfRecoveryBtn").onclick=async function(){
-          const a=document.getElementById("kfRecoveryPassword").value;
-          const b=document.getElementById("kfRecoveryPassword2").value;
-          const m=document.getElementById("kfRecoveryMsg");
-          if(a.length<8){m.textContent="Password minimal 8 karakter.";return}
-          if(a!==b){m.textContent="Ulangi password harus sama.";return}
-          this.disabled=true;this.textContent="Menyimpan...";
-          const {error}=await client.auth.updateUser({password:a});
-          if(error){m.textContent=error.message;this.disabled=false;this.textContent="Simpan Password Baru";return}
-          m.style.color="#18794e";m.textContent="Password berhasil diubah. Membuka Admin...";
-          setTimeout(()=>location.replace(location.pathname),700);
-        };
-        return true;
+        if(data&&data.session){
+          KFAdminShowNewPassword();
+          return true;
+        }
+        const email=(sessionStorage.getItem("kfRecoveryEmail")||"").trim().toLowerCase();
+        if(email){
+          KFAdminShowRecoveryCode(email);
+          return true;
+        }
+        return false;
       }
 
       window.addEventListener("load", function () {
