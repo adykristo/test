@@ -2403,6 +2403,31 @@ renderList=function(){_renderListV15();setTimeout(kfLoadServerPackages,0)};
   .kfm-actions .btn{width:100%}
 }
 </style>
+<style id="kf-mobile-final-audit-20261007">
+/* Audit HP final: layout saja. Tidak mengubah engine Modul/Latihan/Tryout/Progress/Sertifikat. */
+@media(max-width:720px){
+  main{width:100%;min-width:0}
+  .page,.card,#detailBody,.kf-pkg-runner,.kf-pkg-result{max-width:100%;box-sizing:border-box}
+  .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .summary-card{min-width:0;overflow-wrap:anywhere}
+  .toolbar{display:flex!important;flex-wrap:wrap!important}
+  .toolbar input[type="search"]{width:100%!important;min-width:0!important;flex:1 0 100%!important}
+  .toolbar .chip{min-width:0!important;white-space:nowrap}
+  .package-progress-row .rowhead{min-width:0}
+  .package-progress-row .rowhead>span{min-width:0;overflow-wrap:anywhere}
+  .owned-package,.history-row,.kf-pkg-card{overflow-wrap:anywhere}
+  .history-row .btn{width:100%;white-space:normal}
+  .kf-pkg-runner .btn,.kf-pkg-result .btn{max-width:100%;white-space:normal}
+  .kf-pkg-nav{width:100%;overflow:hidden}
+  .videowrap iframe{width:100%!important;max-width:100%!important}
+  #profilForm input,#profilForm select,#profilForm textarea{width:100%;max-width:100%;box-sizing:border-box}
+  .cert-print-sheet{max-width:none}
+}
+@media(max-width:390px){
+  .summary-grid{grid-template-columns:1fr!important}
+  .toolbar .chip{flex:1 1 calc(50% - 7px)!important;text-align:center;justify-content:center}
+}
+</style>
 <script>
 window.KFMemberUI=window.KFMemberUI||{};
 KFMemberUI.toast=function(message,type="info",timeout=3400){let s=document.getElementById("kfmToastStack");if(!s){s=document.createElement("div");s.id="kfmToastStack";s.className="kfm-toast-stack";document.body.appendChild(s)}const t=document.createElement("div");t.className="kfm-toast "+type;t.textContent=String(message||"");s.appendChild(t);setTimeout(()=>t.remove(),timeout)};
