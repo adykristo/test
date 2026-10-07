@@ -2918,10 +2918,37 @@ function kfRenderAuditRows(){
  const rows=KF_AUDIT_ROWS.filter(r=>(!j||String(r.member.jenjang||"").toUpperCase()===j)&&(!q||[r.member.nama,r.member.email,r.member.paket,...r.active.map(x=>x.package_name)].join(" ").toLowerCase().includes(q)));
  const n=x=>KF_AUDIT_ROWS.filter(r=>r.status===x).length;
  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set("kfAuditTotal",KF_AUDIT_ROWS.length);set("kfAuditNormal",n("normal"));set("kfAuditWarn",n("warn"));set("kfAuditBad",n("bad"));
- const body=document.getElementById("kfAuditRows");if(body)body.innerHTML=rows.map(r=>{const m=r.member,label=r.status==="normal"?"🟢 Normal":r.status==="warn"?"🟡 Perlu diperiksa":"🔴 Bermasalah";return '<tr><td><b>'+escMember(m.nama||"Member")+'</b><br><small>'+escMember(m.email||"")+'</small></td><td>'+escMember(String(m.jenjang||"-").toUpperCase())+'</td><td>'+escMember(r.active.map(x=>x.package_name).join(", ")||"—")+'</td><td><b>'+label+'</b></td><td><small>'+escMember(r.findings.join(" • ")||"Tidak ada anomali dasar")+'</small></td><td><div class="row-actions"><button class="btn ghost small" onclick="kfLihatSebagaiPeserta(\''+m.id+'\')">👁 Lihat Tampilan</button><button class="btn small" onclick="kfPerbaikiPaketPeserta(\''+m.id+'\')">✎ Perbaiki Paket</button><button class="btn ghost small" onclick="kfAuditPeserta()">↻ Audit Ulang</button></div></td></tr>'}).join("")||'<tr><td colspan="6" style="text-align:center;padding:24px">Tidak ada data sesuai filter.</td></tr>';
+ const body=document.getElementById("kfAuditRows");if(body)body.innerHTML=rows.map(r=>{const m=r.member,label=r.status==="normal"?"🟢 Normal":r.status==="warn"?"🟡 Perlu diperiksa":"🔴 Bermasalah";return '<tr><td><b>'+escMember(m.nama||"Member")+'</b><br><small>'+escMember(m.email||"")+'</small></td><td>'+escMember(String(m.jenjang||"-").toUpperCase())+'</td><td>'+escMember(r.active.map(x=>x.package_name).join(", ")||"—")+'</td><td><b>'+label+'</b></td><td><small>'+escMember(r.findings.join(" • ")||"Tidak ada anomali dasar")+'</small></td><td><div class="row-actions"><button class="btn ghost small" onclick="kfLihatSebagaiPeserta(\''+m.id+'\')">👁 Lihat Tampilan</button><button class="btn small" onclick="kfPerbaikiPaketPeserta(\''+m.id+'\')">✎ Perbaiki Paket</button><button class="btn danger small" onclick="kfResetAkunPeserta(\''+m.id+'\')">↺ Reset Akun</button><button class="btn ghost small" onclick="kfAuditPeserta()">↻ Audit Ulang</button></div></td></tr>'}).join("")||'<tr><td colspan="6" style="text-align:center;padding:24px">Tidak ada data sesuai filter.</td></tr>';
  const info=document.getElementById("kfAuditSummary");if(info)info.textContent=rows.length+" peserta ditampilkan · audit ini read-only dan tidak mengubah progress peserta.";
 }
 async function kfPerbaikiPaketPeserta(memberId){await kelolaPaketMember(memberId);await kfAuditPeserta()}
+async function kfResetAkunPeserta(memberId){
+ const m=MEMBER_CACHE.find(x=>String(x.id)===String(memberId));if(!m)return KFUI.toast("Peserta tidak ditemukan.","err");
+ try{
+  const db=kfdb();
+  const own=await db.rpc("kf_admin_member_packages",{p_user:memberId});if(own.error)throw own.error;
+  const active=(own.data||[]).filter(x=>String(x.status||"").toLowerCase()==="active");
+  const daftar=active.length?"\n\nPaket aktif yang akan dilepas:\n"+active.map((x,i)=>(i+1)+". "+x.package_name).join("\n"):"\n\nPeserta saat ini tidak memiliki paket aktif.";
+  const ok=await KFUI.confirm(
+    "RESET AKUN PESERTA\n\nPeserta: "+(m.nama||"Member")+"\nEmail: "+(m.email||"-")+daftar+
+    "\n\nReset aman ini hanya melepaskan seluruh PAKET AKTIF. Akun/login, profil, nilai, jawaban, progress, riwayat Latihan/Tryout, dan sertifikat TIDAK DIHAPUS.\n\nLanjutkan?",
+    "Reset Akun — Aman"
+  );
+  if(!ok)return;
+  if(!active.length)return KFUI.toast("Tidak ada paket aktif yang perlu direset.","info");
+  const confirmText=await KFUI.prompt('Ketik RESET untuk memastikan hanya akun "'+(m.nama||"Member")+'" yang direset:','','Konfirmasi Reset Akun');
+  if(confirmText===null)return;
+  if(String(confirmText).trim().toUpperCase()!=="RESET")return KFUI.toast("Reset dibatalkan karena konfirmasi tidak sesuai.","info");
+  let gagal=[];
+  for(const p of active){
+    const r=await db.rpc("kf_admin_revoke_member_package",{p_user:memberId,p_package:p.package_id,p_note:"Reset akun aman oleh Admin — paket dilepas, riwayat/progress dipertahankan"});
+    if(r.error)gagal.push(p.package_name+": "+r.error.message);
+  }
+  if(gagal.length)throw new Error("Sebagian paket gagal dilepas: "+gagal.join(" | "));
+  KFUI.toast("Reset akun selesai. "+active.length+" paket dilepas; login, profil dan riwayat peserta tetap aman.","ok",6500);
+  await renderMemberAdmin();await kfAuditPeserta();
+ }catch(e){KFUI.toast("Reset akun gagal: "+(e?.message||e),"err",7000)}
+}
 async function kfLihatSebagaiPeserta(memberId){
  const m=MEMBER_CACHE.find(x=>String(x.id)===String(memberId));if(!m)return KFUI.toast("Peserta tidak ditemukan.","err");
  try{
