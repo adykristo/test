@@ -3184,10 +3184,13 @@ document.addEventListener("click",function(e){
 .kf-toast.ok{border-left:4px solid #20b26b}.kf-toast.err{border-left:4px solid #ef476f}.kf-toast.info{border-left:4px solid #9a35d2}
 @keyframes kfToastIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
 .kf-dialog-backdrop{position:fixed;inset:0;background:rgba(31,15,48,.48);backdrop-filter:blur(3px);z-index:100001;display:grid;place-items:center;padding:18px}
-.kf-dialog{width:min(520px,100%);background:#fff;border-radius:18px;box-shadow:0 22px 70px rgba(32,12,54,.28);overflow:hidden;border:1px solid #eadcf5}
-.kf-dialog-head{padding:17px 19px;background:linear-gradient(110deg,#7224ba,#ec3d9b);color:#fff}.kf-dialog-head b{font-size:16px}
-.kf-dialog-body{padding:18px 19px;color:#28133d;white-space:pre-wrap;line-height:1.55}.kf-dialog-input{width:100%;box-sizing:border-box;margin-top:12px;padding:11px 12px;border:1px solid #d8c6e8;border-radius:11px;font:inherit}
-.kf-dialog-actions{display:flex;justify-content:flex-end;gap:9px;padding:0 19px 18px}.kf-dialog-actions button{min-width:88px}
+.kf-dialog{width:min(560px,100%);max-height:min(680px,calc(100vh - 36px));background:#fff;border-radius:18px;box-shadow:0 22px 70px rgba(32,12,54,.28);overflow:hidden;border:1px solid #eadcf5;display:flex;flex-direction:column}
+.kf-dialog-head{padding:17px 19px;background:linear-gradient(110deg,#7224ba,#ec3d9b);color:#fff;flex:0 0 auto}.kf-dialog-head b{font-size:16px}
+.kf-dialog-body{padding:18px 19px;color:#28133d;line-height:1.55;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;white-space:normal}
+.kf-dialog-body [data-msg]{white-space:pre-wrap;overflow-wrap:anywhere}
+.kf-dialog-input{width:100%;box-sizing:border-box;margin-top:12px;padding:11px 12px;border:1px solid #d8c6e8;border-radius:11px;font:inherit;background:#fff;position:sticky;bottom:0}
+.kf-dialog-actions{display:flex;justify-content:flex-end;gap:9px;padding:14px 19px 18px;border-top:1px solid #f0e5f7;background:#fff;flex:0 0 auto}.kf-dialog-actions button{min-width:88px}
+@media(max-width:620px){.kf-dialog-backdrop{padding:10px}.kf-dialog{width:100%;max-height:calc(100vh - 20px);border-radius:15px}.kf-dialog-head{padding:14px 15px}.kf-dialog-body{padding:14px 15px}.kf-dialog-actions{padding:12px 15px 15px}.kf-dialog-actions button{flex:1;min-width:0}}
 </style>
 <script>
 /* Modern feedback layer: dipakai untuk aksi baru; fungsi lama tetap kompatibel. */
