@@ -788,6 +788,26 @@ table{max-width:100%}
 #tryout .card:has(#tryoutPackageManagerSupabase),
 #tryout .card:has(#tryoutList){display:none!important}
 </style>
+<style id="kf-admin-dialog-overflow-fix-20261007">
+/* Hanya merapikan dialog/prompt Admin yang berisi daftar panjang. */
+.kf-modal,.kf-dialog,.kf-prompt-modal,[role="dialog"]{
+  max-height:calc(100vh - 32px)!important;
+}
+.kf-modal .modal-body,.kf-dialog .dialog-body,.kf-prompt-modal .modal-body,[role="dialog"] .modal-body{
+  max-height:60vh!important;
+  overflow-y:auto!important;
+  white-space:pre-wrap!important;
+  overflow-wrap:anywhere!important;
+}
+@media(max-width:720px){
+  .kf-modal,.kf-dialog,.kf-prompt-modal,[role="dialog"]{
+    width:calc(100vw - 20px)!important;
+    max-width:560px!important;
+    margin:10px!important;
+  }
+  .kf-modal .modal-body,.kf-dialog .dialog-body,.kf-prompt-modal .modal-body,[role="dialog"] .modal-body{max-height:55vh!important}
+}
+</style>
 <style id="kf-admin-login-center-fix">
 /* Isolated login-gate positioning only; does not affect Admin dashboard UI. */
 #kfAdminLoginGate{
