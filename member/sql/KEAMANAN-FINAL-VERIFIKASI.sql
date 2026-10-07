@@ -299,20 +299,23 @@ security_definer_search_path as (
     )
 )
 
-select * from rls_checks
-union all select * from subtopic_write_check
-union all select * from admin_helper_check
-union all select * from admin_anon_check
-union all select * from admin_sensitive_two
-union all select * from start_attempt_check
-union all select * from attempt_functions
-union all select * from bucket_checks
-union all select * from storage_broad_write
-union all select * from learning_private_read
-union all select * from essay_owner_check
-union all select * from security_definer_search_path
+select *
+from (
+  select * from rls_checks
+  union all select * from subtopic_write_check
+  union all select * from admin_helper_check
+  union all select * from admin_anon_check
+  union all select * from admin_sensitive_two
+  union all select * from start_attempt_check
+  union all select * from attempt_functions
+  union all select * from bucket_checks
+  union all select * from storage_broad_write
+  union all select * from learning_private_read
+  union all select * from essay_owner_check
+  union all select * from security_definer_search_path
+) final_checks
 order by
-  case result when 'CHECK' then 0 else 1 end,
+  case when result = 'CHECK' then 0 else 1 end,
   area,
   item;
 
