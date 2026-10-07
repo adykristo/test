@@ -1573,8 +1573,22 @@ img,video,iframe{max-width:100%}
             return "<b>"+esc(x.nama)+"</b> "+(h?"berakhir dalam "+h+" hari.":"telah mencapai tanggal berakhir.");
           }).join("<br>");
         }else notice.style.display="none";
-        const scored=(dataBelajarAktif.attempts||[]).filter(a=>Number.isFinite(Number(a.final_score!=null?a.final_score:(a.skor!=null?a.skor:a.score))));
-        const last=scored[0],lastScore=last?Number(last.final_score!=null?last.final_score:(last.skor!=null?last.skor:last.score)):null;
+        // Kartu "Tryout terakhir" hanya boleh membaca attempt Tryout yang benar-benar selesai.
+        // Jangan memakai attempt Latihan Interaktif walaupun itu attempt terbaru.
+        const kindOfAttempt=a=>String(a&&(a.assessment_kind||a.kind||a.jenis||a.package_kind||"")||"").trim().toLowerCase();
+        const scoreOfAttempt=a=>{
+          const raw=a&&(a.final_score!=null?a.final_score:(a.skor!=null?a.skor:(a.score!=null?a.score:a.objective_score)));
+          const n=Number(raw);return Number.isFinite(n)?n:null;
+        };
+        const timeOfAttempt=a=>{
+          const raw=a&&(a.submitted_at||a.finished_at||a.completed_at||a.selesai_at||a.updated_at||a.created_at);
+          const t=raw?new Date(raw).getTime():0;return Number.isFinite(t)?t:0;
+        };
+        const tryoutScored=(dataBelajarAktif.attempts||[])
+          .filter(a=>kindOfAttempt(a)==="tryout"&&scoreOfAttempt(a)!=null)
+          .slice()
+          .sort((a,b)=>timeOfAttempt(b)-timeOfAttempt(a));
+        const lastTryout=tryoutScored[0]||null,lastScore=scoreOfAttempt(lastTryout);
         document.getElementById("statSkor").textContent=lastScore!=null?Math.round(lastScore)+"":"—";
         renderPaketSayaDashboard();
       }
