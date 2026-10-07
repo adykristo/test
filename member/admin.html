@@ -832,6 +832,140 @@ table{max-width:100%}
  #kfAdminLoginGate>div{padding-left:12px!important;padding-right:12px!important}
 }
 </style>
+
+<style id="kf-admin-mobile-only-20261007">
+/* Mobile-only polish. Tidak mengubah JS, Supabase, data, atau layout desktop. */
+@media (max-width:760px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+
+  .top{
+    height:auto!important;
+    min-height:0!important;
+    padding:12px 14px 10px!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+    position:relative!important;
+  }
+  .top .brand{min-width:0}
+  .top .brand b{font-size:18px!important}
+  .top .brand small{font-size:12px!important}
+  .top>div:last-child{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+  }
+  .top>div:last-child .btn{
+    width:100%!important;
+    min-width:0!important;
+    min-height:40px!important;
+    padding:8px 9px!important;
+    font-size:13px!important;
+    white-space:nowrap!important;
+  }
+
+  .layout{display:block!important;width:100%!important;min-width:0!important}
+
+  .layout>aside{
+    position:relative!important;
+    top:auto!important;
+    z-index:1!important;
+    width:100%!important;
+    max-width:100%!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:7px!important;
+    padding:10px!important;
+    overflow:visible!important;
+    border-right:0!important;
+    border-bottom:1px solid var(--line)!important;
+  }
+  .layout>aside .label{
+    display:block!important;
+    grid-column:1/-1!important;
+    margin:5px 4px 0!important;
+    font-size:10px!important;
+  }
+  .layout>aside button{
+    width:100%!important;
+    min-width:0!important;
+    min-height:42px!important;
+    margin:0!important;
+    padding:9px 8px!important;
+    white-space:normal!important;
+    text-align:center!important;
+    line-height:1.2!important;
+    font-size:12px!important;
+    overflow-wrap:anywhere!important;
+  }
+
+  main{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    padding:16px 10px 24px!important;
+    overflow-x:hidden!important;
+  }
+  main h1{font-size:24px!important;line-height:1.18!important}
+  .sub{margin-bottom:16px!important}
+
+  .stats,.member-summary,.grid,.form{
+    grid-template-columns:1fr!important;
+  }
+  .stat,.card{width:100%!important;min-width:0!important}
+  .stat{padding:15px!important}
+  .stat b{font-size:24px!important}
+
+  .member-toolbar{grid-template-columns:1fr!important}
+  .member-export{justify-content:stretch!important}
+  .member-export .btn{flex:1 1 0!important}
+  .head{align-items:stretch!important}
+  .head,.row-actions{flex-wrap:wrap!important}
+  .row-actions .btn{flex:1 1 120px!important}
+
+  .table-wrap{
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overscroll-behavior-x:contain;
+  }
+
+  .v2-frame-wrap{
+    width:100%!important;
+    max-width:100%!important;
+    margin-top:10px!important;
+    border-radius:12px!important;
+    overflow:hidden!important;
+  }
+  .v2-frame-wrap iframe{
+    width:100%!important;
+    height:62vh!important;
+    min-height:380px!important;
+    max-height:620px!important;
+  }
+
+  .v12-studio-body{padding:4px!important}
+  .v12-studio-body iframe{
+    width:100%!important;
+    height:68vh!important;
+    min-height:430px!important;
+  }
+
+  dialog.member-dialog{
+    width:calc(100vw - 20px)!important;
+    max-width:none!important;
+    margin:10px!important;
+  }
+  .detail-grid{grid-template-columns:1fr!important}
+}
+@media (max-width:380px){
+  .top>div:last-child{grid-template-columns:1fr!important}
+  .layout>aside{grid-template-columns:1fr!important}
+  .layout>aside .label{grid-column:1!important}
+}
+</style>
+
 </head>
   <body><div id="kfAdminLoginGate" style="display:none;position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 75% 55%,rgba(92,221,207,.22),transparent 34%),linear-gradient(135deg,#eef2ff 0%,#f8f5ff 50%,#effcf9 100%);overflow:auto;width:100vw;min-width:100vw">
   <div style="padding:34px 16px 54px;min-height:100vh;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;width:100%;margin:0 auto">
