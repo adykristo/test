@@ -22,6 +22,11 @@
     }
   );
 
+  // Cache verifikasi hanya selama halaman Admin ini hidup.
+  // Backend tetap dilindungi RLS/RPC; cache ini hanya mencegah verifikasi
+  // berulang yang sempat membuat sesi valid dianggap hilang saat boot.
+  let verifiedAdminUserId = null;
+
   // Pastikan callback OAuth implicit benar-benar ditulis ke localStorage
   // sebelum hash URL dibersihkan. Ini mencegah sesi Admin hilang setelah refresh.
   async function restoreOAuthSessionFromUrl() {
@@ -84,6 +89,7 @@
         return false;
       }
 
+      verifiedAdminUserId = session.user.id;
       if (window.location.hash && /access_token|refresh_token|error_description/.test(window.location.hash)) {
         history.replaceState(null, document.title, window.location.pathname + window.location.search);
       }
@@ -93,8 +99,13 @@
     api: async function (action, payload) {
       payload = payload || {};
       if (action !== "adminLogin") {
-        const allowed = await this.ensureAdmin();
-        if (!allowed) throw new Error("Sesi admin tidak valid.");
+        const sr = await supabase.auth.getSession();
+        const liveSession = sr && sr.data ? sr.data.session : null;
+        if (!liveSession) throw new Error("Sesi admin tidak valid.");
+        if (verifiedAdminUserId !== liveSession.user.id) {
+          const allowed = await this.ensureAdmin();
+          if (!allowed) throw new Error("Sesi admin tidak valid.");
+        }
       }
       switch (action) {
         case "adminLogin":
