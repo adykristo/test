@@ -2069,9 +2069,38 @@ img,video,iframe{max-width:100%}
       <p style="color:#5b4374">Soal tryout akan terbuka sesuai paket yang dipilih admin.</p>`;
         }
 
+        // Modul, Video, dan Latihan PDF tidak memiliki submit otomatis seperti assessment.
+        // Peserta menandai selesai secara eksplisit setelah belajar; membuka saja tidak menaikkan progress.
+        if(["pdf","video"].includes(jenisDetail)||isLatihanPdfDetail){
+          const sudah=selesaiItem(x);
+          html += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid #eadff2"><button id="kfMarkContentDone" class="btn btn-main" '+(sudah?'disabled':'')+' onclick="tandaiKontenSelesaiAktif()">'+(sudah?'✓ Sudah Selesai':'✓ Tandai Selesai')+'</button><small style="display:block;margin-top:7px;color:#725c82">Klik setelah selesai mempelajari aktivitas ini. Membuka materi saja tidak menaikkan progress.</small></div>';
+        }
+
         document.getElementById("detailBody").innerHTML = html;
         if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([document.getElementById("detailBody")]);
         buka("detail");
+      }
+
+      async function tandaiKontenSelesaiAktif(){
+        if(detailAktif<0)return;
+        const item=dataMateri[detailAktif];
+        if(!item||!item.id)return;
+        try{
+          if(!window.KFMemberAuth||typeof window.KFMemberAuth.simpanProgress!=="function")throw new Error("Sinkron progress belum tersedia.");
+          await window.KFMemberAuth.simpanProgress(item.id,{selesai:true});
+          if(window.KFMemberAuth.dataBelajar){
+            const fresh=await window.KFMemberAuth.dataBelajar();
+            // Pertahankan hasil Latihan/Tryout V15 yang sudah dimuat dari sumber resminya.
+            fresh.attempts=dataBelajarAktif.attempts||[];
+            dataBelajarAktif=fresh;
+          }
+          const btn=document.getElementById("kfMarkContentDone");
+          if(btn){btn.disabled=true;btn.textContent="✓ Sudah Selesai";}
+          renderRingkasan();renderList();renderProgressPerPaket();
+          KFMemberUI.toast("Aktivitas ditandai selesai. Progress sudah diperbarui.","ok",4000);
+        }catch(err){
+          KFMemberUI.toast("Progress belum dapat disimpan: "+(err?.message||err),"err",5500);
+        }
       }
 
       async function koreksiDiServer(jawaban) {
