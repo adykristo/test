@@ -11,14 +11,39 @@
 
   const supabase = window.supabase.createClient(
     window.KF_SUPABASE_CONFIG.url,
-    window.KF_SUPABASE_CONFIG.anonKey
+    window.KF_SUPABASE_CONFIG.anonKey,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: window.localStorage
+      }
+    }
   );
+
+  // Pastikan callback OAuth implicit benar-benar ditulis ke localStorage
+  // sebelum hash URL dibersihkan. Ini mencegah sesi Admin hilang setelah refresh.
+  async function restoreOAuthSessionFromUrl() {
+    try {
+      if (!window.location.hash || !/access_token=/.test(window.location.hash)) return;
+      const p = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const access_token = p.get("access_token");
+      const refresh_token = p.get("refresh_token");
+      if (!access_token || !refresh_token) return;
+      const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+      if (error) throw error;
+    } catch (err) {
+      console.error("Gagal memulihkan callback OAuth Admin:", err);
+    }
+  }
 
   window.KFSupabaseAdmin = {
     configured: true,
     client: supabase,
 
     ensureAdmin: async function () {
+      await restoreOAuthSessionFromUrl();
       // OAuth callback dapat kembali ke halaman beberapa saat sebelum sesi selesai
       // dipulihkan dari URL/storage. Jangan langsung menampilkan gate login.
       let session = null;
