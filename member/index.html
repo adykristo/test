@@ -1534,7 +1534,18 @@ img,video,iframe{max-width:100%}
         const bahan=dataMateri.filter(x=>x.visible!==false&&x.jenis!=="tryout");
         const selesaiKonten=bahan.filter(selesaiItem).length;
         const serverAktif=(window.KF_SERVER_PACKAGES||[]).filter(x=>x&&x.visible!==false);
+        // Interaktif dianggap selesai hanya jika hasil attempt sudah benar-benar submitted/selesai.
+        // Attempt yang baru dimulai/draft tidak boleh menaikkan progress.
+        const attemptSelesai=a=>{
+          const st=String(a&&(
+            a.status||a.attempt_status||a.state||a.submission_status||""
+          )||"").trim().toLowerCase();
+          const adaSkor=a&&(a.final_score!=null||a.skor!=null||a.score!=null||a.objective_score!=null);
+          const submittedAt=a&&(a.submitted_at||a.finished_at||a.completed_at);
+          return ["submitted","selesai","completed","finished","graded"].includes(st)||!!submittedAt||!!adaSkor;
+        };
         const attemptIds=new Set((dataBelajarAktif.attempts||[])
+          .filter(attemptSelesai)
           .map(a=>String(a.package_id||a.paket_id||""))
           .filter(Boolean));
         const selesaiInteraktif=serverAktif.filter(x=>attemptIds.has(String(x.id||x.package_id||""))).length;
@@ -1639,7 +1650,15 @@ img,video,iframe{max-width:100%}
             // kf_my_results umumnya membawa ID kf_packages, bukan ID member_packages.
             return serverPackages.some(sp=>String(sp.id)===aid);
           });
-          const completedInteractiveIds=new Set(attempts.map(a=>String(a.package_id||a.paket_id||"")).filter(Boolean));
+          // Satu Latihan/Tryout dihitung selesai setelah ada attempt yang submitted/selesai.
+          // Membuka atau memulai assessment saja tidak mengubah persentase.
+          const attemptSelesai=a=>{
+            const st=String(a&&(a.status||a.attempt_status||a.state||a.submission_status||"")||"").trim().toLowerCase();
+            const adaSkor=a&&(a.final_score!=null||a.skor!=null||a.score!=null||a.objective_score!=null);
+            const submittedAt=a&&(a.submitted_at||a.finished_at||a.completed_at);
+            return ["submitted","selesai","completed","finished","graded"].includes(st)||!!submittedAt||!!adaSkor;
+          };
+          const completedInteractiveIds=new Set(attempts.filter(attemptSelesai).map(a=>String(a.package_id||a.paket_id||"")).filter(Boolean));
           const interactiveTotal=serverPackages.length;
           const interactiveDone=serverPackages.filter(sp=>completedInteractiveIds.has(String(sp.id))).length;
           const total=items.length+interactiveTotal;
