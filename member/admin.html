@@ -1298,7 +1298,7 @@ table{max-width:100%}
         document.getElementById("kfVerifyRecoveryBtn").onclick=async function(){
           const code=(document.getElementById("kfRecoveryCode").value||"").trim();
           const m=document.getElementById("kfRecoveryMsg");
-          if(!/^\\d{6,8}$/.test(code)){m.textContent="Masukkan kode pemulihan yang valid.";return;}
+          if(!/^\d{6,8}$/.test(code)){m.textContent="Masukkan kode pemulihan yang valid.";return;}
           this.disabled=true;this.textContent="Memverifikasi...";
           const client=window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client;
           try{
