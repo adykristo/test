@@ -1313,8 +1313,8 @@ table{max-width:100%}
           if(btn){btn.disabled=true;btn.textContent="Memeriksa akun...";}
           const client=(window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client)?window.KFSupabaseAdmin.client:window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);
           const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;
-          const q=await client.from("member_admins").select("role,active").eq("user_id",data.user.id).maybeSingle();
-          if(q.error||!q.data||q.data.role!=="super_admin"||q.data.active!==true){await client.auth.signOut({scope:"local"});throw new Error("Akun ini bukan Super Admin aktif.");}
+          const q=await client.rpc("is_member_admin");
+          if(q.error||q.data!==true){await client.auth.signOut({scope:"local"});throw new Error("Akun ini bukan Super Admin aktif.");}
           location.replace(location.pathname);
         }catch(e){if(msg)msg.textContent=e?.message||String(e);if(btn){btn.disabled=false;btn.textContent=old||"Masuk";}}
       }
@@ -1336,6 +1336,38 @@ table{max-width:100%}
       }
     </script>
     <script>
+      async function KFAdminHandleRecovery(){
+        const p=new URLSearchParams(location.search);
+        if(p.get("recovery")!=="1") return false;
+        const client=window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client;
+        if(!client) return false;
+        const {data}=await client.auth.getSession();
+        if(!data||!data.session) return false;
+        const gate=document.getElementById("kfAdminLoginGate");
+        if(gate)gate.style.display="flex";
+        const card=gate&&gate.querySelector("div>div");
+        if(!card)return true;
+        card.innerHTML='<h2 style="margin:0 0 8px;text-align:center;color:#211231">Buat Password Baru</h2>'+
+          '<p style="text-align:center;color:#6b5680;font-size:13px">Masukkan password baru untuk akun Admin.</p>'+
+          '<input id="kfRecoveryPassword" type="password" autocomplete="new-password" placeholder="Password baru" style="width:100%;padding:11px;border:1px solid #dfc8ef;border-radius:9px;box-sizing:border-box">'+
+          '<input id="kfRecoveryPassword2" type="password" autocomplete="new-password" placeholder="Ulangi password baru" style="width:100%;padding:11px;border:1px solid #dfc8ef;border-radius:9px;box-sizing:border-box;margin-top:10px">'+
+          '<button type="button" id="kfRecoveryBtn" style="width:100%;margin-top:16px;padding:11px;border:0;border-radius:9px;background:linear-gradient(100deg,#8d22e4,#ec3d9b);color:#fff;font-weight:bold;cursor:pointer">Simpan Password Baru</button>'+
+          '<div id="kfRecoveryMsg" style="min-height:18px;margin-top:10px;color:#b42318;font-size:12px;text-align:center"></div>';
+        document.getElementById("kfRecoveryBtn").onclick=async function(){
+          const a=document.getElementById("kfRecoveryPassword").value;
+          const b=document.getElementById("kfRecoveryPassword2").value;
+          const m=document.getElementById("kfRecoveryMsg");
+          if(a.length<8){m.textContent="Password minimal 8 karakter.";return}
+          if(a!==b){m.textContent="Ulangi password harus sama.";return}
+          this.disabled=true;this.textContent="Menyimpan...";
+          const {error}=await client.auth.updateUser({password:a});
+          if(error){m.textContent=error.message;this.disabled=false;this.textContent="Simpan Password Baru";return}
+          m.style.color="#18794e";m.textContent="Password berhasil diubah. Membuka Admin...";
+          setTimeout(()=>location.replace(location.pathname),700);
+        };
+        return true;
+      }
+
       window.addEventListener("load", function () {
         if (!window.KFSupabaseAdmin || !window.KFSupabaseAdmin.configured) {
           console.warn("[KlinikFisikapku] Supabase Admin belum terkonfigurasi. Periksa folder js/ dan kredensial public Supabase.");
@@ -2176,6 +2208,7 @@ function openPanel(id, b) {
         /* Studio lama diganti Package Manager V13 */
         if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
         if (window.KFSupabaseAdmin) {
+          if(await KFAdminHandleRecovery()) return;
           const boleh = await window.KFSupabaseAdmin.ensureAdmin();
           if (!boleh) {
             const gate=document.getElementById("kfAdminLoginGate");
