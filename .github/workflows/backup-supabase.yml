@@ -1,1 +1,6 @@
+name: Backup Supabase to Google Drive
 
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 19 * * *'
