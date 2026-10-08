@@ -1831,7 +1831,10 @@ function openPanel(id, b) {
           const q=await kfdb().rpc("kf_admin_bundle_orders");
           if(q.error)throw q.error;
           const o=(q.data||[]).filter(x=>String(x.user_id)===String(memberId)&&String(x.status||"").toLowerCase()==="pending").sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
-          if(!o)return KFUI.toast("Peserta belum mengirim pilihan paket. Minta peserta login ke Member Area dan kirim pilihan paket terlebih dahulu.","info",6000);
+          if(!o){
+            KFUI.toast("Belum ada permintaan paket. Admin dapat memilih dan mengaktifkan paket langsung melalui Kelola Paket.","info",5500);
+            return await kelolaPaketMember(memberId);
+          }
           const iq=await kfdb().rpc("kf_admin_bundle_order_items",{p_order:o.id});
           if(iq.error)throw iq.error;
           const names=(iq.data||[]).map(x=>x.package_name).filter(Boolean);
