@@ -992,6 +992,12 @@ img,video,iframe{max-width:100%}
           <div class="field"><label>Email akun</label><input id="profilEmail" disabled></div>
           <button class="btn btn-main" style="width:100%">Simpan Perubahan</button>
           <button class="btn btn-ghost" type="button" onclick="buka(profilAktif&&profilAktif.status==='aktif'?'dash':'pending')" style="width:100%;margin-top:8px">Kembali</button>
+          <div style="margin-top:20px;padding:16px;border:1px solid #e7d8f5;border-radius:14px;background:#fbf7ff">
+            <h3 style="margin:0 0 6px;color:#52217f">Hubungkan Akun Google</h3>
+            <p id="kfGoogleLinkStatus" style="font-size:12px;color:#6d587e">Memeriksa status Google...</p>
+            <button id="kfGoogleLinkButton" class="btn btn-ghost" type="button" style="width:100%" onclick="kfHubungkanGoogle()">Hubungkan Akun Google</button>
+            <p style="font-size:11px;color:#7d7190;margin-bottom:0">Gunakan akun Google dengan email yang sama. Paket dan riwayat belajar tidak berubah.</p>
+          </div>
           <div id="profilNotice" class="auth-notice"></div>
         </form>
       </section>
@@ -1340,6 +1346,7 @@ img,video,iframe{max-width:100%}
         profilJenjang.value=String(profilAktif.jenjang||"").toLowerCase();
         profilEmail.value=profilAktif.email||"";
         buka("profil");
+        kfPeriksaGoogleTerhubung();
       }
       async function simpanProfilPeserta(e){
         e.preventDefault();const btn=e.submitter;const old=btn.textContent;btn.disabled=true;btn.textContent="Menyimpan…";
@@ -2457,6 +2464,37 @@ async function KFMemberGoogleLoginDirect(btn){
   const n=document.getElementById("loginNotice");if(n)n.textContent="Login Google gagal: "+(e?.message||e);
   if(btn){btn.disabled=false;btn.textContent=old||"G  Masuk lewat Google";}
  }
+}
+</script>
+<script>
+/* Google identity linking: hanya dari sesi peserta yang sudah login. */
+async function kfPeriksaGoogleTerhubung(){
+ const btn=document.getElementById("kfGoogleLinkButton"),label=document.getElementById("kfGoogleLinkStatus");
+ if(!btn||!label)return;
+ const client=window.KFMemberAuth?.client;
+ if(!client){label.textContent="Layanan autentikasi belum siap.";btn.disabled=true;return;}
+ try{
+  const {data,error}=await client.auth.getUser();if(error||!data?.user)throw new Error("Silakan masuk kembali.");
+  const {data:ids,error:ie}=await client.auth.getUserIdentities();if(ie)throw ie;
+  const linked=(ids?.identities||[]).some(x=>x.provider==="google");
+  label.textContent=linked?"Akun Google sudah terhubung.":"Akun Google belum terhubung.";
+  btn.disabled=linked;btn.textContent=linked?"✓ Google Terhubung":"Hubungkan Akun Google";
+ }catch(e){label.textContent="Gagal memeriksa Google: "+e.message;btn.disabled=true;}
+}
+async function kfHubungkanGoogle(){
+ const btn=document.getElementById("kfGoogleLinkButton"),label=document.getElementById("kfGoogleLinkStatus");
+ const client=window.KFMemberAuth?.client;
+ if(!client)return;
+ btn.disabled=true;
+ try{
+  const {data,error}=await client.auth.getUser();if(error||!data?.user)throw new Error("Sesi berakhir. Silakan login ulang.");
+  const email=String(data.user.email||"").toLowerCase();
+  const {data:p,error:pe}=await client.from("member_profiles").select("id,email,status").eq("id",data.user.id).single();
+  if(pe||!p||String(p.email||"").toLowerCase()!==email||p.status==="dihapus")throw new Error("Profil peserta tidak valid.");
+  const {error:le}=await client.auth.linkIdentity({provider:"google",options:{redirectTo:location.origin+location.pathname}});
+  if(le)throw le;
+  label.textContent="Mengalihkan ke Google...";
+ }catch(e){label.textContent="Gagal menghubungkan: "+e.message;btn.disabled=false;}
 }
 </script>
 </body>
