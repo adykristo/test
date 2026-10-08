@@ -222,14 +222,15 @@
         ? user.app_metadata.providers.map(x=>String(x).toLowerCase())
         : [];
       const viaGoogle=providers.includes("google") || String(user.app_metadata&&user.app_metadata.provider||"").toLowerCase()==="google";
+      // Login Google harus terhubung ke profil pendaftaran yang sama (ID auth).
+      // Sekolah/WA/kelas tidak dijadikan syarat login: data itu bisa dilengkapi kemudian.
+      // Username dan jenjang membedakan pendaftaran resmi dari profil kosong OAuth.
       const profilTerdaftar=!!(p &&
-        clean(p.email) &&
-        clean(p.nama) &&
+        String(p.id)===String(user.id) &&
+        clean(p.email).toLowerCase()===clean(user.email).toLowerCase() &&
         clean(p.username) &&
-        clean(p.sekolah) &&
-        clean(p.wa) &&
-        /^(1|2|3|4|5|6|7|8|9|10|11|12)$/.test(clean(p.kelas)) &&
-        ["sd","smp","sma"].includes(clean(p.jenjang).toLowerCase()));
+        ["sd","smp","sma"].includes(clean(p.jenjang).toLowerCase()) &&
+        clean(p.status)!=="dihapus");
 
       if(viaGoogle && (!profilTerdaftar || pe)){
         await supabase.auth.signOut();
