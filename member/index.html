@@ -472,6 +472,16 @@
       .payment-row strong { color:#43225f; text-align:right; overflow-wrap:anywhere; }
       .payment-copy { width:100%; margin-top:10px; padding:9px; border:1px solid #b88ad8; border-radius:9px; color:#632298; background:#fff; font-weight:800; cursor:pointer; }
       .package-choice-grid { display:grid; gap:12px; margin:18px 0; text-align:left; }
+      /* Paket: perbaikan visual saja; alur Supabase dan pembayaran tetap. */
+      .package-choice-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}
+      .package-choice{display:block;min-width:0;cursor:pointer;box-shadow:0 3px 12px rgba(64,24,95,.04)}
+      .package-choice:hover{border-color:#cba4e8;box-shadow:0 8px 22px rgba(95,36,140,.09)}
+      .package-choice-head{min-width:0;flex-wrap:wrap}
+      .package-choice-head>div:first-child{min-width:0;flex:1 1 150px}
+      .package-choice h3{overflow-wrap:anywhere}
+      .bundle-check-row{min-height:36px;align-items:center}
+      @media(max-width:640px){.package-choice-grid{grid-template-columns:minmax(0,1fr)}.package-choice{padding:14px}.package-choice-head{gap:8px}}
+
       .package-choice { border:2px solid #eadcf8; border-radius:16px; padding:16px; background:#fff; transition:.2s ease; }
       .package-choice.selected { border-color:#9929dc; background:linear-gradient(135deg,#faf5ff,#fff3fa); box-shadow:0 8px 24px rgba(123,31,162,.12); }
       .package-choice-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
