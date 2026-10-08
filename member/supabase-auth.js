@@ -65,7 +65,13 @@
 
     if (action === "login") {
       const { data, error } = await supabase.auth.signInWithPassword({ email:gmail(payload.username || payload.email), password:payload.password });
-      if (error) throw new Error("Email atau password salah, atau email belum dikonfirmasi.");
+      if (error) {
+        const msg=String(error.message||"");
+        if (/email not confirmed/i.test(msg)) throw new Error("Email belum dikonfirmasi. Periksa email verifikasi atau hubungi Admin.");
+        if (/invalid login credentials|invalid credentials/i.test(msg)) throw new Error("Email atau password tidak cocok. Gunakan Lupa password untuk mengatur ulang password, atau pilih Masuk lewat Google.");
+        if (/too many requests|rate limit|after [0-9]+ seconds/i.test(msg)) throw new Error("Terlalu banyak percobaan login. Tunggu sebentar sebelum mencoba kembali.");
+        throw new Error("Login gagal: "+msg);
+      }
       const res = await supabase.from("member_profiles").select(PROFILE_FIELDS).eq("id", data.user.id).single();
       if (res.error) throw new Error("Profil member gagal dimuat: " + res.error.message);
       if (res.data.status === "dihapus") { await supabase.auth.signOut(); throw new Error("Akun ini telah dihapus."); }
