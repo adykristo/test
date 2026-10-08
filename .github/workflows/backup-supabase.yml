@@ -4,6 +4,7 @@ name: Backup Supabase to Google Drive
 on:
   workflow_dispatch:
   schedule:
+    # 02.00 WIB = 19.00 UTC hari sebelumnya
     - cron: '0 19 * * *'
 
 permissions:
@@ -13,15 +14,102 @@ jobs:
   backup:
     name: Backup Database
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      GOOGLE_DRIVE_TOKEN_JSON: ${{ secrets.GOOGLE_DRIVE_TOKEN_JSON }}
+      GOOGLE_DRIVE_FOLDER_ID: ${{ vars.GOOGLE_DRIVE_FOLDER_ID }}
+      BACKUP_ENCRYPTION_PASSWORD: ${{ secrets.BACKUP_ENCRYPTION_PASSWORD }}
 
     steps:
-      - name: Periksa konfigurasi backup
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-          GOOGLE_DRIVE_TOKEN_JSON: ${{ secrets.GOOGLE_DRIVE_TOKEN_JSON }}
-          GOOGLE_DRIVE_FOLDER_ID: ${{ vars.GOOGLE_DRIVE_FOLDER_ID }}
+      - name: Periksa konfigurasi
+        shell: bash
         run: |
-          test -n "$SUPABASE_DB_URL" || { echo "SUPABASE_DB_URL belum tersedia"; exit 1; }
-          test -n "$GOOGLE_DRIVE_TOKEN_JSON" || { echo "GOOGLE_DRIVE_TOKEN_JSON belum tersedia"; exit 1; }
-          test -n "$GOOGLE_DRIVE_FOLDER_ID" || { echo "GOOGLE_DRIVE_FOLDER_ID belum tersedia"; exit 1; }
-          echo "Konfigurasi dasar tersedia."
+          set -euo pipefail
+          for key in SUPABASE_DB_URL GOOGLE_DRIVE_TOKEN_JSON GOOGLE_DRIVE_FOLDER_ID BACKUP_ENCRYPTION_PASSWORD; do
+            if [ -z "${!key:-}" ]; then
+              echo "::error::$key belum tersedia"
+              exit 1
+            fi
+          done
+          echo "Konfigurasi tersedia."
+
+      - name: Siapkan alat backup
+        run: |
+          python -m pip install --disable-pip-version-check \
+            google-api-python-client google-auth google-auth-httplib2
+
+      - name: Ekspor database Supabase
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p backup
+          docker run --rm \
+            -e DATABASE_URL="$SUPABASE_DB_URL" \
+            -v "$PWD/backup:/backup" \
+            postgres:17 \
+            sh -c 'pg_dump --dbname="$DATABASE_URL" --format=custom --no-owner --no-acl --file=/backup/database.dump'
+
+          test -s backup/database.dump
+
+      - name: Enkripsi hasil backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          BACKUP_NAME="klinikfisikapku-$(date -u +%Y%m%d-%H%M%S).dump.enc"
+          echo "BACKUP_NAME=$BACKUP_NAME" >> "$GITHUB_ENV"
+
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 \
+            -in backup/database.dump \
+            -out "backup/$BACKUP_NAME" \
+            -pass env:BACKUP_ENCRYPTION_PASSWORD
+
+          test -s "backup/$BACKUP_NAME"
+          rm -f backup/database.dump
+
+      - name: Upload ke Google Drive
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from google.oauth2.credentials import Credentials
+          from googleapiclient.discovery import build
+          from googleapiclient.http import MediaFileUpload
+
+          info = json.loads(os.environ["GOOGLE_DRIVE_TOKEN_JSON"])
+          creds = Credentials.from_authorized_user_info(
+              info,
+              scopes=["https://www.googleapis.com/auth/drive.file"]
+          )
+
+          service = build(
+              "drive", "v3",
+              credentials=creds,
+              cache_discovery=False
+          )
+
+          name = os.environ["BACKUP_NAME"]
+          folder_id = os.environ["GOOGLE_DRIVE_FOLDER_ID"]
+          path = os.path.join("backup", name)
+
+          media = MediaFileUpload(
+              path,
+              mimetype="application/octet-stream",
+              resumable=True
+          )
+
+          result = service.files().create(
+              body={"name": name, "parents": [folder_id]},
+              media_body=media,
+              fields="id,name,size,parents"
+          ).execute()
+
+          if not result.get("id"):
+              raise RuntimeError("Upload tidak menghasilkan ID file")
+
+          print("Backup berhasil diunggah:", result["name"])
+          print("Ukuran:", result.get("size", "tidak diketahui"))
+          PY
