@@ -34,11 +34,12 @@ function countMaterials(links,content){
 function renderAudit(){
  const search=String(document.getElementById("kfAuditCari")?.value||"").toLowerCase(),
        jenjang=String(document.getElementById("kfAuditJenjang")?.value||"").toUpperCase();
- const filtered=KF_AUDIT_ROWS.filter(r=>(!jenjang||String(r.member?.jenjang||"").toUpperCase()===jenjang)&&
+ const visible=KF_AUDIT_ROWS.filter(r=>!["ditolak","dihapus"].includes(String(r.member?.status||"").trim().toLowerCase()));
+ const filtered=visible.filter(r=>(!jenjang||String(r.member?.jenjang||"").toUpperCase()===jenjang)&&
    (!search||[r.member?.nama,r.member?.email,r.member?.paket,...(r.active||[]).map(p=>p.package_name)].join(" ").toLowerCase().includes(search)));
- const count=s=>KF_AUDIT_ROWS.filter(r=>r.status===s).length;
+ const count=s=>visible.filter(r=>r.status===s).length;
  const set=(id,v)=>{const node=document.getElementById(id);if(node)node.textContent=v;};
- set("kfAuditTotal",KF_AUDIT_ROWS.length);set("kfAuditNormal",count("normal"));
+ set("kfAuditTotal",visible.length);set("kfAuditNormal",count("normal"));
  set("kfAuditNeutral",count("none")+count("pending")+count("expired"));
  set("kfAuditWarn",count("warn")+count("review"));set("kfAuditBad",count("bad"));
  const accessIcon={normal:"🟢",bad:"🔴",review:"🟡",pending:"🕒",expired:"⚪",none:"⚪"},

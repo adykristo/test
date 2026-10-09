@@ -208,6 +208,43 @@
     setBookmark: async function(contentId,aktif){const {data:u}=await supabase.auth.getUser();const user=u&&u.user;if(!user)return;if(aktif){const {error}=await supabase.from("member_bookmarks").upsert({user_id:user.id,content_id:contentId},{onConflict:"user_id,content_id"});if(error)throw error;}else{const {error}=await supabase.from("member_bookmarks").delete().match({user_id:user.id,content_id:contentId});if(error)throw error;}return {ok:true};}
   };
 
+  // Google onboarding: only profile fields are editable. Never grants a package or changes status.
+  async function showGoogleOnboarding(user, profile){
+    if(document.getElementById("kfGoogleOnboard"))return;
+    const overlay=document.createElement("div");
+    overlay.id="kfGoogleOnboard";
+    overlay.style.cssText="position:fixed;inset:0;z-index:200001;overflow:auto;background:#f8f4fc;display:flex;align-items:center;justify-content:center;padding:20px";
+    const card=document.createElement("form");
+    card.style.cssText="background:white;width:min(500px,100%);border:1px solid #e7d5f2;border-radius:18px;padding:24px;box-shadow:0 14px 50px #50206722";
+    const heading=document.createElement("h2");heading.textContent="Lengkapi Biodata Google";heading.style.color="#6e239a";card.appendChild(heading);
+    const desc=document.createElement("p");desc.textContent="Data ini diperlukan sebelum memilih paket. Aktivasi tetap melalui admin.";card.appendChild(desc);
+    const make=(label,key,value,required=true)=>{
+      const wrap=document.createElement("label");wrap.style.cssText="display:block;margin:12px 0;font-weight:600;font-size:13px";wrap.textContent=label;
+      const el=document.createElement("input");el.name=key;el.value=value||"";el.required=required;el.maxLength=key==="username"?30:150;el.style.cssText="display:block;width:100%;padding:11px;margin-top:5px;border:1px solid #dac6e8;border-radius:8px";wrap.appendChild(el);card.appendChild(wrap);return el;
+    };
+    const nama=make("Nama lengkap","nama",profile?.nama||user.user_metadata?.full_name||user.user_metadata?.name||"");
+    const username=make("Username","username",profile?.username||"");username.pattern="[a-zA-Z0-9._]{4,30}";
+    const sekolah=make("Asal sekolah","sekolah",profile?.sekolah||"");
+    const wa=make("WhatsApp","wa",profile?.wa||"");wa.inputMode="tel";
+    const label=document.createElement("label");label.textContent="Kelas";label.style.cssText="display:block;font-size:13px;font-weight:600;margin:12px 0";
+    const kelas=document.createElement("select");kelas.required=true;kelas.style.cssText="display:block;width:100%;padding:11px;border:1px solid #dac6e8;border-radius:8px";
+    for(let i=0;i<=12;i++){const o=document.createElement("option");o.value=i?String(i):"";o.textContent=i?"Kelas "+i:"Pilih kelas";kelas.appendChild(o);}
+    kelas.value=String(profile?.kelas||"");label.appendChild(kelas);card.appendChild(label);
+    const notice=document.createElement("p");notice.setAttribute("role","status");card.appendChild(notice);
+    const save=document.createElement("button");save.type="submit";save.textContent="Simpan Biodata";save.style.cssText="width:100%;padding:12px;border:0;border-radius:10px;color:white;background:linear-gradient(90deg,#812bd7,#e849aa);cursor:pointer;font-weight:bold";card.appendChild(save);
+    const logout=document.createElement("button");logout.type="button";logout.textContent="Keluar";logout.style.cssText="display:block;margin:12px auto;border:0;background:none;color:#6e239a;cursor:pointer";logout.onclick=async()=>{await supabase.auth.signOut();location.reload();};card.appendChild(logout);
+    card.addEventListener("submit",async e=>{
+      e.preventDefault();save.disabled=true;notice.textContent="Menyimpan...";
+      try{
+        const n=Number(kelas.value);if(!(n>=1&&n<=12))throw new Error("Pilih kelas.");
+        const jenjang=n<=6?"sd":n<=9?"smp":"sma";
+        await window.KFMemberAuth.updateProfil({nama:nama.value,username:username.value,sekolah:sekolah.value,wa:wa.value,kelas:kelas.value,jenjang});
+        overlay.remove();location.reload();
+      }catch(err){notice.textContent=err?.message||"Biodata gagal disimpan. Hubungi admin.";save.disabled=false;}
+    });
+    overlay.appendChild(card);document.body.appendChild(overlay);
+  }
+
   window.addEventListener("DOMContentLoaded", async function(){
     const {data:s}=await supabase.auth.getSession();
     if(s.session && document.getElementById("dash")){
@@ -232,7 +269,21 @@
         ["sd","smp","sma"].includes(clean(p.jenjang).toLowerCase()) &&
         clean(p.status)!=="dihapus");
 
+      // Never onboard a rejected/deleted account, and never mistake a database/RLS error for a new account.
+      const memberStatus=clean(p?.status).toLowerCase();
+      if(viaGoogle && (memberStatus==="ditolak" || memberStatus==="dihapus")){
+        await supabase.auth.signOut();
+        if(typeof buka==="function")buka("login");
+        const n=document.getElementById("loginNotice");
+        if(n){n.textContent="Akun ini tidak dapat digunakan. Hubungi admin KlinikFisikapku.";n.className="auth-notice show err";}
+        return;
+      }
       if(viaGoogle && (!profilTerdaftar || pe)){
+        console.warn("Google profile not ready",pe?.message||"profile incomplete");
+        if(!pe && p){
+          await showGoogleOnboarding(user,p);
+          return;
+        }
         await supabase.auth.signOut();
         try{localStorage.removeItem("kf_member_profile");}catch(_){}
         if(typeof buka==="function")buka("login");
@@ -248,6 +299,12 @@
         if(typeof buka==="function")buka("login");
         return;
       }
+      if(viaGoogle && p && !pe &&
+         (!clean(p.nama)||!clean(p.sekolah)||!clean(p.wa)||!/^([1-9]|1[0-2])$/.test(clean(p.kelas)))){
+        await showGoogleOnboarding(user,p);
+        return;
+      }
+
       if(p && typeof masukPeserta==="function"){
         // Sesi Supabase yang valid harus selalu dipulihkan ke area peserta.
         // Jangan bergantung pada status display #dash karena halaman publik dapat
