@@ -1528,6 +1528,7 @@ img,video,iframe{max-width:100%}
         const list=document.getElementById("list");
         if(list){list.classList.remove("filter-flash");void list.offsetWidth;list.classList.add("filter-flash");}
         renderList();
+        if(f==="tryout"||f==="soal")kfLoadServerPackages();
       }
 
       function daftarTopik() {
@@ -1981,7 +1982,9 @@ img,video,iframe{max-width:100%}
         return m ? m[1] : "";
       }
 
+      let kfPdfOpening=false;
       async function bukaDetail(i) {
+        if(kfPdfOpening)return;
         const x = dataMateri[i];
         if (!x) return;
         const jenisDetail=normalJenis(x);
@@ -1996,7 +1999,12 @@ img,video,iframe{max-width:100%}
           KFMemberUI.toast("Selesaikan latihan topik sebelumnya terlebih dahulu.","info",5000);
           return;
         }
+        kfPdfOpening=true;
         detailAktif = i;
+        const detailBody=document.getElementById("detailBody");
+        if(detailBody)detailBody.innerHTML='<div class="empty" role="status">⏳ Menyiapkan dokumen, mohon tunggu…</div>';
+        buka("detail");
+        try {
         if(window.KFMemberAuth&&window.KFMemberAuth.simpanProgress&&x.id) {
           window.KFMemberAuth.simpanProgress(x.id,{dibuka:true}).catch(err=>console.warn("Waktu buka materi belum tersinkron:",err));
         }
@@ -2131,6 +2139,11 @@ img,video,iframe{max-width:100%}
         document.getElementById("detailBody").innerHTML = html;
         if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([document.getElementById("detailBody")]);
         buka("detail");
+        } catch(err) {
+          console.error("Gagal membuka materi:",err);
+          if(detailBody)detailBody.innerHTML='<div class="empty">PDF belum dapat dibuka. Periksa koneksi dan coba kembali.</div>';
+          KFMemberUI.toast("Gagal memuat PDF. Silakan coba lagi.","err",5000);
+        } finally { kfPdfOpening=false; }
       }
 
       async function tandaiKontenSelesaiAktif(){
@@ -2299,10 +2312,9 @@ async function kfLoadServerPackages(){
    window.KF_SERVER_PACKAGES=KF_SERVER_PACKAGES;
    kfRenderServerPackageBoxes();
  }catch(e){
-   KF_SERVER_PACKAGES=[];
-   window.KF_SERVER_PACKAGES=KF_SERVER_PACKAGES;
-   kfRenderServerPackageBoxes();
    console.warn("Paket V14 Supabase:",e);
+   const box=document.getElementById("kfPackageAccessBox");
+   if(box && filterAktif==="tryout")box.innerHTML='<div class="empty learning-empty">Gagal memuat daftar Tryout dari server. <button class="btn btn-ghost" onclick="kfLoadServerPackages()">Coba Lagi</button></div>';
  }
 }
 function kfRenderServerPackageBoxes(){
@@ -2316,7 +2328,7 @@ function kfRenderServerPackageBoxes(){
  if(filterAktif==="soal"){
    old.innerHTML=`<div class="server-section-head"><small>LATIHAN INTERAKTIF V14</small><h2>✍️ Latihan Interaktif</h2><p>Latihan V14 yang dipublikasikan Admin dan tersedia untuk paket aktif Anda.</p></div><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty learning-empty">Belum ada latihan yang tersedia pada paket Anda.</div>'}</div>`;
  }else if(filterAktif==="tryout"){
-   old.innerHTML=`<div class="server-section-head tryout-head"><small>TRYOUT MINGGUAN V14</small><h2>🏆 Tryout Mingguan</h2><p>Tryout V14 hanya tampil setelah dipublikasikan Admin untuk paket aktif Anda.</p></div><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty learning-empty">🔒 Belum ada Tryout yang diaktifkan Admin.</div>'}</div>`;
+   old.innerHTML=`<div class="server-section-head tryout-head"><small>TRYOUT MINGGUAN V14</small><h2>🏆 Tryout Mingguan</h2><p>Tryout V14 hanya tampil setelah dipublikasikan Admin untuk paket aktif Anda.</p></div><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty learning-empty">Belum ada Tryout yang tersedia untuk paket akun ini. Periksa jadwal, paket tujuan, dan status publikasi di Admin. <button class="btn btn-ghost" onclick="kfLoadServerPackages()">Perbarui Daftar</button></div>'}</div>`;
  }else{
    old.innerHTML="";
  }
