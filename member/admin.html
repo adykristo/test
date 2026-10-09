@@ -994,17 +994,18 @@ table{max-width:100%}
           </div>
         </section>
         <section id="monitoring" class="panel">
-          <div class="head"><div><h1>🔍 Monitoring Peserta V14</h1><p class="sub">Audit read-only untuk melihat kesehatan akses peserta tanpa mengubah nilai atau progress.</p></div><button class="btn" onclick="kfAuditPeserta()">↻ Jalankan Audit</button></div>
+          <div class="head"><div><h1>🔍 Monitoring Peserta V2</h1><p class="sub">Status akses, riwayat transaksi, dan kelengkapan materi diperiksa terpisah. Audit hanya membaca data.</p></div><button class="btn" onclick="kfAuditPeserta()">↻ Jalankan Audit</button></div>
           <div class="stats">
             <div class="stat"><b id="kfAuditTotal">0</b>Peserta</div>
             <div class="stat"><b id="kfAuditNormal">0</b>Normal</div>
+            <div class="stat"><b id="kfAuditNeutral">0</b>Belum / Menunggu</div>
             <div class="stat"><b id="kfAuditWarn">0</b>Perlu diperiksa</div>
             <div class="stat"><b id="kfAuditBad">0</b>Bermasalah</div>
           </div>
           <div class="card">
             <div class="member-toolbar"><select id="kfAuditJenjang" onchange="kfRenderAuditRows()"><option value="">Semua jenjang</option><option>SD</option><option>SMP</option><option>SMA</option></select><input id="kfAuditCari" placeholder="Cari peserta atau paket…" oninput="kfRenderAuditRows()"></div>
             <div id="kfAuditSummary" class="sub" style="margin:10px 0">Klik Jalankan Audit.</div>
-            <div class="table-wrap"><table><thead><tr><th>Peserta</th><th>Jenjang</th><th>Paket Aktif</th><th>Status Audit</th><th>Temuan</th><th>Aksi</th></tr></thead><tbody id="kfAuditRows"></tbody></table></div>
+            <div class="table-wrap"><table><thead><tr><th>Peserta</th><th>Jenjang</th><th>Paket Aktif</th><th>Status Akses</th><th>Status Materi</th><th>Temuan</th><th>Aksi</th></tr></thead><tbody id="kfAuditRows"></tbody></table></div>
           </div>
         </section>
         <section id="participant-preview" class="panel">
@@ -3305,5 +3306,7 @@ KFUI.prompt=function(message,value="",title="Isi Data"){
  });
 };
 </script>
+<script src="monitoring-peserta-v2.js?v=20261009-status-v2"></script>
+<script src="monitoring-peserta-controller-v2.js?v=20261009-status-v2"></script>
 </body>
 </html>
