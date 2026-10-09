@@ -1938,7 +1938,7 @@ img,video,iframe{max-width:100%}
                 const titles={pdf:"Modul Belajar",soal:"Latihan Soal",video:"Video Pembahasan",tryout:"Tryout"};
         const titleEl=document.getElementById("filterTitle"),countEl=document.getElementById("filterCount");
         if(titleEl)titleEl.textContent=titles[filterAktif]||"Materi Belajar";
-        if(countEl){const label=filterAktif==="pdf"?"Modul":filterAktif==="video"?"Video":filterAktif==="soal"?"PDF":"Materi";countEl.textContent=filterAktif==="tryout"?"":items.length+" "+label;countEl.style.display=filterAktif==="tryout"?"none":"";}
+        if(countEl){const label=filterAktif==="pdf"?"Modul":filterAktif==="video"?"Video":"Materi";const interactiveCount=Array.isArray(KF_SERVER_PACKAGES)?KF_SERVER_PACKAGES.filter(p=>p.kind==="latihan").length:0;countEl.textContent=filterAktif==="tryout"?"":filterAktif==="soal"?interactiveCount+" Interaktif · "+items.length+" PDF":items.length+" "+label;countEl.style.display=filterAktif==="tryout"?"none":"";}
         document.getElementById("list").innerHTML = items
           .map((x) => {
             const terkunci = !bolehBuka(x),
@@ -2331,6 +2331,10 @@ function kfRenderServerPackageBoxes(){
    old.innerHTML=`<div class="server-section-head tryout-head"><small>TRYOUT MINGGUAN V14</small><h2>🏆 Tryout Mingguan</h2><p>Tryout V14 hanya tampil setelah dipublikasikan Admin untuk paket aktif Anda.</p></div><div class="kf-pkg-grid">${cards("tryout")||'<div class="empty learning-empty">Belum ada Tryout yang tersedia untuk paket akun ini. Periksa jadwal, paket tujuan, dan status publikasi di Admin. <button class="btn btn-ghost" onclick="kfLoadServerPackages()">Perbarui Daftar</button></div>'}</div>`;
  }else{
    old.innerHTML="";
+ }
+ if(filterAktif==="soal"){
+   const countEl=document.getElementById("filterCount");
+   if(countEl){const pdfText=String(countEl.textContent||"").match(/(\\d+) PDF$/);const pdfCount=pdfText?Number(pdfText[1]):0;countEl.textContent=KF_SERVER_PACKAGES.filter(p=>p.kind==="latihan").length+" Interaktif · "+pdfCount+" PDF";}
  }
  old.style.display=(filterAktif==="soal"||filterAktif==="tryout")?"block":"none";
 }
