@@ -832,6 +832,13 @@ table{max-width:100%}
  #kfAdminLoginGate>div{padding-left:12px!important;padding-right:12px!important}
 }
 </style>
+<style id="kf-monitoring-v2-layout">
+#monitoring .stats{grid-template-columns:repeat(5,minmax(0,1fr))}
+#monitoring .stats .stat{min-width:0}
+#monitoring .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#monitoring .table-wrap table{min-width:920px}
+@media(max-width:950px){#monitoring .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
 </head>
   <body><div id="kfAdminLoginGate" style="display:none;position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 75% 55%,rgba(92,221,207,.22),transparent 34%),linear-gradient(135deg,#eef2ff 0%,#f8f5ff 50%,#effcf9 100%);overflow:auto;width:100vw;min-width:100vw">
   <div style="padding:34px 16px 54px;min-height:100vh;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;width:100%;margin:0 auto">
@@ -994,17 +1001,18 @@ table{max-width:100%}
           </div>
         </section>
         <section id="monitoring" class="panel">
-          <div class="head"><div><h1>🔍 Monitoring Peserta V14</h1><p class="sub">Audit read-only untuk melihat kesehatan akses peserta tanpa mengubah nilai atau progress.</p></div><button class="btn" onclick="kfAuditPeserta()">↻ Jalankan Audit</button></div>
+          <div class="head"><div><h1>🔍 Monitoring Peserta V2</h1><p class="sub">Status akses, riwayat transaksi, dan kelengkapan materi diperiksa terpisah. Audit hanya membaca data.</p></div><button class="btn" onclick="kfAuditPeserta()">↻ Jalankan Audit</button></div>
           <div class="stats">
             <div class="stat"><b id="kfAuditTotal">0</b>Peserta</div>
             <div class="stat"><b id="kfAuditNormal">0</b>Normal</div>
+            <div class="stat"><b id="kfAuditNeutral">0</b>Belum / Menunggu</div>
             <div class="stat"><b id="kfAuditWarn">0</b>Perlu diperiksa</div>
             <div class="stat"><b id="kfAuditBad">0</b>Bermasalah</div>
           </div>
           <div class="card">
             <div class="member-toolbar"><select id="kfAuditJenjang" onchange="kfRenderAuditRows()"><option value="">Semua jenjang</option><option>SD</option><option>SMP</option><option>SMA</option></select><input id="kfAuditCari" placeholder="Cari peserta atau paket…" oninput="kfRenderAuditRows()"></div>
             <div id="kfAuditSummary" class="sub" style="margin:10px 0">Klik Jalankan Audit.</div>
-            <div class="table-wrap"><table><thead><tr><th>Peserta</th><th>Jenjang</th><th>Paket Aktif</th><th>Status Audit</th><th>Temuan</th><th>Aksi</th></tr></thead><tbody id="kfAuditRows"></tbody></table></div>
+            <div class="table-wrap"><table><thead><tr><th>Peserta</th><th>Jenjang</th><th>Paket Aktif</th><th>Status Akses</th><th>Status Materi</th><th>Temuan</th><th>Aksi</th></tr></thead><tbody id="kfAuditRows"></tbody></table></div>
           </div>
         </section>
         <section id="participant-preview" class="panel">
@@ -3305,5 +3313,7 @@ KFUI.prompt=function(message,value="",title="Isi Data"){
  });
 };
 </script>
+<script src="monitoring-peserta-v2.js?v=20261009-status-v2"></script>
+<script src="monitoring-peserta-controller-v2.js?v=20261009-status-v2"></script>
 </body>
 </html>
