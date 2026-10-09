@@ -15,12 +15,21 @@
     if(q.type==="isian")return a.short||"";
     return a.essayKey||"";
   }
+  // datetime-local contains local wall time without a timezone. Convert to UTC ISO
+  // before writing timestamptz, otherwise PostgreSQL may interpret it as UTC.
+  function scheduleIso(value){
+    if(!value)return null;
+    const raw=String(value).trim();
+    const d=new Date(raw);
+    if(!Number.isFinite(d.getTime()))throw new Error("Jadwal Tryout tidak valid: "+raw);
+    return d.toISOString();
+  }
   async function publish(p){
     const db=c(), external=String(p.id), meta={
       external_id:external,kind:p.kind,name:p.name,jenjang:p.questions?.[0]?.jenjang||null,
       kelas:p.questions?.[0]?.kelas||null,mapel:p.questions?.[0]?.mapel||"Fisika",
       subscription:p.subscription||"Semua Paket Aktif",duration_minutes:Number(p.duration)||0,
-      starts_at:p.start||null,ends_at:p.end||null,max_attempts:String(p.kind||"").toLowerCase()==="tryout"?(Number(p.attempts)||3):1,
+      starts_at:scheduleIso(p.start),ends_at:scheduleIso(p.end),max_attempts:String(p.kind||"").toLowerCase()==="tryout"?(Number(p.attempts)||3):1,
       visible:true,source:Number(p.sourceVersion)===13?"V13":"V12",source_version:Number(p.sourceVersion)||1,ai_provider:p.aiProvider||p.questions?.find(q=>q.aiProvider)?.aiProvider||null,review_status:"reviewed",published_at:new Date().toISOString(),updated_at:new Date().toISOString()
     };
     let {data:pack,error}=await db.from("kf_packages").upsert(meta,{onConflict:"external_id"}).select().single();
