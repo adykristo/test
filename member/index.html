@@ -1938,7 +1938,7 @@ img,video,iframe{max-width:100%}
                 const titles={pdf:"Modul Belajar",soal:"Latihan Soal",video:"Video Pembahasan",tryout:"Tryout"};
         const titleEl=document.getElementById("filterTitle"),countEl=document.getElementById("filterCount");
         if(titleEl)titleEl.textContent=titles[filterAktif]||"Materi Belajar";
-        if(countEl){countEl.textContent=filterAktif==="tryout"||filterAktif==="soal"?"":items.length+" materi";countEl.style.display=filterAktif==="tryout"||filterAktif==="soal"?"none":"";}
+        if(countEl){const label=filterAktif==="pdf"?"Modul":filterAktif==="video"?"Video":filterAktif==="soal"?"PDF":"Materi";countEl.textContent=filterAktif==="tryout"?"":items.length+" "+label;countEl.style.display=filterAktif==="tryout"?"none":"";}
         document.getElementById("list").innerHTML = items
           .map((x) => {
             const terkunci = !bolehBuka(x),
