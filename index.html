@@ -2053,8 +2053,11 @@ function loadDownloadFiles() {
 }
 
 function gotoPage(page) {
+  // Hanya buka halaman yang benar-benar ada; tautan Member Area ditangani terpisah.
+  const target = typeof page === 'string' ? document.getElementById('page-' + page) : null;
+  if (!target) return;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
+  target.classList.add('active');
   document.querySelectorAll('nav.jenjang-nav button').forEach(b => {
     b.classList.toggle('active', b.dataset.page === page);
   });
@@ -2079,7 +2082,8 @@ function updateSeoHalaman(page) {
   const canonical = document.getElementById('canonicalUrl'); if (canonical) canonical.href = location.origin + location.pathname;
 }
 
-document.querySelectorAll('nav.jenjang-nav button').forEach(btn => {
+// Tombol Member Area tidak memiliki data-page karena membuka /member/.
+document.querySelectorAll('nav.jenjang-nav button[data-page]').forEach(btn => {
   btn.addEventListener('click', () => gotoPage(btn.dataset.page));
 });
 document.querySelectorAll('.jenjang-card').forEach(card => {
