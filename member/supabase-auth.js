@@ -269,10 +269,18 @@
         ["sd","smp","sma"].includes(clean(p.jenjang).toLowerCase()) &&
         clean(p.status)!=="dihapus");
 
+      // Never onboard a rejected/deleted account, and never mistake a database/RLS error for a new account.
+      const memberStatus=clean(p?.status).toLowerCase();
+      if(viaGoogle && (memberStatus==="ditolak" || memberStatus==="dihapus")){
+        await supabase.auth.signOut();
+        if(typeof buka==="function")buka("login");
+        const n=document.getElementById("loginNotice");
+        if(n){n.textContent="Akun ini tidak dapat digunakan. Hubungi admin KlinikFisikapku.";n.className="auth-notice show err";}
+        return;
+      }
       if(viaGoogle && (!profilTerdaftar || pe)){
-        // Missing profile / RLS failure is not proof of a new member: do not auto-create or sign out.
         console.warn("Google profile not ready",pe?.message||"profile incomplete");
-        if(!pe && p && clean(p.status)!=="ditolak" && clean(p.status)!=="dihapus"){
+        if(!pe && p){
           await showGoogleOnboarding(user,p);
           return;
         }
@@ -291,7 +299,7 @@
         if(typeof buka==="function")buka("login");
         return;
       }
-      if(viaGoogle && p && !pe && clean(p.status)!=="ditolak" && clean(p.status)!=="dihapus" &&
+      if(viaGoogle && p && !pe &&
          (!clean(p.nama)||!clean(p.sekolah)||!clean(p.wa)||!/^([1-9]|1[0-2])$/.test(clean(p.kelas)))){
         await showGoogleOnboarding(user,p);
         return;
