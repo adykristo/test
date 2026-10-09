@@ -1298,9 +1298,30 @@ img,video,iframe{max-width:100%}
       
       let KF_LEVEL_SELECTED="",KF_BUNDLE_SELECTED=new Set(),KF_BUNDLE_QUOTE=null;
       function paketLevel(p){const j=String(p.jenjang||"").toUpperCase();if(["SD","SMP","SMA"].includes(j))return j;const n=String(p.nama||"").toUpperCase();if(n.startsWith("SMP"))return"SMP";if(n.startsWith("SMA"))return"SMA";return"SD"}
-      function pilihJenjangPaket(){ /* Jenjang dikunci dari profil peserta. */ }
-      async function renderPendingPackages(p){const b=document.getElementById("pendingPackageOptions");if(!b)return;try{const r=await KFMemberAuth.listPaket();window.PAKET_CACHE=PAKET_CACHE=r.data||[];const j=String((p&&p.jenjang)||"").toUpperCase();KF_LEVEL_SELECTED=["SD","SMP","SMA"].includes(j)?j:"";const lbl=document.getElementById("memberLevelLabel");if(lbl)lbl.textContent=KF_LEVEL_SELECTED||"Belum ditentukan";KF_BUNDLE_SELECTED.clear();KF_BUNDLE_QUOTE=null;if(KF_LEVEL_SELECTED)renderPaketLevel();else b.innerHTML='<div class="empty">Jenjang akun belum ditentukan. Silakan perbarui Profil Saya.</div>';const m=await KFMemberAuth.metodePembayaran();renderMetodePembayaranMember(m.data||[])}catch(e){b.innerHTML='<p class="empty">Gagal memuat paket: '+esc(e.message)+'</p>'}}
-      function renderPaketLevel(){const b=document.getElementById("pendingPackageOptions"),a=(window.PAKET_CACHE||[]).filter(p=>paketLevel(p)===KF_LEVEL_SELECTED);b.innerHTML=a.length?a.map(p=>{const o=!!p.owned,c=KF_BUNDLE_SELECTED.has(p.id);return `<label class="package-choice bundle-choice${o?" selected":""}${c?" checked":""}"><div class="package-choice-head"><div><h3>${esc(p.nama)}</h3><p>${esc(p.deskripsi||"Deskripsi akan ditambahkan Admin.")}</p></div><div class="price">${formatRupiah(p.harga)}</div></div><div class="bundle-check-row">${o?'<span class="owned-mark">✓ Sudah Dimiliki</span>':`<input type="checkbox" ${c?"checked":""} onchange="toggleBundlePackage('${p.id}',this.checked)"><span>Pilih paket ini</span>`}</div></label>`}).join(""):'<div class="empty">Belum ada paket aktif.</div>'}
+      function pilihJenjangPaket(level){
+        const available=window.KF_AVAILABLE_PACKAGE_LEVELS||[];
+        if(!available.includes(level))return;
+        KF_LEVEL_SELECTED=level;KF_BUNDLE_SELECTED.clear();KF_BUNDLE_QUOTE=null;
+        const summary=document.getElementById("bundleSummary");if(summary)summary.style.display="none";
+        renderPaketLevel();
+      }
+      function renderPilihanJenjangPaket(){
+        const levels=window.KF_AVAILABLE_PACKAGE_LEVELS||[],picker=document.getElementById("levelPicker");
+        if(!picker)return;
+        picker.style.display=levels.length>1?"flex":"none";
+        picker.style.justifyContent="center";picker.style.flexWrap="wrap";picker.style.gap="8px";picker.style.margin="12px 0";
+        picker.innerHTML=levels.map(level=>'<button type="button" class="btn '+(level===KF_LEVEL_SELECTED?'btn-main':'btn-ghost')+'" onclick="pilihJenjangPaket(\''+level+'\')">'+level+'</button>').join("");
+        const label=document.getElementById("memberLevelLabel");if(label)label.textContent=KF_LEVEL_SELECTED||"Belum ditentukan";
+      }
+      async function renderPendingPackages(p){const b=document.getElementById("pendingPackageOptions");if(!b)return;try{const r=await KFMemberAuth.listPaket();window.PAKET_CACHE=PAKET_CACHE=r.data||[];const j=String((p&&p.jenjang)||"").toUpperCase();const levels=["SD","SMP","SMA"],base=levels.indexOf(j),catalog=window.PAKET_CACHE||[];
+        const countOwned=level=>catalog.filter(x=>paketLevel(x)===level&&x.owned).length;
+        const available=base<0?[]:levels.slice(base,base+1);
+        if(base>=0&&base<2&&countOwned(j)>=12)available.push(levels[base+1]);
+        if(base<=1&&base>=0&&countOwned("SD")>=12&&countOwned("SMP")>=12&&!available.includes("SMA"))available.push("SMA");
+        window.KF_AVAILABLE_PACKAGE_LEVELS=available;
+        KF_LEVEL_SELECTED=available[0]||"";
+        renderPilihanJenjangPaket();KF_BUNDLE_SELECTED.clear();KF_BUNDLE_QUOTE=null;if(KF_LEVEL_SELECTED)renderPaketLevel();else b.innerHTML='<div class="empty">Jenjang akun belum ditentukan. Silakan perbarui Profil Saya.</div>';const m=await KFMemberAuth.metodePembayaran();renderMetodePembayaranMember(m.data||[])}catch(e){b.innerHTML='<p class="empty">Gagal memuat paket: '+esc(e.message)+'</p>'}}
+      function renderPaketLevel(){renderPilihanJenjangPaket();const b=document.getElementById("pendingPackageOptions"),a=(window.PAKET_CACHE||[]).filter(p=>paketLevel(p)===KF_LEVEL_SELECTED);b.innerHTML=a.length?a.map(p=>{const o=!!p.owned,c=KF_BUNDLE_SELECTED.has(p.id);return `<label class="package-choice bundle-choice${o?" selected":""}${c?" checked":""}"><div class="package-choice-head"><div><h3>${esc(p.nama)}</h3><p>${esc(p.deskripsi||"Deskripsi akan ditambahkan Admin.")}</p></div><div class="price">${formatRupiah(p.harga)}</div></div><div class="bundle-check-row">${o?'<span class="owned-mark">✓ Sudah Dimiliki</span>':`<input type="checkbox" ${c?"checked":""} onchange="toggleBundlePackage('${p.id}',this.checked)"><span>Pilih paket ini</span>`}</div></label>`}).join(""):'<div class="empty">Belum ada paket aktif.</div>'}
       async function toggleBundlePackage(id,c){if(c)KF_BUNDLE_SELECTED.add(id);else KF_BUNDLE_SELECTED.delete(id);renderPaketLevel();await updateBundleSummary()}
       async function updateBundleSummary(){const p=document.getElementById("bundleSummary"),ids=[...KF_BUNDLE_SELECTED];if(!ids.length){p.style.display="none";KF_BUNDLE_QUOTE=null;return}p.style.display="flex";try{const r=await KFMemberAuth.quoteBundle(ids);KF_BUNDLE_QUOTE=r.data;bundleCount.textContent=r.data.package_count+" paket dipilih";bundleSubtotal.textContent=formatRupiah(r.data.subtotal);bundleDiscount.textContent=Number(r.data.discount_percent)+"% (−"+formatRupiah(r.data.discount_amount)+")";bundleTotal.textContent=formatRupiah(r.data.total_amount);const bp=document.getElementById("bundlePayable");if(bp)bp.textContent=formatRupiah(r.data.total_amount)}catch(e){KFMemberUI.toast("Gagal menghitung total: "+e.message,"err",5500)}}
       async function salinNomorRekening(){
