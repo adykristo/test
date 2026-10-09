@@ -1,7 +1,7 @@
 // Jalankan dari root repo: node --test member/tests/monitoring-peserta-v2.test.js
 const {test}=require("node:test");
 const assert=require("node:assert/strict");
-const {classifyMember}=require("../monitoring-peserta-v2.js");
+const {classify:classifyMember}=require("../monitoring-peserta-v2.js");
 const now=Date.parse("2026-10-09T09:00:00Z");
 const member={id:"user-1",nama:"Peserta",jenjang:"SD",status:"aktif"};
 const pkg={id:"paket-1",nama:"SD Paket 1",jenjang:"SD",durasi_hari:30};
