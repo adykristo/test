@@ -2312,7 +2312,17 @@ async function kfStartServerPackage(packageId){
   if(end&&now>end) throw new Error("Paket sudah berakhir.");
   if(p.kind==="tryout"&&Number(p.attempts_used)>=Number(p.max_attempts)) throw new Error("Percobaan Tryout sudah habis.");
   const a=await KFPackageDB.startAttempt(p.id),qs=await KFPackageDB.questions(a.attempt_id);
-  kfRun={server:true,attemptId:a.attempt_id,packageId:p.id,kind:p.kind,name:p.name,questions:(qs||[]).map(q=>({id:q.id,tipe:q.type,topik:q.topic,soal:q.question,gambar:q.image,opsi:(q.options||[]).map(o=>o&&typeof o==='object'?{text:String(o.text||''),image:o.image||null}:String(o??'')),statements:(q.statements||[]).map(s=>({text:String(s?.text??s??'')})),category_labels:q.category_labels||[]})),index:0,answers:{},startedAt:Date.now(),deadline:a.deadline_at?new Date(a.deadline_at).getTime():0,attempt:a.attempt_no};
+  // STAGING: restore answers already confirmed by Supabase, never from another user's session.
+  const restoredRows=await KFPackageDB.savedAnswers(a.attempt_id);
+  const restoredById=new Map((restoredRows||[]).map(row=>[String(row.question_id),row.answer]));
+  const restoredAnswers={};
+  (qs||[]).forEach((q,i)=>{
+    if(restoredById.has(String(q.id))){
+      const value=restoredById.get(String(q.id));
+      restoredAnswers[i]=q.type==="esai"?{text:typeof value==="string"?value:String(value??""),file_url:""}:value;
+    }
+  });
+  kfRun={server:true,attemptId:a.attempt_id,packageId:p.id,kind:p.kind,name:p.name,questions:(qs||[]).map(q=>({id:q.id,tipe:q.type,topik:q.topic,soal:q.question,gambar:q.image,opsi:(q.options||[]).map(o=>o&&typeof o==='object'?{text:String(o.text||''),image:o.image||null}:String(o??'')),statements:(q.statements||[]).map(s=>({text:String(s?.text??s??'')})),category_labels:q.category_labels||[]})),index:0,answers:restoredAnswers,startedAt:Date.now(),deadline:a.deadline_at?new Date(a.deadline_at).getTime():0,attempt:a.attempt_no};
   kfRenderRunner();buka("paketRunner");if(kfRun.deadline)kfStartTimer();
  }catch(e){KFMemberUI.toast("Tidak dapat memulai: "+e.message,"err",6000);await kfLoadServerPackages()}
 }
