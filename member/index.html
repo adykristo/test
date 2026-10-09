@@ -2007,7 +2007,7 @@ img,video,iframe{max-width:100%}
           catch(err){console.warn("Akses PDF private ditolak:",err);KFMemberUI.toast("PDF tidak dapat dibuka. Pastikan paket Anda masih aktif.","err",5000);}
         }
 
-        if (x.jenis === "pdf") {
+        if (jenisDetail === "pdf") {
           html += `<p style="color:#5b4374">Modul dalam format PDF — bisa dibaca langsung di sini atau diunduh.</p>`;
           const pdfUrl=safePdfUrl(privatePdfUrl||x.pdfUrl||x.pdf_url||x.file_url||x.url||"");
           if (pdfUrl) {
@@ -2043,7 +2043,7 @@ img,video,iframe{max-width:100%}
           } else {
             html += `<div class="empty">Link PDF belum diisi admin.</div>`;
           }
-        } else if (x.jenis === "soal" && (String(x.source_type||"").toLowerCase() === "pdf" || !!String(x.pdfUrl||x.pdf_url||x.file_url||"").trim())) {
+        } else if (jenisDetail === "soal" && (String(x.source_type||"").toLowerCase() === "pdf" || !!String(x.pdfUrl||x.pdf_url||x.file_url||"").trim())) {
           // Latihan PDF harus membuka file PDF, bukan mesin soal interaktif.
           const pdfUrl=safePdfUrl(privatePdfUrl||x.pdfUrl||x.pdf_url||x.file_url||x.url||"");
           html += `<p style="color:#5b4374">Latihan dalam format PDF — baca langsung atau buka file pada tab baru.</p>`;
@@ -2083,7 +2083,7 @@ img,video,iframe{max-width:100%}
           }else{
             html += `<div class="empty">PDF latihan belum memiliki URL file yang valid. Periksa kembali file pada Admin → Soal Latihan → Latihan PDF.</div>`;
           }
-        } else if (x.jenis === "soal") {
+        } else if (jenisDetail === "soal") {
           const huruf = ["A", "B", "C", "D", "E"];
           const tipe=x.tipe || "pg4";
           const imageUrl=safeImageUrl(x.gambar);
