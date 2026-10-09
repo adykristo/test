@@ -2383,7 +2383,7 @@ function renderPkgManagers(){
       const j=(fj?.value||"").toUpperCase(),pn=fp?.value||"",q=(fs?.value||"").trim().toLowerCase();
       a=a.filter(p=>{
         const hay=[p.name,p.topic,p.topik,p.targetPackageName].filter(Boolean).join(" ").toLowerCase();
-        const level=String(p.jenjang||p.level||p.stage||"").toUpperCase();
+        const target=KF_PACKAGES_NEW.find(x=>String(x.id)===String(p.targetPackageId||""));const level=String(p.targetLevel||p.jenjang||p.level||p.stage||(target?packageLevel(target):"")).toUpperCase();
         return (!j||level===j||hay.includes(j.toLowerCase()))&&(!pn||p.targetPackageName===pn)&&(!q||hay.includes(q));
       });
     }
@@ -2399,7 +2399,7 @@ function renderPkgManagers(){
     const j=(fj?.value||"").toUpperCase(), pn=fp?.value||"", q=(fs?.value||"").trim().toLowerCase();
     a=a.filter(p=>{
       const hay=[p.name,p.topic,p.topik,p.targetPackageName].filter(Boolean).join(" ").toLowerCase();
-      const level=String(p.jenjang||p.level||p.stage||"").toUpperCase();
+      const target=KF_PACKAGES_NEW.find(x=>String(x.id)===String(p.targetPackageId||""));const level=String(p.targetLevel||p.jenjang||p.level||p.stage||(target?packageLevel(target):"")).toUpperCase();
       return (!j||level===j||hay.includes(j.toLowerCase()))&&(!pn||p.targetPackageName===pn)&&(!q||hay.includes(q));
     });
   }
@@ -2536,7 +2536,11 @@ async function addV12Questions(kind,targetId,srcPack,questions){
  }
  questions.forEach(q=>{let c=cloneObj(q);c.sourceV14Package=srcPack.id;c.sourceV14Question=q.id||"";c.packageEdited=false;p.questions.push(c)});
  p.updatedAt=new Date().toISOString();let i=a.findIndex(x=>x.id===p.id);if(i>=0)a[i]=p;
- localStorage.setItem(pkgKey(kind),JSON.stringify(a));renderPkgManagers();
+ localStorage.setItem(pkgKey(kind),JSON.stringify(a));
+ // New imports have no target level yet: clear filters so the draft is visible for configuration.
+ const prefix=kind==="tryout"?"tryout":"latihan";
+ for(const suffix of ["FilterJenjang","FilterPaket","FilterSearch"]){const el=document.getElementById(prefix+suffix);if(el)el.value="";}
+ renderPkgManagers();
  KFUI.toast(questions.length+" soal ditambahkan ke "+(kind==="tryout"?"Paket Tryout":"Paket Latihan")+".","ok",4500);
  openPanel(kind==="tryout"?"tryout":"latihan");
 }
