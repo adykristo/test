@@ -8,6 +8,8 @@ on:
       - 'member/lab-nilai-v15.html'
       - 'member/publikasi-nilai-v15.html'
       - 'member/hasil-nilai-v15.html'
+      - 'member/index.html'
+      - 'member/admin.html'
       - 'tests/grading-v15.test.js'
       - '.github/workflows/v15-grading-tests.yml'
 
@@ -55,4 +57,17 @@ jobs:
             for(const marker of markers)assert.ok(html.includes(marker),'Missing '+marker+' in '+name);
           }
           console.log('Participant and admin pages passed static validation');
+          NODE
+
+      - name: Confirm safe dashboard links and preserve legacy certificate printing
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const member=fs.readFileSync('member/index.html','utf8');
+          const admin=fs.readFileSync('member/admin.html','utf8');
+          assert.ok(member.includes('href="hasil-nilai-v15.html"'));
+          assert.ok(admin.includes('href="publikasi-nilai-v15.html"'));
+          assert.ok(member.includes('function cetakSertifikatPaket('),'Legacy certificate printing removed');
+          assert.ok(member.includes('kf_issue_eligible_certificates') || member.includes('issueEligibleCertificates'),'Legacy certificate logic missing');
+          console.log('Dashboard integration markers verified');
           NODE
