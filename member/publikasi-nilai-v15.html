@@ -77,11 +77,17 @@ async function checkEssayStatus(){
   const {data,error}=await client.rpc('kf_admin_list_essay_v15');
   if(error)throw error;
   const all=Array.isArray(data)?data:[];
-  const matching=all.filter(x=>x.attempt_id===id);
+  const keyed=all.filter(x=>validUuid(String(x.attempt_id||'')));
+  if(all.length && keyed.length!==all.length){
+    $('essaySyncStatus').textContent='Daftar koreksi V15 memuat '+all.length+' esai, tetapi sebagian data tidak menyertakan ID pengerjaan. Gunakan jumlah esai pada daftar pengerjaan atau jalankan SQL audit per pengerjaan. Jangan menyamakan esai berdasarkan nama paket saja.';
+    $('essaySyncStatus').className='status bad';
+    return;
+  }
+  const matching=keyed.filter(x=>x.attempt_id===id);
   const graded=matching.filter(x=>x.graded_at!=null).length;
   const pending=matching.length-graded;
-  const other=all.length-matching.length;
-  $('essaySyncStatus').textContent='Esai pada pengerjaan '+id.slice(0,8)+': '+graded+' sudah dinilai, '+pending+' belum dinilai. '+other+' jawaban esai V15 lainnya ada pada pengerjaan berbeda. '+(!matching.length?'Jika pengerjaan tidak memiliki esai, gunakan bobot esai 0%. Jika seharusnya ada esai, periksa ID pengerjaan dan status submitted.':'Gunakan Deteksi Jenis Soal lalu Hitung pratinjau untuk nilai resmi.');
+  const other=keyed.length-matching.length;
+  $('essaySyncStatus').textContent='Esai pada pengerjaan '+id.slice(0,8)+': '+graded+' sudah dinilai, '+pending+' belum dinilai. '+other+' esai V15 lainnya milik pengerjaan berbeda. '+(!matching.length?'Tidak ditemukan entri esai untuk ID ini; periksa jumlah soal pada daftar pengerjaan dan gunakan bobot esai 0% hanya jika memang tidak ada esai.':'Gunakan Deteksi Jenis Soal lalu Hitung pratinjau untuk nilai resmi.');
   $('essaySyncStatus').className='status '+(pending?'bad':'ok');
  }catch(e){$('essaySyncStatus').textContent='Pemeriksaan esai gagal: '+(e.message||e);$('essaySyncStatus').className='status bad';}
  finally{button.disabled=!client;}
