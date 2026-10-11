@@ -79,7 +79,8 @@ $('detect').addEventListener('click',async()=>{
    if(error&&!String(error.message||'').includes('WEIGHT_FOR_MISSING_TYPE')&&!String(error.message||'').includes('WEIGHTS_MUST_TOTAL_100'))throw error;
   }
   if(!result)throw Error('Tidak dapat mendeteksi jenis soal. Periksa apakah pengerjaan sudah dikirim dan memiliki soal.');
-  const found=types.filter(t=>Object.hasOwn(result.components,t));
+  const found=types.filter(t=>Object.prototype.hasOwnProperty.call(result.components,t));
+  if(!found.length)throw Error('Tidak ada jenis soal yang terbaca pada pengerjaan ini.');
   const even=100/found.length;
   for(const type of types)$(type).value=found.includes(type)?Number(even.toFixed(6)):0;
   // Adjust last present type so the total is exactly 100 even for 3 or 6 types.
@@ -104,12 +105,12 @@ $('load').addEventListener('click',async()=>{
   const records=Array.isArray(data)?data:[];const selector=$('attempt');selector.replaceChildren(new Option('— Pilih dari daftar —',''));
   const list=$('attempts');list.replaceChildren();
   for(const rec of records){
-    const text=[rec.jenjang,rec.package_name,(rec.question_count||0)+' soal',(rec.pending_essay_count||0)+' esai tertunda'].filter(Boolean).join(' · ');
+    const text=[rec.jenjang,rec.package_name,(rec.question_count||0)+' soal',(rec.pending_essay_count||0)+' esai tertunda',String(rec.attempt_id||'').slice(0,8)].filter(Boolean).join(' · ');
     selector.add(new Option(text,rec.attempt_id));
     const wrap=document.createElement('div');wrap.className='record';const b=document.createElement('button');b.type='button';b.textContent=text;b.addEventListener('click',()=>{$('custom').value='';selector.value=rec.attempt_id;invalidate();window.scrollTo({top:0,behavior:'smooth'});});const small=document.createElement('small');small.textContent='Kirim: '+new Date(rec.submitted_at).toLocaleString('id-ID');wrap.append(b,small);list.append(wrap);
   }
   if(!records.length)list.textContent='Belum ada pengerjaan dalam filter ini.';
-  notify(records.length+' pengerjaan dimuat.');
+  notify(records.length+' pengerjaan selesai dimuat. Daftar ini hanya berisi pengerjaan yang sudah dikirim, bukan semua paket/soal di Bank Soal. Pilih pengerjaan sesuai nama paket dan jumlah soal.');
  }catch(e){notify('Daftar gagal: '+(e.message||e),'bad');}finally{button.disabled=false;}
 });
 $('official').addEventListener('click',async()=>{
