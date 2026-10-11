@@ -34,7 +34,7 @@
 <div><label for="esai">Esai %</label><input type="number" id="esai" min="0" max="100" step="1" value="60"></div>
 </div>
 <p class="muted">Total bobot: <strong id="total">100%</strong></p>
-<div class="actions"><button id="preview" disabled type="button">Hitung pratinjau</button><button class="outline" type="button" id="reset">Atur 40:60</button></div>
+<div class="actions"><button id="preview" disabled type="button">Hitung pratinjau</button><button class="outline" type="button" id="reset">Atur 40:60</button></div><div class="two"><div><label for="singleType">Jika hanya satu jenis soal</label><select id="singleType"><option value="">— Pilih jenis soal —</option><option value="pg4">PG4</option><option value="pg5">PG5</option><option value="mcma">MCMA</option><option value="kategori">Kategori</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label for="setSingle">Bobot 100%</label><button id="setSingle" type="button" class="outline" style="width:100%">Terapkan Bobot</button></div></div><p class="muted">Atur 40:60 hanya jika pengerjaan memiliki soal PG4 dan Esai. Untuk pengerjaan yang hanya memiliki satu jenis soal, pilih jenisnya lalu Terapkan Bobot 100%.</p>
 <div class="confirmation"><label><input type="checkbox" id="ack"><span>Saya sudah memeriksa skor dan menyetujui publikasi nilai resmi untuk pengerjaan terpilih.</span></label></div>
 <div class="actions"><button id="publish" disabled type="button">Terbitkan Nilai Resmi</button></div>
 <p class="muted">Nilai resmi hanya akan diterbitkan untuk pengerjaan lengkap. Perubahan berikutnya menjadi revisi dengan riwayat, bukan menimpa hasil lama.</p>
@@ -65,6 +65,7 @@ for(const id of types)$(id).addEventListener('input',total);
 for(const id of ['attempt','custom'])$(id).addEventListener('input',invalidate);
 $('ack').addEventListener('change',()=>{try{$('publish').disabled=!($('ack').checked&&lastPreview?.ready===true&&lastSignature===signature()&&client)}catch(_){$('publish').disabled=true}});
 $('reset').addEventListener('click',()=>{for(const x of types)$(x).value=x==='pg4'?40:x==='esai'?60:0;total()});
+$('setSingle').addEventListener('click',()=>{const chosen=$('singleType').value;if(!types.includes(chosen)){notify('Pilih jenis soal terlebih dahulu (PG4, PG5, MCMA, Kategori, Isian, atau Esai).','bad');return}for(const type of types)$(type).value=type===chosen?100:0;total();notify('Bobot '+chosen.toUpperCase()+' 100% sudah diatur. Klik Hitung pratinjau untuk memastikan jenis soal sesuai.');});
 async function boot(){
  try{if(!window.KFSupabaseAdmin?.client)throw Error('Koneksi admin Supabase belum siap');
   if(!await window.KFSupabaseAdmin.ensureAdmin())throw Error('Akun bukan super admin aktif');
@@ -131,7 +132,7 @@ $('preview').addEventListener('click',async()=>{
   $('score').textContent=typeof data.final_score==='number'?data.final_score.toFixed(2):'—';
   notify(data.ready?'✓ Nilai lengkap. Periksa sebelum diterbitkan.':'Nilai belum lengkap: '+data.pending_count+' soal tertunda',data.ready?'ok':'bad');
   for(const [name,row] of Object.entries(data.components||{})){const wrap=document.createElement('div');wrap.className='component';const left=document.createElement('div');const label=document.createElement('strong');label.textContent=name.toUpperCase();const hint=document.createElement('small');hint.textContent=row.graded+'/'+row.count+' soal · Bobot '+row.weight+'%';left.append(label,hint);const number=document.createElement('strong');number.textContent=row.percentage===null?'Menunggu':Number(row.percentage).toFixed(2)+'%';wrap.append(left,number);$('components').appendChild(wrap);}
- }catch(e){notify('Pratinjau gagal: '+(e.message||e),'bad')}finally{$('preview').disabled=!client;}
+ }catch(e){const message=String(e.message||e);const missing=message.match(/WEIGHT_FOR_MISSING_TYPE:\s*([a-z0-9_]+)/i);notify(missing?'Jenis soal '+missing[1].toUpperCase()+' tidak ada pada pengerjaan ini, tetapi diberi bobot lebih dari 0%. Ubah bobot jenis tersebut menjadi 0%, lalu alokasikan 100% ke jenis soal yang benar. Gunakan pilihan “Jika hanya satu jenis soal” jika sesuai.':'Pratinjau gagal: '+message,'bad')}finally{$('preview').disabled=!client;}
 });
 $('publish').addEventListener('click',async()=>{
  if(!client)return;const button=$('publish');button.disabled=true;
