@@ -5,6 +5,8 @@ const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'
 let rows=[];
 function db(){return window.KFMemberAuth?.client||window.KFSupabaseAdmin?.client}
 window.v13LoadEssayGrading=async function(){
+ // Capture the deep-link before the Question Studio router removes ?tab= from the URL.
+ const deepLink=new URLSearchParams(location.search).get('attempt')||'';
  const sum=$('essayGradeSummary'),box=$('essayGradeList');
  if(sum)sum.textContent='Memuat jawaban esai V15…';
  try{
@@ -12,7 +14,6 @@ window.v13LoadEssayGrading=async function(){
   const {data,error}=await db().rpc('kf_admin_list_essay_v15');
   if(error)throw error;
   rows=Array.isArray(data)?data:[];
-  const deepLink=new URLSearchParams(location.search).get('attempt')||'';
   if(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(deepLink)){
     const search=$('essayGradeSearch'),filter=$('essayGradeFilter');
     if(search)search.value=deepLink;
