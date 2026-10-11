@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="id"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'">
+<title>Nilai Resmi & Sertifikat · KlinikFisikapku</title>
+<link rel="icon" href="/favicon.ico">
+<style>
+:root{color-scheme:light;font-family:Inter,system-ui,Segoe UI,sans-serif;color:#29133d;background:#faf6ff}*{box-sizing:border-box}body{margin:0}.hero{background:linear-gradient(112deg,#4e1a7e,#8334d0 65%,#eb449e);color:white;padding:24px 18px}.hero>div,.container{max-width:1060px;margin:auto}.hero h1{font-size:clamp(24px,4.3vw,35px);margin:16px 0 6px}.hero p{margin:0;opacity:.92}.hero a{color:white}.container{padding:22px 16px 55px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px}.pill{border:1px solid #e9d5f2;border-radius:30px;padding:7px 12px;background:white;color:#6d2a9b;font-size:12px;font-weight:750}.layout{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:white;border:1px solid #edddf4;border-radius:18px;padding:22px;min-width:0;box-shadow:0 9px 30px #4423610e}.card h2{font-size:20px;margin:0 0 8px}.sub{color:#786784;font-size:13px;line-height:1.5;margin:0 0 16px}.row{padding:14px 0;border-bottom:1px solid #f1e7f6;display:flex;gap:12px;justify-content:space-between;align-items:center}.row:last-child{border-bottom:0}.row strong{display:block;font-size:14px}.row small{color:#786784;font-size:12px;display:block;margin-top:5px}.score{font-size:23px;color:#7a28b0;font-weight:850;white-space:nowrap}.empty{background:#f8f1fd;border-radius:12px;padding:16px;color:#715882;line-height:1.6}.success{background:#e9f9ef;color:#145f33}.error{background:#fff0ef;color:#9b283b}.tip{padding:13px 16px;background:#fff2fb;border:1px solid #ebcde8;border-radius:12px;color:#663675;font-size:13px;line-height:1.6;margin-bottom:18px}button{border:0;background:linear-gradient(120deg,#7426bb,#e2419b);color:white;font:inherit;font-weight:700;border-radius:10px;padding:10px 16px;cursor:pointer}button:disabled{opacity:.55}.cert{border:1px solid #e9d8f1;border-radius:13px;padding:15px;margin:11px 0;background:linear-gradient(160deg,#fff,#fcf8ff)}.cert strong{display:block}.cert span{font-size:12px;color:#755e82;display:block;margin-top:6px;overflow-wrap:anywhere}.status{margin-bottom:15px}.label{color:#6e318e;background:#f2e8f8;border-radius:20px;padding:5px 9px;font-size:12px;font-weight:700;display:inline-block;margin-top:9px}@media(max-width:800px){.layout{grid-template-columns:1fr}}@media(max-width:460px){.container{padding:16px 12px 40px}.card{padding:16px}.top button{width:100%}.row{align-items:flex-start}.score{font-size:20px}}
+</style>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
+<script defer src="supabase-config.js"></script>
+<script defer src="supabase-auth.js"></script>
+<script defer src="supabase-data-v15.js"></script>
+</head><body>
+<header class="hero"><div><a href="index.html">← Kembali ke Dashboard Peserta</a><h1>Nilai & Sertifikat Saya</h1><p>Hasil resmi pelatihan KlinikFisikapku · SD · SMP · SMA</p></div></header>
+<main class="container"><div class="top"><span class="pill">Hanya data milik akun yang sedang masuk</span><button id="refresh" disabled>Muat ulang hasil</button></div>
+<p class="tip">Nilai yang masih menunggu koreksi belum menjadi nilai resmi. Sertifikat per paket diterbitkan setelah seluruh persyaratan kelulusan terpenuhi; halaman ini tidak menerbitkan atau mengubah sertifikat.</p>
+<div id="authStatus" class="empty status">Memeriksa sesi login…</div>
+<div class="layout">
+<section class="card"><h2>Nilai resmi terbaru</h2><p class="sub">Hasil yang sudah diterbitkan admin. Riwayat penilaian lama tetap disimpan.</p><div id="results" class="empty">Belum memuat hasil.</div></section>
+<section class="card"><h2>Sertifikat per paket</h2><p class="sub">Menampilkan sertifikat yang telah diterbitkan melalui sistem sertifikat yang sudah ada.</p><div id="certificates" class="empty">Belum memuat sertifikat.</div></section>
+</div>
+</main>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+let busy=false,db=null;
+function message(el,text,kind){el.textContent=text;el.className='empty'+(kind?' '+kind:'');}
+function plain(v){return v==null?'—':String(v);}
+function cards(el,rows,render){el.replaceChildren();el.className='';if(!rows.length){message(el,'Belum ada data yang dapat ditampilkan.');return}rows.forEach(item=>render(el,item))}
+function renderResults(el,rows){cards(el,rows,r=>{const div=document.createElement('div');div.className='row';const left=document.createElement('div');const title=document.createElement('strong');title.textContent='Pengerjaan '+String(r.attempt_id||'').slice(0,8)+'…';const sub=document.createElement('small');sub.textContent='Diterbitkan: '+(r.published_at?new Date(r.published_at).toLocaleString('id-ID'):'—')+' · Versi bobot '+plain(r.policy_version);left.append(title,sub);const score=document.createElement('div');score.className='score';score.textContent=typeof r.score==='number'?r.score.toFixed(2):plain(r.score);div.append(left,score);el.append(div)})}
+function renderCertificates(el,rows){cards(el,rows,c=>{const div=document.createElement('div');div.className='cert';const title=document.createElement('strong');title.textContent=plain(c.package_name||c.nama_paket||'Sertifikat Paket');const id=document.createElement('span');id.textContent='Nomor: '+plain(c.certificate_number);const date=document.createElement('span');date.textContent='Terbit: '+(c.issued_at?new Date(c.issued_at).toLocaleDateString('id-ID'):'—');div.append(title,id,date);if(c.jenjang){const level=document.createElement('span');level.className='label';level.textContent=plain(c.jenjang);div.append(level)}el.append(div)})}
+async function refresh(){
+ if(busy||!db)return;busy=true;$('refresh').disabled=true;message($('results'),'Mengambil nilai resmi…');message($('certificates'),'Mengambil sertifikat…');
+ try{
+  const {data:identity,error:identityError}=await db.auth.getUser();
+  if(identityError||!identity?.user)throw Error('Sesi login berakhir. Silakan masuk kembali dari dashboard peserta.');
+  const [scores,certs]=await Promise.allSettled([db.rpc('kf_my_latest_published_scores_v15'),db.rpc('kf_my_certificates')]);
+  if(scores.status==='rejected'||scores.value.error)message($('results'),'Nilai resmi belum dapat diambil: '+(scores.status==='rejected'?scores.reason?.message:scores.value.error?.message),'error');
+  else renderResults($('results'),Array.isArray(scores.value.data)?scores.value.data:[]);
+  if(certs.status==='rejected'||certs.value.error)message($('certificates'),'Sertifikat belum dapat diambil: '+(certs.status==='rejected'?certs.reason?.message:certs.value.error?.message),'error');
+  else renderCertificates($('certificates'),Array.isArray(certs.value.data)?certs.value.data:[]);
+ }catch(e){message($('authStatus'),e.message||String(e),'error');message($('results'),'Masuk terlebih dahulu.');message($('certificates'),'Masuk terlebih dahulu.')}finally{busy=false;$('refresh').disabled=!db}
+}
+async function boot(){
+ try{
+  if(!window.KFMemberAuth?.client)throw Error('Koneksi Supabase tidak tersedia.');
+  db=window.KFMemberAuth.client;
+  const {data,error}=await db.auth.getUser();if(error||!data?.user)throw Error('Silakan login melalui dashboard peserta terlebih dahulu.');
+  message($('authStatus'),'✓ Login terverifikasi. Menampilkan data akun Anda.','success');$('refresh').disabled=false;await refresh();
+ }catch(e){message($('authStatus'),e.message||String(e),'error')}
+}
+$('refresh').addEventListener('click',refresh);
+window.addEventListener('load',boot);
+})();
+</script>
+</body></html>
