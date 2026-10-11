@@ -85,3 +85,17 @@ jobs:
           assert.ok(!html.includes('service_role'));
           console.log('Verification page basic checks passed');
           NODE
+
+      - name: Assert score report is protected and CSV export is wired
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const sql=fs.readFileSync('supabase/migrations/DRAFT_v15_admin_published_results_report.sql','utf8');
+          const page=fs.readFileSync('member/publikasi-nilai-v15.html','utf8');
+          assert.ok(sql.includes("m.role='super_admin'"));
+          assert.ok(sql.includes('r.attempt_id'));
+          assert.ok(sql.includes('JOIN public.kf_attempts a ON a.id=latest.attempt_id AND a.user_id=latest.user_id'));
+          assert.ok(page.includes('kf_admin_latest_published_results_v15'));
+          assert.ok(page.includes('nilai-resmi-v15.csv'));
+          console.log('Protected reporting and export wiring verified');
+          NODE
