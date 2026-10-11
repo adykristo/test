@@ -1,0 +1,39 @@
+name: V15 Grading Tests (No Deploy)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'member/js/kf-grading-v15.js'
+      - 'member/lab-nilai-v15.html'
+      - 'tests/grading-v15.test.js'
+      - '.github/workflows/v15-grading-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  grading:
+    name: Verify grading calculation and lab page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check browser-side grading JS
+        run: node --check member/js/kf-grading-v15.js
+      - name: Test grading and certificate eligibility calculations
+        run: node tests/grading-v15.test.js
+      - name: Validate lab page markers and inline script syntax
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+          const html=fs.readFileSync('member/lab-nilai-v15.html','utf8');
+          const blocks=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+          assert.ok(blocks.length>0,'No inline script found');
+          for(const block of blocks)if(block[1].trim())new vm.Script(block[1]);
+          for(const marker of ['kf_admin_preview_weighted_score_v15','kf_admin_list_submitted_attempts_v15','ensureAdmin','jenjangFilter','fetchAttempts'])
+            assert.ok(html.includes(marker),'Missing lab feature: '+marker);
+          console.log('Lab page basic checks passed');
+          NODE
