@@ -14,8 +14,7 @@ AS $body$
 WITH owned AS (
   SELECT m.id, m.nama
   FROM public.member_packages m
-  WHERE m.aktif IS TRUE
-    AND auth.uid() IS NOT NULL
+  WHERE auth.uid() IS NOT NULL
     AND public.kf_user_owns_package(m.id)
 ),
 active_assessments AS (
