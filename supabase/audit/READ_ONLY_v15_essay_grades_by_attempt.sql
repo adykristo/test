@@ -1,6 +1,8 @@
 -- KlinikFisikapku V15: AUDIT ESAI PER PENGERJAAN (READ ONLY)
 -- Sumber: kf_attempts -> kf_answers -> kf_essay_manual_grades.
 -- Penilaian pada Question Studio memakai kf_admin_grade_essay_v15 ke tabel ini.
+-- HANYA 1 SELECT supaya layar Supabase menampilkan rincian per pengerjaan,
+-- bukan hanya rekap total esai dari query terakhir.
 -- Tidak menggunakan essay_submissions, karena panel Penilaian Esai memakai V15.
 SELECT
   p.jenjang AS jenjang,
@@ -8,13 +10,13 @@ SELECT
   a.id AS id_pengerjaan,
   a.user_id AS id_peserta,
   a.submitted_at,
-  COUNT(q.id) AS jumlah_soal_esai,
-  COUNT(ans.id) AS jumlah_jawaban_esai_tersimpan,
-  COUNT(g.answer_id) AS jumlah_esai_sudah_dinilai,
-  COUNT(q.id)-COUNT(g.answer_id) AS jumlah_esai_belum_dinilai,
+  COUNT(DISTINCT q.id) AS jumlah_soal_esai,
+  COUNT(DISTINCT ans.id) AS jumlah_jawaban_esai_tersimpan,
+  COUNT(DISTINCT CASE WHEN g.answer_id IS NOT NULL THEN q.id END) AS jumlah_esai_sudah_dinilai,
+  COUNT(DISTINCT q.id)-COUNT(DISTINCT CASE WHEN g.answer_id IS NOT NULL THEN q.id END) AS jumlah_esai_belum_dinilai,
   CASE
-    WHEN COUNT(q.id)=0 THEN 'TIDAK_ADA_ESAI'
-    WHEN COUNT(g.answer_id)=COUNT(q.id) THEN 'SIAP_PRATINJAU'
+    WHEN COUNT(DISTINCT q.id)=0 THEN 'TIDAK_ADA_ESAI'
+    WHEN COUNT(DISTINCT CASE WHEN g.answer_id IS NOT NULL THEN q.id END)=COUNT(DISTINCT q.id) THEN 'SIAP_PRATINJAU'
     ELSE 'MENUNGGU_NILAI_ESAI'
   END AS status_esai
 FROM public.kf_attempts a
@@ -29,10 +31,3 @@ WHERE a.status='submitted'
 GROUP BY p.jenjang,p.name,a.id,a.user_id,a.submitted_at
 ORDER BY a.submitted_at DESC NULLS LAST, a.id DESC
 LIMIT 100;
-
--- Rekap dua sumber yang terpisah, untuk menghindari salah identifikasi.
-SELECT 'Esai V15 dinilai' AS sumber, COUNT(*) AS jumlah
-FROM public.kf_essay_manual_grades
-UNION ALL
-SELECT 'Esai legacy essay_submissions dinilai',COUNT(*)
-FROM public.essay_submissions WHERE grading_status='graded';
