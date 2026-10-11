@@ -36,7 +36,7 @@ async function refresh(){
  try{
   const {data:identity,error:identityError}=await db.auth.getUser();
   if(identityError||!identity?.user)throw Error('Sesi login berakhir. Silakan masuk kembali dari dashboard peserta.');
-  const [scores,certs]=await Promise.allSettled([db.rpc('kf_my_latest_published_scores_v15'),db.rpc('kf_my_certificates')]);
+  const [scores,certs]=await Promise.allSettled([db.rpc('kf_my_latest_published_scores_v15'),db.rpc('kf_my_certificate_verification_v15')]);
   if(scores.status==='rejected'||scores.value.error)message($('results'),'Nilai resmi belum dapat diambil: '+(scores.status==='rejected'?scores.reason?.message:scores.value.error?.message),'error');
   else renderResults($('results'),Array.isArray(scores.value.data)?scores.value.data:[]);
   if(certs.status==='rejected'||certs.value.error)message($('certificates'),'Sertifikat belum dapat diambil: '+(certs.status==='rejected'?certs.reason?.message:certs.value.error?.message),'error');
