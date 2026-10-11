@@ -10,6 +10,7 @@ on:
       - 'member/hasil-nilai-v15.html'
       - 'member/index.html'
       - 'member/admin.html'
+      - 'member/verifikasi-sertifikat-v15.html'
       - 'tests/grading-v15.test.js'
       - '.github/workflows/v15-grading-tests.yml'
 
@@ -70,4 +71,17 @@ jobs:
           assert.ok(member.includes('function cetakSertifikatPaket('),'Legacy certificate printing removed');
           assert.ok(member.includes('kf_issue_eligible_certificates') || member.includes('issueEligibleCertificates'),'Legacy certificate logic missing');
           console.log('Dashboard integration markers verified');
+          NODE
+
+      - name: Validate public verification page without leaking private member data
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+          const html=fs.readFileSync('member/verifikasi-sertifikat-v15.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+          for(const s of scripts)if(s[1].trim())new vm.Script(s[1]);
+          assert.ok(html.includes('kf_verify_certificate_token_v15'));
+          assert.ok(html.includes('location.hash'));
+          assert.ok(!html.includes('service_role'));
+          console.log('Verification page basic checks passed');
           NODE
