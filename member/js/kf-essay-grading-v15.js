@@ -11,7 +11,13 @@ window.v13LoadEssayGrading=async function(){
   if(!db())throw Error('Koneksi Supabase belum tersedia');
   const {data,error}=await db().rpc('kf_admin_list_essay_v15');
   if(error)throw error;
-  rows=data||[];
+  rows=Array.isArray(data)?data:[];
+  const deepLink=new URLSearchParams(location.search).get('attempt')||'';
+  if(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(deepLink)){
+    const search=$('essayGradeSearch'),filter=$('essayGradeFilter');
+    if(search)search.value=deepLink;
+    if(filter)filter.value='';
+  }
   const pending=rows.filter(r=>r.graded_at==null).length;
   if($('essayPendingBadge'))$('essayPendingBadge').textContent=pending;
   if(sum)sum.textContent=pending+' belum dinilai • '+rows.length+' jawaban esai V15';
@@ -22,7 +28,7 @@ window.v13RenderEssayGrading=function(){
  const box=$('essayGradeList');if(!box)return;
  const status=$('essayGradeFilter')?.value??'pending',term=($('essayGradeSearch')?.value||'').toLowerCase();
  const filtered=rows.filter(r=>(!status||(status==='graded'?!!r.graded_at:!r.graded_at))&&
- [r.participant_id,r.package_id,r.question_id,JSON.stringify(r.answer)].join(' ').toLowerCase().includes(term));
+ [r.participant_id,r.package_id,r.question_id,r.attempt_id,JSON.stringify(r.answer)].join(' ').toLowerCase().includes(term));
  if(!filtered.length){box.innerHTML='<div class="notice">Tidak ada jawaban esai pada filter ini.</div>';return;}
  box.innerHTML=filtered.map(r=>{
  const ans=r.answer;
