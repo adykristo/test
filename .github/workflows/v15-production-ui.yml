@@ -1,0 +1,51 @@
+name: V15 Production UI Checks
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'member/hasil-nilai-v15.html'
+      - 'member/publikasi-nilai-v15.html'
+      - 'member/sertifikat-cetak-v15.html'
+      - 'member/verifikasi-sertifikat-v15.html'
+      - 'member/diagnostik-v15.html'
+      - 'member/lab-nilai-v15.html'
+      - 'member/js/kf-grading-v15.js'
+      - '.github/workflows/v15-production-ui.yml'
+permissions:
+  contents: read
+jobs:
+  static-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate page scripts and API safety
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+          const paths=[
+            'member/hasil-nilai-v15.html',
+            'member/publikasi-nilai-v15.html',
+            'member/sertifikat-cetak-v15.html',
+            'member/verifikasi-sertifikat-v15.html',
+            'member/diagnostik-v15.html',
+            'member/lab-nilai-v15.html'
+          ];
+          for(const path of paths){
+            const page=fs.readFileSync(path,'utf8');
+            const scripts=[...page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+            assert.ok(scripts.some(x=>x[1].trim()),path+' lacks inline functionality');
+            for(const src of scripts)if(src[1].trim())new vm.Script(src[1],{filename:path});
+            assert.ok(page.includes('name="viewport"'),path+' missing responsive viewport');
+            assert.ok(!page.includes('sb_secret_')&&!page.includes('service_role'),path+' leaked privileged key');
+            console.log('OK:',path);
+          }
+          assert.ok(fs.readFileSync('member/hasil-nilai-v15.html','utf8').includes('kf_my_certificate_verification_v15'));
+          assert.ok(fs.readFileSync('member/diagnostik-v15.html','utf8').includes('ensureAdmin'));
+          console.log('All page script checks passed. Auth/SQL/browser tests require runtime access.');
+          NODE
+      - name: Validate grading engine
+        run: node --check member/js/kf-grading-v15.js
