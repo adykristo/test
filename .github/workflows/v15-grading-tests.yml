@@ -49,7 +49,7 @@ jobs:
           const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
           for(const [name,markers] of [
             ['member/publikasi-nilai-v15.html',['kf_admin_publish_weighted_result_v15','ensureAdmin','ack']],
-            ['member/hasil-nilai-v15.html',['kf_my_latest_published_scores_v15','kf_my_certificates','getUser']]
+            ['member/hasil-nilai-v15.html',['kf_my_latest_published_scores_v15','kf_my_certificate_verification_v15','getUser']]
           ]){
             const html=fs.readFileSync(name,'utf8');
             const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
