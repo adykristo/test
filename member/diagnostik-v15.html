@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="id"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+<title>Diagnostik V15 · KlinikFisikapku</title>
+<style>
+:root{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#faf6ff;color:#33134c}*{box-sizing:border-box}body{margin:0}header{padding:25px 16px;color:white;background:linear-gradient(115deg,#4b1c7e,#882ccd,#ea49a3)}header>div,main{max-width:1040px;margin:auto}header h1{font-size:clamp(22px,5vw,33px)}a{color:inherit}main{padding:24px 14px 60px}.card{background:white;border:1px solid #e7d6ef;border-radius:18px;padding:22px;box-shadow:0 10px 35px #40115a0b}button{border:0;border-radius:11px;background:linear-gradient(110deg,#7125b0,#db3199);padding:12px 17px;color:white;font-weight:800;font:inherit;cursor:pointer}button:disabled{opacity:.55}.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:13px 0;border-bottom:1px solid #eee0f2;align-items:center}.row:last-child{border:none}.row small{display:block;color:#77628b;margin-top:5px;overflow-wrap:anywhere}.pill{border-radius:22px;background:#f0e6f7;padding:6px 11px;font-weight:800;font-size:12px}.ok{background:#e4f8ec;color:#176234}.fail{background:#fff0ed;color:#a42a43}.muted{color:#78618a}#log{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}@media(max-width:600px){.row{grid-template-columns:1fr}.pill{justify-self:start}.card{padding:16px}}
+</style>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
+<script defer src="supabase-config.js"></script>
+<script defer src="supabase-admin.js"></script>
+</head><body>
+<header><div><a href="admin.html">← Kembali ke Admin</a><h1>Pemeriksaan Integrasi V15</h1><p>Hanya untuk super admin · diagnosis baca-saja · tidak menerbitkan nilai atau sertifikat.</p></div></header>
+<main><div class="card">
+<h2>Periksa seluruh layanan V15</h2>
+<p class="muted">Memeriksa hasil skor resmi, daftar pengerjaan, sertifikat, dan izin akses admin tanpa memodifikasi data.</p>
+<button id="run" disabled>Jalankan Diagnostik</button>
+<p id="session" class="muted" role="status">Memeriksa sesi admin...</p>
+<div id="results"></div>
+<p id="log" class="muted"></p>
+</div></main>
+<script>
+(function(){
+'use strict';
+const tests=[
+ ['Daftar pengerjaan','kf_admin_list_submitted_attempts_v15',()=>({p_jenjang:null,p_limit:1,p_offset:0})],
+ ['Laporan nilai resmi','kf_admin_latest_published_results_v15',()=>({p_jenjang:null,p_limit:1,p_offset:0})],
+ ['Pratinjau kesiapan sertifikat','kf_admin_preview_package_certification_v15',null]
+];
+let db=null;
+const $=id=>document.getElementById(id);
+function line(label,good,msg){
+ const r=document.createElement('div');r.className='row';
+ const text=document.createElement('div'),name=document.createElement('strong'),desc=document.createElement('small'),status=document.createElement('span');
+ name.textContent=label;desc.textContent=msg;text.append(name,desc);status.className='pill '+(good?'ok':'fail');status.textContent=good?'OK':'Perlu diperiksa';r.append(text,status);$('results').append(r);
+}
+async function run(){
+ $('run').disabled=true;$('results').replaceChildren();$('log').textContent='';
+ let pass=0,fail=0;
+ for(const [label,rpc,args] of tests){
+  if(!args){line(label,true,'Tersedia untuk pemeriksaan per peserta dan paket; pengujian memerlukan UUID akun/paket uji.');continue}
+  const {error}=await db.rpc(rpc,args());
+  if(error){fail++;line(label,false,error.message||'RPC tidak tersedia');}
+  else{pass++;line(label,true,'RPC dapat dipanggil menggunakan sesi admin.');}
+ }
+ const {data:owned,error:ownError}=await db.auth.getUser();
+ if(ownError||!owned?.user){fail++;line('Identitas admin',false,ownError?.message||'Sesi tidak valid')}
+ else {pass++;line('Identitas admin',true,'Sesi Google Supabase aktif.')}
+ $('log').textContent=pass+' pemeriksaan berhasil; '+fail+' memerlukan tindakan. Pengujian akun peserta biasa tetap wajib.';
+ $('run').disabled=false;
+}
+window.addEventListener('load',async()=>{
+ try{
+  if(!window.KFSupabaseAdmin?.client)throw Error('Koneksi Supabase tidak tersedia.');
+  if(!await window.KFSupabaseAdmin.ensureAdmin())throw Error('Harus login dengan akun super admin aktif.');
+  db=window.KFSupabaseAdmin.client;$('session').textContent='Super admin terverifikasi';$('run').disabled=false;
+ }catch(e){$('session').textContent=e.message||String(e);}
+});
+$('run').addEventListener('click',()=>run().catch(e=>{$('log').textContent=e.message||String(e);$('run').disabled=false}));
+})();
+</script></body></html>
