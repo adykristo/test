@@ -101,7 +101,11 @@ BEGIN
     ON CONFLICT (user_id,member_package_id) DO NOTHING
     RETURNING id INTO v_new_id;
 
-    IF v_new_id IS NOT NULL THEN v_count:=v_count+1; END IF;
+    IF v_new_id IS NOT NULL THEN
+      INSERT INTO public.kf_v15_certificate_tokens(certificate_id)
+      VALUES (v_new_id) ON CONFLICT (certificate_id) DO NOTHING;
+      v_count:=v_count+1;
+    END IF;
     v_new_id:=NULL;
   END LOOP;
   RETURN v_count;
