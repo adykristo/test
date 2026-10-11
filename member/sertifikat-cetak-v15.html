@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="id"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'">
+<title>Sertifikat Paket · KlinikFisikapku</title>
+<style>
+:root{font-family:Inter,system-ui,Segoe UI,sans-serif;color:#301741;background:#faf7ff}*{box-sizing:border-box}body{margin:0}.bar{background:linear-gradient(110deg,#51207c,#8c36c1,#e846a5);color:#fff;padding:16px}.bar .inner{max-width:1160px;margin:auto;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.bar a{color:white}.bar button{background:#fff;color:#6d279c}button{font:inherit;border:0;border-radius:11px;padding:10px 16px;font-weight:700;cursor:pointer}.container{max-width:1160px;margin:22px auto;padding:0 14px}.msg{padding:12px 16px;border-radius:13px;background:#f3e9fb;margin-bottom:16px}.paper{position:relative;overflow:hidden;background:radial-gradient(circle at 8% 12%,#fceaf7,transparent 30%),radial-gradient(circle at 95% 95%,#efe0fe,transparent 32%),#fff;border:7px double #bd98df;box-shadow:0 15px 40px #491d6321;aspect-ratio:297/210;max-width:100%;min-height:460px;padding:4.5%;display:flex;flex-direction:column;align-items:center;justify-content:space-around;text-align:center}.paper:before{content:"";position:absolute;inset:12px;border:2px solid #d4b151;pointer-events:none}.brand{font-size:clamp(16px,2.2vw,23px);font-weight:900;color:#54217d;letter-spacing:.09em}.subtitle{font-size:clamp(10px,1.2vw,14px);color:#80648e}.heading{font:700 clamp(30px,5vw,62px) Georgia,serif;letter-spacing:.09em;color:#6a299b}.given{font-size:clamp(12px,1.5vw,18px);color:#715684}.name{font-family:Georgia,serif;font-weight:700;color:#351451;font-size:clamp(20px,4vw,45px);max-width:95%;overflow-wrap:anywhere}.package{font-size:clamp(16px,2.5vw,29px);font-weight:850;color:#7430af;max-width:95%;overflow-wrap:anywhere}.proof{font-size:clamp(10px,1.1vw,14px);max-width:85%;color:#5f4971}.bottom{display:flex;gap:18px;width:92%;justify-content:space-between;align-items:end}.number{text-align:left;font-size:clamp(10px,1.25vw,14px);color:#654c72;overflow-wrap:anywhere}.qr{width:100px;height:100px;display:grid;place-items:center;background:#fff;border:1px solid #eee;padding:5px;margin-left:auto}.qr img,.qr canvas{max-width:100%;height:auto}.hint{margin:12px 0;color:#715c7e;font-size:13px}@media(max-width:720px){.paper{min-height:430px;padding:20px 15px;aspect-ratio:auto}.heading{font-size:30px}.bottom{width:100%}.qr{width:78px;height:78px}.name{font-size:24px}.package{font-size:19px}}@media print{@page{size:A4 landscape;margin:0}html,body{width:297mm;height:210mm;background:white}.bar,.msg,.hint{display:none!important}.container{padding:0;margin:0;max-width:none}.paper{width:297mm;height:210mm;min-height:210mm;aspect-ratio:auto;box-shadow:none;border:7px double #bd98df;page-break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}.qr{width:26mm;height:26mm}}
+</style>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script defer src="supabase-config.js"></script>
+<script defer src="supabase-auth.js"></script>
+</head><body>
+<header class="bar"><div class="inner"><a href="hasil-nilai-v15.html">← Kembali ke Nilai & Sertifikat Saya</a><button id="print" disabled>Cetak / Simpan PDF</button></div></header>
+<main class="container"><div id="status" class="msg">Memeriksa sertifikat milik Anda…</div>
+<article class="paper" id="certificate" hidden aria-label="Sertifikat paket pelatihan">
+<div><div class="brand">KLINIKFISIKAPKU</div><div class="subtitle">PROGRAM PELATIHAN OLIMPIADE FISIKA</div></div>
+<div class="heading">SERTIFIKAT</div>
+<div class="given">Diberikan kepada</div><div class="name" id="name">—</div>
+<div class="given">Atas keberhasilan mengikuti dan menyelesaikan persyaratan pelatihan</div>
+<div class="package" id="package">—</div>
+<div class="proof">Sertifikat ini tercatat dalam sistem KlinikFisikapku dan dapat diverifikasi melalui QR Code.</div>
+<div class="bottom"><div class="number"><strong id="number">—</strong><div id="date">—</div></div><div><div id="qr" class="qr"></div><div style="font-size:10px">Pindai untuk verifikasi</div></div></div>
+</article><p class="hint">PDF diperoleh melalui menu Cetak → Simpan sebagai PDF. Sertifikat tetap tersimpan di akun dan tidak diterbitkan ulang saat dicetak.</p></main>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+function msg(v){$('status').textContent=v;}
+const validUuid=v=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+$('print').addEventListener('click',()=>window.print());
+window.addEventListener('load',async()=>{
+ try{
+  const id=new URLSearchParams(location.search).get('id')||'';
+  if(!validUuid(id))throw Error('ID sertifikat tidak valid.');
+  const c=window.KFMemberAuth?.client;
+  if(!c)throw Error('Koneksi peserta belum siap.');
+  const {data:userInfo,error:userError}=await c.auth.getUser();
+  if(userError||!userInfo?.user)throw Error('Silakan login sebagai pemilik sertifikat terlebih dahulu.');
+  const {data:certs,error:certError}=await c.rpc('kf_my_certificate_verification_v15');
+  if(certError)throw certError;
+  const cert=(certs||[]).find(x=>x.certificate_id===id);
+  if(!cert)throw Error('Sertifikat tidak ditemukan di akun Anda.');
+  if(!validUuid(cert.verification_token||''))throw Error('Token verifikasi belum tersedia. Hubungi admin.');
+  // Read display name from the owner profile (RLS protected), never from query string.
+  const {data:profile,error:profileError}=await c.from('member_profiles').select('nama').eq('id',userInfo.user.id).maybeSingle();
+  if(profileError)throw profileError;
+  $('name').textContent=profile?.nama||userInfo.user.user_metadata?.full_name||'Peserta KlinikFisikapku';
+  $('package').textContent=cert.package_name||'Paket Pelatihan';
+  $('number').textContent=cert.certificate_number||'—';
+  $('date').textContent=cert.issued_at?new Date(cert.issued_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'';
+  const url=location.origin+'/member/verifikasi-sertifikat-v15.html#token='+encodeURIComponent(cert.verification_token);
+  if(typeof QRCode!=='function')throw Error('Pustaka QR belum termuat.');
+  new QRCode($('qr'),{text:url,width:88,height:88,correctLevel:QRCode.CorrectLevel.M});
+  $('certificate').hidden=false;$('print').disabled=false;
+  msg('✓ Sertifikat valid untuk akun Anda. Gunakan tombol Cetak / Simpan PDF.');
+ }catch(e){msg('Tidak dapat menampilkan sertifikat: '+(e.message||e));}
+});
+})();
+</script>
+</body></html>
