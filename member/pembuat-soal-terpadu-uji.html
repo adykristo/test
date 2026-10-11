@@ -1434,7 +1434,7 @@ async function v13EssayAdminDb(){
  const db=window.KFSupabaseAdmin?.client||window.KFMemberAuth?.client;if(!db)throw new Error('Supabase belum siap.');
  return db;
 }
-async function v13LoadEssayGrading(){
+async function v13LegacyLoadEssayGrading(){
  const box=$('essayGradeList'),sum=$('essayGradeSummary');if(box)box.innerHTML='<div class="small">Memuat jawaban Esai…</div>';
  try{
   const db=await v13EssayAdminDb();
@@ -1446,7 +1446,7 @@ async function v13LoadEssayGrading(){
   v13RenderEssayGrading();
  }catch(e){if(sum)sum.className='notice bad',sum.textContent='Gagal memuat Penilaian Esai: '+(e?.message||e);if(box)box.innerHTML='';}
 }
-function v13RenderEssayGrading(){
+function v13LegacyRenderEssayGrading(){
  const box=$('essayGradeList');if(!box)return;const status=$('essayGradeFilter')?.value||'',term=($('essayGradeSearch')?.value||'').toLowerCase();
  const rows=v13EssayGradeRows.filter(x=>{const st=x.grading_status||'pending';if(status&&st!==status)return false;return !term||[x.participant_id,x.package_id,x.question_id,x.answer_text].join(' ').toLowerCase().includes(term)});
  if(!rows.length){box.innerHTML='<div class="notice">Tidak ada jawaban Esai pada filter ini.</div>';return}
