@@ -2311,6 +2311,15 @@ async function kfLoadServerPackages(){
    KF_SERVER_PACKAGES=await KFPackageDB.listPackages()||[];
    window.KF_SERVER_PACKAGES=KF_SERVER_PACKAGES;
    kfRenderServerPackageBoxes();
+   // Refresh the schedule-based button state even when the page stays open
+   // across the start/end of a tryout. No database writes or extra RPC calls.
+   if(!window.KF_TRYOUT_SCHEDULE_REFRESH){
+     window.KF_TRYOUT_SCHEDULE_REFRESH=setInterval(()=>{
+       if(filterAktif==="tryout" && document.getElementById("kfPackageAccessBox")){
+         kfRenderServerPackageBoxes();
+       }
+     },10000);
+   }
  }catch(e){
    console.warn("Paket V14 Supabase:",e);
    const box=document.getElementById("kfPackageAccessBox");
@@ -2322,7 +2331,7 @@ function kfRenderServerPackageBoxes(){
  if(!old){old=document.createElement("div");old.id="kfPackageAccessBox";old.className="card";let list=document.getElementById("list");if(list&&list.parentNode)list.parentNode.insertBefore(old,list)}
  let cards=(kind)=>KF_SERVER_PACKAGES.filter(p=>p.kind===kind).map(p=>{
   let now=Date.now(),start=p.starts_at?new Date(p.starts_at).getTime():0,end=p.ends_at?new Date(p.ends_at).getTime():0,blocked=start&&now<start?"Belum dimulai":end&&now>end?"Sudah berakhir":kind==="tryout"&&Number(p.attempts_used)>=Number(p.max_attempts)?"Kesempatan habis":"";
-  const schedule=kind==="tryout"?(start?"<br>Mulai: "+new Date(p.starts_at).toLocaleString("id-ID"):"")+(end?" · Berakhir: "+new Date(p.ends_at).toLocaleString("id-ID"):""):"";
+  const schedule=kind==="tryout"?(start?"<br>Mulai: "+new Date(p.starts_at).toLocaleString("id-ID",{timeZone:"Asia/Jakarta"}):"")+(end?" · Berakhir: "+new Date(p.ends_at).toLocaleString("id-ID",{timeZone:"Asia/Jakarta"}):""):"";
   return `<div class="kf-pkg-card ${blocked?"kf-pkg-locked":""}"><h3>${kind==="tryout"?"🏆":"✎"} ${esc(p.name)}</h3><div class="kf-pkg-meta">${Number(p.question_count||0)} soal${kind==="tryout"?` · ${p.duration_minutes||0} menit · Kesempatan ${Number(p.attempts_used||0)}/${Number(p.max_attempts||1)}`:""}${schedule}${blocked?"":`<br><b>Tersedia untuk paket langganan Anda</b>`}</div><button class="btn ${blocked?"btn-ghost":"btn-main"}" ${blocked?"disabled":`onclick="kfStartServerPackage('${p.id}')"`}>${blocked?blocked:"Mulai"}</button></div>`;
  }).join("");
  if(filterAktif==="soal"){
