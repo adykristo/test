@@ -24,6 +24,7 @@
 <div class="grid">
 <section class="card">
 <h2>Pengaturan pengujian</h2>
+<div class="fields" style="margin-bottom:14px"><div class="field"><label for="jenjangFilter">Filter jenjang</label><select id="jenjangFilter"><option value="">Semua jenjang</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option></select></div><div class="field"><label for="fetchAttempts">Data pengerjaan</label><button id="fetchAttempts" type="button" class="minor" style="width:100%" disabled>Muat pengerjaan terbaru</button></div></div><p id="attemptListStatus" class="hint" aria-live="polite">Contoh pengerjaan tersedia; daftar otomatis memerlukan RPC daftar admin.</p>
 <div class="field"><label for="attempt">Percobaan peserta (submitted)</label>
 <select id="attempt"><option value="39b5e0b1-9ea0-428c-8310-0f9bf2025099">Data uji campuran 1 — PG4 + Esai</option><option value="3d7fb307-015e-4e24-a8e8-9fd65d096dfc">Data uji campuran 2 — PG4 + Esai</option><option value="custom">Masukkan ID pengerjaan lain</option></select></div>
 <div class="field" id="customBox" hidden style="margin-top:10px"><label for="customId">ID pengerjaan UUID</label><input id="customId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" spellcheck="false"></div>
@@ -76,8 +77,33 @@ async function boot(){
   client=window.KFSupabaseAdmin.client;
   $('session').textContent='✓ Sesi super admin terverifikasi';$('session').className='status good';
   $('run').disabled=false;
+  $('fetchAttempts').disabled=false;
  }catch(e){$('session').textContent='Akses ditolak: '+(e.message||e);$('session').className='status bad';$('run').disabled=true;}
 }
+$('fetchAttempts').addEventListener('click',async()=>{
+ if(!client)return;
+ const btn=$('fetchAttempts');btn.disabled=true;$('attemptListStatus').textContent='Mengambil daftar pengerjaan…';
+ try{
+  const {data,error}=await client.rpc('kf_admin_list_submitted_attempts_v15',{
+    p_jenjang:$('jenjangFilter').value||null,p_limit:20,p_offset:0
+  });
+  if(error)throw error;
+  const selector=$('attempt');
+  // Keep built-in examples/custom selection; discard previous discovered entries.
+  [...selector.options].filter(o=>o.dataset.discovered==='1').forEach(o=>o.remove());
+  for(const a of (data||[])){
+    const option=document.createElement('option');
+    option.value=a.attempt_id;
+    option.textContent=(a.jenjang||'—')+' · '+(a.package_name||'Paket')+
+      ' · '+(a.question_count||0)+' soal · '+(a.pending_essay_count||0)+' esai menunggu';
+    option.dataset.discovered='1';
+    selector.insertBefore(option,selector.querySelector('option[value="custom"]'));
+  }
+  $('attemptListStatus').textContent='Daftar terbaru: '+(data||[]).length+' pengerjaan. Pilih salah satu lalu klik Uji Nilai.';
+ }catch(e){
+  $('attemptListStatus').textContent='Daftar otomatis belum tersedia: '+(e.message||e)+'. Data uji manual masih dapat digunakan.';
+ }finally{btn.disabled=!client}
+});
 $('run').addEventListener('click',async()=>{
  $('run').disabled=true;$('components').replaceChildren();$('finalScore').textContent='—';$('pending').textContent='—';
  try{
