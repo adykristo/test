@@ -1,0 +1,52 @@
+/* Penilaian Esai V15 — hanya mengganti daftar/penilaian esai di Question Studio. */
+(function(){
+const $=id=>document.getElementById(id);
+const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let rows=[];
+function db(){return window.KFMemberAuth?.client||window.KFSupabaseAdmin?.client}
+window.v13LoadEssayGrading=async function(){
+ const sum=$('essayGradeSummary'),box=$('essayGradeList');
+ if(sum)sum.textContent='Memuat jawaban esai V15…';
+ try{
+  if(!db())throw Error('Koneksi Supabase belum tersedia');
+  const {data,error}=await db().rpc('kf_admin_list_essay_v15');
+  if(error)throw error;
+  rows=data||[];
+  const pending=rows.filter(r=>r.graded_at==null).length;
+  if($('essayPendingBadge'))$('essayPendingBadge').textContent=pending;
+  if(sum)sum.textContent=pending+' belum dinilai • '+rows.length+' jawaban esai V15';
+  window.v13RenderEssayGrading();
+ }catch(e){if(sum)sum.textContent='Gagal memuat esai V15: '+e.message+' — Pastikan SQL V15 sudah dijalankan.';if(box)box.innerHTML='';}
+};
+window.v13RenderEssayGrading=function(){
+ const box=$('essayGradeList');if(!box)return;
+ const status=$('essayGradeFilter')?.value??'pending',term=($('essayGradeSearch')?.value||'').toLowerCase();
+ const filtered=rows.filter(r=>(!status||(status==='graded'?!!r.graded_at:!r.graded_at))&&
+ [r.participant_id,r.package_id,r.question_id,JSON.stringify(r.answer)].join(' ').toLowerCase().includes(term));
+ if(!filtered.length){box.innerHTML='<div class="notice">Tidak ada jawaban esai pada filter ini.</div>';return;}
+ box.innerHTML=filtered.map(r=>{
+ const ans=r.answer;
+ const answerText=typeof ans==='string'?ans:JSON.stringify(ans??{},null,2);
+ return '<div class="card" style="margin:12px 0;padding:15px"><b>Peserta:</b> '+safe(r.participant_id)+
+ '<div class="small">Paket: '+safe(r.package_id)+' • Soal: '+safe(r.question_id)+'</div>'+
+ '<div class="small">Dikirim: '+safe(r.submitted_at?new Date(r.submitted_at).toLocaleString('id-ID'):'-')+'</div>'+
+ '<p><b>Jawaban:</b></p><pre style="white-space:pre-wrap;overflow-wrap:anywhere">'+safe(answerText)+'</pre>'+
+ '<label>Nilai <input type="number" min="0" step="0.01" id="kfScore_'+r.answer_id+'" value="'+safe(r.score??'')+'"></label>'+
+ '<label>Nilai Maksimum <input type="number" min="0.01" step="0.01" id="kfMax_'+r.answer_id+'" value="'+safe(r.max_score??10)+'"></label>'+
+ '<label>Catatan guru <textarea id="kfFeedback_'+r.answer_id+'">'+safe(r.teacher_feedback||'')+'</textarea></label>'+
+ '<button class="btn" type="button" data-kf-grade="'+safe(r.answer_id)+'">Simpan Nilai Esai</button>'+
+ '<span class="small">'+(r.graded_at?'Sudah dinilai':'Belum dinilai')+'</span></div>';
+ }).join('');
+ box.querySelectorAll('[data-kf-grade]').forEach(b=>b.addEventListener('click',async()=>{
+  const id=b.getAttribute('data-kf-grade'),score=Number($('kfScore_'+id)?.value),max=Number($('kfMax_'+id)?.value);
+  if(!$('kfScore_'+id)?.value||!Number.isFinite(score)||!Number.isFinite(max)||max<=0||score<0||score>max){alert('Masukkan nilai yang valid (0 sampai maksimum).');return}
+  b.disabled=true;
+  try{
+   const {error}=await db().rpc('kf_admin_grade_essay_v15',{p_answer_id:id,p_score:score,p_max_score:max,p_feedback:$('kfFeedback_'+id)?.value||''});
+   if(error)throw error;
+   alert('Nilai esai V15 tersimpan. Nilai akhir peserta belum disinkronkan.');
+   await window.v13LoadEssayGrading();
+  }catch(e){alert('Gagal menyimpan: '+e.message)}finally{b.disabled=false}
+ }));
+};
+})();
