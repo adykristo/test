@@ -6,6 +6,8 @@ on:
     paths:
       - 'member/js/kf-grading-v15.js'
       - 'member/lab-nilai-v15.html'
+      - 'member/publikasi-nilai-v15.html'
+      - 'member/hasil-nilai-v15.html'
       - 'tests/grading-v15.test.js'
       - '.github/workflows/v15-grading-tests.yml'
 
@@ -36,4 +38,21 @@ jobs:
           for(const marker of ['kf_admin_preview_weighted_score_v15','kf_admin_list_submitted_attempts_v15','ensureAdmin','jenjangFilter','fetchAttempts'])
             assert.ok(html.includes(marker),'Missing lab feature: '+marker);
           console.log('Lab page basic checks passed');
+          NODE
+
+      - name: Validate participant and admin page scripts
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+          for(const [name,markers] of [
+            ['member/publikasi-nilai-v15.html',['kf_admin_publish_weighted_result_v15','ensureAdmin','ack']],
+            ['member/hasil-nilai-v15.html',['kf_my_latest_published_scores_v15','kf_my_certificates','getUser']]
+          ]){
+            const html=fs.readFileSync(name,'utf8');
+            const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+            assert.ok(scripts.some(x=>x[1].trim()),'No inline JS in '+name);
+            for(const script of scripts)if(script[1].trim())new vm.Script(script[1],{filename:name});
+            for(const marker of markers)assert.ok(html.includes(marker),'Missing '+marker+' in '+name);
+          }
+          console.log('Participant and admin pages passed static validation');
           NODE
