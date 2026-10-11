@@ -12,7 +12,7 @@
 <script defer src="supabase-admin.js"></script>
 </head><body>
 <header><div><a href="admin.html">← Dashboard Admin</a><h1>Pusat Publikasi Nilai</h1><p>Penilaian V15 · bobot fleksibel · riwayat nilai resmi</p></div></header>
-<main><p class="notice"><strong>Lingkungan pengembangan.</strong> Publikasi membutuhkan persetujuan admin. Hanya lakukan pengujian tulis pada database staging dengan akun uji, bukan nilai peserta produksi.</p>
+<main><p class="notice"><strong>Perhatian: halaman ini terhubung ke Supabase yang sedang digunakan website.</strong> Penerbitan nilai akan menyimpan data resmi. Gunakan akun dan pengerjaan uji yang telah diperiksa; tindakan ini bukan pratinjau dan dapat membuat riwayat revisi.</p>
 <div class="grid">
 <section class="card">
 <h2>Penilaian & publikasi</h2>
@@ -140,7 +140,7 @@ $('publish').addEventListener('click',async()=>{
   const id=selected();const score=lastPreview.final_score;
   if(!window.confirm('Terbitkan nilai resmi '+score.toFixed(2)+' untuk pengerjaan '+id+'?'))return;
   const {data,error}=await client.rpc('kf_admin_publish_weighted_result_v15',{p_attempt:id,p_weights:values(),p_expected_score:score});if(error)throw error;
-  notify((data.already_published?'Nilai sudah pernah diterbitkan':'✓ Nilai resmi berhasil diterbitkan')+' · Skor '+data.score+' · Versi '+data.policy_version,'ok');invalidate();
+  notify((data.already_published?'Nilai sudah pernah diterbitkan':'✓ Nilai resmi berhasil diterbitkan')+' · Skor '+data.score+' · Versi '+data.policy_version,'ok');invalidate();$('publishHint').textContent='Publikasi selesai. Klik Muat nilai resmi untuk memeriksa hasil yang tersimpan.';await $('official').click();
  }catch(e){notify('Publikasi gagal: '+(e.message||e),'bad')}finally{button.disabled=true;}
 });
 window.addEventListener('load',boot);
