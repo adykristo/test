@@ -35,7 +35,7 @@
 </div>
 <p class="muted">Total bobot: <strong id="total">100%</strong></p>
 <div class="actions"><button id="preview" disabled type="button">Hitung pratinjau</button><button class="outline" type="button" id="reset">Atur 40:60</button></div><div class="two"><div><label for="singleType">Jika hanya satu jenis soal</label><select id="singleType"><option value="">— Pilih jenis soal —</option><option value="pg4">PG4</option><option value="pg5">PG5</option><option value="mcma">MCMA</option><option value="kategori">Kategori</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label for="setSingle">Bobot 100%</label><button id="setSingle" type="button" class="outline" style="width:100%">Terapkan Bobot</button></div></div><p class="muted">Atur 40:60 hanya jika pengerjaan memiliki soal PG4 dan Esai. Untuk pengerjaan yang hanya memiliki satu jenis soal, pilih jenisnya lalu Terapkan Bobot 100%.</p>
-<div class="confirmation"><label><input type="checkbox" id="ack"><span>Saya sudah memeriksa skor dan menyetujui publikasi nilai resmi untuk pengerjaan terpilih.</span></label></div>
+<p id="publishHint" class="status" role="status" aria-live="polite">Langkah 1: pilih pengerjaan dan bobot soal yang sesuai, lalu klik Hitung pratinjau. Tombol terbitkan baru aktif setelah nilai lengkap dan Anda mencentang konfirmasi.</p><div class="confirmation"><label><input type="checkbox" id="ack"><span>Saya sudah memeriksa skor dan menyetujui publikasi nilai resmi untuk pengerjaan terpilih.</span></label></div>
 <div class="actions"><button id="publish" disabled type="button">Terbitkan Nilai Resmi</button></div>
 <p class="muted">Nilai resmi hanya akan diterbitkan untuk pengerjaan lengkap. Perubahan berikutnya menjadi revisi dengan riwayat, bukan menimpa hasil lama.</p>
 </section>
@@ -58,12 +58,12 @@ let client=null,lastPreview=null,lastSignature='',officialRows=[];
 function values(){const weights={};let sum=0;for(const key of types){const text=$(key).value.trim();const number=Number(text);if(!text||!Number.isFinite(number)||number<0||number>100)throw Error('Bobot '+key+' harus 0–100');weights[key]=number;sum+=number;}if(Math.abs(sum-100)>0.000001)throw Error('Jumlah bobot harus 100%');return weights;}
 function selected(){const id=$('custom').value.trim()||$('attempt').value;if(!validUuid(id))throw Error('Pilih pengerjaan dengan UUID valid');return id;}
 function signature(){return JSON.stringify({id:selected(),weights:values()});}
-function invalidate(){lastPreview=null;lastSignature='';$('publish').disabled=true;$('ack').checked=false;}
+function invalidate(){lastPreview=null;lastSignature='';$('publish').disabled=true;$('ack').checked=false;$('publishHint').textContent='Nilai belum siap diterbitkan. Hitung pratinjau yang lengkap, kemudian centang persetujuan.';}
 function notify(message,cls){$('status').textContent=message;$('status').className='status '+(cls||'');}
 function total(){let t=0;for(const x of types)t+=Number($(x).value||0);$('total').textContent=t+'%';$('total').className=Math.abs(t-100)<.000001?'':'warn';invalidate();}
 for(const id of types)$(id).addEventListener('input',total);
 for(const id of ['attempt','custom'])$(id).addEventListener('input',invalidate);
-$('ack').addEventListener('change',()=>{try{$('publish').disabled=!($('ack').checked&&lastPreview?.ready===true&&lastSignature===signature()&&client)}catch(_){$('publish').disabled=true}});
+$('ack').addEventListener('change',()=>{try{const permitted=Boolean($('ack').checked&&lastPreview?.ready===true&&lastSignature===signature()&&client);$('publish').disabled=!permitted;$('publishHint').textContent=permitted?'✓ Pratinjau lengkap dan sudah disetujui. Tombol Terbitkan Nilai Resmi sekarang aktif.':lastPreview?.ready?'Centang persetujuan setelah memeriksa nilai agar tombol aktif.':'Tombol belum aktif karena belum ada pratinjau nilai lengkap.';}catch(_){$('publish').disabled=true}});
 $('reset').addEventListener('click',()=>{for(const x of types)$(x).value=x==='pg4'?40:x==='esai'?60:0;total()});
 $('setSingle').addEventListener('click',()=>{const chosen=$('singleType').value;if(!types.includes(chosen)){notify('Pilih jenis soal terlebih dahulu (PG4, PG5, MCMA, Kategori, Isian, atau Esai).','bad');return}for(const type of types)$(type).value=type===chosen?100:0;total();notify('Bobot '+chosen.toUpperCase()+' 100% sudah diatur. Klik Hitung pratinjau untuk memastikan jenis soal sesuai.');});
 async function boot(){
@@ -130,9 +130,9 @@ $('preview').addEventListener('click',async()=>{
   const {data,error}=await client.rpc('kf_admin_preview_weighted_score_v15',{p_attempt:id,p_weights:weights});if(error)throw error;
   lastPreview=data;lastSignature=sig;
   $('score').textContent=typeof data.final_score==='number'?data.final_score.toFixed(2):'—';
-  notify(data.ready?'✓ Nilai lengkap. Periksa sebelum diterbitkan.':'Nilai belum lengkap: '+data.pending_count+' soal tertunda',data.ready?'ok':'bad');
+  notify(data.ready?'✓ Nilai lengkap. Periksa sebelum diterbitkan.':'Nilai belum lengkap: '+data.pending_count+' soal tertunda',data.ready?'ok':'bad');$('publishHint').textContent=data.ready?'Langkah 2: periksa skor, kemudian centang persetujuan di bawah untuk mengaktifkan tombol Terbitkan Nilai Resmi.':'Penerbitan ditahan: masih ada soal yang belum selesai dikoreksi.';
   for(const [name,row] of Object.entries(data.components||{})){const wrap=document.createElement('div');wrap.className='component';const left=document.createElement('div');const label=document.createElement('strong');label.textContent=name.toUpperCase();const hint=document.createElement('small');hint.textContent=row.graded+'/'+row.count+' soal · Bobot '+row.weight+'%';left.append(label,hint);const number=document.createElement('strong');number.textContent=row.percentage===null?'Menunggu':Number(row.percentage).toFixed(2)+'%';wrap.append(left,number);$('components').appendChild(wrap);}
- }catch(e){const message=String(e.message||e);const missing=message.match(/WEIGHT_FOR_MISSING_TYPE:\s*([a-z0-9_]+)/i);notify(missing?'Jenis soal '+missing[1].toUpperCase()+' tidak ada pada pengerjaan ini, tetapi diberi bobot lebih dari 0%. Ubah bobot jenis tersebut menjadi 0%, lalu alokasikan 100% ke jenis soal yang benar. Gunakan pilihan “Jika hanya satu jenis soal” jika sesuai.':'Pratinjau gagal: '+message,'bad')}finally{$('preview').disabled=!client;}
+ }catch(e){const message=String(e.message||e);const missing=message.match(/WEIGHT_FOR_MISSING_TYPE:\s*([a-z0-9_]+)/i);notify(missing?'Jenis soal '+missing[1].toUpperCase()+' tidak ada pada pengerjaan ini, tetapi diberi bobot lebih dari 0%. Ubah bobot jenis tersebut menjadi 0%, lalu alokasikan 100% ke jenis soal yang benar. Gunakan pilihan “Jika hanya satu jenis soal” jika sesuai.':'Pratinjau gagal: '+message,'bad');$('publishHint').textContent='Penerbitan ditahan karena pratinjau gagal. Perbaiki bobot atau koreksi soal, kemudian hitung ulang.'}finally{$('preview').disabled=!client;}
 });
 $('publish').addEventListener('click',async()=>{
  if(!client)return;const button=$('publish');button.disabled=true;
