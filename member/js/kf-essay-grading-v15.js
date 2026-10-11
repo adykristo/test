@@ -30,6 +30,8 @@ window.v13RenderEssayGrading=function(){
  return '<div class="card" style="margin:12px 0;padding:15px"><b>Peserta:</b> '+safe(r.participant_id)+
  '<div class="small">Paket: '+safe(r.package_id)+' • Soal: '+safe(r.question_id)+'</div>'+
  '<div class="small">Dikirim: '+safe(r.submitted_at?new Date(r.submitted_at).toLocaleString('id-ID'):'-')+'</div>'+
+ '<div class="small"><b>ID pengerjaan V15:</b> '+safe(r.attempt_id||'Tidak tersedia')+'</div>'+
+ (r.attempt_id?'<div style="margin:8px 0"><a class="btn" href="publikasi-nilai-v15.html?attempt='+encodeURIComponent(String(r.attempt_id))+'">↗ Buka pengerjaan ini di Publikasi Nilai V15</a></div>':'')+
  '<p><b>Jawaban:</b></p><pre style="white-space:pre-wrap;overflow-wrap:anywhere">'+safe(answerText)+'</pre>'+
  '<label>Nilai <input type="number" min="0" step="0.01" id="kfScore_'+r.answer_id+'" value="'+safe(r.score??'')+'"></label>'+
  '<label>Nilai Maksimum <input type="number" min="0.01" step="0.01" id="kfMax_'+r.answer_id+'" value="'+safe(r.max_score??10)+'"></label>'+
@@ -44,7 +46,7 @@ window.v13RenderEssayGrading=function(){
   try{
    const {error}=await db().rpc('kf_admin_grade_essay_v15',{p_answer_id:id,p_score:score,p_max_score:max,p_feedback:$('kfFeedback_'+id)?.value||''});
    if(error)throw error;
-   alert('Nilai esai V15 tersimpan. Nilai akhir peserta belum disinkronkan.');
+   alert('Nilai esai V15 berhasil disimpan. Skor sudah tersedia untuk pratinjau V15 pada pengerjaan yang sama. Nilai resmi tetap harus diterbitkan admin melalui Pusat Publikasi Nilai.');
    await window.v13LoadEssayGrading();
   }catch(e){alert('Gagal menyimpan: '+e.message)}finally{b.disabled=false}
  }));
