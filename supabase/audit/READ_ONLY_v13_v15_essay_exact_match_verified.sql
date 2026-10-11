@@ -1,3 +1,7 @@
+-- LEGACY-ONLY DIAGNOSTIC: JANGAN gunakan untuk status penilaian Question Studio V15 saat ini.
+-- Question Studio memuat member/js/kf-essay-grading-v15.js dan memakai kf_essay_manual_grades.
+-- Hasil 0 baris di sini normal jika tidak ada esai pada tabel lama essay_submissions.
+-- GUNAKAN supabase/audit/READ_ONLY_v15_essay_grades_by_attempt.sql untuk data aktif.
 -- KLINIKFISIKAPKU V13 ↔ V15 ESSAY RECONCILIATION (READ ONLY)
 -- VERIFIED AGAINST USER CSV: essay_submissions HAS NO attempt_id.
 -- Matches only identical participant UUID, package ID string, question ID string,
