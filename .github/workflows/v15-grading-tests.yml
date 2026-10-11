@@ -1,0 +1,101 @@
+name: V15 Grading Tests (No Deploy)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'member/js/kf-grading-v15.js'
+      - 'member/lab-nilai-v15.html'
+      - 'member/publikasi-nilai-v15.html'
+      - 'member/hasil-nilai-v15.html'
+      - 'member/index.html'
+      - 'member/admin.html'
+      - 'member/verifikasi-sertifikat-v15.html'
+      - 'tests/grading-v15.test.js'
+      - '.github/workflows/v15-grading-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  grading:
+    name: Verify grading calculation and lab page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check browser-side grading JS
+        run: node --check member/js/kf-grading-v15.js
+      - name: Test grading and certificate eligibility calculations
+        run: node tests/grading-v15.test.js
+      - name: Validate lab page markers and inline script syntax
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+          const html=fs.readFileSync('member/lab-nilai-v15.html','utf8');
+          const blocks=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+          assert.ok(blocks.length>0,'No inline script found');
+          for(const block of blocks)if(block[1].trim())new vm.Script(block[1]);
+          for(const marker of ['kf_admin_preview_weighted_score_v15','kf_admin_list_submitted_attempts_v15','ensureAdmin','jenjangFilter','fetchAttempts'])
+            assert.ok(html.includes(marker),'Missing lab feature: '+marker);
+          console.log('Lab page basic checks passed');
+          NODE
+
+      - name: Validate participant and admin page scripts
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+          for(const [name,markers] of [
+            ['member/publikasi-nilai-v15.html',['kf_admin_publish_weighted_result_v15','ensureAdmin','ack']],
+            ['member/hasil-nilai-v15.html',['kf_my_latest_published_scores_v15','kf_my_certificate_verification_v15','getUser']]
+          ]){
+            const html=fs.readFileSync(name,'utf8');
+            const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+            assert.ok(scripts.some(x=>x[1].trim()),'No inline JS in '+name);
+            for(const script of scripts)if(script[1].trim())new vm.Script(script[1],{filename:name});
+            for(const marker of markers)assert.ok(html.includes(marker),'Missing '+marker+' in '+name);
+          }
+          console.log('Participant and admin pages passed static validation');
+          NODE
+
+      - name: Confirm safe dashboard links and preserve legacy certificate printing
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const member=fs.readFileSync('member/index.html','utf8');
+          const admin=fs.readFileSync('member/admin.html','utf8');
+          assert.ok(member.includes('href="hasil-nilai-v15.html"'));
+          assert.ok(admin.includes('href="publikasi-nilai-v15.html"'));
+          assert.ok(member.includes('function cetakSertifikatPaket('),'Legacy certificate printing removed');
+          assert.ok(member.includes('kf_issue_eligible_certificates') || member.includes('issueEligibleCertificates'),'Legacy certificate logic missing');
+          console.log('Dashboard integration markers verified');
+          NODE
+
+      - name: Validate public verification page without leaking private member data
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+          const html=fs.readFileSync('member/verifikasi-sertifikat-v15.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+          for(const s of scripts)if(s[1].trim())new vm.Script(s[1]);
+          assert.ok(html.includes('kf_verify_certificate_token_v15'));
+          assert.ok(html.includes('location.hash'));
+          assert.ok(!html.includes('service_role'));
+          console.log('Verification page basic checks passed');
+          NODE
+
+      - name: Assert score report is protected and CSV export is wired
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const sql=fs.readFileSync('supabase/migrations/DRAFT_v15_admin_published_results_report.sql','utf8');
+          const page=fs.readFileSync('member/publikasi-nilai-v15.html','utf8');
+          assert.ok(sql.includes("m.role='super_admin'"));
+          assert.ok(sql.includes('r.attempt_id'));
+          assert.ok(sql.includes('JOIN public.kf_attempts a ON a.id=latest.attempt_id AND a.user_id=latest.user_id'));
+          assert.ok(page.includes('kf_admin_latest_published_results_v15'));
+          assert.ok(page.includes('nilai-resmi-v15.csv'));
+          console.log('Protected reporting and export wiring verified');
+          NODE

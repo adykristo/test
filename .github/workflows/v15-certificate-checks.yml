@@ -1,0 +1,40 @@
+name: V15 Certificate Cutover Checks (No Deploy)
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'member/sertifikat-cetak-v15.html'
+      - 'member/verifikasi-sertifikat-v15.html'
+      - 'supabase/migrations/DRAFT_v15_legacy_certificate_cutover.sql'
+      - 'supabase/migrations/DRAFT_v15_legacy_certificate_verification_bridge.sql'
+      - '.github/workflows/v15-certificate-checks.yml'
+permissions:
+  contents: read
+jobs:
+  certificate-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate page JavaScript and SQL safeguards
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+          for (const name of ['member/sertifikat-cetak-v15.html','member/verifikasi-sertifikat-v15.html']) {
+            const html=fs.readFileSync(name,'utf8');
+            const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+            assert.ok(scripts.length>0);
+            for (const script of scripts) if(script[1].trim())new vm.Script(script[1],{filename:name});
+          }
+          const issuer=fs.readFileSync('supabase/migrations/DRAFT_v15_legacy_certificate_cutover.sql','utf8');
+          const bridge=fs.readFileSync('supabase/migrations/DRAFT_v15_legacy_certificate_verification_bridge.sql','utf8');
+          assert.ok(issuer.includes('public.kf_v15_published_results'));
+          assert.ok(issuer.includes('public.kf_user_owns_package'));
+          assert.ok(issuer.includes('ON CONFLICT (user_id,member_package_id) DO NOTHING'));
+          assert.ok(issuer.includes('kf_v15_certificate_tokens'));
+          assert.ok(bridge.includes('ON CONFLICT (certificate_id) DO NOTHING'));
+          assert.ok(!/\b(TRUNCATE|DROP TABLE|DELETE FROM)\b/i.test(issuer+' '+bridge));
+          console.log('Certificate code checks passed; staging and member auth tests still required.');
+          NODE

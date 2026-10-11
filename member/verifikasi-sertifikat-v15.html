@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="id"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'">
+<title>Verifikasi Sertifikat · KlinikFisikapku</title>
+<style>:root{font-family:Inter,system-ui,Segoe UI,sans-serif;color:#2f1745;background:#faf6ff}*{box-sizing:border-box}body{margin:0}.hero{background:linear-gradient(105deg,#4c1c80,#8b30cf,#e849a5);color:white;padding:25px 16px}.hero>div,main{max-width:760px;margin:auto}.hero a{color:white}.hero h1{font-size:clamp(24px,5vw,36px);margin:15px 0 6px}.hero p{opacity:.9;margin:0}main{padding:26px 16px}.card{background:white;border:1px solid #ead7f3;border-radius:18px;padding:28px;box-shadow:0 12px 30px #4f227314}.state{border-radius:12px;padding:17px;background:#f4ecf8;margin:14px 0;overflow-wrap:anywhere}.good{background:#e8f8ed;color:#155e35}.bad{background:#fff0f0;color:#a52140}.meta{padding:9px 0;border-bottom:1px solid #eee0f3}.meta strong{display:block;font-size:13px;color:#775e87}.meta span{display:block;font-weight:700;margin-top:4px}p{line-height:1.6}.fine{color:#746080;font-size:13px} @media(max-width:500px){.card{padding:18px}}</style>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
+<script defer src="supabase-config.js"></script>
+</head><body>
+<header class="hero"><div><a href="/">← KlinikFisikapku</a><h1>Verifikasi Sertifikat</h1><p>Periksa keabsahan sertifikat paket KlinikFisikapku.</p></div></header>
+<main><section class="card"><h2>Hasil verifikasi</h2><div class="state" id="state" role="status">Memeriksa kode sertifikat…</div><div id="details"></div><p class="fine">Layanan ini hanya menampilkan status sertifikat, nomor dan tanggal terbit. Data pribadi peserta tidak ditampilkan. Sertifikat yang belum masuk sistem verifikasi baru mungkin perlu diperiksa melalui admin.</p></section></main>
+<script>
+(function(){
+'use strict';
+const state=document.getElementById('state'),details=document.getElementById('details');
+const uuid=s=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+function status(msg,style){state.textContent=msg;state.className='state '+(style||'');}
+function row(label,value){const d=document.createElement('div');d.className='meta';const b=document.createElement('strong');b.textContent=label;const v=document.createElement('span');v.textContent=String(value||'—');d.append(b,v);details.append(d);}
+window.addEventListener('load',async()=>{
+ try{
+  // Put token after #token=... to avoid sending it to web servers / referrer headers.
+  const params=new URLSearchParams(location.hash.slice(1)),token=params.get('token')||'';
+  if(!uuid(token))throw Error('Kode verifikasi tidak tersedia atau tidak valid.');
+  if(!window.supabase||!window.KF_SUPABASE_CONFIG)throw Error('Layanan verifikasi belum tersedia.');
+  const c=window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey,
+    {auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  const {data,error}=await c.rpc('kf_verify_certificate_token_v15',{p_token:token});
+  if(error)throw error;
+  if(!data?.valid){status(data?.status==='revoked'?'Sertifikat telah dibatalkan.':'Sertifikat tidak ditemukan atau belum dapat diverifikasi.','bad');return;}
+  status('✓ Sertifikat terdaftar dan masih berlaku.','good');
+  row('Nomor sertifikat',data.certificate_number);
+  row('Tanggal terbit',data.issued_at?new Date(data.issued_at).toLocaleDateString('id-ID'):'—');
+ }catch(e){status(e.message||String(e),'bad')}
+});
+})();
+</script></body></html>
