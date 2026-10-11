@@ -45,7 +45,7 @@
 <div class="score" id="score">—</div>
 <div id="status" class="status">Silakan pilih pengerjaan dan klik Hitung pratinjau.</div>
 <div id="components" class="components"></div>
-<h2 style="margin-top:26px">Pengerjaan terbaru</h2>
+<h2 style="margin-top:26px">Nilai resmi terbit</h2><div class="two" style="margin-bottom:10px"><button id="official" class="outline" disabled type="button">Muat nilai resmi</button><button id="export" class="outline" disabled type="button">Ekspor CSV</button></div><div id="officialList" class="scroll"><p class="muted">Belum memuat nilai resmi.</p></div><h2 style="margin-top:26px">Pengerjaan terbaru</h2>
 <div id="attempts" class="scroll"><p class="muted">Belum memuat data.</p></div>
 </aside>
 </div></main>
@@ -54,7 +54,7 @@
 'use strict';
 const $=id=>document.getElementById(id),types=['pg4','pg5','mcma','kategori','isian','esai'];
 const validUuid=s=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
-let client=null,lastPreview=null,lastSignature='';
+let client=null,lastPreview=null,lastSignature='',officialRows=[];
 function values(){const weights={};let sum=0;for(const key of types){const text=$(key).value.trim();const number=Number(text);if(!text||!Number.isFinite(number)||number<0||number>100)throw Error('Bobot '+key+' harus 0–100');weights[key]=number;sum+=number;}if(Math.abs(sum-100)>0.000001)throw Error('Jumlah bobot harus 100%');return weights;}
 function selected(){const id=$('custom').value.trim()||$('attempt').value;if(!validUuid(id))throw Error('Pilih pengerjaan dengan UUID valid');return id;}
 function signature(){return JSON.stringify({id:selected(),weights:values()});}
@@ -69,7 +69,7 @@ async function boot(){
  try{if(!window.KFSupabaseAdmin?.client)throw Error('Koneksi admin Supabase belum siap');
   if(!await window.KFSupabaseAdmin.ensureAdmin())throw Error('Akun bukan super admin aktif');
   client=window.KFSupabaseAdmin.client;$('session').textContent='✓ Super admin terverifikasi';$('session').className='status ok';
-  $('load').disabled=false;$('preview').disabled=false;
+  $('load').disabled=false;$('preview').disabled=false;$('official').disabled=false;
  }catch(e){$('session').textContent=e.message||String(e);$('session').className='status bad';}
 }
 $('load').addEventListener('click',async()=>{
@@ -85,6 +85,43 @@ $('load').addEventListener('click',async()=>{
   if(!records.length)list.textContent='Belum ada pengerjaan dalam filter ini.';
   notify(records.length+' pengerjaan dimuat.');
  }catch(e){notify('Daftar gagal: '+(e.message||e),'bad');}finally{button.disabled=false;}
+});
+$('official').addEventListener('click',async()=>{
+ if(!client)return;
+ const btn=$('official');btn.disabled=true;
+ try{
+  const {data,error}=await client.rpc('kf_admin_latest_published_results_v15',
+    {p_jenjang:$('jenjang').value||null,p_limit:100,p_offset:0});
+  if(error)throw error;
+  officialRows=Array.isArray(data)?data:[];
+  const list=$('officialList');list.replaceChildren();
+  for(const item of officialRows){
+   const wrap=document.createElement('div');wrap.className='record';
+   const label=document.createElement('strong');
+   label.textContent=(item.jenjang||'—')+' · '+(item.assessment_name||'Asesmen')+' · Nilai '+item.score;
+   const meta=document.createElement('small');
+   meta.textContent='Percobaan '+String(item.attempt_id).slice(0,8)+'… · '+(item.revision_count||1)+' versi · '+new Date(item.published_at).toLocaleString('id-ID');
+   wrap.append(label,meta);list.append(wrap);
+  }
+  if(!officialRows.length)list.textContent='Belum ada nilai resmi pada jenjang ini.';
+  $('export').disabled=officialRows.length===0;
+  notify(officialRows.length+' nilai resmi dimuat.',officialRows.length?'ok':'');
+ }catch(e){notify('Gagal membaca laporan: '+(e.message||e),'bad')}
+ finally{btn.disabled=false;}
+});
+$('export').addEventListener('click',()=>{
+ if(!officialRows.length)return;
+ const headers=['jenjang','assessment_name','attempt_id','user_id','score','policy_version','published_at','revision_count'];
+ const csv=[headers.join(','),...officialRows.map(row=>headers.map(h=>{
+   const v=String(row[h]??'');
+   // Avoid Excel formula injection and preserve CSV quotes.
+   const safe=/^[=+@\-\t\r]/.test(v)?"'"+v:v;
+   return '"'+safe.replaceAll('"','""')+'"';
+ }).join(','))].join('\r\n');
+ const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='nilai-resmi-v15.csv';a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
 });
 $('preview').addEventListener('click',async()=>{
  if(!client)return;invalidate();$('preview').disabled=true;$('score').textContent='—';$('components').replaceChildren();
