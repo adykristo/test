@@ -25,7 +25,7 @@
 const tests=[
  ['Daftar pengerjaan','kf_admin_list_submitted_attempts_v15',()=>({p_jenjang:null,p_limit:1,p_offset:0})],
  ['Laporan nilai resmi','kf_admin_latest_published_results_v15',()=>({p_jenjang:null,p_limit:1,p_offset:0})],
- ['Pratinjau kesiapan sertifikat','kf_admin_preview_package_certification_v15',null]
+ ['Perhitungan contoh PG4 40% + Esai 60%','kf_admin_preview_weighted_score_v15',()=>({p_attempt:'39b5e0b1-9ea0-428c-8310-0f9bf2025099',p_weights:{pg4:40,pg5:0,mcma:0,kategori:0,isian:0,esai:60}})]
 ];
 let db=null;
 const $=id=>document.getElementById(id);
@@ -38,10 +38,12 @@ async function run(){
  $('run').disabled=true;$('results').replaceChildren();$('log').textContent='';
  let pass=0,fail=0;
  for(const [label,rpc,args] of tests){
-  if(!args){line(label,true,'Tersedia untuk pemeriksaan per peserta dan paket; pengujian memerlukan UUID akun/paket uji.');continue}
-  const {error}=await db.rpc(rpc,args());
+  const {data,error}=await db.rpc(rpc,args());
   if(error){fail++;line(label,false,error.message||'RPC tidak tersedia');}
-  else{pass++;line(label,true,'RPC dapat dipanggil menggunakan sesi admin.');}
+  else if(rpc==='kf_admin_preview_weighted_score_v15' && (Number(data?.final_score)!==60 || data?.ready!==true)){
+    fail++;line(label,false,'Hasil tidak sesuai ekspektasi 60,00; nilai asli: '+String(data?.final_score));
+  }
+  else{pass++;line(label,true,rpc==='kf_admin_preview_weighted_score_v15'?'Nilai contoh 60,00 sesuai data uji.':'RPC dapat dipanggil menggunakan sesi admin.');}
  }
  const {data:owned,error:ownError}=await db.auth.getUser();
  if(ownError||!owned?.user){fail++;line('Identitas admin',false,ownError?.message||'Sesi tidak valid')}
