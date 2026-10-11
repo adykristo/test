@@ -107,20 +107,34 @@ $('detect').addEventListener('click',async()=>{
  try{
   const id=selected();
   notify('Mendeteksi jenis soal dari Supabase tanpa mengubah data…');
+  // The V15 preview rejects any nonzero weight for a missing question type.
+  // Start with all six, remove only the type reported missing by the RPC,
+  // and retry until every remaining type is genuinely present.
+  // This also supports mixed PG4/MCMA/essay assessments, unlike trying one
+  // question type at a time (which fails for multi-type assessments).
+  const remaining=new Set(types);
   let result=null;
-  for(const kind of types){
-   const trial=Object.fromEntries(types.map(t=>[t,t===kind?100:0]));
-   const {data,error}=await client.rpc('kf_admin_preview_weighted_score_v15',{p_attempt:id,p_weights:trial});
-   if(!error&&data?.components&&Object.keys(data.components).length){result=data;break;}
-   if(error&&!String(error.message||'').includes('WEIGHT_FOR_MISSING_TYPE')&&!String(error.message||'').includes('WEIGHTS_MUST_TOTAL_100'))throw error;
+  for(let attempt=0;attempt<types.length;attempt++){
+    if(!remaining.size)break;
+    const list=types.filter(t=>remaining.has(t));
+    const base=Math.floor(10000/list.length)/100;
+    const weights=Object.fromEntries(types.map(t=>[t,0]));
+    list.forEach((t,i)=>{weights[t]=i===list.length-1?Number((100-base*(list.length-1)).toFixed(2)):base});
+    const {data,error}=await client.rpc('kf_admin_preview_weighted_score_v15',{p_attempt:id,p_weights:weights});
+    if(!error){result=data;break;}
+    const message=String(error.message||'');
+    const missing=message.match(/WEIGHT_FOR_MISSING_TYPE:\s*(pg4|pg5|mcma|kategori|isian|esai)\b/i);
+    if(!missing)throw error;
+    const type=missing[1].toLowerCase();
+    if(!remaining.has(type))throw Error('Deteksi berhenti: tipe soal tidak konsisten. '+message);
+    remaining.delete(type);
   }
-  if(!result)throw Error('Tidak dapat mendeteksi jenis soal. Periksa apakah pengerjaan sudah dikirim dan memiliki soal.');
+  if(!result||!result.components)throw Error('Tidak dapat mendeteksi jenis soal pada pengerjaan ini.');
   const found=types.filter(t=>Object.prototype.hasOwnProperty.call(result.components,t));
   if(!found.length)throw Error('Tidak ada jenis soal yang terbaca pada pengerjaan ini.');
-  const even=100/found.length;
-  for(const type of types)$(type).value=found.includes(type)?Number(even.toFixed(6)):0;
-  // Adjust last present type so the total is exactly 100 even for 3 or 6 types.
-  if(found.length>1)$(found[found.length-1]).value=Number((100-Number(even.toFixed(6))*(found.length-1)).toFixed(6));
+  const base=Math.floor(10000/found.length)/100;
+  for(const type of types)$(type).value=0;
+  found.forEach((type,i)=>{$(type).value=i===found.length-1?Number((100-base*(found.length-1)).toFixed(2)):base});
   total();
   notify('Jenis soal ditemukan: '+found.map(t=>t.toUpperCase()).join(', ')+'. Bobot dibagi rata; periksa sebelum menerbitkan nilai.','ok');
   $('publishHint').textContent='Jenis soal terdeteksi. Klik Hitung pratinjau, lalu periksa hasil dan centang persetujuan. Bobot dapat disesuaikan sebelum pratinjau.';
