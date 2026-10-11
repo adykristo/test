@@ -96,6 +96,12 @@ async function boot(){
  try{if(!window.KFSupabaseAdmin?.client)throw Error('Koneksi admin Supabase belum siap');
   if(!await window.KFSupabaseAdmin.ensureAdmin())throw Error('Akun bukan super admin aktif');
   client=window.KFSupabaseAdmin.client;$('session').textContent='✓ Super admin terverifikasi';$('session').className='status ok';
+  const deepLinkedAttempt=new URLSearchParams(window.location.search).get('attempt')||'';
+  if(validUuid(deepLinkedAttempt)){
+    $('custom').value=deepLinkedAttempt;
+    notify('Pengerjaan dari halaman Penilaian Esai V15 sudah dipilih. Klik Deteksi Jenis Soal lalu Hitung pratinjau.','ok');
+    $('publishHint').textContent='ID pengerjaan diisi dari tautan koreksi esai. Publikasi tetap memerlukan pratinjau lengkap dan persetujuan admin.';
+  }
   $('load').disabled=false;$('preview').disabled=false;$('detect').disabled=false;$('official').disabled=false;
  }catch(e){$('session').textContent=e.message||String(e);$('session').className='status bad';}
 }
