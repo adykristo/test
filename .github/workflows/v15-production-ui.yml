@@ -11,6 +11,7 @@ on:
       - 'member/diagnostik-v15.html'
       - 'member/lab-nilai-v15.html'
       - 'member/js/kf-grading-v15.js'
+      - 'member/js/kf-essay-grading-v15.js'
       - '.github/workflows/v15-production-ui.yml'
 permissions:
   contents: read
@@ -48,4 +49,18 @@ jobs:
           console.log('All page script checks passed. Auth/SQL/browser tests require runtime access.');
           NODE
       - name: Validate grading engine
-        run: node --check member/js/kf-grading-v15.js
+        run: |
+          node --check member/js/kf-grading-v15.js
+          node --check member/js/kf-essay-grading-v15.js
+      - name: Check V15 essay-to-publication link
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const essay=fs.readFileSync('member/js/kf-essay-grading-v15.js','utf8');
+          const publish=fs.readFileSync('member/publikasi-nilai-v15.html','utf8');
+          assert.ok(essay.includes('publikasi-nilai-v15.html?attempt='));
+          assert.ok(publish.includes('deepLinkedAttempt'));
+          assert.ok(essay.includes('kf_admin_grade_essay_v15'));
+          assert.ok(publish.includes('kf_admin_preview_weighted_score_v15'));
+          console.log('V15 essay-to-publication integration checks passed');
+          NODE
