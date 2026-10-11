@@ -24,7 +24,9 @@
 <label for="attempt">Pilih pengerjaan</label>
 <select id="attempt"><option value="">— Pilih dari daftar —</option></select>
 <label for="custom">Atau masukkan UUID pengerjaan</label><input id="custom" placeholder="Opsional — UUID pengerjaan" spellcheck="false">
-<p class="muted">Isi bobot seluruh jenis soal yang dipakai pada pengerjaan. Total harus 100%; jenis yang tidak digunakan bernilai 0.</p>
+<div id="essaySyncStatus" class="status" role="status" aria-live="polite" style="margin:14px 0">Pilih pengerjaan agar terlihat jumlah esai yang sudah dinilai di V15.</div>
+<div class="actions" style="margin-bottom:12px"><button class="outline" type="button" id="essayStatus" disabled>Periksa Status Koreksi Esai</button><a class="outline" id="essayStudioLink" href="pembuat-soal-terpadu-uji.html?tab=essaygrade" style="padding:12px 16px;border-radius:11px;text-decoration:none;font-size:14px;font-weight:700">Buka Penilaian Esai V15</a></div>
+<p class="muted">Nilai esai V15 yang sudah dikoreksi otomatis dipakai oleh pratinjau untuk <strong>pengerjaan dan soal yang sama</strong>. Tidak perlu menyalin skor dari tabel esai lama. Bobot harus total 100%; jenis yang tidak digunakan bernilai 0.</p>
 <div class="weights">
 <div><label for="pg4">PG4 %</label><input type="number" id="pg4" min="0" max="100" step="1" value="40"></div>
 <div><label for="pg5">PG5 %</label><input type="number" id="pg5" min="0" max="100" step="1" value="0"></div>
@@ -54,15 +56,43 @@
 'use strict';
 const $=id=>document.getElementById(id),types=['pg4','pg5','mcma','kategori','isian','esai'];
 const validUuid=s=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
-let client=null,lastPreview=null,lastSignature='',officialRows=[];
+let client=null,lastPreview=null,lastSignature='',officialRows=[],attemptRows=[];
 function values(){const weights={};let sum=0;for(const key of types){const text=$(key).value.trim();const number=Number(text);if(!text||!Number.isFinite(number)||number<0||number>100)throw Error('Bobot '+key+' harus 0–100');weights[key]=number;sum+=number;}if(Math.abs(sum-100)>0.000001)throw Error('Jumlah bobot harus 100%');return weights;}
 function selected(){const id=$('custom').value.trim()||$('attempt').value;if(!validUuid(id))throw Error('Pilih pengerjaan dengan UUID valid');return id;}
+function syncStatus(){
+ const id=($('custom').value||'').trim()||$('attempt').value;
+ const data=attemptRows.find(x=>x.attempt_id===id);
+ const link=$('essayStudioLink');
+ link.href='pembuat-soal-terpadu-uji.html?tab=essaygrade'+(validUuid(id)?'&attempt='+encodeURIComponent(id):'');
+ if(!validUuid(id)){$('essaySyncStatus').textContent='Belum ada pengerjaan yang dipilih. Pilih dari daftar atau isi UUID yang benar.';return;}
+ if(!data){$('essaySyncStatus').textContent='Pengerjaan dipilih dari tautan atau UUID. Klik Periksa Status Koreksi Esai untuk melihat nilai V15 yang tersedia.';return;}
+ const graded=Number(data.graded_essay_count||0),pending=Number(data.pending_essay_count||0);
+ $('essaySyncStatus').textContent='Pengerjaan '+id.slice(0,8)+' · '+Number(data.question_count||0)+' soal · Esai sudah dinilai: '+graded+' · Esai belum dinilai: '+pending+(pending?' — buka Penilaian Esai V15 sebelum publikasi.':' — koreksi esai sudah lengkap bila ada esai; periksa pratinjau untuk nilai akhir.');
+}
+async function checkEssayStatus(){
+ if(!client)return;
+ const button=$('essayStatus');button.disabled=true;
+ try{
+  const id=selected();
+  const {data,error}=await client.rpc('kf_admin_list_essay_v15');
+  if(error)throw error;
+  const all=Array.isArray(data)?data:[];
+  const matching=all.filter(x=>x.attempt_id===id);
+  const graded=matching.filter(x=>x.graded_at!=null).length;
+  const pending=matching.length-graded;
+  const other=all.length-matching.length;
+  $('essaySyncStatus').textContent='Esai pada pengerjaan '+id.slice(0,8)+': '+graded+' sudah dinilai, '+pending+' belum dinilai. '+other+' jawaban esai V15 lainnya ada pada pengerjaan berbeda. '+(!matching.length?'Jika pengerjaan tidak memiliki esai, gunakan bobot esai 0%. Jika seharusnya ada esai, periksa ID pengerjaan dan status submitted.':'Gunakan Deteksi Jenis Soal lalu Hitung pratinjau untuk nilai resmi.');
+  $('essaySyncStatus').className='status '+(pending?'bad':'ok');
+ }catch(e){$('essaySyncStatus').textContent='Pemeriksaan esai gagal: '+(e.message||e);$('essaySyncStatus').className='status bad';}
+ finally{button.disabled=!client;}
+}
+$('essayStatus').addEventListener('click',checkEssayStatus);
 function signature(){return JSON.stringify({id:selected(),weights:values()});}
 function invalidate(){lastPreview=null;lastSignature='';$('publish').disabled=true;$('ack').checked=false;$('publishHint').textContent='Nilai belum siap diterbitkan. Hitung pratinjau yang lengkap, kemudian centang persetujuan.';}
 function notify(message,cls){$('status').textContent=message;$('status').className='status '+(cls||'');}
 function total(){let t=0;for(const x of types)t+=Number($(x).value||0);$('total').textContent=t+'%';$('total').className=Math.abs(t-100)<.000001?'':'warn';invalidate();}
 for(const id of types)$(id).addEventListener('input',total);
-for(const id of ['attempt','custom'])$(id).addEventListener('input',invalidate);
+for(const id of ['attempt','custom'])$(id).addEventListener('input',()=>{invalidate();syncStatus()});
 $('ack').addEventListener('change',()=>{try{const permitted=Boolean($('ack').checked&&lastPreview?.ready===true&&lastSignature===signature()&&client);$('publish').disabled=!permitted;$('publishHint').textContent=permitted?'✓ Pratinjau lengkap dan sudah disetujui. Tombol Terbitkan Nilai Resmi sekarang aktif.':lastPreview?.ready?'Centang persetujuan setelah memeriksa nilai agar tombol aktif.':'Tombol belum aktif karena belum ada pratinjau nilai lengkap.';}catch(_){$('publish').disabled=true}});
 $('reset').addEventListener('click',()=>{for(const x of types)$(x).value=x==='pg4'?40:x==='esai'?60:0;total()});
 $('detect').addEventListener('click',async()=>{
@@ -102,20 +132,20 @@ async function boot(){
     notify('Pengerjaan dari halaman Penilaian Esai V15 sudah dipilih. Klik Deteksi Jenis Soal lalu Hitung pratinjau.','ok');
     $('publishHint').textContent='ID pengerjaan diisi dari tautan koreksi esai. Publikasi tetap memerlukan pratinjau lengkap dan persetujuan admin.';
   }
-  $('load').disabled=false;$('preview').disabled=false;$('detect').disabled=false;$('official').disabled=false;
+  $('load').disabled=false;$('preview').disabled=false;$('detect').disabled=false;$('official').disabled=false;$('essayStatus').disabled=false;syncStatus();
  }catch(e){$('session').textContent=e.message||String(e);$('session').className='status bad';}
 }
 $('load').addEventListener('click',async()=>{
  if(!client)return;const button=$('load');button.disabled=true;
  try{const {data,error}=await client.rpc('kf_admin_list_submitted_attempts_v15',{p_jenjang:$('jenjang').value||null,p_limit:50,p_offset:0});if(error)throw error;
-  const records=Array.isArray(data)?data:[];const selector=$('attempt');selector.replaceChildren(new Option('— Pilih dari daftar —',''));
+  const records=Array.isArray(data)?data:[];attemptRows=records;const selector=$('attempt');selector.replaceChildren(new Option('— Pilih dari daftar —',''));
   const list=$('attempts');list.replaceChildren();
   for(const rec of records){
-    const text=[rec.jenjang,rec.package_name,(rec.question_count||0)+' soal',(rec.pending_essay_count||0)+' esai tertunda',String(rec.attempt_id||'').slice(0,8)].filter(Boolean).join(' · ');
+    const text=[rec.jenjang,rec.package_name,(rec.question_count||0)+' soal',Number(rec.graded_essay_count||0)+' esai dinilai',Number(rec.pending_essay_count||0)+' esai tertunda',String(rec.attempt_id||'').slice(0,8)].filter(Boolean).join(' · ');
     selector.add(new Option(text,rec.attempt_id));
-    const wrap=document.createElement('div');wrap.className='record';const b=document.createElement('button');b.type='button';b.textContent=text;b.addEventListener('click',()=>{$('custom').value='';selector.value=rec.attempt_id;invalidate();window.scrollTo({top:0,behavior:'smooth'});});const small=document.createElement('small');small.textContent='Kirim: '+new Date(rec.submitted_at).toLocaleString('id-ID');wrap.append(b,small);list.append(wrap);
+    const wrap=document.createElement('div');wrap.className='record';const b=document.createElement('button');b.type='button';b.textContent=text;b.addEventListener('click',()=>{$('custom').value='';selector.value=rec.attempt_id;invalidate();syncStatus();window.scrollTo({top:0,behavior:'smooth'});});const small=document.createElement('small');small.textContent='Kirim: '+new Date(rec.submitted_at).toLocaleString('id-ID');wrap.append(b,small);list.append(wrap);
   }
-  if(!records.length)list.textContent='Belum ada pengerjaan dalam filter ini.';
+  if(!records.length)list.textContent='Belum ada pengerjaan dalam filter ini.';syncStatus();
   notify(records.length+' pengerjaan selesai dimuat. Daftar ini hanya berisi pengerjaan yang sudah dikirim, bukan semua paket/soal di Bank Soal. Pilih pengerjaan sesuai nama paket dan jumlah soal.');
  }catch(e){notify('Daftar gagal: '+(e.message||e),'bad');}finally{button.disabled=false;}
 });
