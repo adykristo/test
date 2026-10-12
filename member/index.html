@@ -908,7 +908,16 @@ img,video,iframe{max-width:100%}
         </div>
       </section>
 
-      <section id="daftar" class="page auth-page">
+      <style id="kf-google-only-auth-css">
+/* Legacy email/password screens hidden; Google OAuth remains the entry point. */
+#daftar > form.auth-card,
+#login form.auth-card > .field,
+#login form.auth-card > button.btn-main,
+#login form.auth-card > div[style*="align-items:center"],
+#login form.auth-card > .auth-foot {display:none!important}
+#login form.auth-card {max-width:480px}
+</style>
+<section id="daftar" class="page auth-page">
         <h1 class="auth-heading">Buat Akun Member 🚀</h1>
         <form class="auth-card" onsubmit="daftar(event)">
           <h2>Daftar Akun</h2>
@@ -927,6 +936,11 @@ img,video,iframe{max-width:100%}
           <div id="daftarNotice" class="auth-notice" role="status"></div>
           <p class="auth-foot">Sudah punya akun? <a class="auth-switch" onclick="buka('login')">Masuk di sini</a></p>
         </form>
+        <div class="auth-card" style="max-width:480px;margin:auto;text-align:center">
+          <h2>Daftar melalui Google</h2>
+          <p class="auth-sub">KlinikFisikapku menggunakan akun Google. Setelah masuk, lengkapi profil peserta sesuai petunjuk.</p>
+          <button class="btn btn-main" type="button" style="width:100%" onclick="KFMemberGoogleLoginDirect(this)">G&nbsp;&nbsp; Daftar / Masuk dengan Google</button>
+        </div>
         <div id="supabaseConfigDaftar" class="config-banner"></div>
       </section>
 
@@ -934,7 +948,7 @@ img,video,iframe{max-width:100%}
         <h1 class="auth-heading">Halo, Selamat Datang 👋</h1>
         <form class="auth-card" onsubmit="login(event)">
           <h2>Masuk</h2>
-          <p class="auth-sub">Masukkan email dan password untuk masuk ke akun.</p>
+          <p class="auth-sub">Masuk dengan Google untuk mengakses paket belajar Anda.</p>
           <div class="field"><label for="user">Email Google</label><input id="user" type="email" autocomplete="email" required placeholder="nama@gmail.com" /></div>
           <div class="field auth-password"><label for="pass">Password <a class="forgot-link" onclick="kirimResetPassword()">Lupa password?</a></label><input id="pass" type="password" autocomplete="current-password" required placeholder="Masukkan password" /><button class="toggle-pass" type="button" onclick="togglePassword('pass',this)" aria-label="Tampilkan password">◉</button></div>
           <button class="btn btn-main" style="margin-top:16px;width:100%">Masuk</button>
