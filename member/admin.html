@@ -845,15 +845,7 @@ table{max-width:100%}
     <h1 style="width:min(430px,100%);text-align:center;margin:0 0 20px;color:#211231;font-size:28px">Halo, Selamat Datang 👋</h1>
     <div style="width:min(430px,100%);margin:0 auto;padding:25px;border:1px solid rgba(91,56,124,.16);border-radius:18px;background:rgba(255,255,255,.9);box-shadow:0 16px 42px rgba(55,30,86,.14);box-sizing:border-box">
       <h2 style="margin:0 0 5px;text-align:center;color:#211231">Masuk</h2>
-      <p style="margin:0 0 18px;text-align:center;color:#6b5680;font-size:13px">Masukkan email dan password Admin untuk masuk ke akun.</p>
-      <label style="display:flex;justify-content:space-between;align-items:center;font-weight:bold;font-size:12px;margin:12px 0 5px;color:#512066">Email Google</label>
-      <input id="kfAdminEmail" type="email" autocomplete="username" placeholder="nama@gmail.com" style="width:100%;padding:11px;border:1px solid #dfc8ef;border-radius:9px;font-size:14px;font-family:inherit;box-sizing:border-box;background:#fff">
-      <div style="position:relative">
-        <label style="display:flex;justify-content:space-between;align-items:center;font-weight:bold;font-size:12px;margin:12px 0 5px;color:#512066"><span>Password</span><a href="#" onclick="event.preventDefault();KFAdminForgotPassword();" style="color:#6e34e8;text-decoration:none;font-weight:700">Lupa password?</a></label>
-        <input id="kfAdminPassword" type="password" autocomplete="current-password" placeholder="Masukkan password" onkeydown="if(event.key==='Enter')KFAdminPasswordLoginDirect()" style="width:100%;padding:11px 46px 11px 11px;border:1px solid #dfc8ef;border-radius:9px;font-size:14px;font-family:inherit;box-sizing:border-box;background:#fff">
-        <button type="button" onclick="const x=document.getElementById('kfAdminPassword');x.type=x.type==='password'?'text':'password'" aria-label="Tampilkan password" style="position:absolute;right:8px;bottom:7px;width:34px;border:0;background:transparent;color:#57307e;cursor:pointer;font-size:16px">◉</button>
-      </div>
-      <button id="kfAdminPasswordBtn" type="button" onclick="KFAdminPasswordLoginDirect(this)" style="width:100%;margin-top:16px;padding:11px;border:0;border-radius:9px;background:linear-gradient(100deg,#8d22e4,#ec3d9b);color:#fff;box-shadow:0 6px 16px rgba(130,43,217,.28);font-weight:bold;cursor:pointer">Masuk</button>
+      <p style="margin:0 0 18px;text-align:center;color:#6b5680;font-size:13px">Akses admin menggunakan Google dan pemeriksaan hak Super Admin.</p>
       <div style="display:flex;align-items:center;gap:10px;margin:18px 0;color:#826d95;font-size:11px"><span style="height:1px;flex:1;background:#d9cce5"></span>atau<span style="height:1px;flex:1;background:#d9cce5"></span></div>
       <button type="button" onclick="KFAdminGoogleLoginDirect(this)" style="width:100%;padding:12px;border:1px solid #cfc1dc;border-radius:11px;background:#fff;color:#2f213b;font-weight:700;cursor:pointer"><span style="display:inline-grid;place-items:center;width:20px;height:20px;margin-right:7px;border-radius:50%;font-weight:900;color:#4285f4">G</span>Masuk lewat Google</button>
       <div id="kfAdminLoginMessage" style="min-height:18px;margin-top:10px;color:#b42318;font-size:12px;text-align:center"></div>
@@ -1371,22 +1363,9 @@ table{max-width:100%}
         }
       }
 
-      async function KFAdminPasswordLoginDirect(btn){
-        btn=btn||document.getElementById("kfAdminPasswordBtn");
-        const email=(document.getElementById("kfAdminEmail")?.value||"").trim();
-        const password=document.getElementById("kfAdminPassword")?.value||"";
+      async function KFAdminPasswordLoginDirect(){
         const msg=document.getElementById("kfAdminLoginMessage");
-        if(msg){msg.style.color="#b42318";msg.textContent="";}
-        if(!email||!password){if(msg)msg.textContent="Masukkan email dan password Admin.";return}
-        const old=btn?btn.textContent:"";
-        try{
-          if(btn){btn.disabled=true;btn.textContent="Memeriksa akun...";}
-          const client=(window.KFSupabaseAdmin&&window.KFSupabaseAdmin.client)?window.KFSupabaseAdmin.client:window.supabase.createClient(KF_SUPABASE_CONFIG.url,KF_SUPABASE_CONFIG.anonKey);
-          const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;
-          const q=await client.rpc("is_member_admin");
-          if(q.error||q.data!==true){await client.auth.signOut({scope:"local"});throw new Error("Akun ini bukan Super Admin aktif.");}
-          location.replace(location.pathname);
-        }catch(e){if(msg)msg.textContent=e?.message||String(e);if(btn){btn.disabled=false;btn.textContent=old||"Masuk";}}
+        if(msg)msg.textContent="Login password dinonaktifkan. Silakan masuk melalui Google.";
       }
       async function KFAdminGoogleLoginDirect(btn){
         const old=btn?btn.textContent:"";
