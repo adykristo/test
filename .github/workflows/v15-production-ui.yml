@@ -12,6 +12,9 @@ on:
       - 'member/lab-nilai-v15.html'
       - 'member/js/kf-grading-v15.js'
       - 'member/js/kf-essay-grading-v15.js'
+      - 'member/supabase-auth.js'
+      - 'member/admin.html'
+      - 'member/index.html'
       - '.github/workflows/v15-production-ui.yml'
 permissions:
   contents: read
@@ -63,4 +66,21 @@ jobs:
           assert.ok(essay.includes('kf_admin_grade_essay_v15'));
           assert.ok(publish.includes('kf_admin_preview_weighted_score_v15'));
           console.log('V15 essay-to-publication integration checks passed');
+          NODE
+
+      - name: Verify Google-only application login
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict'),vm=require('node:vm');
+          const auth=fs.readFileSync('member/supabase-auth.js','utf8');
+          const admin=fs.readFileSync('member/admin.html','utf8');
+          const member=fs.readFileSync('member/index.html','utf8');
+          assert.ok(auth.includes('action === "daftar" || action === "login"'),'legacy auth routes must reject password');
+          assert.ok(auth.includes('menggunakan akun Google'),'legacy actions must explain Google-only');
+          assert.ok(!admin.includes('signInWithPassword('),'admin must not use password sign-in');
+          assert.ok(member.includes('kf-google-only-auth-css'),'member must hide legacy forms');
+          assert.ok(member.includes('KFMemberGoogleLoginDirect(this)'),'member Google button missing');
+          assert.ok(admin.includes('KFAdminGoogleLoginDirect(this)'),'admin Google button missing');
+          for(const file of ['member/supabase-auth.js'])new vm.Script(fs.readFileSync(file,'utf8'),{filename:file});
+          console.log('Client Google-only gate checks passed. Supabase Email provider and RLS still require server audit.');
           NODE
