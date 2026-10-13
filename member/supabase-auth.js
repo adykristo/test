@@ -34,11 +34,6 @@
 
   window.api = async function (action, payload) {
     payload = payload || {};
-    // Google-only policy: legacy password registration/login is no longer accepted by this app.
-    // Registration/profile onboarding after Google OAuth remains handled separately.
-    if (action === "daftar" || action === "login") {
-      throw new Error("KlinikFisikapku menggunakan akun Google. Silakan pilih Masuk lewat Google.");
-    }
     if (action === "daftar") {
       const email = gmail(payload.email);
       const username = clean(payload.username).toLowerCase();
