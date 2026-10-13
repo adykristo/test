@@ -1,0 +1,80 @@
+name: KlinikFisikapku Website Quality Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'member/**'
+      - '.github/workflows/backup-supabase.yml'
+      - '.github/workflows/kf-quality-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static-quality:
+    name: JavaScript and responsive baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Scan HTML, syntax, basic mobile readiness and backup configuration
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const vm = require('node:vm');
+          const assert = require('node:assert/strict');
+          const pages = [
+            'member/index.html',
+            'member/admin.html',
+            'member/publikasi-nilai-v15.html',
+            'member/hasil-nilai-v15.html',
+            'member/sertifikat-cetak-v15.html',
+            'member/verifikasi-sertifikat-v15.html',
+            'member/lab-nilai-v15.html',
+            'member/diagnostik-v15.html'
+          ];
+          const results=[];
+          for (const path of pages){
+            assert.ok(fs.existsSync(path),'Required page missing: '+path);
+            const html=fs.readFileSync(path,'utf8');
+            assert.match(html,/<meta[^>]+name=["']viewport["']/i, 'No viewport: '+path);
+            const sources=[...html.matchAll(/<script\b[^>]*src=["']([^"']+)["']/gi)].map(x=>x[1]);
+            let scriptCount=0;
+            for(const m of html.matchAll(/<script\b(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi)){
+              if(!m[1].trim())continue;
+              new vm.Script(m[1],{filename:path+'#inline'+scriptCount});
+              scriptCount++;
+            }
+            const localScripts=sources.filter(x=>!/^https?:\/\//.test(x)).map(x=>x.split(/[?#]/)[0]);
+            for(const relative of localScripts){
+              if(relative.startsWith('/'))continue;
+              assert.ok(fs.existsSync(require('node:path').join(require('node:path').dirname(path),relative)),
+                'Missing local script '+relative+' referenced by '+path);
+            }
+            const bytes=Buffer.byteLength(html);
+            results.push({page:path,bytes,inline_scripts:scriptCount,external_scripts:sources.length-localScripts.length,viewport:true});
+            console.log('PASS',path,bytes+' bytes',scriptCount+' inline scripts');
+          }
+          const backup=fs.readFileSync('.github/workflows/backup-supabase.yml','utf8');
+          for(const part of ['pg_dump','openssl enc','GOOGLE_DRIVE_TOKEN_JSON','BACKUP_ENCRYPTION_PASSWORD','schedule:']){
+            assert.ok(backup.includes(part),'Backup workflow missing '+part);
+          }
+          console.log('NOTE: database backup workflow present; restore and Storage backup NOT tested.');
+          fs.writeFileSync('quality-audit.json',JSON.stringify({
+            measured_at:new Date().toISOString(),
+            scope:'static checks only; not actual page load or cross-device browser testing',
+            pages:results,
+            backup:{configured:true,restore_tested:false,storage_backup_verified:false}
+          },null,2));
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kf-website-quality-audit
+          path: quality-audit.json
+          retention-days: 14
