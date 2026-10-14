@@ -18,7 +18,7 @@
 <h2>Penilaian & publikasi</h2>
 <div id="session" class="status">Memeriksa sesi super admin…</div>
 <div class="two">
-<div><label for="jenjang">Jenjang</label><select id="jenjang"><option value="">Semua</option><option>SD</option><option>SMP</option><option>SMA</option></select></div>
+<div><label for="jenjang">Jenjang</label><select id="jenjang"><option value="" selected>Semua Jenjang</option><option>SD</option><option>SMP</option><option>SMA</option></select></div>
 <div><label for="load">Pengerjaan terkirim</label><button id="load" class="outline" type="button" disabled style="width:100%">Muat daftar</button></div>
 </div>
 <label for="attempt">Pilih pengerjaan</label>
@@ -156,17 +156,36 @@ async function boot(){
  }catch(e){$('session').textContent=e.message||String(e);$('session').className='status bad';}
 }
 $('load').addEventListener('click',async()=>{
- if(!client)return;const button=$('load');button.disabled=true;
- try{const {data,error}=await client.rpc('kf_admin_list_submitted_attempts_v15',{p_jenjang:$('jenjang').value||null,p_limit:50,p_offset:0});if(error)throw error;
-  const records=Array.isArray(data)?data:[];attemptRows=records;const selector=$('attempt');selector.replaceChildren(new Option('— Pilih dari daftar —',''));
+ if(!client)return;
+ const button=$('load');button.disabled=true;
+ try{
+  const records=[];const seen=new Set();const pageSize=50;let offset=0;
+  // Ambil seluruh halaman, bukan hanya 50 record pertama.
+  for(let page=0;page<40;page++){
+   const {data,error}=await client.rpc('kf_admin_list_submitted_attempts_v15',{
+    p_jenjang:$('jenjang').value||null,p_limit:pageSize,p_offset:offset
+   });
+   if(error)throw error;
+   const batch=Array.isArray(data)?data:[];
+   for(const rec of batch){if(rec.attempt_id&&!seen.has(rec.attempt_id)){seen.add(rec.attempt_id);records.push(rec)}}
+   if(batch.length<pageSize)break;
+   offset+=pageSize;
+   if(page===39)notify('Batas pemuatan 2.000 pengerjaan tercapai; gunakan filter jenjang untuk mempersempit.');
+  }
+  attemptRows=records;
+  const selector=$('attempt');selector.replaceChildren(new Option('— Pilih dari daftar —',''));
   const list=$('attempts');list.replaceChildren();
   for(const rec of records){
-    const text=[rec.jenjang,rec.package_name,(rec.question_count||0)+' soal',Number(rec.graded_essay_count||0)+' esai dinilai',Number(rec.pending_essay_count||0)+' esai tertunda',String(rec.attempt_id||'').slice(0,8)].filter(Boolean).join(' · ');
-    selector.add(new Option(text,rec.attempt_id));
-    const wrap=document.createElement('div');wrap.className='record';const b=document.createElement('button');b.type='button';b.textContent=text;b.addEventListener('click',()=>{$('custom').value='';selector.value=rec.attempt_id;invalidate();syncStatus();window.scrollTo({top:0,behavior:'smooth'});});const small=document.createElement('small');small.textContent='Kirim: '+new Date(rec.submitted_at).toLocaleString('id-ID');wrap.append(b,small);list.append(wrap);
+   const label=[rec.jenjang,rec.package_name,(rec.question_count||0)+' soal',Number(rec.graded_essay_count||0)+' esai dinilai',Number(rec.pending_essay_count||0)+' esai tertunda',String(rec.attempt_id||'').slice(0,8)].filter(Boolean).join(' · ');
+   selector.add(new Option(label,rec.attempt_id));
+   const wrap=document.createElement('div');wrap.className='record';const b=document.createElement('button');b.type='button';b.textContent=label;
+   b.addEventListener('click',()=>{$('custom').value='';selector.value=rec.attempt_id;invalidate();syncStatus();window.scrollTo({top:0,behavior:'smooth'});});
+   const small=document.createElement('small');small.textContent='Kirim: '+(rec.submitted_at?new Date(rec.submitted_at).toLocaleString('id-ID'):'—');
+   wrap.append(b,small);list.append(wrap);
   }
-  if(!records.length)list.textContent='Belum ada pengerjaan dalam filter ini.';syncStatus();
-  notify(records.length+' pengerjaan selesai dimuat. Daftar ini hanya berisi pengerjaan yang sudah dikirim, bukan semua paket/soal di Bank Soal. Pilih pengerjaan sesuai nama paket dan jumlah soal.');
+  if(!records.length)list.textContent='Belum ada pengerjaan dalam filter ini. Coba Semua Jenjang atau gunakan UUID pengerjaan.';
+  syncStatus();
+  notify(records.length+' pengerjaan selesai dimuat. Jika UUID valid dapat dinilai tetapi tidak muncul, periksa filter pada RPC kf_admin_list_submitted_attempts_v15.',records.length?'ok':'');
  }catch(e){notify('Daftar gagal: '+(e.message||e),'bad');}finally{button.disabled=false;}
 });
 $('official').addEventListener('click',async()=>{
