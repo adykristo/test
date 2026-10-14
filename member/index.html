@@ -1646,8 +1646,16 @@ img,video,iframe{max-width:100%}
         panel.innerHTML='<div class="owned-package-grid">'+owned.map(p=>{
           const nama=esc(p.nama||"Paket");
           const sampai=p.expiresAt?"Berlaku s.d. "+new Date(p.expiresAt).toLocaleDateString("id-ID"):"Akses paket aktif";
-          return '<div class="owned-package"><b>'+nama+'</b><span>✓ Aktif</span><small>'+esc(sampai)+'</small></div>';
+          const pid=String(p.id||"");
+          return '<div class="owned-package"><b>'+nama+'</b><span>✓ Aktif</span><small>'+esc(sampai)+'</small><button type="button" class="btn btn-ghost" style="margin-top:8px" onclick="pilihPaketUntukHasil(\''+esc(pid)+'\')">Pilih Paket &amp; Lihat Nilai</button></div>';
         }).join("")+'</div>';
+      }
+      function pilihPaketUntukHasil(packageId){
+        const owned=window.KF_OWNED_PACKAGES||[];
+        const selected=owned.find(p=>String(p.id||"")===String(packageId||""));
+        if(!selected||!profilAktif?.id){KFMemberUI.toast("Paket aktif tidak ditemukan.","err",4000);return;}
+        try{sessionStorage.setItem("kf_result_choice_v16_"+profilAktif.id,String(selected.id));}catch(_e){}
+        window.location.href="hasil-nilai-v15.html?package="+encodeURIComponent(String(selected.id));
       }
       function togglePaketAktif(force){
         const box=document.getElementById("ownedPackagesDetails");
