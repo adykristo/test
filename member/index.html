@@ -2406,7 +2406,7 @@ async function kfShowReview(attemptId){
   if(!KFPackageDB||typeof KFPackageDB.reviewAttempt!=="function")throw new Error("Fitur pembahasan sedang dimuat. Silakan muat ulang halaman (Ctrl+F5) lalu coba kembali.");
   let r=await KFPackageDB.reviewAttempt(attemptId);
   if(Array.isArray(r))r=r[0]||{};
-  if(r.locked){body.innerHTML=`<h2>🔒 Pembahasan Tryout Dikunci</h2><div class="result">Kunci dan pembahasan dapat dilihat setelah jadwal Tryout berakhir${r.ends_at?" pada "+new Date(r.ends_at).toLocaleString("id-ID"):""}.</div><button class="btn btn-main" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button>`;return}
+  if(r.locked){body.innerHTML=`<h2>🔒 Pembahasan Tryout Dikunci</h2><div class="result">Kunci dan pembahasan tersedia setelah Anda mengirim jawaban dan timer pengerjaan pribadi berakhir${r.ends_at?" pada "+new Date(r.ends_at).toLocaleString("id-ID"):""}.</div><button class="btn btn-main" onclick="buka('dash');kfLoadServerPackages()">Kembali ke Dashboard</button>`;return}
   // Nilai gabungan dibaca melalui RPC pemilik attempt; tidak mengubah skor asli.
   let kfFinal=null;
   try { const kfDb=window.KFMemberAuth?.client||window.KFSupabaseAdmin?.client;
