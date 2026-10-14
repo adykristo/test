@@ -15,6 +15,7 @@
 <header class="hero"><div><a href="index.html">← Kembali ke Dashboard Peserta</a><h1>Nilai & Sertifikat Saya</h1><p>Hasil resmi pelatihan KlinikFisikapku · SD · SMP · SMA</p></div></header>
 <main class="container"><div class="top"><span class="pill">Hanya data milik akun yang sedang masuk</span><button id="refresh" disabled>Muat ulang hasil</button></div>
 <p class="tip">Nilai yang masih menunggu koreksi belum menjadi nilai resmi. Sertifikat per paket diterbitkan setelah seluruh persyaratan kelulusan terpenuhi; halaman ini tidak menerbitkan atau mengubah sertifikat.</p>
+<section class="card" style="margin-bottom:18px"><label for="chosenPackage">Paket aktif untuk tampilan nilai</label><select id="chosenPackage" style="display:block;width:100%;padding:12px;margin-top:8px;border:1px solid #d8b7e8;border-radius:10px" disabled><option value="">Memuat paket…</option></select><p class="sub" style="margin-top:8px">Hanya hasil dari paket terpilih yang ditampilkan. Riwayat paket lain tetap tersimpan.</p></section>
 <div id="authStatus" class="empty status">Memeriksa sesi login…</div>
 <section class="card" style="margin-bottom:18px"><h2>Riwayat Tryout & Latihan</h2><p class="sub">Menampilkan pengerjaan selesai milik akun Anda. Nilai resmi hanya muncul setelah diterbitkan admin.</p><div id="history" class="empty">Belum memuat riwayat.</div></section>
 <div class="layout">
@@ -26,7 +27,7 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-let busy=false,db=null;
+let busy=false,db=null,activeUserId='';
 function message(el,text,kind){el.textContent=text;el.className='empty'+(kind?' '+kind:'');}
 function plain(v){return v==null?'—':String(v);}
 function cards(el,rows,render){el.replaceChildren();el.className='';if(!rows.length){message(el,'Belum ada data yang dapat ditampilkan.');return}rows.forEach(item=>render(el,item))}
@@ -34,27 +35,44 @@ function renderResults(el,rows){cards(el,rows,(_container,r)=>{const div=documen
 function renderHistory(rows){const el=$('history');cards(el,rows,(_container,r)=>{const div=document.createElement('div');div.className='row';const left=document.createElement('div');const title=document.createElement('strong');title.textContent=(r.jenjang||'—')+' · '+(r.assessment_name||'Pengerjaan');const sub=document.createElement('small');sub.textContent=(r.kind||'Pengerjaan')+' · Dikirim: '+(r.submitted_at?new Date(r.submitted_at).toLocaleString('id-ID'):'—');left.append(title,sub);const status=document.createElement('span');status.className='pill';status.textContent=r.published?'Nilai resmi diterbitkan':'Menunggu publikasi nilai resmi';div.append(left,status);el.append(div)})}
 function renderCertificates(el,rows){cards(el,rows,(_container,c)=>{const div=document.createElement('div');div.className='cert';const title=document.createElement('strong');title.textContent=plain(c.package_name||c.nama_paket||'Sertifikat Paket');const id=document.createElement('span');id.textContent='Nomor: '+plain(c.certificate_number);const date=document.createElement('span');date.textContent='Terbit: '+(c.issued_at?new Date(c.issued_at).toLocaleDateString('id-ID'):'—');div.append(title,id,date);if(c.jenjang){const level=document.createElement('span');level.className='label';level.textContent=plain(c.jenjang);div.append(level)}if(c.certificate_id&&c.verification_token){const link=document.createElement('a');link.href='sertifikat-cetak-v15.html?id='+encodeURIComponent(c.certificate_id);link.textContent='Cetak PDF + QR';link.style.cssText='display:inline-block;margin-top:10px;padding:10px 12px;border-radius:10px;background:#792ba9;color:white;text-decoration:none';div.append(link)}el.append(div)})}
 async function refresh(){
- if(busy||!db)return;busy=true;$('refresh').disabled=true;message($('results'),'Mengambil nilai resmi…');message($('history'),'Mengambil riwayat pengerjaan…');message($('certificates'),'Mengambil sertifikat…');
+ if(busy||!db)return;
+ busy=true;$('refresh').disabled=true;
  try{
+  const chosen=$('chosenPackage').value;
+  if(!chosen){message($('history'),'Pilih paket untuk melihat riwayat.');message($('results'),'Pilih paket untuk melihat nilai resmi.');message($('certificates'),'Pilih paket untuk melihat sertifikat.');return;}
+  message($('history'),'Mengambil riwayat…');message($('results'),'Mengambil nilai resmi…');message($('certificates'),'Mengambil sertifikat…');
   const {data:identity,error:identityError}=await db.auth.getUser();
-  if(identityError||!identity?.user)throw Error('Sesi login berakhir. Silakan masuk kembali dari dashboard peserta.');
-  const [scores,certs,history]=await Promise.allSettled([db.rpc('kf_my_published_scores_with_package_v15'),db.rpc('kf_my_certificate_verification_v15'),db.rpc('kf_my_submitted_attempt_history_v15')]);
-  if(history.status==='rejected'||history.value.error)message($('history'),'Riwayat belum dapat diambil: '+(history.status==='rejected'?history.reason?.message:history.value.error?.message),'error');
-  else renderHistory(Array.isArray(history.value.data)?history.value.data:[]);
-  if(scores.status==='rejected'||scores.value.error)message($('results'),'Nilai resmi belum dapat diambil: '+(scores.status==='rejected'?scores.reason?.message:scores.value.error?.message),'error');
-  else renderResults($('results'),Array.isArray(scores.value.data)?scores.value.data:[]);
-  if(certs.status==='rejected'||certs.value.error)message($('certificates'),'Sertifikat belum dapat diambil: '+(certs.status==='rejected'?certs.reason?.message:certs.value.error?.message),'error');
-  else renderCertificates($('certificates'),Array.isArray(certs.value.data)?certs.value.data:[]);
- }catch(e){message($('authStatus'),e.message||String(e),'error');message($('results'),'Masuk terlebih dahulu.');message($('certificates'),'Masuk terlebih dahulu.')}finally{busy=false;$('refresh').disabled=!db}
+  if(identityError||!identity?.user||identity.user.id!==activeUserId)throw Error('Sesi berubah. Muat ulang halaman.');
+  const {data,error}=await db.rpc('kf_my_results_for_package_v16',{p_member_package:chosen});
+  if(error)throw error;
+  renderHistory(Array.isArray(data?.history)?data.history:[]);
+  renderResults($('results'),Array.isArray(data?.scores)?data.scores:[]);
+  renderCertificates($('certificates'),Array.isArray(data?.certificates)?data.certificates:[]);
+ }catch(e){message($('history'),'Gagal memuat: '+(e.message||String(e)),'error');message($('results'),'Tidak dapat memuat hasil.','error');message($('certificates'),'Tidak dapat memuat sertifikat.','error')}
+ finally{busy=false;$('refresh').disabled=!db}
 }
 async function boot(){
  try{
   if(!window.KFMemberAuth?.client)throw Error('Koneksi Supabase tidak tersedia.');
   db=window.KFMemberAuth.client;
   const {data,error}=await db.auth.getUser();if(error||!data?.user)throw Error('Silakan login melalui dashboard peserta terlebih dahulu.');
-  message($('authStatus'),'✓ Login terverifikasi. Menampilkan data akun Anda.','success');$('refresh').disabled=false;await refresh();
+  activeUserId=data.user.id;
+  const {data:packages,error:packageError}=await db.rpc('kf_my_result_package_choices_v16');
+  if(packageError)throw packageError;
+  const choices=Array.isArray(packages)?packages:[];
+  const picker=$('chosenPackage');picker.replaceChildren();
+  if(!choices.length){picker.add(new Option('Belum ada paket yang dapat ditampilkan',''));picker.disabled=true;message($('authStatus'),'Akun terverifikasi, tetapi tidak ada paket aktif atau sertifikat sebelumnya.','success');await refresh();return;}
+  for(const p of choices)picker.add(new Option(p.nama||((p.jenjang||'')+' · Paket '+p.urutan),p.id));
+  const key='kf_result_choice_v16_'+activeUserId;
+  const fromUrl=new URLSearchParams(location.search).get('package');
+  const saved=window.sessionStorage.getItem(key);
+  const matched=choices.find(p=>p.id===fromUrl)||choices.find(p=>p.id===saved);
+  if(matched)picker.value=matched.id;
+  picker.disabled=false;
+  message($('authStatus'),'✓ Login terverifikasi. Hanya menampilkan hasil paket yang dipilih.','success');$('refresh').disabled=false;await refresh();
  }catch(e){message($('authStatus'),e.message||String(e),'error')}
 }
+$('chosenPackage').addEventListener('change',()=>{if(activeUserId)sessionStorage.setItem('kf_result_choice_v16_'+activeUserId,$('chosenPackage').value);refresh();});
 $('refresh').addEventListener('click',refresh);
 window.addEventListener('load',boot);
 })();
