@@ -65,6 +65,7 @@ window.v13RenderEssayGrading=function(){
      }catch(pubErr){notice='Nilai esai sudah tersimpan, tetapi penerbitan otomatis belum berhasil: '+pubErr.message+'. Gunakan Publikasi Nilai V15 untuk pemeriksaan.';}
    }
    const summary=$('essayGradeSummary');if(summary)summary.textContent=notice;
+   const filter=$('essayGradeFilter');if(filter)filter.value='pending';
    await window.v13LoadEssayGrading();
    if(summary)summary.textContent=notice;
   }catch(e){alert('Gagal menyimpan: '+e.message)}finally{b.disabled=false}
