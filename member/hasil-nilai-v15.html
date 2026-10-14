@@ -16,6 +16,7 @@
 <main class="container"><div class="top"><span class="pill">Hanya data milik akun yang sedang masuk</span><button id="refresh" disabled>Muat ulang hasil</button></div>
 <p class="tip">Nilai yang masih menunggu koreksi belum menjadi nilai resmi. Sertifikat per paket diterbitkan setelah seluruh persyaratan kelulusan terpenuhi; halaman ini tidak menerbitkan atau mengubah sertifikat.</p>
 <section class="card" style="margin-bottom:18px"><label for="chosenPackage">Paket aktif untuk tampilan nilai</label><select id="chosenPackage" style="display:block;width:100%;padding:12px;margin-top:8px;border:1px solid #d8b7e8;border-radius:10px" disabled><option value="">Memuat paket…</option></select><p class="sub" style="margin-top:8px">Hanya hasil dari paket terpilih yang ditampilkan. Riwayat paket lain tetap tersimpan.</p></section>
+<div id="gradeNotice" class="empty status" aria-live="polite" style="margin-bottom:12px">Memeriksa pemberitahuan nilai…</div>
 <div id="authStatus" class="empty status">Memeriksa sesi login…</div>
 <section class="card" style="margin-bottom:18px"><h2>Riwayat Tryout & Latihan</h2><p class="sub">Menampilkan pengerjaan selesai milik akun Anda. Nilai resmi hanya muncul setelah diterbitkan admin.</p><div id="history" class="empty">Belum memuat riwayat.</div></section>
 <div class="layout">
@@ -45,7 +46,12 @@ async function refresh(){
   if(identityError||!identity?.user||identity.user.id!==activeUserId)throw Error('Sesi berubah. Muat ulang halaman.');
   const {data,error}=await db.rpc('kf_my_results_for_package_v16',{p_member_package:chosen});
   if(error)throw error;
-  renderHistory(Array.isArray(data?.history)?data.history:[]);
+  const allHistory=Array.isArray(data?.history)?data.history:[];
+  const essayReady=(Array.isArray(data?.scores)?data.scores:[]).filter(x=>String(x.kind||"").toLowerCase()==="tryout");
+  const pending=allHistory.filter(x=>String(x.kind||"").toLowerCase()==="tryout"&&!x.published);
+  const summary=essayReady.length?('Nilai resmi '+essayReady.length+' tryout sudah tersedia untuk paket ini. '):'';
+  message($('gradeNotice'),summary+(pending.length?pending.length+' tryout masih menunggu publikasi nilai admin.':'Tidak ada tryout yang menunggu publikasi.'),'success');
+  renderHistory(allHistory);
   renderResults($('results'),Array.isArray(data?.scores)?data.scores:[]);
   renderCertificates($('certificates'),Array.isArray(data?.certificates)?data.certificates:[]);
  }catch(e){message($('history'),'Gagal memuat: '+(e.message||String(e)),'error');message($('results'),'Tidak dapat memuat hasil.','error');message($('certificates'),'Tidak dapat memuat sertifikat.','error')}
