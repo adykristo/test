@@ -43,7 +43,7 @@ window.v13RenderEssayGrading=function(){
  '<label>Nilai <input type="number" min="0" step="0.01" id="kfScore_'+r.answer_id+'" value="'+safe(r.score??'')+'"></label>'+
  '<label>Nilai Maksimum <input type="number" min="0.01" step="0.01" id="kfMax_'+r.answer_id+'" value="'+safe(r.max_score??10)+'"></label>'+
  '<label>Catatan guru <textarea id="kfFeedback_'+r.answer_id+'">'+safe(r.teacher_feedback||'')+'</textarea></label>'+
- '<button class="btn" type="button" data-kf-grade="'+safe(r.answer_id)+'">Simpan Nilai Esai</button>'+
+ '<button class="btn" type="button" data-kf-grade="'+safe(r.answer_id)+'">Simpan &amp; Lanjut</button>'+
  '<span class="small">'+(r.graded_at?'Sudah dinilai':'Belum dinilai')+'</span></div>';
  }).join('');
  box.querySelectorAll('[data-kf-grade]').forEach(b=>b.addEventListener('click',async()=>{
@@ -53,8 +53,20 @@ window.v13RenderEssayGrading=function(){
   try{
    const {error}=await db().rpc('kf_admin_grade_essay_v15',{p_answer_id:id,p_score:score,p_max_score:max,p_feedback:$('kfFeedback_'+id)?.value||''});
    if(error)throw error;
-   alert('Nilai esai V15 berhasil disimpan. Skor sudah tersedia untuk pratinjau V15 pada pengerjaan yang sama. Nilai resmi tetap harus diterbitkan admin melalui Pusat Publikasi Nilai.');
+   let notice='Nilai esai berhasil disimpan.';
+   const current=rows.find(x=>String(x.answer_id)===String(id));
+   if(current?.attempt_id){
+     try{
+       const {data:publish,error:publishError}=await db().rpc('kf_admin_auto_publish_attempt_v16',{p_attempt:current.attempt_id});
+       if(publishError)throw publishError;
+       notice=publish?.published
+         ?('Nilai resmi otomatis diterbitkan: '+Number(publish.score).toFixed(2)+'. Peserta dapat melihat hasilnya pada halaman Nilai & Sertifikat.')
+         :('Nilai tersimpan. '+Number(publish?.pending_count||0)+' jawaban masih menunggu penilaian; belum diterbitkan.');
+     }catch(pubErr){notice='Nilai esai sudah tersimpan, tetapi penerbitan otomatis belum berhasil: '+pubErr.message+'. Gunakan Publikasi Nilai V15 untuk pemeriksaan.';}
+   }
+   const summary=$('essayGradeSummary');if(summary)summary.textContent=notice;
    await window.v13LoadEssayGrading();
+   if(summary)summary.textContent=notice;
   }catch(e){alert('Gagal menyimpan: '+e.message)}finally{b.disabled=false}
  }));
 };
