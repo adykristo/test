@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="id"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+<title>TEST · Publikasi Nilai V15 · KlinikFisikapku</title>
+<link rel="icon" href="/favicon.ico">
+<style>
+:root{font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;color:#2f1645;background:#faf6ff}*{box-sizing:border-box}body{margin:0}header{padding:28px 20px;background:linear-gradient(115deg,#4b1b80,#8831d0,#ed4ca5);color:white}header>div,main{max-width:1120px;margin:auto}header h1{font-size:clamp(23px,4vw,34px);margin:15px 0 6px}header a{color:white}header p{margin:0;opacity:.9}main{padding:22px 16px 55px}.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(270px,.8fr);gap:18px}.card{background:white;border:1px solid #ecdef4;border-radius:18px;box-shadow:0 14px 30px #6038760d;padding:22px;min-width:0}.card h2{font-size:20px;margin:0 0 14px}.muted{color:#786685;font-size:13px;line-height:1.6}.notice{background:#fff2fa;border:1px solid #f2d4ea;padding:13px;border-radius:12px;margin-bottom:18px}label{display:block;margin:13px 0 6px;font-size:13px;font-weight:750}input,select{min-height:44px;border-radius:10px;border:1px solid #d6c7e4;background:white;color:#2f1645;font:inherit;padding:11px;width:100%;min-width:0}.weights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 12px}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}button{border:none;background:linear-gradient(110deg,#702ab5,#da3f9b);border-radius:11px;padding:12px 17px;color:white;font:inherit;font-weight:700;cursor:pointer;min-height:45px}button:disabled{opacity:.5;cursor:not-allowed}.outline{background:white;color:#642b8e;border:1px solid #cdb9e1}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.status{padding:14px;border-radius:12px;background:#f4ebfa;overflow-wrap:anywhere}.ok{background:#eaf8ed;color:#156b39}.bad{background:#fff0ed;color:#a32240}.score{font-size:50px;color:#7931b3;font-weight:850;letter-spacing:-.04em;margin:14px 0}.components{margin-top:13px;display:grid;gap:8px}.component{padding:12px;border:1px solid #eee2f2;border-radius:11px;display:flex;justify-content:space-between;gap:8px}.component small{display:block;color:#7e6b86}.pill{background:#efe1f8;border-radius:20px;color:#60228e;padding:6px 10px;font-size:12px;font-weight:800}.warn{color:#a4314c}.confirmation{margin-top:14px;padding:12px;border:1px solid #edc5de;border-radius:11px;background:#fff9fd} .confirmation label{display:flex;gap:8px;align-items:start;font-weight:550;margin:0}.confirmation input{width:18px;min-height:18px;height:18px;margin:2px 0 0;flex-shrink:0}.record{padding:10px 0;border-bottom:1px solid #f0e4f5}.record:last-child{border-bottom:0}.record button{text-align:left;background:transparent;color:#54217b;padding:5px;font-size:13px;min-height:36px;width:100%;overflow-wrap:anywhere}.record button:hover{background:#faf3ff}.record small{color:#756484}.scroll{max-height:460px;overflow:auto}@media(max-width:820px){.grid{grid-template-columns:1fr}.weights{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:490px){.two,.weights{grid-template-columns:1fr 1fr}.card{padding:16px}.actions button{width:100%}.score{font-size:42px}}@media(max-width:350px){.two,.weights{grid-template-columns:1fr}}
+</style>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
+<script defer src="supabase-config.js"></script>
+<script defer src="supabase-admin.js"></script>
+</head><body>
+<header><div><a href="admin.html">← Dashboard Admin</a><h1>Pusat Publikasi Nilai</h1><p>Penilaian V15 · bobot fleksibel · riwayat nilai resmi</p></div></header>
+<main><p class="notice"><strong>Perhatian: halaman ini terhubung ke Supabase yang sedang digunakan website.</strong> Penerbitan nilai akan menyimpan data resmi. Gunakan akun dan pengerjaan uji yang telah diperiksa; tindakan ini bukan pratinjau dan dapat membuat riwayat revisi.</p>
+<div class="grid">
+<section class="card">
+<h2>Penilaian & publikasi</h2>
+<div id="session" class="status">Memeriksa sesi super admin…</div>
+<div class="two">
+<div><label for="jenjang">Jenjang</label><select id="jenjang"><option value="" selected>Semua Jenjang</option><option>SD</option><option>SMP</option><option>SMA</option></select></div>
+<div><label for="load">Pengerjaan terkirim</label><button id="load" class="outline" type="button" disabled style="width:100%">Muat daftar</button></div>
+</div>
+<label for="attempt">Pilih pengerjaan</label>
+<select id="attempt"><option value="">— Pilih dari daftar —</option></select>
+<label for="custom">Atau masukkan UUID pengerjaan</label><input id="custom" placeholder="Opsional — UUID pengerjaan" spellcheck="false">
+<div id="essaySyncStatus" class="status" role="status" aria-live="polite" style="margin:14px 0">Pilih pengerjaan agar terlihat jumlah esai yang sudah dinilai di V15.</div>
+<div class="actions" style="margin-bottom:12px"><button class="outline" type="button" id="essayStatus" disabled>Periksa Status Koreksi Esai</button><a class="outline" id="essayStudioLink" href="pembuat-soal-terpadu-uji.html?tab=essaygrade" style="padding:12px 16px;border-radius:11px;text-decoration:none;font-size:14px;font-weight:700">Buka Penilaian Esai V15</a></div>
+<p class="muted">Nilai esai V15 yang sudah dikoreksi otomatis dipakai oleh pratinjau untuk <strong>pengerjaan dan soal yang sama</strong>. Tidak perlu menyalin skor dari tabel esai lama. Bobot harus total 100%; jenis yang tidak digunakan bernilai 0.</p>
+<div class="weights">
+<div><label for="pg4">PG4 %</label><input type="number" id="pg4" min="0" max="100" step="1" value="40"></div>
+<div><label for="pg5">PG5 %</label><input type="number" id="pg5" min="0" max="100" step="1" value="0"></div>
+<div><label for="mcma">MCMA %</label><input type="number" id="mcma" min="0" max="100" step="1" value="0"></div>
+<div><label for="kategori">Kategori %</label><input type="number" id="kategori" min="0" max="100" step="1" value="0"></div>
+<div><label for="isian">Isian %</label><input type="number" id="isian" min="0" max="100" step="1" value="0"></div>
+<div><label for="esai">Esai %</label><input type="number" id="esai" min="0" max="100" step="1" value="60"></div>
+</div>
+<p class="muted">Total bobot: <strong id="total">100%</strong></p>
+<div class="actions"><button id="detect" disabled class="outline" type="button">Deteksi Jenis Soal & Atur Bobot Otomatis</button><button id="preview" disabled type="button">Hitung pratinjau</button><button class="outline" type="button" id="reset">Atur 40:60</button></div><div class="two"><div><label for="singleType">Jika hanya satu jenis soal</label><select id="singleType"><option value="">— Pilih jenis soal —</option><option value="pg4">PG4</option><option value="pg5">PG5</option><option value="mcma">MCMA</option><option value="kategori">Kategori</option><option value="isian">Isian</option><option value="esai">Esai</option></select></div><div><label for="setSingle">Bobot 100%</label><button id="setSingle" type="button" class="outline" style="width:100%">Terapkan Bobot</button></div></div><p class="muted">Atur 40:60 hanya jika pengerjaan memiliki soal PG4 dan Esai. Untuk pengerjaan yang hanya memiliki satu jenis soal, pilih jenisnya lalu Terapkan Bobot 100%.</p>
+<p id="publishHint" class="status" role="status" aria-live="polite">Langkah 1: pilih pengerjaan dan bobot soal yang sesuai, lalu klik Hitung pratinjau. Tombol terbitkan baru aktif setelah nilai lengkap dan Anda mencentang konfirmasi.</p><div class="confirmation"><label><input type="checkbox" id="ack"><span>Saya sudah memeriksa skor dan menyetujui publikasi nilai resmi untuk pengerjaan terpilih.</span></label></div>
+<div class="actions"><button id="publish" disabled type="button">Terbitkan Nilai Resmi</button></div>
+<p class="muted">Nilai resmi hanya akan diterbitkan untuk pengerjaan lengkap. Perubahan berikutnya menjadi revisi dengan riwayat, bukan menimpa hasil lama.</p>
+</section>
+<aside class="card" aria-live="polite">
+<h2>Hasil penilaian</h2>
+<div class="pill">Pratinjau / hasil resmi</div>
+<div class="score" id="score">—</div>
+<div id="status" class="status">Silakan pilih pengerjaan dan klik Hitung pratinjau.</div>
+<div id="components" class="components"></div>
+<h2 style="margin-top:26px">Nilai resmi terbit</h2><div class="two" style="margin-bottom:10px"><button id="official" class="outline" disabled type="button">Muat nilai resmi</button><button id="export" class="outline" disabled type="button">Ekspor CSV</button></div><div id="officialList" class="scroll"><p class="muted">Belum memuat nilai resmi.</p></div><h2 style="margin-top:26px">Pengerjaan terbaru</h2>
+<div id="attempts" class="scroll"><p class="muted">Belum memuat data.</p></div>
+</aside>
+</div></main>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),types=['pg4','pg5','mcma','kategori','isian','esai'];
+const validUuid=s=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+let client=null,lastPreview=null,lastSignature='',officialRows=[],attemptRows=[];
+function values(){const weights={};let sum=0;for(const key of types){const text=$(key).value.trim();const number=Number(text);if(!text||!Number.isFinite(number)||number<0||number>100)throw Error('Bobot '+key+' harus 0–100');weights[key]=number;sum+=number;}if(Math.abs(sum-100)>0.000001)throw Error('Jumlah bobot harus 100%');return weights;}
+function selected(){const id=$('custom').value.trim()||$('attempt').value;if(!validUuid(id))throw Error('Pilih pengerjaan dengan UUID valid');return id;}
+function syncStatus(){
+ const id=($('custom').value||'').trim()||$('attempt').value;
+ const data=attemptRows.find(x=>x.attempt_id===id);
+ const link=$('essayStudioLink');
+ link.href='pembuat-soal-terpadu-uji.html?tab=essaygrade'+(validUuid(id)?'&attempt='+encodeURIComponent(id):'');
+ if(!validUuid(id)){$('essaySyncStatus').textContent='Belum ada pengerjaan yang dipilih. Pilih dari daftar atau isi UUID yang benar.';return;}
+ if(!data){$('essaySyncStatus').textContent='Pengerjaan dipilih dari tautan atau UUID. Klik Periksa Status Koreksi Esai untuk melihat nilai V15 yang tersedia.';return;}
+ const graded=Number(data.graded_essay_count||0),pending=Number(data.pending_essay_count||0);
+ $('essaySyncStatus').textContent='Pengerjaan '+id.slice(0,8)+' · '+Number(data.question_count||0)+' soal · Esai sudah dinilai: '+graded+' · Esai belum dinilai: '+pending+(pending?' — buka Penilaian Esai V15 sebelum publikasi.':' — koreksi esai sudah lengkap bila ada esai; periksa pratinjau untuk nilai akhir.');
+}
+async function checkEssayStatus(){
+ if(!client)return;
+ const button=$('essayStatus');button.disabled=true;
+ try{
+  const id=selected();
+  const {data,error}=await client.rpc('kf_admin_list_essay_v15');
+  if(error)throw error;
+  const all=Array.isArray(data)?data:[];
+  const keyed=all.filter(x=>validUuid(String(x.attempt_id||'')));
+  if(all.length && keyed.length!==all.length){
+    $('essaySyncStatus').textContent='Daftar koreksi V15 memuat '+all.length+' esai, tetapi sebagian data tidak menyertakan ID pengerjaan. Gunakan jumlah esai pada daftar pengerjaan atau jalankan SQL audit per pengerjaan. Jangan menyamakan esai berdasarkan nama paket saja.';
+    $('essaySyncStatus').className='status bad';
+    return;
+  }
+  const matching=keyed.filter(x=>x.attempt_id===id);
+  const graded=matching.filter(x=>x.graded_at!=null).length;
+  const pending=matching.length-graded;
+  const other=keyed.length-matching.length;
+  $('essaySyncStatus').textContent='Esai pada pengerjaan '+id.slice(0,8)+': '+graded+' sudah dinilai, '+pending+' belum dinilai. '+other+' esai V15 lainnya milik pengerjaan berbeda. '+(!matching.length?'Tidak ditemukan entri esai untuk ID ini; periksa jumlah soal pada daftar pengerjaan dan gunakan bobot esai 0% hanya jika memang tidak ada esai.':'Gunakan Deteksi Jenis Soal lalu Hitung pratinjau untuk nilai resmi.');
+  $('essaySyncStatus').className='status '+(pending?'bad':'ok');
+ }catch(e){$('essaySyncStatus').textContent='Pemeriksaan esai gagal: '+(e.message||e);$('essaySyncStatus').className='status bad';}
+ finally{button.disabled=!client;}
+}
+$('essayStatus').addEventListener('click',checkEssayStatus);
+function signature(){return JSON.stringify({id:selected(),weights:values()});}
+function invalidate(){lastPreview=null;lastSignature='';$('publish').disabled=true;$('ack').checked=false;$('publishHint').textContent='Nilai belum siap diterbitkan. Hitung pratinjau yang lengkap, kemudian centang persetujuan.';}
+function notify(message,cls){$('status').textContent=message;$('status').className='status '+(cls||'');}
+function total(){let t=0;for(const x of types)t+=Number($(x).value||0);$('total').textContent=t+'%';$('total').className=Math.abs(t-100)<.000001?'':'warn';invalidate();}
+for(const id of types)$(id).addEventListener('input',total);
+for(const id of ['attempt','custom'])$(id).addEventListener('input',()=>{invalidate();syncStatus()});
+$('ack').addEventListener('change',()=>{try{const permitted=Boolean($('ack').checked&&lastPreview?.ready===true&&lastSignature===signature()&&client);$('publish').disabled=!permitted;$('publishHint').textContent=permitted?'✓ Pratinjau lengkap dan sudah disetujui. Tombol Terbitkan Nilai Resmi sekarang aktif.':lastPreview?.ready?'Centang persetujuan setelah memeriksa nilai agar tombol aktif.':'Tombol belum aktif karena belum ada pratinjau nilai lengkap.';}catch(_){$('publish').disabled=true}});
+$('reset').addEventListener('click',()=>{for(const x of types)$(x).value=x==='pg4'?40:x==='esai'?60:0;total()});
+$('detect').addEventListener('click',async()=>{
+ if(!client)return;
+ const btn=$('detect');btn.disabled=true;invalidate();
+ try{
+  const id=selected();
+  notify('Mendeteksi jenis soal dari Supabase tanpa mengubah data…');
+  // The V15 preview rejects any nonzero weight for a missing question type.
+  // Start with all six, remove only the type reported missing by the RPC,
+  // and retry until every remaining type is genuinely present.
+  // This also supports mixed PG4/MCMA/essay assessments, unlike trying one
+  // question type at a time (which fails for multi-type assessments).
+  const remaining=new Set(types);
+  let result=null;
+  for(let attempt=0;attempt<types.length;attempt++){
+    if(!remaining.size)break;
+    const list=types.filter(t=>remaining.has(t));
+    const base=Math.floor(10000/list.length)/100;
+    const weights=Object.fromEntries(types.map(t=>[t,0]));
+    list.forEach((t,i)=>{weights[t]=i===list.length-1?Number((100-base*(list.length-1)).toFixed(2)):base});
+    const {data,error}=await client.rpc('kf_admin_preview_weighted_score_v15',{p_attempt:id,p_weights:weights});
+    if(!error){result=data;break;}
+    const message=String(error.message||'');
+    const missing=message.match(/WEIGHT_FOR_MISSING_TYPE:\s*(pg4|pg5|mcma|kategori|isian|esai)\b/i);
+    if(!missing)throw error;
+    const type=missing[1].toLowerCase();
+    if(!remaining.has(type))throw Error('Deteksi berhenti: tipe soal tidak konsisten. '+message);
+    remaining.delete(type);
+  }
+  if(!result||!result.components)throw Error('Tidak dapat mendeteksi jenis soal pada pengerjaan ini.');
+  const found=types.filter(t=>Object.prototype.hasOwnProperty.call(result.components,t));
+  if(!found.length)throw Error('Tidak ada jenis soal yang terbaca pada pengerjaan ini.');
+  const base=Math.floor(10000/found.length)/100;
+  for(const type of types)$(type).value=0;
+  found.forEach((type,i)=>{$(type).value=i===found.length-1?Number((100-base*(found.length-1)).toFixed(2)):base});
+  total();
+  notify('Jenis soal ditemukan: '+found.map(t=>t.toUpperCase()).join(', ')+'. Bobot dibagi rata; periksa sebelum menerbitkan nilai.','ok');
+  $('publishHint').textContent='Jenis soal terdeteksi. Klik Hitung pratinjau, lalu periksa hasil dan centang persetujuan. Bobot dapat disesuaikan sebelum pratinjau.';
+ }catch(e){notify('Deteksi gagal: '+(e.message||e),'bad');}
+ finally{btn.disabled=!client;}
+});
+$('setSingle').addEventListener('click',()=>{const chosen=$('singleType').value;if(!types.includes(chosen)){notify('Pilih jenis soal terlebih dahulu (PG4, PG5, MCMA, Kategori, Isian, atau Esai).','bad');return}for(const type of types)$(type).value=type===chosen?100:0;total();notify('Bobot '+chosen.toUpperCase()+' 100% sudah diatur. Klik Hitung pratinjau untuk memastikan jenis soal sesuai.');});
+async function boot(){
+ try{if(!window.KFSupabaseAdmin?.client)throw Error('Koneksi admin Supabase belum siap');
+  if(!await window.KFSupabaseAdmin.ensureAdmin())throw Error('Akun bukan super admin aktif');
+  client=window.KFSupabaseAdmin.client;$('session').textContent='✓ Super admin terverifikasi';$('session').className='status ok';
+  const deepLinkedAttempt=new URLSearchParams(window.location.search).get('attempt')||'';
+  if(validUuid(deepLinkedAttempt)){
+    $('custom').value=deepLinkedAttempt;
+    notify('Pengerjaan dari halaman Penilaian Esai V15 sudah dipilih. Klik Deteksi Jenis Soal lalu Hitung pratinjau.','ok');
+    $('publishHint').textContent='ID pengerjaan diisi dari tautan koreksi esai. Publikasi tetap memerlukan pratinjau lengkap dan persetujuan admin.';
+  }
+  $('load').disabled=false;$('preview').disabled=false;$('detect').disabled=false;$('official').disabled=false;$('essayStatus').disabled=false;syncStatus();
+ }catch(e){$('session').textContent=e.message||String(e);$('session').className='status bad';}
+}
+$('load').addEventListener('click',async()=>{
+ if(!client)return;
+ const button=$('load');button.disabled=true;
+ try{
+  const records=[];const seen=new Set();const pageSize=50;let offset=0;
+  // Ambil seluruh halaman, bukan hanya 50 record pertama.
+  for(let page=0;page<40;page++){
+   const {data,error}=await client.rpc('kf_admin_list_submitted_attempts_v15',{
+    p_jenjang:$('jenjang').value||null,p_limit:pageSize,p_offset:offset
+   });
+   if(error)throw error;
+   const batch=Array.isArray(data)?data:[];
+   for(const rec of batch){if(rec.attempt_id&&!seen.has(rec.attempt_id)){seen.add(rec.attempt_id);records.push(rec)}}
+   if(batch.length<pageSize)break;
+   offset+=pageSize;
+   if(page===39)notify('Batas pemuatan 2.000 pengerjaan tercapai; gunakan filter jenjang untuk mempersempit.');
+  }
+  attemptRows=records;
+  const selector=$('attempt');selector.replaceChildren(new Option('— Pilih dari daftar —',''));
+  const list=$('attempts');list.replaceChildren();
+  for(const rec of records){
+   const label=[rec.jenjang,rec.package_name,(rec.question_count||0)+' soal',Number(rec.graded_essay_count||0)+' esai dinilai',Number(rec.pending_essay_count||0)+' esai tertunda',String(rec.attempt_id||'').slice(0,8)].filter(Boolean).join(' · ');
+   selector.add(new Option(label,rec.attempt_id));
+   const wrap=document.createElement('div');wrap.className='record';const b=document.createElement('button');b.type='button';b.textContent=label;
+   b.addEventListener('click',()=>{$('custom').value='';selector.value=rec.attempt_id;invalidate();syncStatus();window.scrollTo({top:0,behavior:'smooth'});});
+   const small=document.createElement('small');small.textContent='Kirim: '+(rec.submitted_at?new Date(rec.submitted_at).toLocaleString('id-ID'):'—');
+   wrap.append(b,small);list.append(wrap);
+  }
+  if(!records.length)list.textContent='Belum ada pengerjaan dalam filter ini. Coba Semua Jenjang atau gunakan UUID pengerjaan.';
+  syncStatus();
+  notify(records.length+' pengerjaan selesai dimuat. Jika UUID valid dapat dinilai tetapi tidak muncul, periksa filter pada RPC kf_admin_list_submitted_attempts_v15.',records.length?'ok':'');
+ }catch(e){notify('Daftar gagal: '+(e.message||e),'bad');}finally{button.disabled=false;}
+});
+$('official').addEventListener('click',async()=>{
+ if(!client)return;
+ const btn=$('official');btn.disabled=true;
+ try{
+  const {data,error}=await client.rpc('kf_admin_latest_published_results_v15',
+    {p_jenjang:$('jenjang').value||null,p_limit:100,p_offset:0});
+  if(error)throw error;
+  officialRows=Array.isArray(data)?data:[];
+  const list=$('officialList');list.replaceChildren();
+  for(const item of officialRows){
+   const wrap=document.createElement('div');wrap.className='record';
+   const label=document.createElement('strong');
+   label.textContent=(item.jenjang||'—')+' · '+(item.assessment_name||'Asesmen')+' · Nilai '+item.score;
+   const meta=document.createElement('small');
+   meta.textContent='Percobaan '+String(item.attempt_id).slice(0,8)+'… · '+(item.revision_count||1)+' versi · '+new Date(item.published_at).toLocaleString('id-ID');
+   wrap.append(label,meta);list.append(wrap);
+  }
+  if(!officialRows.length)list.textContent='Belum ada nilai resmi pada jenjang ini.';
+  $('export').disabled=officialRows.length===0;
+  notify(officialRows.length+' nilai resmi dimuat.',officialRows.length?'ok':'');
+ }catch(e){notify('Gagal membaca laporan: '+(e.message||e),'bad')}
+ finally{btn.disabled=false;}
+});
+$('export').addEventListener('click',()=>{
+ if(!officialRows.length)return;
+ const headers=['jenjang','assessment_name','attempt_id','user_id','score','policy_version','published_at','revision_count'];
+ const csv=[headers.join(','),...officialRows.map(row=>headers.map(h=>{
+   const v=String(row[h]??'');
+   // Avoid Excel formula injection and preserve CSV quotes.
+   const safe=/^[=+@\-\t\r]/.test(v)?"'"+v:v;
+   return '"'+safe.replaceAll('"','""')+'"';
+ }).join(','))].join('\r\n');
+ const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='nilai-resmi-v15.csv';a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
+});
+$('preview').addEventListener('click',async()=>{
+ if(!client)return;invalidate();$('preview').disabled=true;$('score').textContent='—';$('components').replaceChildren();
+ try{const id=selected(),weights=values(),sig=signature();notify('Menghitung pratinjau…');
+  const {data,error}=await client.rpc('kf_admin_preview_weighted_score_v15',{p_attempt:id,p_weights:weights});if(error)throw error;
+  lastPreview=data;lastSignature=sig;
+  $('score').textContent=typeof data.final_score==='number'?data.final_score.toFixed(2):'—';
+  notify(data.ready?'✓ Nilai lengkap. Periksa sebelum diterbitkan.':'Nilai belum lengkap: '+data.pending_count+' soal tertunda',data.ready?'ok':'bad');$('publishHint').textContent=data.ready?'Langkah 2: periksa skor, kemudian centang persetujuan di bawah untuk mengaktifkan tombol Terbitkan Nilai Resmi.':'Penerbitan ditahan: masih ada soal yang belum selesai dikoreksi.';
+  for(const [name,row] of Object.entries(data.components||{})){const wrap=document.createElement('div');wrap.className='component';const left=document.createElement('div');const label=document.createElement('strong');label.textContent=name.toUpperCase();const hint=document.createElement('small');hint.textContent=row.graded+'/'+row.count+' soal · Bobot '+row.weight+'%';left.append(label,hint);const number=document.createElement('strong');number.textContent=row.percentage===null?'Menunggu':Number(row.percentage).toFixed(2)+'%';wrap.append(left,number);$('components').appendChild(wrap);}
+ }catch(e){const message=String(e.message||e);const missing=message.match(/WEIGHT_FOR_MISSING_TYPE:\s*([a-z0-9_]+)/i);notify(missing?'Jenis soal '+missing[1].toUpperCase()+' tidak ada pada pengerjaan ini, tetapi diberi bobot lebih dari 0%. Ubah bobot jenis tersebut menjadi 0%, lalu alokasikan 100% ke jenis soal yang benar. Gunakan pilihan “Jika hanya satu jenis soal” jika sesuai.':'Pratinjau gagal: '+message,'bad');$('publishHint').textContent='Penerbitan ditahan karena pratinjau gagal. Perbaiki bobot atau koreksi soal, kemudian hitung ulang.'}finally{$('preview').disabled=!client;}
+});
+$('publish').addEventListener('click',async()=>{
+ if(!client)return;const button=$('publish');button.disabled=true;
+ try{if(!$('ack').checked||!lastPreview?.ready||lastSignature!==signature())throw Error('Hitung ulang pratinjau dan konfirmasi nilai dahulu');
+  const id=selected();const score=lastPreview.final_score;
+  if(!window.confirm('Terbitkan nilai resmi '+score.toFixed(2)+' untuk pengerjaan '+id+'?'))return;
+  const {data,error}=await client.rpc('kf_admin_publish_weighted_result_v15',{p_attempt:id,p_weights:values(),p_expected_score:score});if(error)throw error;
+  notify((data.already_published?'Nilai sudah pernah diterbitkan':'✓ Nilai resmi berhasil diterbitkan')+' · Skor '+data.score+' · Versi '+data.policy_version,'ok');invalidate();$('publishHint').textContent='Publikasi selesai. Klik Muat nilai resmi untuk memeriksa hasil yang tersimpan.';await $('official').click();
+ }catch(e){notify('Publikasi gagal: '+(e.message||e),'bad')}finally{button.disabled=true;}
+});
+window.addEventListener('load',boot);
+})();
+</script></body></html>
