@@ -1157,7 +1157,7 @@ async function generateAIBatch(batchCount){
 }
 let aiEditorQueue=[],aiEditorIndex=0;
 async function generateAI(){
- let total=Math.max(1,Math.min(50,Number($('aiCount').value)||1)),btn=event?.currentTarget;
+ let total=Math.max(1,Math.min(50,Number($('aiCount').value)||1)),btn=(typeof event!=='undefined'&&event?.currentTarget instanceof HTMLElement)?event.currentTarget:null;
  aiDrafts=[];aiEditorQueue=[];aiEditorIndex=0;renderAI();if(btn)btn.disabled=true;
  try{
    let remaining=total,all=[];
@@ -1167,6 +1167,7 @@ async function generateAI(){
  }catch(e){
    if($('aiResults'))$('aiResults').innerHTML='<div class="notice bad">✗ '+esc(e.message)+'</div>';
    if($('aiStatus'))$('aiStatus').textContent='✗ '+e.message;
+   throw e;
  }finally{if(btn)btn.disabled=false}
 }
 function loadAIQueueToEditor(i){
