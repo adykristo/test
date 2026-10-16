@@ -1133,6 +1133,9 @@ async function generateAIBatch(batchCount){
  let baseInstruction=($('aiMaterial').value||'').trim(),type=$('aiType').value;
  let pgRule=['pg4','pg5','mcma'].includes(type)?'WAJIB setiap soal pilihan ganda memiliki pertanyaan, semua opsi '+(type==='pg4'?'A-D':'A-E')+', kunci jawaban yang benar, dan pembahasan lengkap. Jangan gabungkan opsi ke dalam teks pertanyaan.':'';
  if(type==='kategori')pgRule='WAJIB PG Kompleks Kategori: kembalikan type "kategori", question sebagai batang soal, statements sebagai array minimal 2 objek {text:"pernyataan lengkap",answer:"Benar" atau "Salah"}. Masing-masing pernyataan wajib memiliki kunci Benar/Salah. Jangan masukkan daftar pernyataan hanya ke question atau options. Sertakan explanation.';
+ if(type==='isian')pgRule='WAJIB tipe isian: kembalikan type "isian", question, short_answer berisi jawaban singkat yang benar, dan explanation lengkap.';
+ if(type==='esai')pgRule='WAJIB tipe esai: kembalikan type "esai", question, model_answer berupa contoh jawaban/penyelesaian yang benar, dan explanation lengkap.';
+ if(type==='mcma')pgRule+=' MCMA dapat memiliki lebih dari satu jawaban benar. Kembalikan answer_key sebagai array huruf misalnya ["A","C"].';
  let payload={jenjang:$('aiJenjang').value,mapel:$('aiMapel').value||'Fisika',topik:$('aiTopik').value,tipe:type,sulit:$('aiDiff').value,jumlah:n,
  prompt:[baseInstruction,
  'WAJIB gunakan Bahasa Indonesia untuk seluruh pertanyaan, opsi jawaban, kunci, dan pembahasan. Jika bahan/perintah awal berbahasa Inggris, terjemahkan hasil akhirnya ke Bahasa Indonesia.',
@@ -1366,13 +1369,13 @@ function v13NormalizeQuestionObject(q){
 }
 function cleanAIMathText(v){return v13NormalizeMathReadable(v)}
 function normalizeAIQuestion(q){
- let type=String(q.type||q.tipe||$('aiType').value).toLowerCase(),n=type==='pg4'?4:5;
+ let type=String(q.type||q.tipe||$('aiType').value).toLowerCase();if(!['pg4','pg5','mcma','kategori','isian','esai'].includes(type))type=$('aiType').value;let n=type==='pg4'?4:5;
  let rawOptions=q.opsi||q.options||q.pilihan||q.choices||q.answers?.options||[];
  if(rawOptions&&typeof rawOptions==='object'&&!Array.isArray(rawOptions))rawOptions=Object.keys(rawOptions).sort().map(k=>rawOptions[k]);
  let options=(Array.isArray(rawOptions)?rawOptions:[]).map(x=>cleanAIMathText(typeof x==='object'?(x.text||x.value||x.label||''):x));
- let rawKey=q.kunci??q.answer??q.correctAnswer??q.jawaban_benar??q.answers?.keys??q.answers?.key??'';
+ let rawKey=q.kunci??q.answer_key??q.answer??q.correctAnswer??q.correct_answer??q.jawaban_benar??q.answers?.keys??q.answers?.key??'';
  let keyList=Array.isArray(rawKey)?rawKey:String(rawKey??'').split(/[|,;\s]+/).map(x=>x.trim()).filter(Boolean);
- let keys=keyList.map(x=>typeof x==='number'?x:(/^\d+$/.test(String(x))?Number(x):'ABCDE'.indexOf(String(x).trim().toUpperCase().replace(/[^A-E]/g,'')))).filter(x=>x>=0&&x<n);
+ let keys=keyList.map(x=>{if(typeof x==='number')return x;const v=String(x).trim().toUpperCase();return /^[A-E]$/.test(v)?'ABCDE'.indexOf(v):/^\d+$/.test(v)?Number(v):-1}).filter(x=>x>=0&&x<n);
  let answers={options:options.slice(0,n),keys,short:'',essayKey:'',statements:[]};
  if(q.answers&&typeof q.answers==='object')answers=Object.assign(answers,JSON.parse(JSON.stringify(q.answers)));
  if(['pg5','pg4','mcma'].includes(type)){answers.options=options.length?options.slice(0,n):(answers.options||[]).slice(0,n);answers.keys=keys.length?keys:(answers.keys||[]);}
@@ -1382,11 +1385,11 @@ function normalizeAIQuestion(q){
   answers.statements=list.map(x=>{
     const item=typeof x==='string'?{text:x}:x||{};
     const val=String(item.answer??item.key??item.kunci??item.jawaban??item.kategori??'').trim().toLowerCase();
-    return {text:cleanAIMathText(item.text||item.pernyataan||item.statement||item.soal||''),image:item.image||'',answer:/^(salah|false|0|tidak|f)$/.test(val)?'Salah':'Benar'};
+    return {text:cleanAIMathText(item.text||item.pernyataan||item.statement||item.soal||''),image:item.image||'',answer:/^(salah|false|0|tidak|f)$/.test(val)?'Salah':/^(benar|true|1|ya|b|t)$/.test(val)?'Benar':''};
   }).filter(x=>x.text);
  }
- if(type==='isian')answers={options:[],keys:[],short:cleanAIMathText(q.jawaban||q.short||answers.short||rawKey||''),essayKey:'',statements:[]};
- if(type==='esai')answers={options:[],keys:[],short:'',essayKey:cleanAIMathText(q.jawaban||q.essayKey||answers.essayKey||rawKey||''),statements:[]};
+ if(type==='isian')answers={options:[],keys:[],short:cleanAIMathText(q.jawaban||q.short||q.short_answer||answers.short||(typeof rawKey==='string'?rawKey:'')||''),essayKey:'',statements:[]};
+ if(type==='esai')answers={options:[],keys:[],short:'',essayKey:cleanAIMathText(q.jawaban||q.essayKey||q.essay_key||q.model_answer||answers.essayKey||(typeof rawKey==='string'?rawKey:'')||''),statements:[]};
  // Jika backend masih menggabungkan batang soal dan opsi A-D/E dalam satu teks, pecah otomatis.
  let questionText=cleanAIMathText(q.question||q.soal||q.pertanyaan||'');
  if(['pg4','pg5','mcma'].includes(type)&&!options.length){
@@ -1397,6 +1400,10 @@ function normalizeAIQuestion(q){
      answers.options=options;
    }
  }
+  if(['pg4','pg5','mcma'].includes(type)&&(!answers.options||answers.options.filter(x=>String(x||'').trim()).length<n))throw new Error('Respons Gemini tidak memiliki '+n+' opsi lengkap untuk '+type.toUpperCase()+'.');
+ if(['pg4','pg5','mcma'].includes(type)&&(!answers.keys||!answers.keys.length))throw new Error('Respons Gemini tidak memiliki kunci jawaban untuk '+type.toUpperCase()+'.');
+ if(type==='kategori'&&(!answers.statements?.length||answers.statements.some(x=>!x.answer)))throw new Error('Gemini belum mengirim pernyataan kategori beserta kunci Benar/Salah yang lengkap.');
+ if(type==='isian'&&!answers.short)throw new Error('Gemini belum mengirim kunci isian.');
  let explanation=v13FormatExplanation(q.explanation||q.pembahasan||q.solution||q.solusi||q.penjelasan||'');
  return v13NormalizeQuestionObject({id:q.id||uid(),type,jenjang:q.jenjang||$('aiJenjang').value,mapel:q.mapel||$('aiMapel').value,kelas:q.kelas||'',difficulty:q.difficulty||q.sulit||$('aiDiff').value,topik:q.topik||$('aiTopik').value,subtopik:q.subtopik||'',status:'Draft',tags:q.tags||'AI',question:questionText,image:q.image||'',imageRotation:Number(q.imageRotation)||0,answers,explanation,explanationImage:q.explanationImage||'',score:Number(q.score)||1,scoring:q.scoring||'exact',source:q.source||'Gemini AI',aiProvider:'gemini',reviewStatus:'draft',updatedAt:new Date().toISOString()});
 }
