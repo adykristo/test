@@ -2643,7 +2643,8 @@ async function loadPackageCore(){
 }
 function fillPackageSelectors(){
  const level=(document.getElementById("topicLevelFilter")?.value||"SEMUA").toUpperCase();
- const topicPackages=level==="SEMUA"?KF_PACKAGES_NEW:KF_PACKAGES_NEW.filter(p=>(p.jenjang||"").toUpperCase()===level);
+ const mainPackages=KF_PACKAGES_NEW.filter(kfIsMainCatalogPackage);
+ const topicPackages=level==="SEMUA"?mainPackages:mainPackages.filter(p=>(p.jenjang||"").toUpperCase()===level);
  const sel=document.getElementById("topicPackageSelect");
  if(sel){
    const old=sel.value;
@@ -2652,7 +2653,7 @@ function fillPackageSelectors(){
  }
  ["modul","video"].forEach(k=>{
    const box=document.getElementById(k+"PackageChecks");
-   if(box)box.innerHTML=KF_PACKAGES_NEW.filter(p=>p.aktif).map(p=>`<label class="package-check"><input type="checkbox" value="${p.id}" onchange="updateTopicChoices('${k}')"><span>${escMember((p.jenjang?("["+p.jenjang+"] "):"")+p.nama)}</span></label>`).join("")
+   if(box)box.innerHTML=KF_PACKAGES_NEW.filter(p=>p.aktif&&kfIsMainCatalogPackage(p)).map(p=>`<label class="package-check"><input type="checkbox" value="${p.id}" onchange="updateTopicChoices('${k}')"><span>${escMember((p.jenjang?("["+p.jenjang+"] "):"")+p.nama)}</span></label>`).join("")
  });
  updateTopicChoices("modul");updateTopicChoices("video");renderTopikPaket();
 }
@@ -2677,6 +2678,13 @@ function packageLevel(p){
  if(k.startsWith("SD-"))return "SD";
  return "LAINNYA";
 }
+function kfIsMainCatalogPackage(p){
+ const level=String(p?.jenjang||"").toUpperCase();
+ const code=String(p?.kode||"").toUpperCase();
+ const order=Number(p?.urutan);
+ const base={SD:0,SMP:100,SMA:200}[level];
+ return base!==undefined&&order>=base+1&&order<=base+12&&new RegExp("^"+level+"-0?([1-9]|1[0-2])$").test(code);
+}
 function nextPackageCode(level){
  const prefix=String(level||"").toUpperCase();
  const nums=KF_PACKAGES_NEW.map(p=>String(p.kode||"")).filter(k=>k.startsWith(prefix+"-")).map(k=>Number(k.split("-").pop())).filter(Number.isFinite);
@@ -2687,8 +2695,8 @@ async function renderPaketBaru(reload=true){
  try{
    if(reload)await loadPackageCore();
    const all=KF_PACKAGES_NEW.filter(p=>!["_PAYMENT_CONFIG_","__PENGATURAN_PEMBAYARAN__"].includes(p.nama));
-   const counts={SD:0,SMP:0,SMA:0};all.forEach(p=>{const l=packageLevel(p);if(counts[l]!==undefined)counts[l]++});
-   [["Semua",all.length],["SD",counts.SD],["SMP",counts.SMP],["SMA",counts.SMA]].forEach(([k,v])=>{const e=document.getElementById("countPaket"+k);if(e)e.textContent=v});
+   const counts={SD:0,SMP:0,SMA:0};all.filter(kfIsMainCatalogPackage).forEach(p=>{const l=packageLevel(p);if(counts[l]!==undefined)counts[l]++});
+   [["Semua",all.filter(kfIsMainCatalogPackage).length],["SD",counts.SD],["SMP",counts.SMP],["SMA",counts.SMA]].forEach(([k,v])=>{const e=document.getElementById("countPaket"+k);if(e)e.textContent=v});
    const rows=KF_PACKAGE_LEVEL_FILTER==="SEMUA"?all:all.filter(p=>packageLevel(p)===KF_PACKAGE_LEVEL_FILTER);
    const box=document.getElementById("paketListBaru");if(!box)return;
    box.innerHTML=rows.length?rows.map(p=>`<div class="package-card-new"><div class="head"><div><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><b style="font-size:16px">${escMember(p.nama)}</b><span class="package-level-badge">${escMember(packageLevel(p))}</span></div><div class="package-code">${escMember(p.kode||"Tanpa kode")}</div><div class="meta"><span class="soft-chip">${moneyID(p.harga)}</span><span class="soft-chip">${p.durasi_hari} hari</span><span class="soft-chip">${p.aktif?"Aktif":"Nonaktif"}</span><span class="soft-chip">${KF_TOPICS_NEW.filter(t=>t.package_id===p.id).length} topik</span></div><p class="sub">${escMember(p.deskripsi||"Deskripsi belum diisi")}</p></div><div class="row-actions"><button class="btn ghost small" onclick="editPaketBaru('${p.id}')">Edit</button><button class="btn ghost small" onclick="togglePaketBaru('${p.id}',${!p.aktif})">${p.aktif?"Nonaktifkan":"Aktifkan"}</button><button class="btn danger small" onclick="hapusPaketBaru('${p.id}')">Hapus</button></div></div></div>`).join(""):'<div class="sub">Belum ada paket pada jenjang ini.</div>';
