@@ -1132,6 +1132,7 @@ async function generateAIBatch(batchCount){
  let n=Math.max(1,Math.min(10,Number(batchCount)||1)),cfg=getConnection();
  let baseInstruction=($('aiMaterial').value||'').trim(),type=$('aiType').value;
  let pgRule=['pg4','pg5','mcma'].includes(type)?'WAJIB setiap soal pilihan ganda memiliki pertanyaan, semua opsi '+(type==='pg4'?'A-D':'A-E')+', kunci jawaban yang benar, dan pembahasan lengkap. Jangan gabungkan opsi ke dalam teks pertanyaan.':'';
+ if(type==='kategori')pgRule='WAJIB PG Kompleks Kategori: kembalikan type "kategori", question sebagai batang soal, statements sebagai array minimal 2 objek {text:"pernyataan lengkap",answer:"Benar" atau "Salah"}. Masing-masing pernyataan wajib memiliki kunci Benar/Salah. Jangan masukkan daftar pernyataan hanya ke question atau options. Sertakan explanation.';
  let payload={jenjang:$('aiJenjang').value,mapel:$('aiMapel').value||'Fisika',topik:$('aiTopik').value,tipe:type,sulit:$('aiDiff').value,jumlah:n,
  prompt:[baseInstruction,
  'WAJIB gunakan Bahasa Indonesia untuk seluruh pertanyaan, opsi jawaban, kunci, dan pembahasan. Jika bahan/perintah awal berbahasa Inggris, terjemahkan hasil akhirnya ke Bahasa Indonesia.',
@@ -1375,7 +1376,15 @@ function normalizeAIQuestion(q){
  let answers={options:options.slice(0,n),keys,short:'',essayKey:'',statements:[]};
  if(q.answers&&typeof q.answers==='object')answers=Object.assign(answers,JSON.parse(JSON.stringify(q.answers)));
  if(['pg5','pg4','mcma'].includes(type)){answers.options=options.length?options.slice(0,n):(answers.options||[]).slice(0,n);answers.keys=keys.length?keys:(answers.keys||[]);}
- if(type==='kategori')answers.statements=(q.statements||q.pernyataan||answers.statements||[]).map(x=>({text:cleanAIMathText(x.text||x.pernyataan||''),image:x.image||'',answer:x.answer||x.key||x.kunci||'Benar'}));
+ if(type==='kategori'){
+  const raw=q.statements||q.pernyataan||q.pernyataan_kategori||q.items||q.kategori||answers.statements||[];
+  const list=Array.isArray(raw)?raw:(raw&&typeof raw==='object'?Object.values(raw):[]);
+  answers.statements=list.map(x=>{
+    const item=typeof x==='string'?{text:x}:x||{};
+    const val=String(item.answer??item.key??item.kunci??item.jawaban??item.kategori??'').trim().toLowerCase();
+    return {text:cleanAIMathText(item.text||item.pernyataan||item.statement||item.soal||''),image:item.image||'',answer:/^(salah|false|0|tidak|f)$/.test(val)?'Salah':'Benar'};
+  }).filter(x=>x.text);
+ }
  if(type==='isian')answers={options:[],keys:[],short:cleanAIMathText(q.jawaban||q.short||answers.short||rawKey||''),essayKey:'',statements:[]};
  if(type==='esai')answers={options:[],keys:[],short:'',essayKey:cleanAIMathText(q.jawaban||q.essayKey||answers.essayKey||rawKey||''),statements:[]};
  // Jika backend masih menggabungkan batang soal dan opsi A-D/E dalam satu teks, pecah otomatis.
