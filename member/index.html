@@ -2341,7 +2341,7 @@ function kfRenderServerPackageBoxes(){
  let cards=(kind)=>KF_SERVER_PACKAGES.filter(p=>p.kind===kind).map(p=>{
   let now=Date.now(),start=p.starts_at?new Date(p.starts_at).getTime():0,end=p.ends_at?new Date(p.ends_at).getTime():0,blocked=start&&now<start?"Belum dimulai":end&&now>end?"Sudah berakhir":kind==="tryout"&&Number(p.attempts_used)>=Number(p.max_attempts)?"Kesempatan habis":"";
   const schedule=kind==="tryout"?(start?"<br>Mulai: "+new Date(p.starts_at).toLocaleString("id-ID",{timeZone:"Asia/Jakarta"}):"")+(end?" · Berakhir: "+new Date(p.ends_at).toLocaleString("id-ID",{timeZone:"Asia/Jakarta"}):""):"";
-  return `<div class="kf-pkg-card ${blocked?"kf-pkg-locked":""}"><h3>${kind==="tryout"?"🏆":"✎"} ${esc(p.name)}</h3><div class="kf-pkg-meta">${Number(p.question_count||0)} soal${kind==="tryout"?` · ${p.duration_minutes||0} menit · Kesempatan ${Number(p.attempts_used||0)}/${Number(p.max_attempts||1)}`:""}${schedule}${blocked?"":`<br><b>Tersedia untuk paket langganan Anda</b>`}</div><button class="btn ${blocked?"btn-ghost":"btn-main"}" ${blocked?"disabled":`onclick="kfStartServerPackage('${p.id}')"`}>${blocked?blocked:"Mulai"}</button>${kind==="tryout"&&Number(p.attempts_used||0)>0?` <button class="btn btn-ghost" type="button" onclick="kfOpenTryoutHistory(\'${p.id}\')">📖 Lihat Pembahasan</button>`:""}</div>`;
+  return `<div class="kf-pkg-card ${blocked?"kf-pkg-locked":""}"><h3>${kind==="tryout"?"🏆":"✎"} ${esc(p.name)}</h3><div class="kf-pkg-meta">${Number(p.question_count||0)} soal${kind==="tryout"?` · ${p.duration_minutes||0} menit · Kesempatan ${Number(p.attempts_used||0)}/${Number(p.max_attempts||1)}`:""}${schedule}${blocked?"":`<br><b>Tersedia untuk paket langganan Anda</b>`}</div><button class="btn ${blocked?"btn-ghost":"btn-main"}" ${blocked?"disabled":`onclick="kfStartServerPackage('${p.id}')"`}>${blocked?blocked:"Mulai"}</button>${kind==="tryout"&&Number(p.attempts_used||0)>0?` <button class="btn btn-ghost" type="button" onclick="kfOpenTryoutHistory(\'${p.id}\')">📖 Lihat Pembahasan</button>`:""}${kind==="latihan"?` <button class="btn btn-ghost" type="button" onclick="kfOpenPracticeHistory(\'${p.id}\')">📖 Lihat Nilai & Pembahasan</button>`:""}</div>`;
  }).join("");
  if(filterAktif==="soal"){
    old.innerHTML=`<div class="server-section-head"><small>LATIHAN INTERAKTIF V14</small><h2>✍️ Latihan Interaktif</h2><p>Latihan V14 yang dipublikasikan Admin dan tersedia untuk paket aktif Anda.</p></div><div class="kf-pkg-grid">${cards("latihan")||'<div class="empty learning-empty">Belum ada latihan yang tersedia pada paket Anda.</div>'}</div>`;
@@ -2356,6 +2356,24 @@ function kfRenderServerPackageBoxes(){
  }
  old.style.display=(filterAktif==="soal"||filterAktif==="tryout")?"block":"none";
 }
+async function kfOpenPracticeHistory(packageId){
+ try{
+  const pack=KF_SERVER_PACKAGES.find(p=>String(p.id)===String(packageId)&&p.kind==="latihan");
+  if(!pack)throw Error("Latihan tidak tersedia untuk akun ini.");
+  const db=window.KFMemberAuth?.client;
+  if(!db)throw Error("Sesi peserta belum siap. Silakan muat ulang.");
+  const res=await db.rpc("kf_my_submitted_practice_reviews_v20",{p_package:packageId});
+  if(res.error)throw res.error;
+  const attempts=Array.isArray(res.data)?res.data:[];
+  if(!attempts.length){KFMemberUI.toast("Belum ada latihan yang selesai dikumpulkan.","err",4500);return;}
+  buka("paketRunner");
+  const body=document.getElementById("kfPkgRunnerBody");if(!body)return;
+  const buttons=attempts.map(a=>'<button class="btn btn-ghost" type="button" data-attempt="'+esc(a.attempt_id)+'">Pengerjaan '+Number(a.attempt_no||1)+'</button>').join(" ");
+  body.innerHTML='<div class="card"><h2>📖 Riwayat Nilai & Pembahasan Latihan</h2><p>Pilih pengerjaan yang sudah dikirim. Pembahasan esai tersedia setelah nilai resmi diterbitkan admin.</p><div style="display:flex;gap:9px;flex-wrap:wrap">'+buttons+'</div></div>';
+  body.querySelectorAll("[data-attempt]").forEach(btn=>btn.addEventListener("click",()=>kfShowReview(btn.dataset.attempt)));
+ }catch(e){KFMemberUI.toast("Gagal membuka riwayat latihan: "+(e.message||e),"err",5500)}
+}
+
 async function kfOpenTryoutHistory(packageId){
  try{
   const pack=KF_SERVER_PACKAGES.find(p=>String(p.id)===String(packageId)&&p.kind==="tryout");
